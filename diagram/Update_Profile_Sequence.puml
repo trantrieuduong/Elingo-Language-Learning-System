@@ -1,0 +1,84 @@
+@startuml
+
+skinparam sequenceArrowThickness 1.5
+skinparam roundcorner 8
+skinparam responseMessageBelowArrow true
+skinparam sequenceGroupBorderThickness 1.5
+
+skinparam participant {
+    BackgroundColor #EEF4FF
+    BorderColor     #4A7CFF
+    FontStyle       Bold
+}
+skinparam actor {
+    BackgroundColor #FEFEFE
+    BorderColor     #333333
+}
+skinparam sequence {
+    LifeLineBorderColor  #888888
+    GroupBorderColor     #888888
+    GroupBodyBackgroundColor #FAFAFA
+    DividerBackgroundColor   #E8E8E8
+}
+
+actor "Người dùng" as User
+participant "Client" as client
+participant "UserController" as controller
+participant "UserService" as service
+participant "FileService" as fileService
+participant "UserRepo" as repo
+database "Database (MySQL)" as DB
+
+User -> client : updateProfile(displayName, avatar)
+activate client
+
+client -> controller : updateProfile(displayName, avatar)
+activate controller
+
+controller -> service : validateUpdateProfile(displayName, avatar)
+activate service
+
+alt avatar không hợp lệ
+    service --> controller : avatarValidationError
+    controller --> client : apiResponse
+    client --> User : Thông báo lỗi:\n"Ảnh đại diện không hợp lệ"
+
+else displayName không hợp lệ
+    service --> controller : displayNameValidationError
+    controller --> client : apiResponse
+    client --> User : Thông báo lỗi:\n"Tên hiển thị không hợp lệ"
+
+else dữ liệu hợp lệ
+    alt avatar có thay đổi
+        service -> fileService : uploadAvatar(avatar)
+        activate fileService
+        fileService --> service: avatarUrl
+        deactivate fileService
+    end
+
+    service -> repo : updateUser(user.id,\ndisplayName, avatarUrl)
+    activate repo
+
+    repo -> DB : updateUser(user.id,\ndisplayName, avatarUrl)
+    activate DB
+
+    DB --> repo : result
+    deactivate DB
+
+    repo --> service : result
+    deactivate repo
+
+    service --> controller : result
+    deactivate service
+
+    controller --> client : apiResponse
+    deactivate controller
+
+    client --> User : Thông báo:\n"Cập nhật thông tin thành công",\nLàm mới giao diện
+
+    deactivate service
+    deactivate controller
+    deactivate client
+end
+
+@enduml

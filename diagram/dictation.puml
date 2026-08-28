@@ -1,0 +1,61 @@
+@startuml
+actor "Người dùng" as User
+participant "Client" as UI
+participant "ProgressController" as controller
+participant "ProgressService" as service
+participant "UserLessonProgressRepo" as repo
+participant "GamificationRepo" as gamificationRepo
+database "Database (MySQL)" as DB
+
+User -> UI: patchSegmentProgress(lessonId, payload)
+
+UI -> controller: updateSegmentProgress(lessonId, payload)
+
+controller -> service: updateSegmentProgress(lessonId, segmentId, payload)
+
+service -> service: calculateDictionAccuracy(segmentId,\npayload.attemptCount, payload.hintUsedCount)
+
+service -> repo: updateSegmentProgress(lessonId, segmentId,\nprogressPct, lastStartMs, status)
+
+repo -> DB : updateSegmentProgress(lessonId, segmentId,\nprogressPct, lastStartMs, status)
+
+opt Điểm đánh giá vượt ngưỡng đạt
+    service -> gamificationRepo: updateUserGamification(user.id, xp)
+    gamificationRepo -> DB: updateUserGamification(user.id, xp)
+    DB --> gamificationRepo: result
+    gamificationRepo --> service: result
+end
+
+DB --> repo: result
+
+repo --> service: result
+
+service --> controller: result
+
+controller --> UI: apiResponse
+
+UI --> User: Hiển thị điểm số
+
+loop Còn phân đoạn tiếp theo
+service -> repo: getNextSegment(lessonId, segmentId)
+repo -> DB: getNextSegment(lessonId, segmentId)
+DB --> repo: result
+repo --> service: result
+service --> controller: result
+controller --> UI: apiResponse
+UI --> User: Hiển thị phân đoạn tiếp theo
+
+User --> UI: Tiếp tục học
+UI --> controller: Tiếp tục đánh giá\nvà hiện phân đoạn tiếp theo
+else Học hết phân đoạn
+controller -> service: completeLesson(userId, lessonId)
+service -> repo: completeLesson(userId, lessonId, status)
+repo -> DB: updateLesson(userId, lessonId, status)
+
+DB --> repo: result
+repo --> service: result
+service --> controller: result
+controller --> UI: apiResponse
+UI --> User: Thông báo hoàn thành bài học
+end
+@enduml
