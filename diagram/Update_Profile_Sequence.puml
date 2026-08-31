@@ -23,23 +23,41 @@ skinparam sequence {
 
 actor "Người dùng" as User
 participant "Client" as client
+participant "FileController" as fileController
 participant "UserController" as controller
-participant "UserService" as service
 participant "FileService" as fileService
+participant "UserService" as service
 participant "UserRepo" as repo
 database "Database (MySQL)" as DB
 
-User -> client : updateProfile(displayName, avatar)
+User -> client: updateProfile(displayName, avatarURL)
 activate client
 
-client -> controller : updateProfile(displayName, avatar)
+client -> fileController: requestUploadAvatar(fileName,\ncontentType)
+activate fileController
+
+fileController -> fileService: generatePresignedUploadURL(\nfileName, contentType)
+activate fileService
+
+fileService --> fileController: presignedURL
+deactivate fileService
+
+fileController --> client: apiResponse
+deactivate fileController
+
+client -> controller : updateProfile(displayName,\navatarURL)
 activate controller
 
-controller -> service : validateUpdateProfile(displayName, avatar)
+controller -> service : validateUpdateProfile(\ndisplayName, avatarURL)
 activate service
 
-alt avatar không hợp lệ
-    service --> controller : avatarValidationError
+service -> fileService : validateS3URL(\ndisplayName, avatarURL)
+activate fileService
+
+alt avatarURL không hợp lệ
+    fileService --> controller : avatarValidationError
+    deactivate fileService
+
     controller --> client : apiResponse
     client --> User : Thông báo lỗi:\n"Ảnh đại diện không hợp lệ"
 
@@ -49,17 +67,10 @@ else displayName không hợp lệ
     client --> User : Thông báo lỗi:\n"Tên hiển thị không hợp lệ"
 
 else dữ liệu hợp lệ
-    alt avatar có thay đổi
-        service -> fileService : uploadAvatar(avatar)
-        activate fileService
-        fileService --> service: avatarUrl
-        deactivate fileService
-    end
-
-    service -> repo : updateUser(user.id,\ndisplayName, avatarUrl)
+    service -> repo : updateUser(user.id,\ndisplayName, avatarURL)
     activate repo
 
-    repo -> DB : updateUser(user.id,\ndisplayName, avatarUrl)
+    repo -> DB : updateUser(user.id,\ndisplayName, avatarURL)
     activate DB
 
     DB --> repo : result

@@ -36,15 +36,14 @@ activate client
 client -> controller : updateEmail(email)
 activate controller
 
-controller -> service : validateUpdateEmail(email)
-activate service
-
 alt email không hợp lệ
-    service --> controller : emailValidationError
     controller --> client : apiResponse
     client --> User : Thông báo lỗi:\n"Email không hợp lệ"
 
 else email hợp lệ
+    controller -> service : updateEmail(email)
+    activate service
+
     service -> service : otp = generateOTP()
     activate service
     deactivate service
