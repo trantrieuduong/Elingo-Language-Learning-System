@@ -14,9 +14,9 @@ frontend/
 │   │   ├── community/      # Module cộng đồng (Bài viết, bình luận,...)
 │   │   ├── gamification/   # Module huy hiệu, bảng xếp hạng, điểm thưởng
 │   │   ├── learning/       # Module nội dung học tập
-│   │   │   ├── flashcard/  # Module học qua thẻ ghi nhớ
-│   │   │   ├── videolesson/# Module bài học video
 │   │   │   ├── dictation/  # Module nghe chép chính tả
+│   │   │   ├── flashcard/  # Module học qua thẻ ghi nhớ
+│   │   │   ├── lesson/# Module bài học video
 │   │   │   └── shadowing/  # Module luyện nói đuổi
 │   │   ├── notification/   # Module thông báo hệ thống
 │   │   ├── premium/        # Module quản lý gói Premium
@@ -37,25 +37,25 @@ frontend/
 ```
 
 ## 1. `assets/`:
-- Chứa các tài nguyên tĩnh không bị thay đổi khi biên dịch như hình ảnh, icons, font chữ, hoặc global styles.
+Chứa các tài nguyên tĩnh không bị thay đổi khi biên dịch như hình ảnh, icons, font chữ, hoặc global styles.
 
 ## 2. `components/`:
-- Chứa các thành phần UI cơ bản, độc lập với nghiệp vụ nhằm tái sử dụng thành phần UI ở nhiều nơi, đảm bảo tính nhất quán của giao diện. (VD: `Button`, `Modal`, `Sidebar`, `Navbar`, `Table`,...).
+Chứa các thành phần UI cơ bản, độc lập với nghiệp vụ nhằm tái sử dụng thành phần UI ở nhiều nơi, đảm bảo tính nhất quán của giao diện. (VD: `Button`, `Modal`, `Sidebar`, `Navbar`, `Table`,...).
 
 ## 3. `context/`:
-- Quản lý trạng thái toàn cục thông qua React Context API (Giữ các trạng thái như thông tin user đang đăng nhập `AuthContext`, cấu hình giao diện Sáng/Tối `ThemeContext`).
+Quản lý trạng thái toàn cục thông qua React Context API (Giữ các trạng thái như thông tin user đang đăng nhập `AuthContext`, cấu hình giao diện Sáng/Tối `ThemeContext`).
 
 ## 4. `services/`:
-- Cấu hình instance của Axios nhằm tự động đính kèm Token, xử lý lỗi tập trung.
+Cấu hình instance của Axios nhằm tự động đính kèm Token, xử lý lỗi tập trung.
 
 ## 5. `utils/`:
-- Chứa các hàm tiện ích nhằm xử lý các logic thuần túy không liên quan trực tiếp đến UI (VD: format ngày giờ `dateUtils.js`, format tiền tệ, validation regex).
+Chứa các hàm tiện ích nhằm xử lý các logic thuần túy không liên quan trực tiếp đến UI (VD: format ngày giờ `dateUtils.js`, format tiền tệ, validation regex).
 
 ## 6. `tests/`:
-- Chứa các file kiểm thử tự động (Unit Test / Integration Test), đảm bảo tính đúng đắn của logic và components trước khi deploy.
+Chứa các file kiểm thử tự động (Unit Test / Integration Test), đảm bảo tính đúng đắn của logic và components trước khi deploy.
 
 ## 7. `modules/`
-Thư mục `modules/` áp dụng kiến trúc phân chia theo tính năng. Mỗi thư mục con đại diện cho một mảng nghiệp vụ độc lập và đồng bộ với backend. Mỗi module con chia tiếp thành `components/`, `pages/`, `api.js` dành riêng cho module đó
+Áp dụng kiến trúc phân chia theo tính năng. Mỗi thư mục con đại diện cho một mảng nghiệp vụ độc lập và đồng bộ với backend. Mỗi module con chia tiếp thành `components/`, `pages/`, `api.js` dành riêng cho module đó
 
 * **`admin/`**: Giao diện và logic dành cho quản trị viên (Quản lý người dùng, nội dung học, gói Premium, xử lý báo cáo).
 * **`auth/`**: Giao diện và logic toàn bộ luồng xác thực (Trang Đăng nhập, Đăng ký, Xác thực OTP, Quên mật khẩu).
@@ -66,7 +66,7 @@ Thư mục `modules/` áp dụng kiến trúc phân chia theo tính năng. Mỗi
     - `flashcard/`: Giao diện và logic học qua thẻ ghi nhớ (Học, lưu từ mới, ôn tập từ đã lưu).
     - `dictation/`: Giao diện và logic nghe chép chính tả.
     - `shadowing/`: Giao diện và logic luyện nói đuổi.
-    - `videolesson/`: Giao diện và logic quản lý bài học video (CRUD bài học).
+    - `lesson/`: Giao diện và logic quản lý bài học video (CRUD bài học).
 * **`notification/`**: Giao diện và logic xử lý việc hiển thị thông báo.
 * **`premium/`**: Giao diện và logic chức năng quản lý các gói Premium, thanh toán, trạng thái thành viên Premium.
 * **`progress/`**: Giao diện và logic hiển thị biểu đồ, thống kê tiến độ cá nhân của người học (Thời gian học, số từ vựng thuộc, Phần trăm hoàn thành các bài học).
