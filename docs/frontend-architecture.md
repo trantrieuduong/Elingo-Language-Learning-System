@@ -28,12 +28,12 @@ frontend/
 │   ├── services/           # Cấu hình API client (Axios)
 │   ├── utils/              # Các hàm hỗ trợ, constants, formatters
 │   ├── tests/              # Thư mục chứa Unit/Integration Tests
-│   ├── App.tsx             # Component gốc của ứng dụng
+│   ├── App.jsx             # Component gốc của ứng dụng
 │   ├── index.css           # CSS toàn cục
-│   └── main.tsx            # Điểm entry của React
+│   └── main.jsx            # Điểm entry của React
 ├── .env                    # Biến môi trường
 ├── package.json            # Thông tin dependencies và scripts
-└── vite.config.ts          # Cấu hình Vite
+└── vite.config.js          # Cấu hình Vite
 ```
 
 ## 1. `assets/`:
@@ -49,7 +49,7 @@ frontend/
 - Cấu hình instance của Axios nhằm tự động đính kèm Token, xử lý lỗi tập trung.
 
 ## 5. `utils/`:
-- Chứa các hàm tiện ích nhằm xử lý các logic thuần túy không liên quan trực tiếp đến UI (VD: format ngày giờ `dateUtils.ts`, format tiền tệ, validation regex).
+- Chứa các hàm tiện ích nhằm xử lý các logic thuần túy không liên quan trực tiếp đến UI (VD: format ngày giờ `dateUtils.js`, format tiền tệ, validation regex).
 
 ## 6. `tests/`:
 - Chứa các file kiểm thử tự động (Unit Test / Integration Test), đảm bảo tính đúng đắn của logic và components trước khi deploy.
