@@ -1,0 +1,67 @@
+@startuml erd-07-speaking-notification
+skinparam linetype ortho
+hide circle
+skinparam nodesep 40
+skinparam ranksep 60
+
+entity "users" as USERS {
+  * id : BIGINT UNSIGNED
+  --
+  * email : VARCHAR(255)
+  * username : VARCHAR(255)
+  * password_hash : VARCHAR(255)
+  * full_name : VARCHAR(150)
+  avatar_url : VARCHAR(500)
+  * role : ENUM
+  * is_verified : BOOLEAN
+  * is_active : BOOLEAN
+  ban_reason : VARCHAR(500)
+  password_changed_at : DATETIME
+  username_changed_at : DATETIME
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+entity "speaking_rooms" as SPEAKING_ROOMS {
+  * id : BIGINT UNSIGNED
+  --
+  * room_code : VARCHAR(20)
+  * host_id : BIGINT UNSIGNED <<FK>>
+  topic : VARCHAR(255)
+  * max_participants : TINYINT UNSIGNED
+  * status : ENUM
+  started_at : DATETIME
+  ended_at : DATETIME
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+entity "speaking_participants" as SPEAKING_PARTICIPANTS {
+  * id : BIGINT UNSIGNED
+  --
+  * room_id : BIGINT UNSIGNED <<FK>>
+  * user_id : BIGINT UNSIGNED <<FK>>
+  * role : ENUM
+  joined_at : DATETIME
+  left_at : DATETIME
+}
+
+entity "notifications" as NOTIFICATIONS {
+  * id : BIGINT UNSIGNED
+  --
+  * user_id : BIGINT UNSIGNED <<FK>>
+  * type : VARCHAR(100)
+  * title : VARCHAR(255)
+  content : VARCHAR(500)
+  ref_type : VARCHAR(50)
+  ref_id : BIGINT UNSIGNED
+  * is_read : BOOLEAN
+  created_at : DATETIME
+}
+
+USERS ||--o{ SPEAKING_ROOMS : "tạo (host)"
+SPEAKING_ROOMS ||--o{ SPEAKING_PARTICIPANTS : "có người tham gia"
+USERS ||--o{ SPEAKING_PARTICIPANTS : "tham gia"
+USERS ||--o{ NOTIFICATIONS : "nhận thông báo"
+
+@enduml

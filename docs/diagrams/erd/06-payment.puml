@@ -1,0 +1,97 @@
+@startuml erd-06-payment
+skinparam linetype ortho
+hide circle
+skinparam nodesep 40
+skinparam ranksep 60
+
+entity "users" as USERS {
+  * id : BIGINT UNSIGNED
+  --
+  * email : VARCHAR(255)
+  * username : VARCHAR(255)
+  * password_hash : VARCHAR(255)
+  * full_name : VARCHAR(150)
+  avatar_url : VARCHAR(500)
+  * role : ENUM
+  * is_verified : BOOLEAN
+  * is_active : BOOLEAN
+  ban_reason : VARCHAR(500)
+  password_changed_at : DATETIME
+  username_changed_at : DATETIME
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+entity "payment_providers" as PAYMENT_PROVIDERS {
+  * id : BIGINT UNSIGNED
+  --
+  * code : VARCHAR(50)
+  * name : VARCHAR(150)
+  * is_active : BOOLEAN
+  created_at : DATETIME
+}
+
+entity "premium_plans" as PREMIUM_PLANS {
+  * id : BIGINT UNSIGNED
+  --
+  * name : VARCHAR(150)
+  * price : DECIMAL(12,2)
+  * currency : VARCHAR(10)
+  * duration_days : INT UNSIGNED
+  * is_active : BOOLEAN
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+entity "user_subscriptions" as USER_SUBSCRIPTIONS {
+  * id : BIGINT UNSIGNED
+  --
+  * user_id : BIGINT UNSIGNED <<FK>>
+  * plan_id : BIGINT UNSIGNED <<FK>>
+  * status : ENUM
+  * start_at : DATETIME
+  * end_at : DATETIME
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+entity "payment_transactions" as PAYMENT_TRANSACTIONS {
+  * id : BIGINT UNSIGNED
+  --
+  subscription_id : BIGINT UNSIGNED <<FK>>
+  * user_id : BIGINT UNSIGNED <<FK>>
+  * plan_id : BIGINT UNSIGNED <<FK>>
+  * provider_id : BIGINT UNSIGNED <<FK>>
+  * amount : DECIMAL(12,2)
+  * currency : VARCHAR(10)
+  * provider_ref_code : VARCHAR(100)
+  metadata : JSON
+  * status : ENUM
+  paid_at : DATETIME
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+entity "payment_webhook_logs" as PAYMENT_WEBHOOK_LOGS {
+  * id : BIGINT UNSIGNED
+  --
+  * provider_id : BIGINT UNSIGNED <<FK>>
+  transaction_id : BIGINT UNSIGNED <<FK>>
+  event_id : VARCHAR(150)
+  * payload : JSON
+  signature_valid : BOOLEAN
+  * status : ENUM
+  received_at : DATETIME
+  processed_at : DATETIME
+}
+
+PREMIUM_PLANS ||--o{ USER_SUBSCRIPTIONS : "được đăng ký"
+USERS ||--o{ USER_SUBSCRIPTIONS : "có gói đăng ký"
+USER_SUBSCRIPTIONS |o--o{ PAYMENT_TRANSACTIONS : "có giao dịch"
+USERS ||--o{ PAYMENT_TRANSACTIONS : "thực hiện"
+PREMIUM_PLANS ||--o{ PAYMENT_TRANSACTIONS : "thanh toán cho"
+PAYMENT_PROVIDERS ||--o{ PAYMENT_TRANSACTIONS : "xử lý qua"
+PAYMENT_PROVIDERS ||--o{ PAYMENT_WEBHOOK_LOGS : "nhận webhook từ"
+PAYMENT_TRANSACTIONS |o--o{ PAYMENT_WEBHOOK_LOGS : "liên kết với webhook"
+
+@enduml

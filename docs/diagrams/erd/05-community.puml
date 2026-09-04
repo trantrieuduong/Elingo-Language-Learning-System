@@ -1,0 +1,135 @@
+@startuml erd-05-community
+skinparam linetype ortho
+hide circle
+skinparam nodesep 40
+skinparam ranksep 60
+
+entity "users" as USERS {
+  * id : BIGINT UNSIGNED
+  --
+  * email : VARCHAR(255)
+  * username : VARCHAR(255)
+  * password_hash : VARCHAR(255)
+  * full_name : VARCHAR(150)
+  avatar_url : VARCHAR(500)
+  * role : ENUM
+  * is_verified : BOOLEAN
+  * is_active : BOOLEAN
+  ban_reason : VARCHAR(500)
+  password_changed_at : DATETIME
+  username_changed_at : DATETIME
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+entity "post_groups" as POST_GROUPS {
+  * id : BIGINT UNSIGNED
+  --
+  * group_name : VARCHAR(255)
+  description : VARCHAR(500)
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+entity "posts" as POSTS {
+  * id : BIGINT UNSIGNED
+  --
+  * user_id : BIGINT UNSIGNED <<FK>>
+  * group_id : BIGINT UNSIGNED <<FK>>
+  * title : VARCHAR(255)
+  * content : TEXT
+  * status : ENUM
+  * like_count : INT UNSIGNED
+  * comment_count : INT UNSIGNED
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+entity "post_moderation_logs" as POST_MODERATION_LOGS {
+  * id : BIGINT UNSIGNED
+  --
+  * post_id : BIGINT UNSIGNED <<FK>>
+  * actor_type : ENUM
+  actor_id : BIGINT UNSIGNED <<FK>>
+  * action : ENUM
+  ai_label : VARCHAR(100)
+  ai_score : DECIMAL(5,4)
+  note : VARCHAR(500)
+  created_at : DATETIME
+}
+
+entity "post_media" as POST_MEDIA {
+  * id : BIGINT UNSIGNED
+  --
+  * post_id : BIGINT UNSIGNED <<FK>>
+  * media_type : ENUM
+  * media_url : VARCHAR(500)
+  * order : INT UNSIGNED
+}
+
+entity "comments" as COMMENTS {
+  * id : BIGINT UNSIGNED
+  --
+  * post_id : BIGINT UNSIGNED <<FK>>
+  * user_id : BIGINT UNSIGNED <<FK>>
+  parent_comment_id : BIGINT UNSIGNED <<FK>>
+  * content : TEXT
+  image_url : VARCHAR(500)
+  * like_count : INT UNSIGNED
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+entity "comment_likes" as COMMENT_LIKES {
+  * comment_id : BIGINT UNSIGNED <<FK>>
+  * user_id : BIGINT UNSIGNED <<FK>>
+  --
+  created_at : DATETIME
+}
+
+entity "post_likes" as POST_LIKES {
+  * post_id : BIGINT UNSIGNED <<FK>>
+  * user_id : BIGINT UNSIGNED <<FK>>
+  --
+  created_at : DATETIME
+}
+
+entity "reports" as REPORTS {
+  * id : BIGINT UNSIGNED
+  --
+  * reporter_id : BIGINT UNSIGNED <<FK>>
+  * target_type : ENUM
+  * target_id : BIGINT UNSIGNED
+  description : VARCHAR(1000)
+  * status : ENUM
+  resolved_by : BIGINT UNSIGNED <<FK>>
+  resolved_at : DATETIME
+  resolution_note : VARCHAR(500)
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+entity "report_images" as REPORT_IMAGES {
+  * id : BIGINT UNSIGNED
+  --
+  * report_id : BIGINT UNSIGNED <<FK>>
+  * image_url : VARCHAR(500)
+}
+
+POST_GROUPS ||--o{ POSTS : "có bài viết"
+USERS ||--o{ POSTS : "đăng"
+POSTS ||--o{ POST_MODERATION_LOGS : "có nhật ký kiểm duyệt"
+USERS |o--o{ POST_MODERATION_LOGS : "kiểm duyệt bởi (nếu ADMIN)"
+POSTS ||--o{ POST_MEDIA : "đính kèm"
+POSTS ||--o{ COMMENTS : "có bình luận"
+USERS ||--o{ COMMENTS : "viết"
+COMMENTS |o--o{ COMMENTS : "trả lời (parent_comment_id)"
+COMMENTS ||--o{ COMMENT_LIKES : "được thích"
+USERS ||--o{ COMMENT_LIKES : "thích"
+POSTS ||--o{ POST_LIKES : "được thích"
+USERS ||--o{ POST_LIKES : "thích"
+USERS ||--o{ REPORTS : "báo cáo"
+USERS |o--o{ REPORTS : "giải quyết bởi"
+REPORTS ||--o{ REPORT_IMAGES : "đính kèm ảnh"
+
+@enduml

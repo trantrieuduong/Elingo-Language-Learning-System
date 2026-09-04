@@ -1,0 +1,141 @@
+@startuml erd-01-vocabulary
+skinparam linetype ortho
+hide circle
+skinparam nodesep 40
+skinparam ranksep 60
+
+entity "users" as USERS {
+  * id : BIGINT UNSIGNED
+  --
+  * email : VARCHAR(255)
+  * username : VARCHAR(255)
+  * password_hash : VARCHAR(255)
+  * full_name : VARCHAR(150)
+  avatar_url : VARCHAR(500)
+  * role : ENUM
+  * is_verified : BOOLEAN
+  * is_active : BOOLEAN
+  ban_reason : VARCHAR(500)
+  password_changed_at : DATETIME
+  username_changed_at : DATETIME
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+entity "tags" as TAGS {
+  * id : BIGINT UNSIGNED
+  --
+  * code : VARCHAR(100)
+  * label : VARCHAR(150)
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+entity "cefr_levels" as CEFR_LEVELS {
+  * id : BIGINT UNSIGNED
+  --
+  * code : VARCHAR(10)
+  * label : VARCHAR(100)
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+entity "decks" as DECKS {
+  * id : BIGINT UNSIGNED
+  --
+  * title : VARCHAR(255)
+  * slug : VARCHAR(255)
+  description : TEXT
+  * is_premium : BOOLEAN
+  cover_image_url : VARCHAR(500)
+  * status : ENUM
+  * owner_type : ENUM
+  owner_id : BIGINT UNSIGNED <<FK>>
+  * topic_count : INT UNSIGNED
+  * card_count : INT UNSIGNED
+  published_at : DATETIME
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+entity "deck_tags" as DECK_TAGS {
+  * deck_id : BIGINT UNSIGNED <<FK>>
+  * tag_id : BIGINT UNSIGNED <<FK>>
+}
+
+entity "deck_cefr_levels" as DECK_CEFR_LEVELS {
+  * deck_id : BIGINT UNSIGNED <<FK>>
+  * cefr_level_id : BIGINT UNSIGNED <<FK>>
+}
+
+entity "topics" as TOPICS {
+  * id : BIGINT UNSIGNED
+  --
+  * deck_id : BIGINT UNSIGNED <<FK>>
+  * name : VARCHAR(255)
+  * slug : VARCHAR(255)
+  * order : INT UNSIGNED
+  * card_count : INT UNSIGNED
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+entity "cards" as CARDS {
+  * id : BIGINT UNSIGNED
+  --
+  * deck_id : BIGINT UNSIGNED <<FK>>
+  * topic_id : BIGINT UNSIGNED <<FK>>
+  * order : INT UNSIGNED
+  * term : VARCHAR(255)
+  pos : VARCHAR(50)
+  translation : VARCHAR(500)
+  explanation_vi : TEXT
+  explanation_en : TEXT
+  examples_vi : TEXT
+  examples_en : TEXT
+  image_url : VARCHAR(500)
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+entity "card_phonetics" as CARD_PHONETICS {
+  * id : BIGINT UNSIGNED
+  --
+  * card_id : BIGINT UNSIGNED <<FK>>
+  * text : VARCHAR(255)
+  audio_url : VARCHAR(500)
+  * locale : VARCHAR(10)
+}
+
+entity "user_card_states" as USER_CARD_STATES {
+  * id : BIGINT UNSIGNED
+  --
+  * card_id : BIGINT UNSIGNED <<FK>>
+  * deck_id : BIGINT UNSIGNED <<FK>>
+  topic_id : BIGINT UNSIGNED <<FK>>
+  * user_id : BIGINT UNSIGNED <<FK>>
+  * srs_ease_factor : DECIMAL(4,2)
+  * srs_interval : INT UNSIGNED
+  srs_last_grade : TINYINT UNSIGNED
+  srs_next_review_at : DATETIME
+  * flags_starred : BOOLEAN
+  * flags_hidden : BOOLEAN
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+USERS |o--o{ DECKS : "sở hữu (nếu owner_type=USER)"
+DECKS ||--o{ DECK_TAGS : "gắn nhãn"
+TAGS ||--o{ DECK_TAGS : "được gán cho"
+DECKS ||--o{ DECK_CEFR_LEVELS : "gắn nhãn"
+CEFR_LEVELS ||--o{ DECK_CEFR_LEVELS : "được gán cho"
+DECKS ||--o{ TOPICS : "chia thành"
+DECKS ||--o{ CARDS : "chứa"
+TOPICS ||--o{ CARDS : "bao gồm"
+CARDS ||--o{ CARD_PHONETICS : "có phát âm"
+CARDS ||--o{ USER_CARD_STATES : "có trạng thái học"
+DECKS ||--o{ USER_CARD_STATES : "thuộc bộ từ"
+TOPICS |o--o{ USER_CARD_STATES : "thuộc chủ đề"
+USERS ||--o{ USER_CARD_STATES : "học"
+
+@enduml

@@ -1,0 +1,133 @@
+@startuml erd-02-learning
+skinparam linetype ortho
+hide circle
+skinparam nodesep 40
+skinparam ranksep 60
+
+entity "users" as USERS {
+  * id : BIGINT UNSIGNED
+  --
+  * email : VARCHAR(255)
+  * username : VARCHAR(255)
+  * password_hash : VARCHAR(255)
+  * full_name : VARCHAR(150)
+  avatar_url : VARCHAR(500)
+  * role : ENUM
+  * is_verified : BOOLEAN
+  * is_active : BOOLEAN
+  ban_reason : VARCHAR(500)
+  password_changed_at : DATETIME
+  username_changed_at : DATETIME
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+entity "tags" as TAGS {
+  * id : BIGINT UNSIGNED
+  --
+  * code : VARCHAR(100)
+  * label : VARCHAR(150)
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+entity "cefr_levels" as CEFR_LEVELS {
+  * id : BIGINT UNSIGNED
+  --
+  * code : VARCHAR(10)
+  * label : VARCHAR(100)
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+entity "lessons" as LESSONS {
+  * id : BIGINT UNSIGNED
+  --
+  * title : VARCHAR(255)
+  * slug : VARCHAR(255)
+  description : TEXT
+  * is_premium : BOOLEAN
+  * status : ENUM
+  published_at : DATETIME
+  duration_ms : INT UNSIGNED
+  * source_url : VARCHAR(500)
+  thumbnail_url : VARCHAR(500)
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+entity "lesson_tags" as LESSON_TAGS {
+  * lesson_id : BIGINT UNSIGNED <<FK>>
+  * tag_id : BIGINT UNSIGNED <<FK>>
+}
+
+entity "lesson_cefr_levels" as LESSON_CEFR_LEVELS {
+  * lesson_id : BIGINT UNSIGNED <<FK>>
+  * cefr_level_id : BIGINT UNSIGNED <<FK>>
+}
+
+entity "lesson_segments" as LESSON_SEGMENTS {
+  * id : BIGINT UNSIGNED
+  --
+  * lesson_id : BIGINT UNSIGNED <<FK>>
+  * start_ms : INT UNSIGNED
+  * end_ms : INT UNSIGNED
+  * transcript_original : TEXT
+  * transcript_normalized : TEXT
+  translation : TEXT
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+entity "user_lesson_progress" as USER_LESSON_PROGRESS {
+  * id : BIGINT UNSIGNED
+  --
+  * lesson_id : BIGINT UNSIGNED <<FK>>
+  * user_id : BIGINT UNSIGNED <<FK>>
+  * dictation_status : ENUM
+  * dictation_progress_pct : DECIMAL(5,2)
+  dictation_last_start_ms : INT UNSIGNED
+  * shadowing_status : ENUM
+  * shadowing_progress_pct : DECIMAL(5,2)
+  shadowing_last_start_ms : INT UNSIGNED
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+entity "user_segment_progress" as USER_SEGMENT_PROGRESS {
+  * id : BIGINT UNSIGNED
+  --
+  * lesson_id : BIGINT UNSIGNED <<FK>>
+  * segment_id : BIGINT UNSIGNED <<FK>>
+  * user_id : BIGINT UNSIGNED <<FK>>
+  * dictation_attempt_count : INT UNSIGNED
+  * dictation_best_score : DECIMAL(5,2)
+  * dictation_hint_used_count : INT UNSIGNED
+  * shadowing_attempt_count : INT UNSIGNED
+  * shadowing_best_score : DECIMAL(5,2)
+  shadowing_latest_audio_url : VARCHAR(500)
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+entity "segment_word_accuracy" as SEGMENT_WORD_ACCURACY {
+  * id : BIGINT UNSIGNED
+  --
+  * user_segment_progress_id : BIGINT UNSIGNED <<FK>>
+  * word : VARCHAR(100)
+  * accuracy : DECIMAL(5,2)
+}
+
+LESSONS ||--o{ LESSON_TAGS : "gắn nhãn"
+TAGS ||--o{ LESSON_TAGS : "được gán cho"
+LESSONS ||--o{ LESSON_CEFR_LEVELS : "gắn nhãn"
+CEFR_LEVELS ||--o{ LESSON_CEFR_LEVELS : "được gán cho"
+LESSONS ||--o{ LESSON_SEGMENTS : "chia thành"
+LESSONS ||--o{ USER_LESSON_PROGRESS : "có tiến độ học"
+USERS ||--o{ USER_LESSON_PROGRESS : "có tiến độ học"
+LESSONS ||--o{ USER_SEGMENT_PROGRESS : "có chi tiết tiến độ đoạn"
+LESSON_SEGMENTS ||--o{ USER_SEGMENT_PROGRESS : "có chi tiết tiến độ"
+USERS ||--o{ USER_SEGMENT_PROGRESS : "có chi tiết tiến độ"
+USER_SEGMENT_PROGRESS ||--o{ SEGMENT_WORD_ACCURACY : "chứa chi tiết từ"
+
+@enduml

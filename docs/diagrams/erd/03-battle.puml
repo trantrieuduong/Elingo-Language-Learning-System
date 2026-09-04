@@ -1,0 +1,110 @@
+@startuml erd-03-battle
+skinparam linetype ortho
+hide circle
+skinparam nodesep 40
+skinparam ranksep 60
+
+entity "users" as USERS {
+  * id : BIGINT UNSIGNED
+  --
+  * email : VARCHAR(255)
+  * username : VARCHAR(255)
+  * password_hash : VARCHAR(255)
+  * full_name : VARCHAR(150)
+  avatar_url : VARCHAR(500)
+  * role : ENUM
+  * is_verified : BOOLEAN
+  * is_active : BOOLEAN
+  ban_reason : VARCHAR(500)
+  password_changed_at : DATETIME
+  username_changed_at : DATETIME
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+entity "cards" as CARDS {
+  * id : BIGINT UNSIGNED
+  --
+  * deck_id : BIGINT UNSIGNED <<FK>>
+  * topic_id : BIGINT UNSIGNED <<FK>>
+  * order : INT UNSIGNED
+  * term : VARCHAR(255)
+  pos : VARCHAR(50)
+  translation : VARCHAR(500)
+  explanation_vi : TEXT
+  explanation_en : TEXT
+  examples_vi : TEXT
+  examples_en : TEXT
+  image_url : VARCHAR(500)
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+entity "battle_matches" as BATTLE_MATCHES {
+  * id : BIGINT UNSIGNED
+  --
+  * mode : ENUM
+  * match_type : ENUM
+  room_code : VARCHAR(20)
+  * status : ENUM
+  winner_id : BIGINT UNSIGNED <<FK>>
+  * total_rounds : TINYINT UNSIGNED
+  started_at : DATETIME
+  finished_at : DATETIME
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+entity "battle_participants" as BATTLE_PARTICIPANTS {
+  * id : BIGINT UNSIGNED
+  --
+  * match_id : BIGINT UNSIGNED <<FK>>
+  * user_id : BIGINT UNSIGNED <<FK>>
+  * score : INT UNSIGNED
+  * correct_count : INT UNSIGNED
+  * is_winner : BOOLEAN
+}
+
+entity "battle_questions" as BATTLE_QUESTIONS {
+  * id : BIGINT UNSIGNED
+  --
+  * match_id : BIGINT UNSIGNED <<FK>>
+  card_id : BIGINT UNSIGNED <<FK>>
+  * round_no : TINYINT UNSIGNED
+  * term : VARCHAR(255)
+  * correct_answer : VARCHAR(255)
+  * time_limit_ms : INT UNSIGNED
+  created_at : DATETIME
+}
+
+entity "battle_question_options" as BATTLE_QUESTION_OPTIONS {
+  * id : BIGINT UNSIGNED
+  --
+  * question_id : BIGINT UNSIGNED <<FK>>
+  * option_text : VARCHAR(255)
+  * is_correct : BOOLEAN
+}
+
+entity "battle_answers" as BATTLE_ANSWERS {
+  * id : BIGINT UNSIGNED
+  --
+  * question_id : BIGINT UNSIGNED <<FK>>
+  * participant_id : BIGINT UNSIGNED <<FK>>
+  selected_option_id : BIGINT UNSIGNED <<FK>>
+  typed_answer : VARCHAR(255)
+  * is_correct : BOOLEAN
+  * response_time_ms : INT UNSIGNED
+  answered_at : DATETIME
+}
+
+USERS |o--o{ BATTLE_MATCHES : "chiến thắng"
+BATTLE_MATCHES ||--o{ BATTLE_PARTICIPANTS : "có người tham gia"
+USERS ||--o{ BATTLE_PARTICIPANTS : "tham gia"
+BATTLE_MATCHES ||--o{ BATTLE_QUESTIONS : "bao gồm câu hỏi"
+CARDS |o--o{ BATTLE_QUESTIONS : "dùng làm câu hỏi"
+BATTLE_QUESTIONS ||--o{ BATTLE_QUESTION_OPTIONS : "có các lựa chọn"
+BATTLE_QUESTIONS ||--o{ BATTLE_ANSWERS : "được trả lời"
+BATTLE_PARTICIPANTS ||--o{ BATTLE_ANSWERS : "trả lời"
+BATTLE_QUESTION_OPTIONS |o--o{ BATTLE_ANSWERS : "được chọn (nếu trắc nghiệm)"
+
+@enduml

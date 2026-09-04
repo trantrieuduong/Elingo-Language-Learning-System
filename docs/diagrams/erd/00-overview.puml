@@ -1,0 +1,55 @@
+@startuml erd-00-overview
+' skinparam linetype ortho
+hide circle
+left to right direction
+
+package "Vocabulary" {
+  entity DECKS
+}
+
+package "Learning" {
+  entity LESSONS
+}
+
+package "Battle" {
+  entity BATTLE_MATCHES
+}
+
+package "Gamification" {
+  entity USER_XP
+}
+
+package "Community" {
+  entity POSTS
+}
+
+package "Report" {
+  entity REPORTS
+}
+
+package "Payment" {
+  entity USER_SUBSCRIPTIONS
+}
+
+package "Speaking Room" {
+  entity SPEAKING_ROOMS
+}
+
+package "Notification" {
+  entity NOTIFICATIONS
+}
+
+entity USERS
+
+USERS ||--o{ DECKS
+USERS ||--o{ LESSONS
+USERS ||--o{ BATTLE_MATCHES
+USERS ||--|| USER_XP
+USERS ||--o{ POSTS
+USERS ||--o{ REPORTS
+USERS ||--o{ USER_SUBSCRIPTIONS
+USERS ||--o{ SPEAKING_ROOMS
+USERS ||--o{ NOTIFICATIONS
+DECKS ||--o{ BATTLE_MATCHES : "Sử dụng làm câu hỏi"
+
+@enduml

@@ -1,0 +1,112 @@
+@startuml erd-04-gamification
+skinparam linetype ortho
+hide circle
+skinparam nodesep 40
+skinparam ranksep 60
+
+entity "users" as USERS {
+  * id : BIGINT UNSIGNED
+  --
+  * email : VARCHAR(255)
+  * username : VARCHAR(255)
+  * password_hash : VARCHAR(255)
+  * full_name : VARCHAR(150)
+  avatar_url : VARCHAR(500)
+  * role : ENUM
+  * is_verified : BOOLEAN
+  * is_active : BOOLEAN
+  ban_reason : VARCHAR(500)
+  password_changed_at : DATETIME
+  username_changed_at : DATETIME
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+entity "levels" as LEVELS {
+  * level_no : TINYINT UNSIGNED
+  --
+  * required_xp : INT UNSIGNED
+  title : VARCHAR(100)
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+entity "user_xp" as USER_XP {
+  * user_id : BIGINT UNSIGNED <<FK>>
+  --
+  * total_xp : INT UNSIGNED
+  * level_no : TINYINT UNSIGNED <<FK>>
+  last_xp_at : DATETIME
+  updated_at : DATETIME
+}
+
+entity "xp_events" as XP_EVENTS {
+  * id : BIGINT UNSIGNED
+  --
+  * user_id : BIGINT UNSIGNED <<FK>>
+  * source : ENUM
+  ref_id : BIGINT UNSIGNED
+  * amount : INT
+  created_at : DATETIME
+}
+
+entity "learning_streaks" as LEARNING_STREAKS {
+  * user_id : BIGINT UNSIGNED <<FK>>
+  --
+  * current_streak : INT UNSIGNED
+  * longest_streak : INT UNSIGNED
+  last_active_date : DATE
+  updated_at : DATETIME
+}
+
+entity "daily_checkins" as DAILY_CHECKINS {
+  * id : BIGINT UNSIGNED
+  --
+  * user_id : BIGINT UNSIGNED <<FK>>
+  * checkin_date : DATE
+  * streak_day_no : INT UNSIGNED
+  * xp_rewarded : INT UNSIGNED
+  created_at : DATETIME
+}
+
+entity "badges" as BADGES {
+  * id : BIGINT UNSIGNED
+  --
+  * code : VARCHAR(100)
+  * name : VARCHAR(150)
+  description : VARCHAR(500)
+  icon_url : VARCHAR(500)
+  * condition_type : ENUM
+  * condition_value : INT UNSIGNED
+  created_at : DATETIME
+}
+
+entity "user_badges" as USER_BADGES {
+  * id : BIGINT UNSIGNED
+  --
+  * user_id : BIGINT UNSIGNED <<FK>>
+  * badge_id : BIGINT UNSIGNED <<FK>>
+  earned_at : DATETIME
+}
+
+entity "leaderboard_snapshots" as LEADERBOARD_SNAPSHOTS {
+  * id : BIGINT UNSIGNED
+  --
+  * period_type : ENUM
+  * period_key : VARCHAR(20)
+  * user_id : BIGINT UNSIGNED <<FK>>
+  * rank : INT UNSIGNED
+  * total_xp : INT UNSIGNED
+  generated_at : DATETIME
+}
+
+LEVELS ||--o{ USER_XP : "đạt cấp độ"
+USERS ||--|| USER_XP : "có điểm XP"
+USERS ||--o{ XP_EVENTS : "nhận sự kiện XP"
+USERS ||--|| LEARNING_STREAKS : "có chuỗi học tập"
+USERS ||--o{ DAILY_CHECKINS : "điểm danh"
+BADGES ||--o{ USER_BADGES : "được cấp cho"
+USERS ||--o{ USER_BADGES : "đạt danh hiệu"
+USERS ||--o{ LEADERBOARD_SNAPSHOTS : "xếp hạng"
+
+@enduml
