@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Elingo is a language-learning system split into three packages that mirror each other's module layout:
 
 - `backend/` — Spring Boot 4.1.1 (Java 21, Maven) REST + WebSocket API.
-- `frontend/` — React 19 + Vite 8, JavaScript (not TypeScript, despite the Vite template README).
+- `frontend/` — React 19 + Vite 8, JavaScript.
 - `ai-service/` — Python microservice for AI-assisted pronunciation scoring.
 
 The three are wired by convention: every backend module (`learning/flashcard`, `vocabulary`, `battle`, ...) has a matching frontend module under `frontend/src/modules/`. Keep that correspondence when adding features.
