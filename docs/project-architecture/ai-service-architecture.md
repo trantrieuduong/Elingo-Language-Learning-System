@@ -6,8 +6,9 @@
 ai-service/
 ├── api/
 │   └── routes.py              # Xử lý HTTP requests (nhận file audio, transcript)
+├── core/
+│   └── orchestrator.py        # Controller chính gọi lần lượt Tầng 1 -> Tầng 2
 ├── modules/
-│   ├── controller.py          # Controller chính gọi lần lượt Tầng 1 -> Tầng 2
 │   ├── tier1_extraction/      # TẦNG 1
 │   │   ├── prosody.py         # Trích xuất Pitch (F0) và Năng lượng (Energy)
 │   │   ├── lexicon.py         # Bộ lọc ràng buộc ngôn ngữ (Lexicon Contrainst)
@@ -27,8 +28,7 @@ ai-service/
 Nhiệm vụ: Nhận file audio thô, transcript và xác định các đặc trưng.
 - **Thư viện khuyên dùng:** 
   - **parselmouth**: trích xuất F0/Pitch.
-  - **MFA (Montreal Forced Aligner):** có sẵn các bộ acoustic model và lexicon cho tiếng Anh
-  - **HuggingFace(Wav2Vec 2.0 / HuBERT):** Tính ma trận xác suất của các âm vị.
+  - **HuggingFace(Wav2Vec 2.0):** Tính ma trận xác suất của các âm vị và Forced Alignment.
 - **Đầu ra:** F0 contour, Intensity (Energy) contour, Danh sách các âm vị cùng timestamps (start, end), Ma trận xác suất âm vị (Phoneme probabilities).
 
 #### Tầng 2: Scoring Engine
