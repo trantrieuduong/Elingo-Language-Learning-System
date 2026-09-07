@@ -1,1 +1,1 @@
-﻿package com.elingo.common.util;
+package com.elingo.common.util;

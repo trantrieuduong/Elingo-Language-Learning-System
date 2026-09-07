@@ -1,1 +1,1 @@
-﻿package com.elingo.common.event;
+package com.elingo.common.event;

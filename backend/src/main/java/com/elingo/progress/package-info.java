@@ -1,1 +1,1 @@
-﻿package com.elingo.progress;
+package com.elingo.progress;
