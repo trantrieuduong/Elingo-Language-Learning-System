@@ -8,38 +8,55 @@ participant "GamificationRepo" as gamificationRepo
 database "Database (MySQL)" as DB
 
 User -> UI: patchSegmentProgress(lessonId, payload)
+activate UI
 
 UI -> controller: updateSegmentProgress(lessonId, payload)
+activate controller
 
 controller -> service: updateSegmentProgress(lessonId, segmentId, payload)
+activate service
 
-service -> service: calculateDictionAccuracy(segmentId,\npayload.attemptCount, payload.hintUsedCount)
+service -> service: calculateDictationAccuracy(segmentId,\npayload.attemptCount, payload.hintUsedCount)
+activate service
+deactivate service
 
 service -> repo: updateSegmentProgress(lessonId, segmentId,\nprogressPct, lastStartMs, status)
+activate repo
 
 repo -> DB : updateSegmentProgress(lessonId, segmentId,\nprogressPct, lastStartMs, status)
-
-opt Điểm đánh giá vượt ngưỡng đạt
-    service -> gamificationRepo: updateUserGamification(user.id, xp)
-    gamificationRepo -> DB: updateUserGamification(user.id, xp)
-    DB --> gamificationRepo: result
-    gamificationRepo --> service: result
-end
+activate DB
 
 DB --> repo: result
+deactivate DB
 
 repo --> service: result
 
+opt Điểm đánh giá vượt ngưỡng đạt
+    service -> gamificationRepo: updateUserGamification(user.id, xp)
+    activate gamificationRepo
+
+    gamificationRepo -> DB: updateUserGamification(user.id, xp)
+    activate DB
+
+    DB --> gamificationRepo: result
+    deactivate DB
+
+    gamificationRepo --> service: result
+    deactivate gamificationRepo
+end
+
 service --> controller: result
-
 controller --> UI: apiResponse
-
 UI --> User: Hiển thị điểm số
 
 loop Còn phân đoạn tiếp theo
 service -> repo: getNextSegment(lessonId, segmentId)
 repo -> DB: getNextSegment(lessonId, segmentId)
+activate DB
+
 DB --> repo: result
+deactivate DB
+
 repo --> service: result
 service --> controller: result
 controller --> UI: apiResponse
@@ -51,11 +68,21 @@ else Học hết phân đoạn
 controller -> service: completeLesson(userId, lessonId)
 service -> repo: completeLesson(userId, lessonId, status)
 repo -> DB: updateLesson(userId, lessonId, status)
+activate DB
 
 DB --> repo: result
+deactivate DB
+
 repo --> service: result
+deactivate repo
+
 service --> controller: result
+deactivate service
+
 controller --> UI: apiResponse
+deactivate controller
+
 UI --> User: Thông báo hoàn thành bài học
+deactivate UI
 end
 @enduml
