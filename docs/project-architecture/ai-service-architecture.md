@@ -5,7 +5,8 @@
 ```text
 ai-service/
 ├── api/
-│   └── routes.py              # Xử lý HTTP requests (nhận file audio, transcript)
+│   ├── routes.py              # Xử lý HTTP requests (nhận file audio, transcript)
+│   └── schemas.py             # Chứa các pydantic base model
 ├── core/
 │   └── orchestrator.py        # Controller chính gọi lần lượt Tầng 1 -> Tầng 2
 ├── modules/
