@@ -62,7 +62,7 @@ public class UserCardState {
     Deck deck;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "topic_id")
+    @JoinColumn(name = "topic_id", nullable = false)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     Topic topic;

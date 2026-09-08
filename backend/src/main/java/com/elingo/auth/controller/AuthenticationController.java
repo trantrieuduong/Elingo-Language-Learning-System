@@ -2,6 +2,8 @@ package com.elingo.auth.controller;
 
 import com.elingo.auth.dto.request.AuthenticationRequest;
 import com.elingo.auth.dto.request.RegisterRequest;
+import com.elingo.auth.dto.request.ResetPasswordRequest;
+import com.elingo.auth.dto.request.SendResetPasswordOtpRequest;
 import com.elingo.auth.dto.response.AuthenticationResponse;
 import com.elingo.auth.dto.response.LoginResult;
 import com.elingo.auth.service.AuthService;
@@ -75,6 +77,30 @@ public class AuthenticationController {
         ResponseCookie clearCookie = authService.createLogoutCookie();
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, clearCookie.toString())
+                .body(ApiResponse.<Void>builder()
+                        .success(true)
+                        .build());
+    }
+
+    @PostMapping("/reset-password/send-otp")
+    @Operation(summary = "Send OTP for reset password via email")
+    public ResponseEntity<ApiResponse<Void>> sendResetPasswordOtp(
+            @Valid @RequestBody SendResetPasswordOtpRequest request) {
+        log.info("Send reset password OTP request received");
+        authService.sendResetPasswordOtp(request.email());
+        return ResponseEntity.ok()
+                .body(ApiResponse.<Void>builder()
+                        .success(true)
+                        .build());
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "Reset password with OTP")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(
+            @Valid @RequestBody ResetPasswordRequest request) {
+        log.info("Reset Password request received");
+        authService.resetPassword(request);
+        return ResponseEntity.ok()
                 .body(ApiResponse.<Void>builder()
                         .success(true)
                         .build());

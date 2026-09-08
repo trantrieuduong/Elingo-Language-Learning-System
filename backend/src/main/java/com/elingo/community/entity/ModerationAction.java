@@ -5,6 +5,5 @@ public enum ModerationAction {
     AUTO_REJECT,
     FLAG_FOR_REVIEW,
     MANUAL_APPROVE,
-    MANUAL_REJECT,
-    MANUAL_HIDE
+    MANUAL_REJECT
 }

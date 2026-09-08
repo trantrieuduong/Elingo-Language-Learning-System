@@ -8,6 +8,18 @@ spring:
     name: elingo
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
+  mail:
+    host: ${MAIL_HOST}
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true # Bật tính năng xác thực người dùng (phải cung cấp username, password)
+          starttls:
+            enable: true # Bật cơ chế bảo mật STARTTLS (kết nối mã hóa an toàn (TLS))
+
 
 jwt:
   signerKey: ${JWT_SIGNER_KEY}

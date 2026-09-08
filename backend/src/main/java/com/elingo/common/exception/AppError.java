@@ -34,8 +34,11 @@ public enum AppError {
     PASSWORD_INVALID("PASSWORD_INVALID", "Password must be at least 8 characters and include uppercase, lowercase, number, and special character", HttpStatus.BAD_REQUEST),
     EMAIL_INVALID("EMAIL_INVALID", "Email format is invalid", HttpStatus.BAD_REQUEST),
     FULL_NAME_INVALID("FULL_NAME_INVALID", "Full name must not be blank and less than 150 characters", HttpStatus.BAD_REQUEST),
+    OTP_INVALID("OTP_INVALID", "OTP is incorrect or expired", HttpStatus.BAD_REQUEST),
     USERNAME_EXISTED("USERNAME_EXISTED", "Username already exists", HttpStatus.BAD_REQUEST),
     EMAIL_EXISTED("EMAIL_EXISTED", "Email already exists", HttpStatus.BAD_REQUEST),
+    EMAIL_NOT_EXISTED("EMAIL_NOT_EXISTED", "Email doesn't exist", HttpStatus.NOT_FOUND),
+    EMAIL_SEND_FAILED("EMAIL_SEND_FAILED", "Failed to send email", HttpStatus.INTERNAL_SERVER_ERROR),
     UNAUTHENTICATED("UNAUTHENTICATED", "Incorrect or expired authentication token", HttpStatus.UNAUTHORIZED),
     UNAUTHORIZED("UNAUTHORIZED", "You do not have permission to access this resource", HttpStatus.FORBIDDEN),
     INVALID_CREDENTIALS("INVALID_CREDENTIALS", "Incorrect email, username or password", HttpStatus.UNAUTHORIZED),
@@ -46,6 +49,7 @@ public enum AppError {
     REFRESH_TOKEN_INVALID("REFRESH_TOKEN_INVALID", "Refresh token token is missing, invalid or expired", HttpStatus.UNAUTHORIZED),
     OLD_PASSWORD_INCORRECT("OLD_PASSWORD_INCORRECT", "Old password is incorrect", HttpStatus.BAD_REQUEST),
     NEW_PASSWORD_SAME_AS_OLD("NEW_PASSWORD_SAME_AS_OLD", "New password must be different from old password", HttpStatus.BAD_REQUEST),
+    CONFIRM_PASSWORD_NOT_MATCH("CONFIRM_PASSWORD_NOT_MATCH", "Confirm password must be match with new password", HttpStatus.BAD_REQUEST),
     CANNOT_CHANGE_USERNAME_YET("CANNOT_CHANGE_USERNAME_YET", "Username can only be changed once within allowed cooldown period", HttpStatus.BAD_REQUEST),
 
     // ==========================================
