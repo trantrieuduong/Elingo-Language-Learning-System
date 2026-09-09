@@ -38,6 +38,7 @@ public enum AppError {
     USERNAME_EXISTED("USERNAME_EXISTED", "Username already exists", HttpStatus.BAD_REQUEST),
     EMAIL_EXISTED("EMAIL_EXISTED", "Email already exists", HttpStatus.BAD_REQUEST),
     EMAIL_NOT_EXISTED("EMAIL_NOT_EXISTED", "Email doesn't exist", HttpStatus.NOT_FOUND),
+    EMAIL_UNCHANGED("EMAIL_UNCHANGED", "New email and old email are the same", HttpStatus.BAD_REQUEST),
     EMAIL_SEND_FAILED("EMAIL_SEND_FAILED", "Failed to send email", HttpStatus.INTERNAL_SERVER_ERROR),
     UNAUTHENTICATED("UNAUTHENTICATED", "Incorrect or expired authentication token", HttpStatus.UNAUTHORIZED),
     UNAUTHORIZED("UNAUTHORIZED", "You do not have permission to access this resource", HttpStatus.FORBIDDEN),

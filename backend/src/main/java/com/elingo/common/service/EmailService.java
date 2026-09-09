@@ -1,6 +1,6 @@
 package com.elingo.common.service;
 
-import com.elingo.common.util.email.EmailTemplateName;
+import com.elingo.common.util.EmailTemplateName;
 import jakarta.mail.MessagingException;
 import org.springframework.scheduling.annotation.Async;
 

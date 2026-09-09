@@ -1,4 +1,4 @@
-package com.elingo.common.util.email;
+package com.elingo.common.util;
 
 import lombok.Getter;
 

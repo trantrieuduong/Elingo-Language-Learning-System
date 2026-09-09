@@ -1,21 +1,17 @@
-package com.elingo.auth.dto.request;
+package com.elingo.user.dto.request;
 
-import com.elingo.auth.annotation.ValidPassword;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
-public record ResetPasswordRequest(
+public record UpdateEmailRequest(
         @NotBlank(message = "INVALID_REQUEST")
         @Email(message = "EMAIL_INVALID")
         String email,
 
         @NotBlank(message = "INVALID_REQUEST")
-        String otp,
+        String newEmailOtp,
 
-        @ValidPassword
-        String newPassword,
-
-        @ValidPassword
-        String confirmPassword
+        @NotBlank(message = "INVALID_REQUEST")
+        String oldEmailOtp
 ) {
 }

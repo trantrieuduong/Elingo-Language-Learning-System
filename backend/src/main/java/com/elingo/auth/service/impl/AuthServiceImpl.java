@@ -11,7 +11,7 @@ import com.elingo.common.service.EmailService;
 import com.elingo.common.service.RedisService;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
-import com.elingo.common.util.email.EmailTemplateName;
+import com.elingo.common.util.EmailTemplateName;
 import com.elingo.user.dto.response.UserResponse;
 import com.elingo.user.entity.User;
 import com.elingo.user.mapper.UserMapper;
@@ -50,8 +50,11 @@ public class AuthServiceImpl implements AuthService {
     @Value("${server.servlet.context-path:/api/v1}")
     private String contextPath;
 
-    private static final String OTP_PREFIX = "RESET_PW_OTP:";
-    private static final long OTP_EXPIRATION_MINUTES = 15;
+    @Value("${app.reset-password-otp-prefix}")
+    private String resetPasswordOTPPrefix;
+
+    @Value("${app.otp-expiration-minutes}")
+    private long otpExpirationMinutes;
 
     @Override
     @Transactional
@@ -158,7 +161,7 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new AppException(AppError.EMAIL_NOT_EXISTED));
 
         String otp = generateOTP();
-        redisService.save(OTP_PREFIX + email, otp, OTP_EXPIRATION_MINUTES);
+        redisService.save(resetPasswordOTPPrefix + ":" + email, otp, otpExpirationMinutes);
         try {
             emailService.sendEmail(
                     user.getEmail(),
@@ -179,7 +182,7 @@ public class AuthServiceImpl implements AuthService {
         if (!request.newPassword().equals(request.confirmPassword()))
             throw new AppException(AppError.CONFIRM_PASSWORD_NOT_MATCH);
 
-        String otp = redisService.get(OTP_PREFIX + request.email());
+        String otp = redisService.get(resetPasswordOTPPrefix + ":" + request.email());
         if (otp == null || !otp.equals(request.otp()))
             throw new AppException(AppError.OTP_INVALID);
 
@@ -191,7 +194,7 @@ public class AuthServiceImpl implements AuthService {
         user.setPasswordChangedAt(LocalDateTime.now());
         userRepository.save(user);
 
-        redisService.delete(OTP_PREFIX + request.email());
+        redisService.delete(resetPasswordOTPPrefix + ":" + request.email());
     }
 
     private ResponseCookie buildRefreshTokenCookie(String value, Duration maxAge) {

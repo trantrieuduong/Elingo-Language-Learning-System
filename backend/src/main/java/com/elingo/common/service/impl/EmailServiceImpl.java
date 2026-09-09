@@ -1,7 +1,7 @@
 package com.elingo.common.service.impl;
 
 import com.elingo.common.service.EmailService;
-import com.elingo.common.util.email.EmailTemplateName;
+import com.elingo.common.util.EmailTemplateName;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;

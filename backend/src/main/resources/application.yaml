@@ -33,3 +33,11 @@ springdoc:
     path: /swagger-ui.html
     tags-sorter: alpha
     operations-sorter: alpha
+
+app:
+  reset-password-otp-prefix: RESET_PW_OTP
+  otp-expiration-minutes: 15
+
+  # Use for email update
+  new-email-otp-prefix: NEW_EMAIL_OTP
+  old-email-otp-prefix: OLD_EMAIL_OTP
