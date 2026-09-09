@@ -162,7 +162,7 @@ public class AuthServiceImpl implements AuthService {
         try {
             emailService.sendEmail(
                     user.getEmail(),
-                    user.getFullName(),
+                    user.getUsername(),
                     EmailTemplateName.SEND_OTP,
                     otp,
                     "Reset Password"
