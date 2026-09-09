@@ -9,7 +9,8 @@ com.elingo
 │   ├── dto/
 │   ├── annotation/
 │   ├── exception/
-│   ├── event/  
+│   ├── event/
+│   ├── service/
 |   └── util/
 ├── auth/
 ├── user/
@@ -55,6 +56,8 @@ com.elingo
 common/
 ├── dto/ApiResponse.java, PageResponse.java
 ├── exception/ (GlobalExceptionHandler, custom exceptions: ResourceNotFoundException, BusinessException...)
+├── service/ (EmailService, RedisService)
+|    └─ impl/ (EmailServiceImpl, RedisServiceImpl)
 └── util/ (DateUtils, StringUtils, FileUtils)
 ```
 
@@ -71,6 +74,7 @@ common/event/
 - gamification/ (hoặc progress/) có các @EventListener/@Async @EventListener lắng nghe và cộng XP/streak tương ứng.
 - `GlobalExceptionHandler` (`@RestControllerAdvice`): bắt exception toàn cục, trả về response lỗi đồng nhất — đáp ứng yêu cầu phi chức năng về xử lý/validate input.
 - `ApiResponse<T>`, `PageResponse<T>`: chuẩn hóa format response và phân trang cho các API danh sách (bộ từ, bài học, lịch sử học...).
+- service/: dùng để xử lý các nghiệp vụ dùng chung và các implementation của các service này.
 
 ---
 

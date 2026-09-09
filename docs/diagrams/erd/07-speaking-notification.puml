@@ -60,7 +60,7 @@ entity "notifications" as NOTIFICATIONS {
 }
 
 USERS ||--o{ SPEAKING_ROOMS : "tạo (host)"
-SPEAKING_ROOMS ||--o{ SPEAKING_PARTICIPANTS : "có người tham gia"
+SPEAKING_ROOMS ||--|{ SPEAKING_PARTICIPANTS : "có người tham gia"
 USERS ||--o{ SPEAKING_PARTICIPANTS : "tham gia"
 USERS ||--o{ NOTIFICATIONS : "nhận thông báo"
 

@@ -98,7 +98,7 @@ entity "battle_answers" as BATTLE_ANSWERS {
 }
 
 USERS |o--o{ BATTLE_MATCHES : "chiến thắng"
-BATTLE_MATCHES ||--o{ BATTLE_PARTICIPANTS : "có người tham gia"
+BATTLE_MATCHES ||--|{ BATTLE_PARTICIPANTS : "có người tham gia"
 USERS ||--o{ BATTLE_PARTICIPANTS : "tham gia"
 BATTLE_MATCHES ||--o{ BATTLE_QUESTIONS : "bao gồm câu hỏi"
 CARDS |o--o{ BATTLE_QUESTIONS : "dùng làm câu hỏi"

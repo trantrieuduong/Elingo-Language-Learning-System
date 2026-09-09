@@ -135,7 +135,7 @@ TOPICS ||--o{ CARDS : "bao gồm"
 CARDS ||--o{ CARD_PHONETICS : "có phát âm"
 CARDS ||--o{ USER_CARD_STATES : "có trạng thái học"
 DECKS ||--o{ USER_CARD_STATES : "thuộc bộ từ"
-TOPICS |o--o{ USER_CARD_STATES : "thuộc chủ đề"
+TOPICS ||--o{ USER_CARD_STATES : "thuộc chủ đề"
 USERS ||--o{ USER_CARD_STATES : "học"
 
 @enduml
