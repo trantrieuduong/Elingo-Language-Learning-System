@@ -1,0 +1,91 @@
+@startuml
+
+skinparam sequenceArrowThickness 1.5
+skinparam roundcorner 8
+skinparam responseMessageBelowArrow true
+skinparam sequenceGroupBorderThickness 1.5
+
+skinparam participant {
+    BackgroundColor #EEF4FF
+    BorderColor     #4A7CFF
+    FontStyle       Bold
+}
+skinparam actor {
+    BackgroundColor #FEFEFE
+    BorderColor     #333333
+}
+skinparam sequence {
+    LifeLineBorderColor  #888888
+    GroupBorderColor     #888888
+    GroupBodyBackgroundColor #FAFAFA
+    DividerBackgroundColor   #E8E8E8
+}
+
+actor "Người dùng" as User
+participant "Client" as client
+participant "UserController" as controller
+participant "UserService" as service
+participant "UserRepo" as repo
+database "RedisService" as redis
+database "Database" as DB
+User -> client : updateEmail(request)
+activate client
+
+alt Để trống OTP bất kỳ
+    client --> User: Thông báo lỗi:\n"Để trống OTP"
+else Nhập đủ 2 OTP
+    client -> controller : updateEmail(request)
+    activate controller
+
+    controller -> service : updateEmail(username, request)
+    activate service
+
+    service -> redis : get(newEmailOtpKey)
+    activate redis
+    redis --> service : newEmailOtp
+    deactivate redis
+
+    service -> redis : get(oldEmailOtpKey)
+    activate redis
+    redis --> service : oldEmailOtp
+    deactivate redis
+
+    alt OTP sai hoặc hết hạn
+        service --> controller : OTPInvalidError
+        controller --> client : responseEntity
+        client --> User : Thông báo lỗi:\n"OTP sai hoặc hết hạn"
+
+    else OTP hợp lệ
+        service -> redis : delete(newEmailOtpKey)
+        activate redis
+        redis --> service : result
+        deactivate redis
+
+        service -> redis : delete(oldEmailOtpKey)
+        activate redis
+        redis --> service : result
+        deactivate redis
+
+        service -> repo : save(user)
+        activate repo
+
+        repo -> DB : save(user)
+        activate DB
+
+        DB --> repo : result
+        deactivate DB
+
+        repo --> service : result
+        deactivate repo
+
+        service --> controller : result
+        deactivate service
+
+        controller --> client : responseEntity
+        deactivate controller
+
+        client --> User : Thông báo:\n"Cập nhật email thành công",\nLàm mới giao diện
+        deactivate client
+    end
+end
+@enduml
