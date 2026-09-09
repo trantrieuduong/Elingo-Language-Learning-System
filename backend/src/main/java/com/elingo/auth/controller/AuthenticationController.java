@@ -86,7 +86,7 @@ public class AuthenticationController {
     @Operation(summary = "Send OTP for reset password via email")
     public ResponseEntity<ApiResponse<Void>> sendResetPasswordOtp(
             @Valid @RequestBody SendResetPasswordOtpRequest request) {
-        log.info("Send reset password OTP request received");
+        log.info("Send reset password OTP request received: email={}", request.email());
         authService.sendResetPasswordOtp(request.email());
         return ResponseEntity.ok()
                 .body(ApiResponse.<Void>builder()
@@ -98,7 +98,7 @@ public class AuthenticationController {
     @Operation(summary = "Reset password with OTP")
     public ResponseEntity<ApiResponse<Void>> resetPassword(
             @Valid @RequestBody ResetPasswordRequest request) {
-        log.info("Reset Password request received");
+        log.info("Reset Password request received: email={}", request.email());
         authService.resetPassword(request);
         return ResponseEntity.ok()
                 .body(ApiResponse.<Void>builder()

@@ -16,12 +16,16 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
+
 @Service
 @RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService {
     private final JavaMailSender javaMailSender;
     private final TemplateEngine templateEngine;
 
+    @Value("${spring.mail.username}")
+    private String emailFrom;
 
     @Async
     public void sendEmail(
@@ -51,7 +55,7 @@ public class EmailServiceImpl implements EmailService {
 
         Context context = new Context();
         context.setVariables(properties);
-        mimeMessageHelper.setFrom("contact@elingo.com");
+        mimeMessageHelper.setFrom(emailFrom);
         mimeMessageHelper.setTo(toEmail);
         mimeMessageHelper.setSubject(subject);
 

@@ -62,3 +62,6 @@ dist-ssr
 
 # Python
 __pycache__
+
+# Environment file
+.env
