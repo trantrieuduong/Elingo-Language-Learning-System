@@ -24,27 +24,25 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void changePassword(String username, ChangePasswordRequest request) {
-        log.info("Processing change password request for username: {}", username);
+    public void changePassword(Long userId, ChangePasswordRequest request) {
+        log.info("Processing change password request for userId={}", userId);
 
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
 
         if (!passwordEncoder.matches(request.oldPassword(), user.getPassword())) {
-            log.warn("Change password failed: Incorrect old password for username: {}", username);
+            log.warn("Change password failed: Incorrect old password for userId={}", userId);
             throw new AppException(AppError.OLD_PASSWORD_INCORRECT);
         }
 
         if (passwordEncoder.matches(request.newPassword(), user.getPassword())) {
-            log.warn("Change password failed: New password is same as old password for username: {}", username);
+            log.warn("Change password failed: New password is same as old password for userId={}", userId);
             throw new AppException(AppError.NEW_PASSWORD_SAME_AS_OLD);
         }
 
         user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
         user.setPasswordChangedAt(LocalDateTime.now());
 
-        userRepository.save(user);
-
-        log.info("Password changed successfully for userId={}, username={}", user.getId(), username);
+        log.info("Password changed successfully for userId={}", user.getId());
     }
 }
