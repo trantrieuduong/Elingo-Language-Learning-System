@@ -20,11 +20,11 @@ import java.util.UUID;
 @Service
 @Slf4j(topic = "JWT-SERVICE")
 public class JwtServiceImpl implements JwtService {
-    @Value("${jwt.signerKey}")
+    @Value("${jwt.signer-key}")
     private String signerKey;
-    @Value("${jwt.accessTokenTime}")
+    @Value("${jwt.access-token-time}")
     private int accessTokenTime;
-    @Value("${jwt.refreshTokenTime}")
+    @Value("${jwt.refresh-token-time}")
     private int refreshTokenTime;
 
     @Override

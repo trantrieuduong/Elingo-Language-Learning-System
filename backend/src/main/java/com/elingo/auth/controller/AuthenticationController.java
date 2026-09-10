@@ -84,25 +84,23 @@ public class AuthenticationController {
 
     @PostMapping("/reset-password/send-otp")
     @Operation(summary = "Send OTP for reset password via email")
-    public ResponseEntity<ApiResponse<Void>> sendResetPasswordOtp(
+    public ApiResponse<Void> sendResetPasswordOtp(
             @Valid @RequestBody SendResetPasswordOtpRequest request) {
         log.info("Send reset password OTP request received: email={}", request.email());
-        authService.sendResetPasswordOtp(request.email());
-        return ResponseEntity.ok()
-                .body(ApiResponse.<Void>builder()
-                        .success(true)
-                        .build());
+        authService.sendResetPasswordOtp(request);
+        return ApiResponse.<Void>builder()
+                .success(true)
+                .build();
     }
 
     @PostMapping("/reset-password")
     @Operation(summary = "Reset password with OTP")
-    public ResponseEntity<ApiResponse<Void>> resetPassword(
+    public ApiResponse<Void> resetPassword(
             @Valid @RequestBody ResetPasswordRequest request) {
         log.info("Reset Password request received: email={}", request.email());
         authService.resetPassword(request);
-        return ResponseEntity.ok()
-                .body(ApiResponse.<Void>builder()
-                        .success(true)
-                        .build());
+        return ApiResponse.<Void>builder()
+                .success(true)
+                .build();
     }
 }

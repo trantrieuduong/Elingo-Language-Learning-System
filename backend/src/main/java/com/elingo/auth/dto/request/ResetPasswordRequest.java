@@ -13,9 +13,6 @@ public record ResetPasswordRequest(
         String otp,
 
         @ValidPassword
-        String newPassword,
-
-        @ValidPassword
-        String confirmPassword
+        String newPassword
 ) {
 }

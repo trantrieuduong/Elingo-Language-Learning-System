@@ -3,22 +3,23 @@ package com.elingo.auth.service.impl;
 import com.elingo.auth.dto.request.AuthenticationRequest;
 import com.elingo.auth.dto.request.RegisterRequest;
 import com.elingo.auth.dto.request.ResetPasswordRequest;
+import com.elingo.auth.dto.request.SendResetPasswordOtpRequest;
 import com.elingo.auth.dto.response.AuthenticationResponse;
 import com.elingo.auth.dto.response.LoginResult;
 import com.elingo.auth.service.AuthService;
 import com.elingo.auth.service.JwtService;
 import com.elingo.common.service.EmailService;
-import com.elingo.common.service.RedisService;
+import com.elingo.common.service.OtpService;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.common.util.EmailTemplateName;
+import com.elingo.common.util.OtpType;
 import com.elingo.user.dto.response.UserResponse;
 import com.elingo.user.entity.User;
 import com.elingo.user.mapper.UserMapper;
 import com.elingo.user.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
-import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,7 +29,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
@@ -40,21 +40,15 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-    private final RedisService redisService;
     private final EmailService emailService;
+    private final OtpService otpService;
     private final UserMapper userMapper;
 
-    @Value("${jwt.refreshTokenTime:14}")
+    @Value("${jwt.refresh-token-time:14}")
     private int refreshTokenDays;
 
     @Value("${server.servlet.context-path:/api/v1}")
     private String contextPath;
-
-    @Value("${app.reset-password-otp-prefix}")
-    private String resetPasswordOTPPrefix;
-
-    @Value("${app.otp-expiration-minutes}")
-    private long otpExpirationMinutes;
 
     @Override
     @Transactional
@@ -143,58 +137,37 @@ public class AuthServiceImpl implements AuthService {
         return buildRefreshTokenCookie("", Duration.ZERO);
     }
 
-    private String generateOTP() {
-        int length = 6;
-        String characters = "0123456789";
-        StringBuilder codeBuilder = new StringBuilder();
-        SecureRandom secureRandom = new SecureRandom();
-        for (int i = 0; i < length; i++) {
-            int randomIndex = secureRandom.nextInt(10);// Tạo chỉ số từ 0 đến 9
-            codeBuilder.append(characters.charAt(randomIndex));
-        }
-        return codeBuilder.toString();
-    }
-
     @Override
-    public void sendResetPasswordOtp(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(AppError.EMAIL_NOT_EXISTED));
+    @Transactional(readOnly = true)
+    public void sendResetPasswordOtp(SendResetPasswordOtpRequest request) {
+        log.info("Processing send reset password OTP for email: {}", request.email());
 
-        String otp = generateOTP();
-        redisService.save(resetPasswordOTPPrefix + ":" + email, otp, otpExpirationMinutes);
-        try {
-            emailService.sendEmail(
-                    user.getEmail(),
-                    user.getUsername(),
-                    EmailTemplateName.SEND_OTP,
-                    otp,
-                    "Reset Password"
-            );
-        } catch (MessagingException e) {
-            log.error("Failed to send OTP for email {}: {}", email, e.getMessage());
-            throw new AppException(AppError.EMAIL_SEND_FAILED);
-        }
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new AppException(AppError.EMAIL_NOT_EXISTED));
+        String otp = otpService.generateAndSaveOtp(OtpType.RESET_PASSWORD, request.email());
+        emailService.sendEmail(
+                user.getEmail(),
+                user.getUsername(),
+                EmailTemplateName.SEND_OTP,
+                otp,
+                "Reset Password"
+        );
+        log.info("Reset password OTP dispatched successfully to email: {}", user.getEmail());
     }
 
     @Override
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {
-        if (!request.newPassword().equals(request.confirmPassword()))
-            throw new AppException(AppError.CONFIRM_PASSWORD_NOT_MATCH);
+        log.info("Processing reset password for email: {}", request.email());
 
-        String otp = redisService.get(resetPasswordOTPPrefix + ":" + request.email());
-        if (otp == null || !otp.equals(request.otp()))
-            throw new AppException(AppError.OTP_INVALID);
+        otpService.verifyOtp(OtpType.RESET_PASSWORD, request.email(), request.otp());
 
         String hashedPassword = passwordEncoder.encode(request.newPassword());
-
         User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
+                .orElseThrow(() -> new AppException(AppError.EMAIL_NOT_EXISTED));
         user.setPasswordHash(hashedPassword);
         user.setPasswordChangedAt(LocalDateTime.now());
-        userRepository.save(user);
-
-        redisService.delete(resetPasswordOTPPrefix + ":" + request.email());
+        log.info("Password reset successfully for user: userId={}, username={}", user.getId(), user.getUsername());
     }
 
     private ResponseCookie buildRefreshTokenCookie(String value, Duration maxAge) {
