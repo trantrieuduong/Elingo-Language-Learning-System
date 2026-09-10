@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reset Password</title>
+    <title th:text="${subject}">Verification Code</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -24,15 +24,25 @@
             text-align: center;
             margin-bottom: 20px;
         }
+        .footer {
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            font-size: 12px;
+            color: #888;
+        }
     </style>
 </head>
 <body>
 <div class="container">
-    <h1>Reset Password</h1>
+    <h1 th:text="${subject}">Verification Code</h1>
     <p class="greeting" th:text="'Hello ' + ${username} + ','"></p>
     <p>Please use the following OTP to confirm your email:</p>
     <div class="otp"><span th:text="${otp}"></span></div>
-    <p>The OTP will expire after 15 minutes!</p>
+    <p th:text="'The OTP will expire after ' + ${expirationMinutes} + ' minutes!'">The OTP will expire after 15 minutes!</p>
+    <div class="footer">
+        <p>ELINGO - Language Learning System</p>
+    </div>
 </div>
 </body>
 </html>

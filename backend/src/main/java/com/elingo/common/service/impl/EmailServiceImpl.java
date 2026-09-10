@@ -17,6 +17,7 @@ import org.thymeleaf.context.Context;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Value;
 
@@ -27,8 +28,8 @@ public class EmailServiceImpl implements EmailService {
     private final JavaMailSender javaMailSender;
     private final TemplateEngine templateEngine;
 
-    @Value("${spring.mail.username}")
-    private String emailFrom;
+    @Value("${app.otp.expiration-minutes:15}")
+    private long otpExpirationMinutes;
 
     @Async("emailTaskExecutor")
     public void sendEmail(
@@ -39,11 +40,8 @@ public class EmailServiceImpl implements EmailService {
             String subject
     ) {
 
-        String templateName;
-        if (emailTemplateName == null)
-            templateName = "send-otp";
-        else
-            templateName = emailTemplateName.getName();
+        String templateName = Objects.requireNonNullElse(emailTemplateName, EmailTemplateName.SEND_OTP)
+                .getName();
 
         log.info("Sending email to={}, username={}, template={}, subject={}", toEmail, username, templateName, subject);
 
@@ -57,10 +55,11 @@ public class EmailServiceImpl implements EmailService {
             Map<String, Object> properties = new HashMap<>();
             properties.put("username", username);
             properties.put("otp", otp);
+            properties.put("subject", subject);
+            properties.put("expirationMinutes", otpExpirationMinutes);
 
             Context context = new Context();
             context.setVariables(properties);
-            mimeMessageHelper.setFrom(emailFrom);
             mimeMessageHelper.setTo(toEmail);
             mimeMessageHelper.setSubject(subject);
 

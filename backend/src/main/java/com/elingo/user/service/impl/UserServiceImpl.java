@@ -104,7 +104,6 @@ public class UserServiceImpl implements UserService {
         otpService.verifyOtp(OtpType.CHANGE_EMAIL, newEmail, request.newEmailOtp());
 
         user.setEmail(newEmail);
-        userRepository.save(user);
         log.info("Email updated successfully for email={}, userId={}", newEmail, userId);
     }
 }
