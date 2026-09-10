@@ -26,45 +26,34 @@ participant "Client" as client
 participant "UserController" as controller
 participant "UserService" as service
 participant "UserRepo" as repo
-database "RedisService" as redis
+participant "OtpService" as otpService
 database "Database" as DB
+
 User -> client : updateEmail(request)
 activate client
 
-alt Để trống OTP bất kỳ
+alt Để trống OTP/newEmail/password
     client --> User: Thông báo lỗi:\n"Để trống OTP"
 else Nhập đủ 2 OTP
-    client -> controller : updateEmail(request)
+    client -> controller : updateEmail(request, userId)
     activate controller
 
-    controller -> service : updateEmail(username, request)
+    controller -> service : updateEmail(userId, request)
     activate service
 
-    service -> redis : get(newEmailOtpKey)
-    activate redis
-    redis --> service : newEmailOtp
-    deactivate redis
-
-    service -> redis : get(oldEmailOtpKey)
-    activate redis
-    redis --> service : oldEmailOtp
-    deactivate redis
-
-    alt OTP sai hoặc hết hạn
+    alt Mật khẩu xác nhận sai
+        service --> controller : PasswordIncorrectError
+        controller --> client : apiResponse
+        client --> User : Thông báo lỗi:\n"Mật khẩu xác nhận sai"
+    else OTP sai hoặc hết hạn
         service --> controller : OTPInvalidError
-        controller --> client : responseEntity
+        controller --> client : apiResponse
         client --> User : Thông báo lỗi:\n"OTP sai hoặc hết hạn"
-
-    else OTP hợp lệ
-        service -> redis : delete(newEmailOtpKey)
-        activate redis
-        redis --> service : result
-        deactivate redis
-
-        service -> redis : delete(oldEmailOtpKey)
-        activate redis
-        redis --> service : result
-        deactivate redis
+    else else
+        service -> otpService : verifyOtp(type, newEmail, inputOtp)
+        activate otpService
+        otpService --> service : result
+        deactivate otpService
 
         service -> repo : save(user)
         activate repo
@@ -81,7 +70,7 @@ else Nhập đủ 2 OTP
         service --> controller : result
         deactivate service
 
-        controller --> client : responseEntity
+        controller --> client : apiResponse
         deactivate controller
 
         client --> User : Thông báo:\n"Cập nhật email thành công",\nLàm mới giao diện

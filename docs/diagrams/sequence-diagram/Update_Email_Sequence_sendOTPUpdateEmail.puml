@@ -1,4 +1,4 @@
-@startuml
+    @startuml
 
 skinparam sequenceArrowThickness 1.5
 skinparam roundcorner 8
@@ -26,7 +26,7 @@ participant "Client" as client
 participant "UserController" as controller
 participant "UserService" as service
 participant "EmailService" as mailService
-database "RedisService" as redis
+participant "OtpService" as otpService
 
 User -> client : sendOTPUpdateEmail(request)
 activate client
@@ -34,50 +34,34 @@ activate client
 alt Email không đúng định dạng
     client --> User : Thông báo lỗi:\n"Email không đúng định dạng"
 else Email đúng định dạng
-    client -> controller : sendOTPUpdateEmail(request)
+    client -> controller : sendOTPUpdateEmail(request, userId)
     activate controller
 
-    controller -> service : sendOTPUpdateEmail(username, request)
+    controller -> service : sendOTPUpdateEmail(userId, request)
     activate service
 
     alt Email mới trùng email cũ
         service --> controller : EmailUnchangedError
-        controller --> client : responseEntity
+        controller --> client : apiResponse
         client --> User : Thông báo lỗi:\n"Email mới trùng email cũ"
     else Email đã tồn tại
         service --> controller : EmailExistedError
-        controller --> client : responseEntity
+        controller --> client : apiResponse
         client --> User : Thông báo lỗi:\n"Email đã tồn tại"
     else Email chưa tồn tại
-        service -> service : oldEmailOtp = generateOTP()
-        activate service
-        deactivate service
+        service -> otpService : generateAndSaveOtp()
+        activate otpService
 
-        service -> service : newEmailOtp = generateOTP()
-        activate service
-        deactivate service
-
-        service -> redis : save(oldEmailOtpKey, oldEmailOtp, timeoutInMinutes)
-        activate redis
-        redis --> service : result
-        deactivate redis
-
-        service -> redis : save(newEmailOtpKey, newEmailOtp, timeoutInMinutes)
-        activate redis
-        redis --> service : result
-        deactivate redis
-
-        service ->> mailService : sendEmail(oldEmail, username,\notpTemplate, oldEmailOtp, subject)
-        activate mailService
-        mailService -->> User : Gửi OTP đên email cũ
+        otpService --> service : newEmailOtp
+        deactivate otpService
 
         service ->> mailService : sendEmail(newEmail, username,\notpTemplate, newEmailOtp, subject)
-        mailService -->> User : Gửi OTP đên email mới
+        activate mailService
         deactivate mailService
 
         service --> controller : result
         deactivate service
-        controller --> client : responseEntity
+        controller --> client : apiResponse
         deactivate controller
 
         client --> User : Mở form nhập mã OTP
