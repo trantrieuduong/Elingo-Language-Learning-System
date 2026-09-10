@@ -32,7 +32,7 @@ database "Database" as DB
 User -> client : updateEmail(request)
 activate client
 
-alt Để trống OTP/newEmail/password
+alt Để trống OTP
     client --> User: Thông báo lỗi:\n"Để trống OTP"
 else Nhập đủ 2 OTP
     client -> controller : updateEmail(request, userId)

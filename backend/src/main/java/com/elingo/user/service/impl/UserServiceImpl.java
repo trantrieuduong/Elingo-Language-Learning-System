@@ -54,6 +54,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void sendOTPUpdateEmail(Long userId, SendOTPUpdateEmailRequest request) {
         String newEmail = request.newEmail();
         log.info("Processing send otp update email request: email={}, userId={}", newEmail, userId);
@@ -83,6 +84,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void updateEmail(Long userId, UpdateEmailRequest request) {
         String newEmail = request.newEmail();
         log.info("Processing update email: email={}, userId={}", newEmail, userId);
