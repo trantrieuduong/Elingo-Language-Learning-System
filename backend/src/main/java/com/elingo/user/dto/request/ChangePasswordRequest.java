@@ -1,5 +1,6 @@
 package com.elingo.user.dto.request;
 
+import com.elingo.auth.annotation.ValidPassword;
 import jakarta.validation.constraints.NotBlank;
 
 public record ChangePasswordRequest(
@@ -7,6 +8,6 @@ public record ChangePasswordRequest(
         @NotBlank(message = "INVALID_REQUEST")
         String oldPassword,
 
-        @NotBlank(message = "INVALID_REQUEST")
+        @ValidPassword
         String newPassword
 ) {}

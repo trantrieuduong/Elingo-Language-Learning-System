@@ -7,17 +7,17 @@ import com.elingo.user.entity.User;
 import com.elingo.user.repository.UserRepository;
 import com.elingo.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.regex.Pattern;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j(topic = "USER-SERVICE")
 public class UserServiceImpl implements UserService {
-
-    private static final Pattern PASSWORD_PATTERN = Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$");
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -25,26 +25,26 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void changePassword(String username, ChangePasswordRequest request) {
+        log.info("Processing change password request for username: {}", username);
+
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
 
-        // 1. Kiểm tra mật khẩu cũ đúng không trước
         if (!passwordEncoder.matches(request.oldPassword(), user.getPassword())) {
+            log.warn("Change password failed: Incorrect old password for username: {}", username);
             throw new AppException(AppError.OLD_PASSWORD_INCORRECT);
         }
 
-        // 2. Mật khẩu cũ đúng rồi mới kiểm tra mật khẩu mới có đủ mạnh không
-        if (request.newPassword() == null || !PASSWORD_PATTERN.matcher(request.newPassword()).matches()) {
-            throw new AppException(AppError.PASSWORD_INVALID);
-        }
-
-        // 3. Kiểm tra mật khẩu mới có trùng mật khẩu cũ không
         if (passwordEncoder.matches(request.newPassword(), user.getPassword())) {
+            log.warn("Change password failed: New password is same as old password for username: {}", username);
             throw new AppException(AppError.NEW_PASSWORD_SAME_AS_OLD);
         }
 
-        // 4. Cập nhật mật khẩu mới (field tên là passwordHash)
         user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        user.setPasswordChangedAt(LocalDateTime.now());
+
         userRepository.save(user);
+
+        log.info("Password changed successfully for userId={}, username={}", user.getId(), username);
     }
 }
