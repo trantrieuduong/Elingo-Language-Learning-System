@@ -48,9 +48,9 @@ public enum AppError {
     USER_BANNED("USER_BANNED", "User account has been banned", HttpStatus.FORBIDDEN),
     USER_NOT_VERIFIED("USER_NOT_VERIFIED", "Email has not been verified yet", HttpStatus.FORBIDDEN),
     REFRESH_TOKEN_INVALID("REFRESH_TOKEN_INVALID", "Refresh token token is missing, invalid or expired", HttpStatus.UNAUTHORIZED),
+    PASSWORD_INCORRECT("PASSWORD_INCORRECT", "Password is incorrect", HttpStatus.BAD_REQUEST),
     OLD_PASSWORD_INCORRECT("OLD_PASSWORD_INCORRECT", "Old password is incorrect", HttpStatus.BAD_REQUEST),
     NEW_PASSWORD_SAME_AS_OLD("NEW_PASSWORD_SAME_AS_OLD", "New password must be different from old password", HttpStatus.BAD_REQUEST),
-    CONFIRM_PASSWORD_NOT_MATCH("CONFIRM_PASSWORD_NOT_MATCH", "Confirm password must be match with new password", HttpStatus.BAD_REQUEST),
     CANNOT_CHANGE_USERNAME_YET("CANNOT_CHANGE_USERNAME_YET", "Username can only be changed once within allowed cooldown period", HttpStatus.BAD_REQUEST),
 
     // ==========================================

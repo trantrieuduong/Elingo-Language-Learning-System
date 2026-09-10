@@ -3,6 +3,8 @@ package com.elingo.user.controller;
 import com.elingo.common.annotation.CurrentUserId;
 import com.elingo.common.dto.ApiResponse;
 import com.elingo.user.dto.request.ChangePasswordRequest;
+import com.elingo.user.dto.request.SendOTPUpdateEmailRequest;
+import com.elingo.user.dto.request.UpdateEmailRequest;
 import com.elingo.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,6 +30,30 @@ public class UserController {
     ) {
         log.info("Change password request received: userId={}", userId);
         userService.changePassword(userId, request);
+        return ApiResponse.<Void>builder()
+                .success(true)
+                .build();
+    }
+
+    @PostMapping("/me/email/otp")
+    @Operation(summary = "Send OTP for update email via email")
+    public ApiResponse<Void> sendOTPUpdateEmail(
+            @Valid @RequestBody SendOTPUpdateEmailRequest request,
+            @CurrentUserId Long userId) {
+        log.info("Send OTP update email request received: userId={}", userId);
+        userService.sendOTPUpdateEmail(userId, request);
+        return ApiResponse.<Void>builder()
+                .success(true)
+                .build();
+    }
+
+    @PatchMapping("/me/email")
+    @Operation(summary = "Confirm email update with OTP")
+    public ApiResponse<Void> updateEmail(
+            @Valid @RequestBody UpdateEmailRequest request,
+            @CurrentUserId Long userId) {
+        log.info("Update email request received: userId={}", userId);
+        userService.updateEmail(userId, request);
         return ApiResponse.<Void>builder()
                 .success(true)
                 .build();

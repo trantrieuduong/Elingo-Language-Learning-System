@@ -82,7 +82,7 @@ public class AuthenticationController {
                         .build());
     }
 
-    @PostMapping("/reset-password/send-otp")
+    @PostMapping("/password-reset/otp")
     @Operation(summary = "Send OTP for reset password via email")
     public ApiResponse<Void> sendResetPasswordOtp(
             @Valid @RequestBody SendResetPasswordOtpRequest request) {
@@ -93,7 +93,7 @@ public class AuthenticationController {
                 .build();
     }
 
-    @PostMapping("/reset-password")
+    @PostMapping("/password-reset")
     @Operation(summary = "Reset password with OTP")
     public ApiResponse<Void> resetPassword(
             @Valid @RequestBody ResetPasswordRequest request) {

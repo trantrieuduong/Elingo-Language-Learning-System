@@ -6,6 +6,6 @@ import jakarta.validation.constraints.NotBlank;
 public record SendOTPUpdateEmailRequest(
         @NotBlank(message = "INVALID_REQUEST")
         @Email(message = "EMAIL_INVALID")
-        String email
+        String newEmail
 ) {
 }
