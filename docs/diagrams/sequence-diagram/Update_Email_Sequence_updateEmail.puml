@@ -34,7 +34,7 @@ activate client
 
 alt Để trống OTP
     client --> User: Thông báo lỗi:\n"Để trống OTP"
-else Nhập đủ 2 OTP
+else else
     client -> controller : updateEmail(request, userId)
     activate controller
 
@@ -73,7 +73,7 @@ else Nhập đủ 2 OTP
         controller --> client : apiResponse
         deactivate controller
 
-        client --> User : Thông báo:\n"Cập nhật email thành công",\nLàm mới giao diện
+        client --> User : Thông báo: "Cập nhật\nemail thành công"
         deactivate client
     end
 end

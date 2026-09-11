@@ -1,4 +1,4 @@
-    @startuml
+@startuml
 
 skinparam sequenceArrowThickness 1.5
 skinparam roundcorner 8
@@ -48,8 +48,8 @@ else Email đúng định dạng
         service --> controller : EmailExistedError
         controller --> client : apiResponse
         client --> User : Thông báo lỗi:\n"Email đã tồn tại"
-    else Email chưa tồn tại
-        service -> otpService : generateAndSaveOtp()
+    else else
+        service -> otpService : generateAndSaveOtp(type, newEmail)
         activate otpService
 
         otpService --> service : newEmailOtp
@@ -64,7 +64,7 @@ else Email đúng định dạng
         controller --> client : apiResponse
         deactivate controller
 
-        client --> User : Mở form nhập mã OTP
+        client --> User : Thông báo:\n"Gửi OTP thành công"
         deactivate client
     end
 end
