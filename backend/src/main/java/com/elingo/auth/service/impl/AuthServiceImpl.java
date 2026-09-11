@@ -2,8 +2,11 @@ package com.elingo.auth.service.impl;
 
 import com.elingo.auth.dto.request.AuthenticationRequest;
 import com.elingo.auth.dto.request.RegisterRequest;
+import com.elingo.auth.dto.request.ResendVerificationOtpRequest;
 import com.elingo.auth.dto.request.ResetPasswordRequest;
 import com.elingo.auth.dto.request.SendResetPasswordOtpRequest;
+import com.elingo.auth.dto.request.VerifyAccountRequest;
+
 import com.elingo.auth.dto.response.AuthenticationResponse;
 import com.elingo.auth.dto.response.LoginResult;
 import com.elingo.auth.service.AuthService;
@@ -63,10 +66,20 @@ public class AuthServiceImpl implements AuthService {
 
         User user = userMapper.toUser(request);
         user.setPasswordHash(passwordEncoder.encode(request.password()));
+        user.setIsVerified(false);
 
         userRepository.save(user);
 
-        log.info("User registered successfully: userId={}, username={}", user.getId(), user.getUsername());
+        String otp = otpService.generateAndSaveOtp(OtpType.VERIFY_ACCOUNT, user.getEmail());
+        emailService.sendEmail(
+                user.getEmail(),
+                user.getUsername(),
+                EmailTemplateName.SEND_OTP,
+                otp,
+                "Verify Account"
+        );
+
+        log.info("User registered successfully and verification OTP sent: userId={}, username={}", user.getId(), user.getUsername());
         return userMapper.toUserResponse(user);
     }
 
@@ -84,6 +97,19 @@ public class AuthServiceImpl implements AuthService {
         if (Boolean.FALSE.equals(user.getIsActive()))
             throw new AppException(AppError.USER_INACTIVE);
 
+        if (Boolean.FALSE.equals(user.getIsVerified())) {
+            log.info("User account not verified yet, sending new verification OTP: userId={}", user.getId());
+            String otp = otpService.generateAndSaveOtp(OtpType.VERIFY_ACCOUNT, user.getEmail());
+            emailService.sendEmail(
+                    user.getEmail(),
+                    user.getUsername(),
+                    EmailTemplateName.SEND_OTP,
+                    otp,
+                    "Verify Account"
+            );
+            throw new AppException(AppError.USER_NOT_VERIFIED);
+        }
+
         String userId = String.valueOf(user.getId());
         String accessToken = jwtService.generateAccessToken(userId, user.getRole().name());
         String refreshToken = jwtService.generateRefreshToken(userId);
@@ -93,6 +119,7 @@ public class AuthServiceImpl implements AuthService {
         log.info("User logged in successfully: userId={}, username={}", user.getId(), user.getUsername());
         return new LoginResult(new AuthenticationResponse(accessToken), refreshCookie);
     }
+
 
     @Override
     @Transactional(readOnly = true)
@@ -170,7 +197,46 @@ public class AuthServiceImpl implements AuthService {
         log.info("Password reset successfully for user: userId={}, username={}", user.getId(), user.getUsername());
     }
 
+    @Override
+    @Transactional
+    public void verifyAccount(VerifyAccountRequest request) {
+        log.info("Processing account verification for email: {}", request.email());
+
+        otpService.verifyOtp(OtpType.VERIFY_ACCOUNT, request.email(), request.otp());
+
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new AppException(AppError.EMAIL_NOT_EXISTED));
+
+        user.setIsVerified(true);
+        log.info("Account verified successfully: userId={}, username={}", user.getId(), user.getUsername());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void resendVerificationOtp(ResendVerificationOtpRequest request) {
+        log.info("Processing resend verification OTP for email: {}", request.email());
+
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new AppException(AppError.EMAIL_NOT_EXISTED));
+
+        if (Boolean.TRUE.equals(user.getIsVerified())) {
+            log.info("User account is already verified: userId={}", user.getId());
+            return;
+        }
+
+        String otp = otpService.generateAndSaveOtp(OtpType.VERIFY_ACCOUNT, request.email());
+        emailService.sendEmail(
+                user.getEmail(),
+                user.getUsername(),
+                EmailTemplateName.SEND_OTP,
+                otp,
+                "Verify Account"
+        );
+        log.info("Verification OTP resent successfully to email: {}", user.getEmail());
+    }
+
     private ResponseCookie buildRefreshTokenCookie(String value, Duration maxAge) {
+
         String cookiePath = contextPath.endsWith("/") ? contextPath + "auth" : contextPath + "/auth";
         return ResponseCookie.from("refresh_token", value)
                 .httpOnly(true)

@@ -36,6 +36,7 @@ public class SecurityConfig {
             "/auth/refresh",
             "/auth/logout",
             "/auth/password-reset/**",
+            "/auth/account-verifications/**",
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/v3/api-docs/**",
@@ -44,8 +45,8 @@ public class SecurityConfig {
     };
 
     public SecurityConfig(CustomUserDetailsService customUserDetailsService,
-                          JwtAuthenticationFilter jwtAuthenticationFilter,
-                          @Value("#{'${app.front-end-domain}'.split(',')}") List<String> ALLOW_ORIGINS) {
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            @Value("#{'${app.front-end-domain}'.split(',')}") List<String> ALLOW_ORIGINS) {
         this.customUserDetailsService = customUserDetailsService;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.ALLOW_ORIGINS = ALLOW_ORIGINS;
@@ -58,7 +59,7 @@ public class SecurityConfig {
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))  // REST API
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // REST API
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()));
@@ -68,8 +69,8 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider provider =
-                new DaoAuthenticationProvider(customUserDetailsService.userDetailsService());
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(
+                customUserDetailsService.userDetailsService());
         provider.setPasswordEncoder(passwordEncoder());
         return provider;
     }
@@ -93,8 +94,7 @@ public class SecurityConfig {
         corsConfiguration.setAllowedHeaders(List.of("*"));
         corsConfiguration.setAllowCredentials(true);
 
-        UrlBasedCorsConfigurationSource urlBasedCorsConfigurationSource =
-                new UrlBasedCorsConfigurationSource();
+        UrlBasedCorsConfigurationSource urlBasedCorsConfigurationSource = new UrlBasedCorsConfigurationSource();
         urlBasedCorsConfigurationSource.registerCorsConfiguration("/**", corsConfiguration);
 
         return urlBasedCorsConfigurationSource;

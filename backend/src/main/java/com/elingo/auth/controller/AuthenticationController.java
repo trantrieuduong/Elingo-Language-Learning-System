@@ -2,8 +2,11 @@ package com.elingo.auth.controller;
 
 import com.elingo.auth.dto.request.AuthenticationRequest;
 import com.elingo.auth.dto.request.RegisterRequest;
+import com.elingo.auth.dto.request.ResendVerificationOtpRequest;
 import com.elingo.auth.dto.request.ResetPasswordRequest;
 import com.elingo.auth.dto.request.SendResetPasswordOtpRequest;
+import com.elingo.auth.dto.request.VerifyAccountRequest;
+
 import com.elingo.auth.dto.response.AuthenticationResponse;
 import com.elingo.auth.dto.response.LoginResult;
 import com.elingo.auth.service.AuthService;
@@ -103,4 +106,27 @@ public class AuthenticationController {
                 .success(true)
                 .build();
     }
+
+    @PostMapping("/account-verifications")
+    @Operation(summary = "Verify account email using 6-digit OTP code")
+    public ApiResponse<Void> verifyAccount(
+            @Valid @RequestBody VerifyAccountRequest request) {
+        log.info("Verify account request received: email={}", request.email());
+        authService.verifyAccount(request);
+        return ApiResponse.<Void>builder()
+                .success(true)
+                .build();
+    }
+
+    @PostMapping("/account-verifications/otp")
+    @Operation(summary = "Resend verification OTP email for unverified account")
+    public ApiResponse<Void> resendVerificationOtp(
+            @Valid @RequestBody ResendVerificationOtpRequest request) {
+        log.info("Resend verification OTP request received: email={}", request.email());
+        authService.resendVerificationOtp(request);
+        return ApiResponse.<Void>builder()
+                .success(true)
+                .build();
+    }
 }
+
