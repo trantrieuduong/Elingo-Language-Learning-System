@@ -12,6 +12,8 @@ import com.elingo.user.dto.request.UpdateEmailRequest;
 import com.elingo.user.entity.User;
 import com.elingo.user.repository.UserRepository;
 import com.elingo.user.service.UserService;
+import com.elingo.user.dto.response.UserMeResponse;
+import com.elingo.user.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +31,7 @@ public class UserServiceImpl implements UserService {
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     @Override
     @Transactional
@@ -105,5 +109,27 @@ public class UserServiceImpl implements UserService {
 
         user.setEmail(newEmail);
         log.info("Email updated successfully for email={}, userId={}", newEmail, userId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserMeResponse getMyInfo(Long userId) {
+        log.info("Fetching my profile: userId={}", userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
+        return userMapper.toUserMeResponse(user);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Object getUserById(Long targetUserId, Long currentUserId) {
+        log.info("Fetching user profile: targetUserId={}, currentUserId={}", targetUserId, currentUserId);
+        User user = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
+
+        if (Objects.equals(targetUserId, currentUserId))
+            return userMapper.toUserMeResponse(user);
+        
+        return userMapper.toUserPublicResponse(user);
     }
 }
