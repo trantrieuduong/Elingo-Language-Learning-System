@@ -31,7 +31,8 @@ import java.util.List;
         name = "users",
         uniqueConstraints = {
                 @UniqueConstraint(name = "uk_user_username", columnNames = "username"),
-                @UniqueConstraint(name = "uk_user_email", columnNames = "email")
+                @UniqueConstraint(name = "uk_user_email", columnNames = "email"),
+                @UniqueConstraint(name = "uk_user_google_provider_id", columnNames = "google_provider_id")
         }
 )
 @Data
@@ -50,11 +51,14 @@ public class User implements UserDetails {
     @Column(nullable = false)
     String username;
 
-    @Column(name = "password_hash", nullable = false)
+    @Column(name = "password_hash")
     String passwordHash;
 
     @Column(name = "full_name", nullable = false, length = 150)
     String fullName;
+
+    @Column(name = "google_provider_id")
+    String googleProviderId;
 
     @Column(name = "avatar_url", length = 500)
     String avatarUrl;

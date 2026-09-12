@@ -8,11 +8,11 @@ import com.elingo.auth.dto.request.SendResetPasswordOtpRequest;
 import com.elingo.auth.dto.request.VerifyAccountRequest;
 import com.elingo.auth.dto.response.LoginResult;
 
-import com.elingo.user.dto.response.UserResponse;
+import com.elingo.user.dto.response.UserMeResponse;
 import org.springframework.http.ResponseCookie;
 
 public interface AuthService {
-    UserResponse register(RegisterRequest request);
+    UserMeResponse register(RegisterRequest request);
 
     LoginResult login(AuthenticationRequest request);
 

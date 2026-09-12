@@ -17,7 +17,7 @@ import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.common.util.EmailTemplateName;
 import com.elingo.common.util.OtpType;
-import com.elingo.user.dto.response.UserResponse;
+import com.elingo.user.dto.response.UserMeResponse;
 import com.elingo.user.entity.User;
 import com.elingo.user.mapper.UserMapper;
 import com.elingo.user.repository.UserRepository;
@@ -55,7 +55,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public UserResponse register(RegisterRequest request) {
+    public UserMeResponse register(RegisterRequest request) {
         log.info("Processing user registration: username={}, email={}", request.username(), request.email());
 
         if (userRepository.existsByUsername(request.username()))
@@ -80,7 +80,7 @@ public class AuthServiceImpl implements AuthService {
         );
 
         log.info("User registered successfully and verification OTP sent: userId={}, username={}", user.getId(), user.getUsername());
-        return userMapper.toUserResponse(user);
+        return userMapper.toUserMeResponse(user);
     }
 
     @Override

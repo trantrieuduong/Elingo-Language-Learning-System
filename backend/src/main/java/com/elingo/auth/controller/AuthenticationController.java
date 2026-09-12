@@ -11,7 +11,7 @@ import com.elingo.auth.dto.response.AuthenticationResponse;
 import com.elingo.auth.dto.response.LoginResult;
 import com.elingo.auth.service.AuthService;
 import com.elingo.common.dto.ApiResponse;
-import com.elingo.user.dto.response.UserResponse;
+import com.elingo.user.dto.response.UserMeResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -37,9 +37,9 @@ public class AuthenticationController {
 
     @PostMapping("/signup")
     @Operation(summary = "Sign up new user account")
-    public ApiResponse<UserResponse> signUp(@RequestBody @Valid RegisterRequest registerRequest) {
+    public ApiResponse<UserMeResponse> signUp(@RequestBody @Valid RegisterRequest registerRequest) {
         log.info("User sign up request: username={}", registerRequest.username());
-        return ApiResponse.<UserResponse>builder()
+        return ApiResponse.<UserMeResponse>builder()
                 .success(true)
                 .data(authService.register(registerRequest))
                 .build();
