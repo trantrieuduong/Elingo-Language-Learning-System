@@ -1,6 +1,7 @@
 package com.elingo.auth.controller;
 
 import com.elingo.auth.dto.request.AuthenticationRequest;
+import com.elingo.auth.dto.request.GoogleAuthRequest;
 import com.elingo.auth.dto.request.RegisterRequest;
 import com.elingo.auth.dto.request.ResendVerificationOtpRequest;
 import com.elingo.auth.dto.request.ResetPasswordRequest;
@@ -82,6 +83,20 @@ public class AuthenticationController {
                 .header(HttpHeaders.SET_COOKIE, clearCookie.toString())
                 .body(ApiResponse.<Void>builder()
                         .success(true)
+                        .build());
+    }
+
+    @PostMapping("/google")
+    @Operation(summary = "Sign in or sign up with Google OAuth")
+    public ResponseEntity<ApiResponse<AuthenticationResponse>> authenticateWithGoogle(
+            @RequestBody @Valid GoogleAuthRequest request) {
+        log.info("Google authentication request received");
+        LoginResult loginResult = authService.authenticateWithGoogle(request);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, loginResult.refreshCookie().toString())
+                .body(ApiResponse.<AuthenticationResponse>builder()
+                        .success(true)
+                        .data(loginResult.response())
                         .build());
     }
 

@@ -52,6 +52,9 @@ public enum AppError {
     OLD_PASSWORD_INCORRECT("OLD_PASSWORD_INCORRECT", "Old password is incorrect", HttpStatus.BAD_REQUEST),
     NEW_PASSWORD_SAME_AS_OLD("NEW_PASSWORD_SAME_AS_OLD", "New password must be different from old password", HttpStatus.BAD_REQUEST),
     CANNOT_CHANGE_USERNAME_YET("CANNOT_CHANGE_USERNAME_YET", "Username can only be changed once within allowed cooldown period", HttpStatus.BAD_REQUEST),
+    GOOGLE_TOKEN_INVALID("GOOGLE_TOKEN_INVALID", "Google authentication token is invalid or expired", HttpStatus.BAD_REQUEST),
+    GOOGLE_TOKEN_VERIFICATION_FAILED("GOOGLE_TOKEN_VERIFICATION_FAILED", "Failed to verify Google token", HttpStatus.INTERNAL_SERVER_ERROR),
+    PASSWORD_ALREADY_SET("PASSWORD_ALREADY_SET", "Password is already set for this account, use change password instead", HttpStatus.BAD_REQUEST),
 
     // ==========================================
     // 3. Vocabulary (Bộ từ vựng, Chủ đề, Thẻ từ)

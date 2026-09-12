@@ -3,6 +3,7 @@ package com.elingo.user.service.impl;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.user.dto.request.ChangePasswordRequest;
+import com.elingo.user.dto.request.SetPasswordRequest;
 import com.elingo.common.service.EmailService;
 import com.elingo.common.service.OtpService;
 import com.elingo.common.util.EmailTemplateName;
@@ -55,6 +56,24 @@ public class UserServiceImpl implements UserService {
         user.setPasswordChangedAt(LocalDateTime.now());
 
         log.info("Password changed successfully for userId={}", user.getId());
+    }
+
+    @Override
+    @Transactional
+    public void setPassword(Long userId, SetPasswordRequest request) {
+        log.info("Processing set password for userId: {}", userId);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
+
+        if (user.getPasswordHash() != null) {
+            throw new AppException(AppError.PASSWORD_ALREADY_SET);
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        user.setPasswordChangedAt(LocalDateTime.now());
+
+        log.info("Password set successfully for userId: {}", userId);
     }
 
     @Override

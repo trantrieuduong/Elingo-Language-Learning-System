@@ -1,6 +1,7 @@
 package com.elingo.auth.service;
 
 import com.elingo.auth.dto.request.AuthenticationRequest;
+import com.elingo.auth.dto.request.GoogleAuthRequest;
 import com.elingo.auth.dto.request.RegisterRequest;
 import com.elingo.auth.dto.request.ResendVerificationOtpRequest;
 import com.elingo.auth.dto.request.ResetPasswordRequest;
@@ -15,6 +16,8 @@ public interface AuthService {
     UserMeResponse register(RegisterRequest request);
 
     LoginResult login(AuthenticationRequest request);
+
+    LoginResult authenticateWithGoogle(GoogleAuthRequest request);
 
     LoginResult refreshToken(String refreshToken);
 

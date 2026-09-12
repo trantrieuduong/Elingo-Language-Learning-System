@@ -4,6 +4,7 @@ import com.elingo.common.annotation.CurrentUserId;
 import com.elingo.common.dto.ApiResponse;
 import com.elingo.user.dto.request.ChangePasswordRequest;
 import com.elingo.user.dto.request.SendOTPUpdateEmailRequest;
+import com.elingo.user.dto.request.SetPasswordRequest;
 import com.elingo.user.dto.request.UpdateEmailRequest;
 import com.elingo.user.dto.response.UserMeResponse;
 import com.elingo.user.service.UserService;
@@ -56,6 +57,19 @@ public class UserController {
     ) {
         log.info("Change password request received: userId={}", userId);
         userService.changePassword(userId, request);
+        return ApiResponse.<Void>builder()
+                .success(true)
+                .build();
+    }
+
+    @PostMapping("/me/password")
+    @Operation(summary = "Set password for Google-authenticated account (first time only)")
+    public ApiResponse<Void> setPassword(
+            @Valid @RequestBody SetPasswordRequest request,
+            @CurrentUserId Long userId
+    ) {
+        log.info("Set password request received: userId={}", userId);
+        userService.setPassword(userId, request);
         return ApiResponse.<Void>builder()
                 .success(true)
                 .build();
