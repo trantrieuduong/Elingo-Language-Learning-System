@@ -9,13 +9,11 @@ import com.elingo.auth.dto.request.SendResetPasswordOtpRequest;
 import com.elingo.auth.dto.request.VerifyAccountRequest;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.gson.GsonFactory;
 
 import com.elingo.auth.dto.response.AuthenticationResponse;
 import com.elingo.auth.dto.response.LoginResult;
 import com.elingo.auth.service.AuthService;
+import com.elingo.auth.service.GoogleTokenVerifierService;
 import com.elingo.auth.service.JwtService;
 import com.elingo.common.service.EmailService;
 import com.elingo.common.service.OtpService;
@@ -24,7 +22,6 @@ import com.elingo.common.exception.AppException;
 import com.elingo.common.util.EmailTemplateName;
 import com.elingo.common.util.OtpType;
 import com.elingo.user.dto.response.UserMeResponse;
-import com.elingo.user.entity.Role;
 import com.elingo.user.entity.User;
 import com.elingo.user.mapper.UserMapper;
 import com.elingo.user.repository.UserRepository;
@@ -39,12 +36,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -57,15 +51,13 @@ public class AuthServiceImpl implements AuthService {
     private final EmailService emailService;
     private final OtpService otpService;
     private final UserMapper userMapper;
+    private final GoogleTokenVerifierService googleTokenVerifierService;
 
     @Value("${jwt.refresh-token-time:14}")
     private int refreshTokenDays;
 
     @Value("${server.servlet.context-path:/api/v1}")
     private String contextPath;
-
-    @Value("${app.google.client-id:your-google-client-id.apps.googleusercontent.com}")
-    private String googleClientId;
 
     @Override
     @Transactional
@@ -90,10 +82,10 @@ public class AuthServiceImpl implements AuthService {
                 user.getUsername(),
                 EmailTemplateName.SEND_OTP,
                 otp,
-                "Verify Account"
-        );
+                "Verify Account");
 
-        log.info("User registered successfully and verification OTP sent: userId={}, username={}", user.getId(), user.getUsername());
+        log.info("User registered successfully and verification OTP sent: userId={}, username={}", user.getId(),
+                user.getUsername());
         return userMapper.toUserMeResponse(user);
     }
 
@@ -119,8 +111,7 @@ public class AuthServiceImpl implements AuthService {
                     user.getUsername(),
                     EmailTemplateName.SEND_OTP,
                     otp,
-                    "Verify Account"
-            );
+                    "Verify Account");
             throw new AppException(AppError.USER_NOT_VERIFIED);
         }
 
@@ -134,6 +125,58 @@ public class AuthServiceImpl implements AuthService {
         return new LoginResult(new AuthenticationResponse(accessToken), refreshCookie);
     }
 
+    @Override
+    @Transactional
+    public LoginResult authenticateWithGoogle(GoogleAuthRequest request) {
+        log.info("Processing Google authentication, verifying token...");
+
+        GoogleIdToken.Payload payload = googleTokenVerifierService.verify(request.idToken());
+        log.info("Google token verified successfully for email: {}", payload.getEmail());
+
+        User user = userRepository.findByGoogleProviderId(payload.getSubject())
+                .orElseGet(() -> linkOrCreateByEmail(payload));
+
+        if (Boolean.FALSE.equals(user.getIsActive())) {
+            throw new AppException(AppError.USER_INACTIVE);
+        }
+
+        String userId = String.valueOf(user.getId());
+        String accessToken = jwtService.generateAccessToken(userId, user.getRole().name());
+        String refreshToken = jwtService.generateRefreshToken(userId);
+        ResponseCookie refreshCookie = buildRefreshTokenCookie(refreshToken, Duration.ofDays(refreshTokenDays));
+
+        log.info("Google authentication successful: userId={}, email={}", user.getId(), user.getEmail());
+        return new LoginResult(new AuthenticationResponse(accessToken), refreshCookie);
+    }
+
+    private User linkOrCreateByEmail(GoogleIdToken.Payload payload) {
+        return userRepository.findByEmail(payload.getEmail())
+                .map(existing -> applyGoogleLink(existing, payload))
+                .orElseGet(() -> createFromGoogle(payload));
+    }
+
+    private User applyGoogleLink(User existing, GoogleIdToken.Payload payload) {
+        if (!Boolean.TRUE.equals(existing.getIsVerified()))
+            existing.setPasswordHash(null);
+
+        existing.setGoogleProviderId(payload.getSubject());
+        existing.setIsVerified(true);
+
+        log.info("Google account linked to existing user: userId={}, email={}", existing.getId(), existing.getEmail());
+        return userRepository.save(existing);
+    }
+
+    private User createFromGoogle(GoogleIdToken.Payload payload) {
+        String fullName = (String) payload.get("name");
+        User user = User.builder()
+                .email(payload.getEmail())
+                .username("u" + UUID.randomUUID().toString().replace("-", "").substring(0, 13))
+                .fullName(fullName != null ? fullName : payload.getEmail().split("@")[0])
+                .googleProviderId(payload.getSubject())
+                .isVerified(true)
+                .build();
+        return userRepository.save(user);
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -191,8 +234,7 @@ public class AuthServiceImpl implements AuthService {
                 user.getUsername(),
                 EmailTemplateName.SEND_OTP,
                 otp,
-                "Reset Password"
-        );
+                "Reset Password");
         log.info("Reset password OTP dispatched successfully to email: {}", user.getEmail());
     }
 
@@ -244,150 +286,11 @@ public class AuthServiceImpl implements AuthService {
                 user.getUsername(),
                 EmailTemplateName.SEND_OTP,
                 otp,
-                "Verify Account"
-        );
+                "Verify Account");
         log.info("Verification OTP resent successfully to email: {}", user.getEmail());
     }
 
-    @Override
-    @Transactional
-    public LoginResult authenticateWithGoogle(GoogleAuthRequest request) {
-        log.info("Processing Google authentication, verifying token...");
-
-        GoogleIdToken.Payload payload = verifyGoogleToken(request.idToken());
-
-        String email = payload.getEmail();
-        String googleProviderId = payload.getSubject();
-        String fullName = (String) payload.get("name");
-
-        log.info("Google token verified successfully for email: {}", email);
-
-        Optional<User> existingUser = userRepository.findByEmail(email);
-
-        User user;
-        if (existingUser.isEmpty()) {
-            user = createGoogleUser(email, googleProviderId, fullName);
-            log.info("New user created via Google: userId={}, email={}", user.getId(), user.getEmail());
-        } else {
-            user = existingUser.get();
-
-            if (Boolean.FALSE.equals(user.getIsVerified())) {
-                reclaimAccountWithGoogle(user, googleProviderId);
-                log.info("Unverified account reclaimed via Google: userId={}, email={}", user.getId(), user.getEmail());
-            } else {
-                linkGoogleAccount(user, googleProviderId);
-                log.info("Google account linked to existing user: userId={}, email={}", user.getId(), user.getEmail());
-            }
-        }
-
-        if (Boolean.FALSE.equals(user.getIsActive())) {
-            throw new AppException(AppError.USER_INACTIVE);
-        }
-
-        String userId = String.valueOf(user.getId());
-        String accessToken = jwtService.generateAccessToken(userId, user.getRole().name());
-        String refreshToken = jwtService.generateRefreshToken(userId);
-        ResponseCookie refreshCookie = buildRefreshTokenCookie(refreshToken, Duration.ofDays(refreshTokenDays));
-
-        log.info("Google authentication successful: userId={}, email={}", user.getId(), user.getEmail());
-        return new LoginResult(new AuthenticationResponse(accessToken), refreshCookie);
-    }
-
-    private GoogleIdToken.Payload verifyGoogleToken(String idTokenString) {
-        try {
-            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
-                    new NetHttpTransport(),
-                    GsonFactory.getDefaultInstance())
-                    .setAudience(Collections.singletonList(googleClientId))
-                    .build();
-
-            GoogleIdToken idToken;
-            try {
-                idToken = verifier.verify(idTokenString);
-            } catch (Exception e) {
-                log.warn("Verifier failed, trying fallback parse: {}", e.getMessage());
-                idToken = GoogleIdToken.parse(GsonFactory.getDefaultInstance(), idTokenString);
-                if (!verifier.verify(idToken)) {
-                    idToken = null;
-                }
-            }
-
-            if (idToken == null) {
-                log.warn("Google token verification failed: token is null or invalid");
-                throw new AppException(AppError.GOOGLE_TOKEN_INVALID);
-            }
-
-            return idToken.getPayload();
-        } catch (AppException e) {
-            throw e;
-        } catch (GeneralSecurityException | IOException e) {
-            log.error("Failed to verify Google token", e);
-            throw new AppException(AppError.GOOGLE_TOKEN_VERIFICATION_FAILED);
-        }
-    }
-
-    private User createGoogleUser(String email, String googleProviderId, String fullName) {
-        String username = generateUsernameFromEmail(email);
-
-        User user = User.builder()
-                .email(email)
-                .username(username)
-                .passwordHash(null)
-                .fullName(fullName != null ? fullName : username)
-                .googleProviderId(googleProviderId)
-                .role(Role.USER)
-                .isVerified(true)
-                .isActive(true)
-                .build();
-
-        return userRepository.save(user);
-    }
-
-    private void reclaimAccountWithGoogle(User user, String googleProviderId) {
-        user.setPasswordHash(null);
-        user.setGoogleProviderId(googleProviderId);
-        user.setIsVerified(true);
-    }
-
-    private void linkGoogleAccount(User user, String googleProviderId) {
-        if (user.getGoogleProviderId() == null) {
-            user.setGoogleProviderId(googleProviderId);
-        }
-    }
-
-    private String generateUsernameFromEmail(String email) {
-        String localPart = email.split("@")[0];
-
-        String baseUsername = localPart.replaceAll("[^a-zA-Z0-9._]", "");
-
-        if (baseUsername.length() < 3) {
-            baseUsername = baseUsername + "user";
-        }
-        if (baseUsername.length() > 15) {
-            baseUsername = baseUsername.substring(0, 15);
-        }
-
-        String username = baseUsername;
-        int attempts = 0;
-        while (userRepository.existsByUsername(username) && attempts < 100) {
-            int randomNum = (int) (Math.random() * 1000);
-            username = baseUsername + randomNum;
-            if (username.length() > 15) {
-                baseUsername = baseUsername.substring(0, Math.min(12, baseUsername.length()));
-                username = baseUsername + randomNum;
-            }
-            attempts++;
-        }
-
-        if (attempts >= 100) {
-            throw new AppException(AppError.USERNAME_EXISTED);
-        }
-
-        return username;
-    }
-
     private ResponseCookie buildRefreshTokenCookie(String value, Duration maxAge) {
-
         String cookiePath = contextPath.endsWith("/") ? contextPath + "auth" : contextPath + "/auth";
         return ResponseCookie.from("refresh_token", value)
                 .httpOnly(true)

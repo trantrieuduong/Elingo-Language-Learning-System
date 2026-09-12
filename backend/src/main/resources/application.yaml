@@ -38,4 +38,4 @@ app:
   otp:
     expiration-minutes: 15
   google:
-    client-id: 422653329883-a8frbb4il4minff803geqi0cq5nhtrvr.apps.googleusercontent.com
+    client-id: ${GOOGLE_CLIENT_ID}

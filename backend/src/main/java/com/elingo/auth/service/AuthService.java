@@ -31,6 +31,3 @@ public interface AuthService {
 
     void resendVerificationOtp(ResendVerificationOtpRequest request);
 }
-
-
-

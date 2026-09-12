@@ -144,4 +144,3 @@ public class AuthenticationController {
                 .build();
     }
 }
-
