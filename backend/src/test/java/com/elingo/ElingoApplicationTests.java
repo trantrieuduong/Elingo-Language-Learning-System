@@ -1,13 +1,12 @@
 package com.elingo;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import com.elingo.user.controller.UserControllerIntegrationTest;
+import org.junit.platform.suite.api.SelectClasses;
+import org.junit.platform.suite.api.Suite;
 
-@SpringBootTest
-class ElingoApplicationTests {
-
-    @Test
-    void contextLoads() {
-    }
-
+@Suite
+@SelectClasses({
+        UserControllerIntegrationTest.class
+})
+public class ElingoApplicationTests {
 }
