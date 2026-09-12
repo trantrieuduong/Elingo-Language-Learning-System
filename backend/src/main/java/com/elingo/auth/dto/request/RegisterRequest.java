@@ -9,6 +9,7 @@ public record RegisterRequest(
         @ValidUsername
         String username,
 
+        @NotBlank(message = "EMAIL_INVALID")
         @Email(message = "EMAIL_INVALID")
         String email,
 
