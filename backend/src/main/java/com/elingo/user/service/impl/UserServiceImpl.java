@@ -126,6 +126,7 @@ public class UserServiceImpl implements UserService {
 
         otpService.verifyOtp(OtpType.CHANGE_EMAIL, newEmail, request.newEmailOtp());
 
+        user.setGoogleProviderId(null);
         user.setEmail(newEmail);
         log.info("Email updated successfully for email={}, userId={}", newEmail, userId);
     }
