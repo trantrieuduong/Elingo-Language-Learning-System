@@ -35,7 +35,6 @@ springdoc:
     operations-sorter: alpha
 
 app:
-  front-end-domain: ${APP_FRONTEND_DOMAIN}
   otp:
     expiration-minutes: 15
   google:
