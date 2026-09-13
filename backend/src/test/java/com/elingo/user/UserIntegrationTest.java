@@ -1,4 +1,4 @@
-package com.elingo.user.controller;
+package com.elingo.user;
 
 import com.elingo.BaseIntegrationTest;
 import com.elingo.common.exception.AppError;
@@ -33,7 +33,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class UserControllerIntegrationTest extends BaseIntegrationTest {
+public class UserIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
