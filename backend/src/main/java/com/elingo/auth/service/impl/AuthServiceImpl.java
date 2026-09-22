@@ -82,7 +82,8 @@ public class AuthServiceImpl implements AuthService {
                 user.getUsername(),
                 EmailTemplateName.SEND_OTP,
                 otp,
-                "Verify Account");
+                OtpType.VERIFY_ACCOUNT.getTitle()
+        );
 
         log.info("User registered successfully and verification OTP sent: userId={}, username={}", user.getId(),
                 user.getUsername());
@@ -111,7 +112,8 @@ public class AuthServiceImpl implements AuthService {
                     user.getUsername(),
                     EmailTemplateName.SEND_OTP,
                     otp,
-                    "Verify Account");
+                    OtpType.VERIFY_ACCOUNT.getTitle()
+            );
             throw new AppException(AppError.USER_NOT_VERIFIED);
         }
 
@@ -147,35 +149,6 @@ public class AuthServiceImpl implements AuthService {
 
         log.info("Google authentication successful: userId={}, email={}", user.getId(), user.getEmail());
         return new LoginResult(new AuthenticationResponse(accessToken), refreshCookie);
-    }
-
-    private User linkOrCreateByEmail(GoogleIdToken.Payload payload) {
-        return userRepository.findByEmail(payload.getEmail())
-                .map(existing -> applyGoogleLink(existing, payload))
-                .orElseGet(() -> createFromGoogle(payload));
-    }
-
-    private User applyGoogleLink(User existing, GoogleIdToken.Payload payload) {
-        if (!Boolean.TRUE.equals(existing.getIsVerified()))
-            existing.setPasswordHash(null);
-
-        existing.setGoogleProviderId(payload.getSubject());
-        existing.setIsVerified(true);
-
-        log.info("Google account linked to existing user: userId={}, email={}", existing.getId(), existing.getEmail());
-        return userRepository.save(existing);
-    }
-
-    private User createFromGoogle(GoogleIdToken.Payload payload) {
-        String fullName = (String) payload.get("name");
-        User user = User.builder()
-                .email(payload.getEmail())
-                .username("u" + UUID.randomUUID().toString().replace("-", "").substring(0, 13))
-                .fullName(fullName != null ? fullName : payload.getEmail().split("@")[0])
-                .googleProviderId(payload.getSubject())
-                .isVerified(true)
-                .build();
-        return userRepository.save(user);
     }
 
     @Override
@@ -234,7 +207,8 @@ public class AuthServiceImpl implements AuthService {
                 user.getUsername(),
                 EmailTemplateName.SEND_OTP,
                 otp,
-                "Reset Password");
+                OtpType.RESET_PASSWORD.getTitle()
+        );
         log.info("Reset password OTP dispatched successfully to email: {}", user.getEmail());
     }
 
@@ -286,7 +260,8 @@ public class AuthServiceImpl implements AuthService {
                 user.getUsername(),
                 EmailTemplateName.SEND_OTP,
                 otp,
-                "Verify Account");
+                OtpType.VERIFY_ACCOUNT.getTitle()
+        );
         log.info("Verification OTP resent successfully to email: {}", user.getEmail());
     }
 
@@ -299,5 +274,34 @@ public class AuthServiceImpl implements AuthService {
                 .maxAge(maxAge)
                 .sameSite("Lax")
                 .build();
+    }
+
+    private User linkOrCreateByEmail(GoogleIdToken.Payload payload) {
+        return userRepository.findByEmail(payload.getEmail())
+                .map(existing -> applyGoogleLink(existing, payload))
+                .orElseGet(() -> createFromGoogle(payload));
+    }
+
+    private User applyGoogleLink(User existing, GoogleIdToken.Payload payload) {
+        if (!Boolean.TRUE.equals(existing.getIsVerified()))
+            existing.setPasswordHash(null);
+
+        existing.setGoogleProviderId(payload.getSubject());
+        existing.setIsVerified(true);
+
+        log.info("Google account linked to existing user: userId={}, email={}", existing.getId(), existing.getEmail());
+        return userRepository.save(existing);
+    }
+
+    private User createFromGoogle(GoogleIdToken.Payload payload) {
+        String fullName = (String) payload.get("name");
+        User user = User.builder()
+                .email(payload.getEmail())
+                .username("u" + UUID.randomUUID().toString().replace("-", "").substring(0, 13))
+                .fullName(fullName != null ? fullName : payload.getEmail().split("@")[0])
+                .googleProviderId(payload.getSubject())
+                .isVerified(true)
+                .build();
+        return userRepository.save(user);
     }
 }

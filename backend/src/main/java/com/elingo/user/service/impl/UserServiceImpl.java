@@ -101,7 +101,7 @@ public class UserServiceImpl implements UserService {
                 user.getUsername(),
                 EmailTemplateName.SEND_OTP,
                 newEmailOtp,
-                "Verify Email For Email Update"
+                OtpType.CHANGE_EMAIL.getTitle()
         );
         log.info("Update email OTP sent successfully: email={}, userId={}", newEmail, userId);
     }

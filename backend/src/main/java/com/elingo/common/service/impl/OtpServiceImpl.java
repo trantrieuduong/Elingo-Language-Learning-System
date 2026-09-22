@@ -44,6 +44,6 @@ public class OtpServiceImpl implements OtpService {
     }
 
     private String buildOtpKey(OtpType type, String identifier) {
-        return "otp:" + type.prefix() + ":" + identifier;
+        return "otp:" + type.getPrefix() + ":" + identifier;
     }
 }
