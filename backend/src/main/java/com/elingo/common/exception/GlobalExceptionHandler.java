@@ -24,11 +24,11 @@ public class GlobalExceptionHandler {
      * Unhandled errors during runtime
      */
     @ExceptionHandler(RuntimeException.class)
-    ResponseEntity<ApiResponse<?>> handleRuntimeException(RuntimeException ex) {
+    ResponseEntity<ApiResponse<Void>> handleRuntimeException(RuntimeException ex) {
         log.error("Unexpected error occurred", ex);
         AppError appError = AppError.UNCATEGORIZED_EXCEPTION;
         return ResponseEntity.status(appError.getHttpStatusCode())
-                .body(ApiResponse.builder()
+                .body(ApiResponse.<Void>builder()
                         .success(false)
                         .errors(List.of(ErrorDetail.builder()
                                 .code(appError.getCode())
@@ -41,11 +41,11 @@ public class GlobalExceptionHandler {
      * Handled business errors
      */
     @ExceptionHandler(AppException.class)
-    ResponseEntity<ApiResponse<?>> handleAppException(AppException ex) {
+    ResponseEntity<ApiResponse<Void>> handleAppException(AppException ex) {
         AppError appError = ex.getAppError();
         log.error("Business error: {} - {}", appError.getCode(), ex.getMessage());
         return ResponseEntity.status(appError.getHttpStatusCode())
-                .body(ApiResponse.builder()
+                .body(ApiResponse.<Void>builder()
                         .success(false)
                         .errors(List.of(ErrorDetail.builder()
                                 .code(appError.getCode())
@@ -58,7 +58,7 @@ public class GlobalExceptionHandler {
      * Exception from annotations validation (@Valid)
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    ResponseEntity<ApiResponse<?>> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+    ResponseEntity<ApiResponse<Void>> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
         List<ErrorDetail> errors = ex.getBindingResult().getFieldErrors().stream()
                 .map(fieldError -> {
                     String code = fieldError.getDefaultMessage();
@@ -77,7 +77,7 @@ public class GlobalExceptionHandler {
                 .toList();
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.builder()
+                .body(ApiResponse.<Void>builder()
                         .success(false)
                         .errors(errors)
                         .build());
@@ -87,7 +87,7 @@ public class GlobalExceptionHandler {
      * Database unique constraint violation exception
      */
     @ExceptionHandler(DataIntegrityViolationException.class)
-    ResponseEntity<ApiResponse<?>> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+    ResponseEntity<ApiResponse<Void>> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
         Throwable cause = ex.getCause();
         AppError appError = AppError.UNCATEGORIZED_EXCEPTION;
 
@@ -117,7 +117,7 @@ public class GlobalExceptionHandler {
         }
 
         return ResponseEntity.status(appError.getHttpStatusCode())
-                .body(ApiResponse.builder()
+                .body(ApiResponse.<Void>builder()
                         .success(false)
                         .errors(List.of(ErrorDetail.builder()
                                 .code(appError.getCode())

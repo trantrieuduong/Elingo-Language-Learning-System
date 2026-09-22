@@ -37,7 +37,7 @@ public class UserController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Get user profile by id")
-    public ApiResponse<?> getUserById(
+    public ApiResponse<Object> getUserById(
             @PathVariable Long id,
             @CurrentUserId Long currentUserId
     ) {
