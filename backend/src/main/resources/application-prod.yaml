@@ -1,15 +1,25 @@
 app:
   front-end-domain: "https://production-domain.com"
+  google:
+    client-id: ${PROD_GOOGLE_CLIENT_ID}
 
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/elingo
-    username: ${MYSQL_USERNAME}
-    password: ${MYSQL_PASSWORD}
+    url: ${PROD_MYSQL_CONNECTION_URL}
+    username: ${PROD_MYSQL_USERNAME}
+    password: ${PROD_MYSQL_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: validate
     show-sql: false
+  mail:
+    host: ${PROD_MAIL_HOST}
+    port: ${PROD_MAIL_PORT}
+    username: ${PROD_MAIL_USERNAME}
+    password: ${PROD_MAIL_PASSWORD}
+
+jwt:
+  signer-key: ${PROD_JWT_SIGNER_KEY}
 
 springdoc:
   swagger-ui:

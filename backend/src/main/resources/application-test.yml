@@ -1,6 +1,8 @@
 app:
   front-end-domain: "http://localhost:5173"
-  
+  google:
+    client-id: ${TEST_GOOGLE_CLIENT_ID:test}
+
 spring:
   datasource:
     url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
@@ -10,3 +12,11 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate.ddl-auto: update
+  mail:
+    host: ${TEST_MAIL_HOST:localhost}
+    port: ${TEST_MAIL_PORT:587}
+    username: ${TEST_MAIL_USERNAME:test}
+    password: ${TEST_MAIL_PASSWORD:test}
+
+jwt:
+  signer-key: ${TEST_JWT_SIGNER_KEY:nZ4myQcAacbTDoEzaSPWs7q0NkhVEHMki3J72A3AD75} # for test only
