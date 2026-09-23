@@ -4,20 +4,17 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
+import lombok.experimental.SuperBuilder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDateTime;
+import com.elingo.common.entity.BaseEntity;
 
 @Entity
 @Table(
@@ -27,15 +24,12 @@ import java.time.LocalDateTime;
         }
 )
 @Data
-@Builder
+@EqualsAndHashCode(callSuper = true)
+@SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Badge {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
-
+public class Badge extends BaseEntity {
     @Column(nullable = false, length = 100)
     String code;
 
@@ -54,8 +48,4 @@ public class Badge {
 
     @Column(name = "condition_value", nullable = false)
     Integer conditionValue;
-
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    LocalDateTime createdAt;
 }
