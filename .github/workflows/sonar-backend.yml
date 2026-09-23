@@ -43,4 +43,3 @@ jobs:
           -Dsonar.organization=elingo
           -Dsonar.scanner.skipJreProvisioning=true
           -Dsonar.qualitygate.wait=true
-          -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
