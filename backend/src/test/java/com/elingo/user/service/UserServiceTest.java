@@ -1,4 +1,4 @@
-package com.elingo.user;
+package com.elingo.user.service;
 
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
