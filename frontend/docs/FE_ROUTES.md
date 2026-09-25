@@ -16,7 +16,7 @@
 
 | Path | Component | Module | Ghi chú |
 |---|---|---|---|
-| `/` | `LandingPage` | `auth/pages/` | Trang chủ |
+| `/` | `LandingPage` | `home/pages/` | Trang chủ |
 | `/login` | `LoginPage` | `auth/pages/` | Đăng nhập |
 | `/signup` | `SignupPage` | `auth/pages/` | Đăng ký |
 | `/account-verification` | `AccountVerificationPage` | `auth/pages/` | Xác thực email bằng OTP; nhận email qua history state |

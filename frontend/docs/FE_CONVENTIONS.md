@@ -59,6 +59,8 @@ frontend/src/
 │   └── ThemeContext.jsx
 │
 ├── modules/              # Feature modules — MỖI folder = 1 module nghiệp vụ
+│   ├── home/
+│   │   └── pages/         # LandingPage (trang chủ public)
 │   ├── admin/
 │   │   ├── adminApi.js
 │   │   ├── layout/       # AdminLayout riêng, không dùng Header/Footer public
