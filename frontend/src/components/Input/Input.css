@@ -1,0 +1,122 @@
+/* ============================================================
+   Input.css — Shared Input Component
+   ============================================================ */
+
+.input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.input-label {
+  font-family: var(--font-display);
+  font-size: var(--font-size-label-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-on-surface);
+  letter-spacing: var(--tracking-wide);
+}
+
+/* ── Field row: input + toggle button ── */
+.input-field-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-field {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: var(--blur-sm);
+  -webkit-backdrop-filter: var(--blur-sm);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: var(--radius-input);
+  color: var(--color-text-high);
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-lg);
+  outline: none;
+  transition: var(--transition-base);
+}
+
+.input-field::placeholder {
+  color: var(--color-text-disabled);
+}
+
+.input-field:focus {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: var(--color-primary-container);
+  box-shadow: 0 0 0 4px rgba(155, 183, 232, 0.2);
+}
+
+.input-field:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.input-field--error {
+  border-color: var(--color-error);
+}
+
+.input-field--error:focus {
+  border-color: var(--color-error);
+  box-shadow: 0 0 0 4px rgba(186, 26, 26, 0.15);
+}
+
+/* Padding right khi có toggle/right element */
+.input-field-row:has(.input-toggle-password) .input-field,
+.input-field-row:has(.input-right-element) .input-field {
+  padding-right: 2.75rem;
+}
+
+/* ── Toggle password button ── */
+.input-toggle-password {
+  position: absolute;
+  right: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--color-on-surface-variant);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: var(--transition-fast);
+}
+
+.input-toggle-password:hover {
+  color: var(--color-on-surface);
+}
+
+.input-toggle-password .material-symbols-outlined {
+  font-size: 18px;
+}
+
+/* ── Right element ── */
+.input-right-element {
+  position: absolute;
+  right: 0.75rem;
+  display: flex;
+  align-items: center;
+  color: var(--color-on-surface-variant);
+}
+
+/* ── Error message ── */
+.input-error {
+  font-size: var(--font-size-body-sm);
+  color: var(--color-error);
+  font-family: var(--font-body);
+}
+
+[data-theme='dark'] .input-field {
+  background: rgba(26, 38, 56, 0.8);
+  border-color: rgba(182, 204, 234, 0.18);
+}
+
+[data-theme='dark'] .input-field:focus {
+  background: rgba(31, 46, 67, 0.94);
+  border-color: var(--color-primary-container);
+  box-shadow: 0 0 0 4px rgba(169, 199, 255, 0.18);
+}

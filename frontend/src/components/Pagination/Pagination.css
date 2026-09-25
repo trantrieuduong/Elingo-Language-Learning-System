@@ -1,0 +1,101 @@
+/* ============================================================
+   Pagination.css — Shared Pagination Component
+   ============================================================ */
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.pagination__pages {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* ── Page number button ── */
+.pagination__page {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-on-surface-variant);
+  font-family: var(--font-display);
+  font-size: var(--font-size-label-lg);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.pagination__page:hover {
+  background: var(--glass-thumb-bg);
+  backdrop-filter: var(--blur-md);
+  border-color: rgba(255, 255, 255, 0.6);
+  color: var(--color-on-surface);
+}
+
+.pagination__page--active {
+  background: var(--color-secondary-container);
+  color: var(--color-primary);
+  border-color: rgba(155, 183, 232, 0.3);
+}
+
+.pagination__page--active:hover {
+  background: var(--color-secondary-container);
+  color: var(--color-primary);
+}
+
+/* ── Prev/Next icon buttons ── */
+.pagination__btn {
+  width: 36px;
+  height: 36px;
+}
+
+.pagination__btn .material-symbols-outlined {
+  font-size: 20px;
+}
+
+/* ── Ellipsis ── */
+.pagination__ellipsis {
+  color: var(--color-text-disabled);
+  font-size: var(--font-size-label-lg);
+  padding: 0 var(--space-1);
+  user-select: none;
+}
+
+/* ── Jump to page ── */
+.pagination__jump {
+  margin-left: var(--space-2);
+}
+
+.pagination__jump-input {
+  width: 72px;
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-outline-variant);
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--color-text-high);
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-sm);
+  outline: none;
+  text-align: center;
+}
+
+.pagination__jump-input:focus {
+  border-color: var(--color-primary-container);
+  box-shadow: 0 0 0 3px rgba(155, 183, 232, 0.2);
+}
+
+/* Ẩn arrow spinner trong number input */
+.pagination__jump-input::-webkit-inner-spin-button,
+.pagination__jump-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
