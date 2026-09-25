@@ -80,6 +80,7 @@ public enum AppError {
     USER_CARD_STATE_NOT_FOUND("USER_CARD_STATE_NOT_FOUND", "User card study state not found", HttpStatus.NOT_FOUND),
     INVALID_SRS_GRADE("INVALID_SRS_GRADE", "Review grade must be between 0 (Again) and 3 (Easy)", HttpStatus.BAD_REQUEST),
     NO_CARDS_DUE("NO_CARDS_DUE", "No flashcards are due for review", HttpStatus.BAD_REQUEST),
+    QUIZ_NOT_ENOUGH_CARDS("QUIZ_NOT_ENOUGH_CARDS", "Not enough cards in deck to generate 4 quiz options", HttpStatus.UNPROCESSABLE_CONTENT),
 
     // ==========================================
     // 5. Learning - Lesson (Bài học, Dictation, Shadowing)
@@ -92,6 +93,8 @@ public enum AppError {
     USER_LESSON_PROGRESS_NOT_FOUND("USER_LESSON_PROGRESS_NOT_FOUND", "User lesson progress not found", HttpStatus.NOT_FOUND),
     USER_SEGMENT_PROGRESS_NOT_FOUND("USER_SEGMENT_PROGRESS_NOT_FOUND", "User segment progress not found", HttpStatus.NOT_FOUND),
     AUDIO_RECORDING_REQUIRED("AUDIO_RECORDING_REQUIRED", "Shadowing requires an audio recording file", HttpStatus.BAD_REQUEST),
+    SOURCE_URL_INVALID("SOURCE_URL_INVALID", "Source url must be a valid YouTube link", HttpStatus.BAD_REQUEST),
+    LESSON_PUBLISHED_FAILED("LESSON_PUBLISHED_FAILED", "Cannot publish a lesson without segments", HttpStatus.BAD_REQUEST),
 
     // ==========================================
     // 6. Battle (Đấu trường từ vựng 1vs1)

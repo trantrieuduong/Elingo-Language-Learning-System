@@ -148,7 +148,7 @@ flashcard/
 ├── repository/FlashcardReviewRepository.java
 ├── entity/FlashcardReview.java (cardId, userId, easeFactor, interval, dueDate, level SM-2)
 └── dto/
-    ├── request/ReviewFeedbackRequest.java (Again/Hard/Good/Easy)
+    ├── request/SrsReviewRequest.java (Again/Hard/Good/Easy)
     └── response/DueCardResponse.java
 ```
 **Chức năng:** hiển thị thẻ đến hạn ôn tập, nhận đánh giá 4 mức (Again/Hard/Good/Easy), `SpacedRepetitionService` áp dụng thuật toán SM-2 tính `interval`/`easeFactor`/`dueDate` tiếp theo.
