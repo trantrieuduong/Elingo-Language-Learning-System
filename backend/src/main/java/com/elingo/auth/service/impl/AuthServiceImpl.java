@@ -256,12 +256,12 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public void verifyAccount(VerifyAccountRequest request) {
-        log.info("Processing account verification for email: {}", request.email());
+        log.info("Processing account verification for identifier: {}", request.email());
 
-        otpService.verifyOtp(OtpType.VERIFY_ACCOUNT, request.email(), request.otp());
+        User user = userRepository.findByUsernameOrEmail(request.email(), request.email())
+                .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
 
-        User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new AppException(AppError.EMAIL_NOT_EXISTED));
+        otpService.verifyOtp(OtpType.VERIFY_ACCOUNT, user.getEmail(), request.otp());
 
         user.setIsVerified(true);
         log.info("Account verified successfully: userId={}, username={}", user.getId(), user.getUsername());
@@ -270,17 +270,17 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional(readOnly = true)
     public void resendVerificationOtp(ResendVerificationOtpRequest request) {
-        log.info("Processing resend verification OTP for email: {}", request.email());
+        log.info("Processing resend verification OTP for identifier: {}", request.email());
 
-        User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new AppException(AppError.EMAIL_NOT_EXISTED));
+        User user = userRepository.findByUsernameOrEmail(request.email(), request.email())
+                .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
 
         if (Boolean.TRUE.equals(user.getIsVerified())) {
             log.info("User account is already verified: userId={}", user.getId());
             return;
         }
 
-        String otp = otpService.generateAndSaveOtp(OtpType.VERIFY_ACCOUNT, request.email());
+        String otp = otpService.generateAndSaveOtp(OtpType.VERIFY_ACCOUNT, user.getEmail());
         emailService.sendEmail(
                 user.getEmail(),
                 user.getUsername(),

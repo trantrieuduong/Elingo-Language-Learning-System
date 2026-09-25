@@ -8,6 +8,7 @@ const OTP_RESEND_COOLDOWN = 60
 function AccountVerificationPage({ email: initialEmail = '', onNavigate }) {
   const { verifyAccount, resendVerificationOtp } = useAuth()
   const [otp, setOtp] = useState('')
+  const [otpError, setOtpError] = useState('')
   const [error, setError] = useState('')
   const [successMsg, setSuccessMsg] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -28,8 +29,13 @@ function AccountVerificationPage({ email: initialEmail = '', onNavigate }) {
     setError('')
     setSuccessMsg('')
 
-    if (!initialEmail || !otp.trim()) {
-      setError('Vui lòng nhập mã xác thực gồm 6 chữ số.')
+    if (!otp.trim()) {
+      setOtpError('Mã OTP là bắt buộc.')
+      return
+    }
+
+    if (!initialEmail) {
+      setError('Không tìm thấy thông tin xác thực. Vui lòng đăng nhập lại.')
       return
     }
 
@@ -81,20 +87,13 @@ function AccountVerificationPage({ email: initialEmail = '', onNavigate }) {
         </span>
         <div className="auth-card__header">
           <h1>Xác thực tài khoản</h1>
-          <p>Nhập mã gồm 6 chữ số đã được gửi đến địa chỉ email của bạn.</p>
+          <p>Nhập mã gồm 6 chữ số đã được gửi đến email đăng ký của bạn.</p>
         </div>
 
         {error && <div className="auth-alert auth-alert--error">{error}</div>}
         {successMsg && <div className="auth-alert auth-alert--success">{successMsg}</div>}
 
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <Input
-            id="verification-email"
-            label="Email"
-            type="email"
-            value={initialEmail}
-            disabled
-          />
+        <form className="auth-form" onSubmit={handleSubmit} noValidate>
           <Input
             id="verification-otp"
             label="Mã xác thực"
@@ -103,9 +102,11 @@ function AccountVerificationPage({ email: initialEmail = '', onNavigate }) {
             value={otp}
             onChange={(e) => {
               setOtp(e.target.value)
+              if (otpError) setOtpError('')
               if (error) setError('')
             }}
             disabled={isSubmitting}
+            error={otpError}
             inputMode="numeric"
             maxLength={6}
             autoFocus

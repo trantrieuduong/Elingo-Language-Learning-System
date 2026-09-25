@@ -91,8 +91,12 @@ export const AuthProvider = ({ children }) => {
       return { success: false, message: response.message || 'Đăng nhập không thành công' }
     } catch (error) {
       clearAuthState()
-      const message = error.response?.data?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.'
-      const code = error.response?.data?.code
+      const responseData = error.response?.data
+      const errorDetail = responseData?.errors?.[0]
+      const code = errorDetail?.code || responseData?.code
+      const message = code === 'INVALID_CREDENTIALS'
+        ? 'Email/Username hoặc mật khẩu không chính xác.'
+        : errorDetail?.message || responseData?.message || 'Đăng nhập thất bại. Vui lòng thử lại.'
       return {
         success: false,
         message,
@@ -156,7 +160,10 @@ export const AuthProvider = ({ children }) => {
       }
       return { success: false, message: response.message || 'Gửi lại mã thất bại' }
     } catch (error) {
-      const message = error.response?.data?.message || 'Gửi lại mã thất bại. Vui lòng thử lại sau.'
+      const responseData = error.response?.data
+      const message = responseData?.errors?.[0]?.message
+        || responseData?.message
+        || 'Gửi lại mã thất bại. Vui lòng thử lại sau.'
       return { success: false, message }
     }
   }

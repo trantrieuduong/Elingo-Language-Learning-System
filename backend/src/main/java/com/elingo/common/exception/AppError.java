@@ -33,6 +33,7 @@ public enum AppError {
     USERNAME_INVALID("USERNAME_INVALID", "Username must be 3-15 characters, letters and numbers only, no spaces", HttpStatus.BAD_REQUEST),
     PASSWORD_INVALID("PASSWORD_INVALID", "Password must be at least 8 characters and include uppercase, lowercase, number, and special character", HttpStatus.BAD_REQUEST),
     EMAIL_INVALID("EMAIL_INVALID", "Email format is invalid", HttpStatus.BAD_REQUEST),
+    IDENTIFIER_INVALID("IDENTIFIER_INVALID", "Email or username must not be blank", HttpStatus.BAD_REQUEST),
     FULL_NAME_INVALID("FULL_NAME_INVALID", "Full name must not be blank and less than 150 characters", HttpStatus.BAD_REQUEST),
     OTP_INVALID("OTP_INVALID", "OTP is incorrect or expired", HttpStatus.BAD_REQUEST),
     USERNAME_EXISTED("USERNAME_EXISTED", "Username already exists", HttpStatus.BAD_REQUEST),
