@@ -25,8 +25,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-import static org.hamcrest.Matchers.hasSize;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -34,7 +32,6 @@ import java.time.LocalTime;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -84,43 +81,32 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
         authToken = jwtService.generateAccessToken(testUser.getId().toString(), authorities);
     }
 
-    private Deck persistDeck(String title, String slug) {
+    private Deck persistDeck() {
         return deckRepository.save(Deck.builder()
-                .title(title)
-                .slug(slug)
+                .title("SRS Deck")
+                .slug("srs-deck")
                 .status(DeckStatus.PUBLISHED)
                 .ownerType(OwnerType.SYSTEM)
                 .build());
     }
 
-    private Topic persistTopic(Deck deck, String name, String slug) {
+    private Topic persistTopic(Deck deck) {
         return topicRepository.save(Topic.builder()
                 .deck(deck)
-                .name(name)
-                .slug(slug)
+                .name("SRS Topic")
+                .slug("srs-topic")
                 .build());
     }
 
-    private Card persistCard(Deck deck, Topic topic, String term, String translation, int order) {
+    private Card persistCard(Deck deck, Topic topic) {
         return cardRepository.save(Card.builder()
                 .deck(deck)
                 .topic(topic)
-                .term(term)
-                .translation(translation)
-                .order(order)
+                .term("hello")
+                .translation("xin chao")
+                .order(1)
                 .build());
     }
-
-    private void persistUserCardState(User user, Card card) {
-        userCardStateRepository.save(UserCardState.builder()
-                .user(user)
-                .card(card)
-                .deck(card.getDeck())
-                .topic(card.getTopic())
-                .srsNextReviewAt(LocalDateTime.now().plusDays(1))
-                .build());
-    }
-
 
 
     @Nested
@@ -132,9 +118,9 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
 
         @BeforeEach
         void setUp() {
-            deck = persistDeck("SRS Deck", "srs-deck");
-            topic = persistTopic(deck, "SRS Topic", "srs-topic");
-            card = persistCard(deck, topic, "hello", "xin chao", 1);
+            deck = persistDeck();
+            topic = persistTopic(deck);
+            card = persistCard(deck, topic);
         }
 
         private void persistExistingState(int interval, BigDecimal easeFactor) {

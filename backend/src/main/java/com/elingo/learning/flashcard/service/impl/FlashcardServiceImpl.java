@@ -3,14 +3,11 @@ package com.elingo.learning.flashcard.service.impl;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.learning.flashcard.dto.request.SrsReviewRequest;
-import com.elingo.learning.flashcard.dto.response.QuizOptionResponse;
-
-
+import com.elingo.learning.flashcard.dto.response.ReviewCardResponse;
 import com.elingo.learning.flashcard.entity.UserCardState;
 import com.elingo.learning.flashcard.repository.UserCardStateRepository;
 import com.elingo.learning.flashcard.service.FlashcardService;
 import com.elingo.learning.flashcard.service.SpacedRepetitionService;
-import com.elingo.vocabulary.dto.response.CardResponse;
 import com.elingo.user.entity.User;
 import com.elingo.user.repository.UserRepository;
 import com.elingo.vocabulary.entity.Card;
@@ -19,11 +16,8 @@ import com.elingo.vocabulary.repository.CardRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.util.*;
 
@@ -35,6 +29,7 @@ public class FlashcardServiceImpl implements FlashcardService {
     private final CardRepository cardRepository;
     private final UserCardStateRepository userCardStateRepository;
     private final SpacedRepetitionService spacedRepetitionService;
+    private final CardMapper cardMapper;
 
     @Override
     @Transactional
@@ -120,5 +115,18 @@ public class FlashcardServiceImpl implements FlashcardService {
         userCardStateRepository.save(state);
 
         log.info("Toggle hide successfully for userId={}, cardId={}, isHidden={}", userId, cardId, newHiddenState);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ReviewCardResponse> getCardsForReview(Long userId) {
+        log.info("Fetching cards for review for userId={}", userId);
+        return userCardStateRepository.findCardsForReview(userId).stream()
+                .map(state -> new ReviewCardResponse(
+                        cardMapper.toCardResponse(state.getCard()),
+                        state.getSrsNextReviewAt(),
+                        state.getFlagsStarred(),
+                        state.getFlagsHidden()
+                )).toList();
     }
 }

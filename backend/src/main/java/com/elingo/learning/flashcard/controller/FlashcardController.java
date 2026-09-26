@@ -3,6 +3,7 @@ package com.elingo.learning.flashcard.controller;
 import com.elingo.common.annotation.CurrentUserId;
 import com.elingo.common.dto.ApiResponse;
 import com.elingo.learning.flashcard.dto.request.SrsReviewRequest;
+import com.elingo.learning.flashcard.dto.response.ReviewCardResponse;
 
 import com.elingo.learning.flashcard.service.FlashcardService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,6 +12,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/flashcards")
@@ -58,6 +61,19 @@ public class FlashcardController {
         flashcardService.toggleHide(currentUserId, cardId);
         return ApiResponse.<Void>builder()
                 .success(true)
+                .build();
+    }
+
+    @GetMapping("/reviews")
+    @Operation(summary = "Get list of flashcards due for review")
+    public ApiResponse<List<ReviewCardResponse>> getCardsForReview(
+            @CurrentUserId Long currentUserId) {
+        log.info("Get cards for review request received: userId={}", currentUserId);
+
+        List<ReviewCardResponse> response = flashcardService.getCardsForReview(currentUserId);
+        return ApiResponse.<List<ReviewCardResponse>>builder()
+                .success(true)
+                .data(response)
                 .build();
     }
 }

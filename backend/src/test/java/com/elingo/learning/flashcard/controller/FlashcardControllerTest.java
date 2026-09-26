@@ -2,8 +2,15 @@ package com.elingo.learning.flashcard.controller;
 
 import com.elingo.common.annotation.CurrentUserId;
 import com.elingo.learning.flashcard.dto.request.SrsReviewRequest;
+import com.elingo.learning.flashcard.dto.response.ReviewCardResponse;
 import com.elingo.learning.flashcard.service.FlashcardService;
+import com.elingo.vocabulary.dto.response.CardResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,6 +31,8 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -121,6 +130,71 @@ class FlashcardControllerTest {
                     .andExpect(jsonPath("$.success").value(true));
 
             verify(flashcardService).submitSrsReview(USER_ID, CARD_ID, request);
+        }
+    }
+
+    @Nested
+    @DisplayName("toggleStar")
+    class ToggleStarTests {
+
+        @Test
+        @DisplayName("Toggle star state successfully")
+        void toggleStar_Success() throws Exception {
+            mockMvc.perform(patch("/flashcards/{cardId}/stars", CARD_ID)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true));
+
+            verify(flashcardService).toggleStar(USER_ID, CARD_ID);
+        }
+    }
+
+    @Nested
+    @DisplayName("toggleHidden")
+    class ToggleHiddenTests {
+
+        @Test
+        @DisplayName("Toggle hidden state successfully")
+        void toggleHidden_Success() throws Exception {
+            mockMvc.perform(patch("/flashcards/{cardId}/hidden", CARD_ID)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true));
+
+            verify(flashcardService).toggleHide(USER_ID, CARD_ID);
+        }
+    }
+
+    @Nested
+    @DisplayName("getCardsForReview")
+    class GetCardsForReviewTests {
+
+        @Test
+        @DisplayName("Get list of flashcards due for review successfully")
+        void getCardsForReview_Success() throws Exception {
+            CardResponse cardResponse = new CardResponse(
+                    CARD_ID, 1, "hello", "verb", "chào",
+                    "chào hỏi người khác", "greeting in English",
+                    "chào mọi người", "hello everyone",
+                    "http://image.url", Collections.emptyList()
+            );
+            ReviewCardResponse reviewCardResponse = new ReviewCardResponse(
+                    cardResponse, LocalDateTime.now(), true, false
+            );
+            List<ReviewCardResponse> responseMock = List.of(reviewCardResponse);
+
+            when(flashcardService.getCardsForReview(USER_ID)).thenReturn(responseMock);
+
+            mockMvc.perform(get("/flashcards/reviews")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data[0].card.id").value(CARD_ID))
+                    .andExpect(jsonPath("$.data[0].card.term").value("hello"))
+                    .andExpect(jsonPath("$.data[0].flagsStarred").value(true))
+                    .andExpect(jsonPath("$.data[0].flagsHidden").value(false));
+
+            verify(flashcardService).getCardsForReview(USER_ID);
         }
     }
 }
