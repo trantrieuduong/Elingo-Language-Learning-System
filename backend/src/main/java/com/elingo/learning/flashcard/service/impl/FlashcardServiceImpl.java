@@ -13,6 +13,7 @@ import com.elingo.user.repository.UserRepository;
 import com.elingo.vocabulary.entity.Card;
 import com.elingo.vocabulary.mapper.CardMapper;
 import com.elingo.vocabulary.repository.CardRepository;
+import org.springframework.data.domain.PageRequest;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -119,14 +122,24 @@ public class FlashcardServiceImpl implements FlashcardService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ReviewCardResponse> getCardsForReview(Long userId) {
-        log.info("Fetching cards for review for userId={}", userId);
-        return userCardStateRepository.findCardsForReview(userId).stream()
-                .map(state -> new ReviewCardResponse(
-                        cardMapper.toCardResponse(state.getCard()),
+    public List<ReviewCardResponse> getCardsForReview(Long userId, Integer limit) {
+        log.info("Fetching cards for review for userId={}, limit={}", userId, limit);
+        limit = limit != null && limit > 0 ? limit : 100;
+        List<UserCardState> states = userCardStateRepository.findCardsForReview(userId, PageRequest.of(0, limit));
+        if (states.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<Long> cardIds = states.stream()
+                .map(state -> state.getCard().getId())
+                .toList();
+        List<Card> cards = cardRepository.findAllWithPhoneticsByIdIn(cardIds);
+        Map<Long, Card> cardMap = cards.stream().collect(Collectors.toMap(Card::getId, Function.identity()));
+        return states.stream().map(
+                state -> new ReviewCardResponse(
+                        cardMapper.toCardResponse(cardMap.get(state.getCard().getId())),
                         state.getSrsNextReviewAt(),
                         state.getFlagsStarred(),
-                        state.getFlagsHidden()
-                )).toList();
+                        state.getFlagsHidden())
+        ).toList();
     }
 }

@@ -1,6 +1,7 @@
 package com.elingo.learning.flashcard.repository;
 
 import com.elingo.learning.flashcard.entity.UserCardState;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -21,11 +22,10 @@ public interface UserCardStateRepository extends JpaRepository<UserCardState, Lo
     @Query("""
             SELECT u FROM UserCardState u
             JOIN FETCH u.card c
-            LEFT JOIN FETCH c.phonetics
             WHERE u.user.id = :userId
               AND u.srsNextReviewAt IS NOT NULL
               AND u.flagsHidden = false
             ORDER BY u.srsNextReviewAt ASC
             """)
-    List<UserCardState> findCardsForReview(Long userId);
+    List<UserCardState> findCardsForReview(Long userId, Pageable pageable);
 }

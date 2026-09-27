@@ -183,7 +183,7 @@ class FlashcardControllerTest {
             );
             List<ReviewCardResponse> responseMock = List.of(reviewCardResponse);
 
-            when(flashcardService.getCardsForReview(USER_ID)).thenReturn(responseMock);
+            when(flashcardService.getCardsForReview(USER_ID, 100)).thenReturn(responseMock);
 
             mockMvc.perform(get("/flashcards/reviews")
                             .contentType(MediaType.APPLICATION_JSON))
@@ -194,7 +194,7 @@ class FlashcardControllerTest {
                     .andExpect(jsonPath("$.data[0].flagsStarred").value(true))
                     .andExpect(jsonPath("$.data[0].flagsHidden").value(false));
 
-            verify(flashcardService).getCardsForReview(USER_ID);
+            verify(flashcardService).getCardsForReview(USER_ID, 100);
         }
     }
 }

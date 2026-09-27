@@ -12,5 +12,5 @@ public interface FlashcardService {
 
     void toggleHide(Long userId, Long cardId);
 
-    List<ReviewCardResponse> getCardsForReview(Long userId);
+    List<ReviewCardResponse> getCardsForReview(Long userId, Integer limit);
 }

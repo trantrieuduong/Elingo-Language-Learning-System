@@ -24,6 +24,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -230,12 +231,13 @@ class FlashcardServiceTest {
         @DisplayName("Get cards for review successfully")
         void getCardsForReview_Success() {
             testState.setSrsNextReviewAt(LocalDateTime.now().plusDays(1));
-            when(userCardStateRepository.findCardsForReview(USER_ID)).thenReturn(List.of(testState));
+            when(userCardStateRepository.findCardsForReview(USER_ID, PageRequest.of(0, 100))).thenReturn(List.of(testState));
+            when(cardRepository.findAllWithPhoneticsByIdIn(List.of(CARD_ID))).thenReturn(List.of(testCard));
 
             CardResponse mockCardResponse = mock(CardResponse.class);
             when(cardMapper.toCardResponse(testCard)).thenReturn(mockCardResponse);
 
-            List<ReviewCardResponse> result = flashcardService.getCardsForReview(USER_ID);
+            List<ReviewCardResponse> result = flashcardService.getCardsForReview(USER_ID, 100);
 
             assertThat(result).hasSize(1);
             ReviewCardResponse reviewResponse = result.getFirst();
@@ -243,6 +245,29 @@ class FlashcardServiceTest {
             assertThat(reviewResponse.srsNextReviewAt()).isEqualTo(testState.getSrsNextReviewAt());
             assertThat(reviewResponse.flagsStarred()).isEqualTo(testState.getFlagsStarred());
             assertThat(reviewResponse.flagsHidden()).isEqualTo(testState.getFlagsHidden());
+        }
+
+        @Test
+        @DisplayName("Get cards for review returns empty list when no review cards exist")
+        void getCardsForReview_EmptyList() {
+            when(userCardStateRepository.findCardsForReview(USER_ID, PageRequest.of(0, 100))).thenReturn(List.of());
+
+            List<ReviewCardResponse> result = flashcardService.getCardsForReview(USER_ID, 100);
+
+            assertThat(result).isEmpty();
+            verifyNoInteractions(cardRepository);
+            verifyNoInteractions(cardMapper);
+        }
+
+        @Test
+        @DisplayName("Get cards for review uses default limit 100 when limit is null or <= 0")
+        void getCardsForReview_DefaultLimit() {
+            when(userCardStateRepository.findCardsForReview(USER_ID, PageRequest.of(0, 100))).thenReturn(List.of());
+
+            List<ReviewCardResponse> result = flashcardService.getCardsForReview(USER_ID, null);
+
+            assertThat(result).isEmpty();
+            verify(userCardStateRepository).findCardsForReview(USER_ID, PageRequest.of(0, 100));
         }
     }
 }

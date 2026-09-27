@@ -67,10 +67,11 @@ public class FlashcardController {
     @GetMapping("/reviews")
     @Operation(summary = "Get list of flashcards due for review")
     public ApiResponse<List<ReviewCardResponse>> getCardsForReview(
+            @RequestParam(required = false, defaultValue = "100") Integer limit,
             @CurrentUserId Long currentUserId) {
-        log.info("Get cards for review request received: userId={}", currentUserId);
+        log.info("Get cards for review request received: userId={}, limit={}", currentUserId, limit);
 
-        List<ReviewCardResponse> response = flashcardService.getCardsForReview(currentUserId);
+        List<ReviewCardResponse> response = flashcardService.getCardsForReview(currentUserId, limit);
         return ApiResponse.<List<ReviewCardResponse>>builder()
                 .success(true)
                 .data(response)

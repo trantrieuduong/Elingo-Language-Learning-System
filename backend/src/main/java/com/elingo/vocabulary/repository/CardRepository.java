@@ -57,4 +57,13 @@ public interface CardRepository extends JpaRepository<Card, Long> {
             Long deckId,
             Long excludedCardId,
             Pageable pageable);
+
+    @Query("""
+                SELECT c FROM Card c
+                LEFT JOIN FETCH c.phonetics
+                WHERE c.id IN :ids
+            """)
+    List<Card> findAllWithPhoneticsByIdIn(
+            List<Long> ids
+    );
 }
