@@ -6,9 +6,12 @@ import {
   logoutApi,
   refreshTokenApi,
   resendVerificationOtpApi,
+  resetPasswordApi,
+  sendResetPasswordOtpApi,
   signupApi,
   verifyAccountApi,
 } from '../modules/auth/authApi'
+import { translateError } from '../utils/errorMessages'
 
 const AuthContext = createContext(null)
 let initialRefreshPromise = null
@@ -91,17 +94,7 @@ export const AuthProvider = ({ children }) => {
       return { success: false, message: response.message || 'Đăng nhập không thành công' }
     } catch (error) {
       clearAuthState()
-      const responseData = error.response?.data
-      const errorDetail = responseData?.errors?.[0]
-      const code = errorDetail?.code || responseData?.code
-      const message = code === 'INVALID_CREDENTIALS'
-        ? 'Email/Username hoặc mật khẩu không chính xác.'
-        : errorDetail?.message || responseData?.message || 'Đăng nhập thất bại. Vui lòng thử lại.'
-      return {
-        success: false,
-        message,
-        notVerified: code === 'ACCOUNT_NOT_VERIFIED' || code === 'USER_NOT_VERIFIED',
-      }
+      return translateError(error, 'Đăng nhập thất bại. Vui lòng thử lại.')
     }
   }
 
@@ -118,10 +111,7 @@ export const AuthProvider = ({ children }) => {
       return { success: false, message: response.message || 'Đăng nhập Google không thành công.' }
     } catch (error) {
       clearAuthState()
-      const message = error.response?.data?.errors?.[0]?.message
-        || error.response?.data?.message
-        || 'Không thể xác thực tài khoản Google. Vui lòng thử lại.'
-      return { success: false, message }
+      return translateError(error, 'Không thể xác thực tài khoản Google. Vui lòng thử lại.')
     }
   }
 
@@ -133,9 +123,7 @@ export const AuthProvider = ({ children }) => {
       }
       return { success: false, message: response.message || 'Đăng ký thất bại' }
     } catch (error) {
-      const message = error.response?.data?.message || 'Đăng ký thất bại. Vui lòng thử lại sau.'
-      const errors = error.response?.data?.errors || null
-      return { success: false, message, errors }
+      return translateError(error, 'Đăng ký thất bại. Vui lòng thử lại sau.')
     }
   }
 
@@ -147,8 +135,7 @@ export const AuthProvider = ({ children }) => {
       }
       return { success: false, message: response.message || 'Mã xác thực không hợp lệ' }
     } catch (error) {
-      const message = error.response?.data?.message || 'Mã xác thực không hợp lệ hoặc đã hết hạn.'
-      return { success: false, message }
+      return translateError(error, 'Mã xác thực không hợp lệ hoặc đã hết hạn.')
     }
   }
 
@@ -160,11 +147,31 @@ export const AuthProvider = ({ children }) => {
       }
       return { success: false, message: response.message || 'Gửi lại mã thất bại' }
     } catch (error) {
-      const responseData = error.response?.data
-      const message = responseData?.errors?.[0]?.message
-        || responseData?.message
-        || 'Gửi lại mã thất bại. Vui lòng thử lại sau.'
-      return { success: false, message }
+      return translateError(error, 'Gửi lại mã thất bại. Vui lòng thử lại sau.')
+    }
+  }
+
+  const sendResetPasswordOtp = async (email) => {
+    try {
+      const response = await sendResetPasswordOtpApi(email)
+      if (response.success) {
+        return { success: true, message: response.message || 'Đã gửi mã OTP đặt lại mật khẩu thành công.' }
+      }
+      return { success: false, message: response.message || 'Không thể gửi mã OTP.' }
+    } catch (error) {
+      return translateError(error, 'Không thể gửi mã OTP. Vui lòng thử lại sau.')
+    }
+  }
+
+  const resetPassword = async (email, otp, newPassword) => {
+    try {
+      const response = await resetPasswordApi(email, otp, newPassword)
+      if (response.success) {
+        return { success: true, message: response.message || 'Đặt lại mật khẩu thành công.' }
+      }
+      return { success: false, message: response.message || 'Đặt lại mật khẩu thất bại.' }
+    } catch (error) {
+      return translateError(error, 'Đặt lại mật khẩu thất bại. Vui lòng thử lại.')
     }
   }
 
@@ -198,6 +205,8 @@ export const AuthProvider = ({ children }) => {
         signup,
         verifyAccount,
         resendVerificationOtp,
+        sendResetPasswordOtp,
+        resetPassword,
         logout,
         updateUser,
       }}

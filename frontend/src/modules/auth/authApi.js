@@ -44,7 +44,19 @@ export const logoutApi = async () => {
   return response.data
 }
 
+export const sendResetPasswordOtpApi = async (email) => {
+  const response = await apiClient.post('/auth/password-reset/otp', { email })
+  return response.data
+}
+
+export const resetPasswordApi = async (email, otp, newPassword) => {
+  const response = await apiClient.post('/auth/password-reset', { email, otp, newPassword })
+  return response.data
+}
+
 export const getMeApi = async () => {
   const response = await apiClient.get('/users/me')
   return response.data
 }
+
+

@@ -5,10 +5,11 @@ import { useAuth } from './context/AuthContext'
 import AccountVerificationPage from './modules/auth/pages/AccountVerificationPage'
 import LandingPage from './modules/home/pages/LandingPage'
 import LoginPage from './modules/auth/pages/LoginPage'
+import ResetPasswordPage from './modules/auth/pages/ResetPasswordPage'
 import SignupPage from './modules/auth/pages/SignupPage'
 import './App.css'
 
-const PUBLIC_PATHS = ['/', '/login', '/signup', '/account-verification']
+const PUBLIC_PATHS = ['/', '/login', '/signup', '/account-verification', '/reset-password']
 
 const PRIVATE_USER_PATHS = [
   '/dashboard',
@@ -108,6 +109,8 @@ function App() {
         return <LoginPage onNavigate={navigate} />
       case '/signup':
         return <SignupPage onNavigate={navigate} />
+      case '/reset-password':
+        return <ResetPasswordPage onNavigate={navigate} />
       case '/account-verification':
         return <AccountVerificationPage email={verificationEmail} onNavigate={navigate} />
       case '/dashboard':

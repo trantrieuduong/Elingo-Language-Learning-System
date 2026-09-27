@@ -20,15 +20,7 @@ const PASSWORD_REQUIREMENTS = [
 
 const USERNAME_PATTERN = /^[A-Za-z0-9]{3,15}$/
 
-const SIGNUP_ERROR_MESSAGES = {
-  USERNAME_EXISTED: 'Username đã tồn tại.',
-  EMAIL_EXISTED: 'Email đã tồn tại.',
-}
 
-const getSignupErrorMessage = (errors, fallbackMessage) => {
-  const errorCode = errors?.[0]?.code
-  return SIGNUP_ERROR_MESSAGES[errorCode] ?? errors?.[0]?.message ?? fallbackMessage
-}
 
 function SignupPage({ onNavigate }) {
   const { signup } = useAuth()
@@ -90,7 +82,13 @@ function SignupPage({ onNavigate }) {
       return
     }
 
-    setGeneralError(getSignupErrorMessage(result.errors, result.message))
+    if (result.code === 'USERNAME_EXISTED') {
+      setErrors((prev) => ({ ...prev, username: result.message }))
+    } else if (result.code === 'EMAIL_EXISTED') {
+      setErrors((prev) => ({ ...prev, email: result.message }))
+    } else {
+      setGeneralError(result.message)
+    }
   }
 
   const handleLoginClick = (e) => {
