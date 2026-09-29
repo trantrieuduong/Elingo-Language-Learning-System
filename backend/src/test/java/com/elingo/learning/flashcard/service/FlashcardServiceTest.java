@@ -7,10 +7,13 @@ import com.elingo.learning.flashcard.dto.response.ReviewCardResponse;
 import com.elingo.learning.flashcard.entity.UserCardState;
 import com.elingo.learning.flashcard.repository.UserCardStateRepository;
 import com.elingo.learning.flashcard.service.impl.FlashcardServiceImpl;
+import com.elingo.premium.entity.SubscriptionStatus;
+import com.elingo.premium.repository.UserSubscriptionRepository;
 import com.elingo.user.entity.User;
 import com.elingo.user.repository.UserRepository;
 import com.elingo.vocabulary.entity.Card;
 import com.elingo.vocabulary.entity.Deck;
+import com.elingo.vocabulary.entity.DeckStatus;
 import com.elingo.vocabulary.entity.Topic;
 import com.elingo.vocabulary.dto.response.CardResponse;
 import com.elingo.vocabulary.mapper.CardMapper;
@@ -21,6 +24,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.AdditionalAnswers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -57,11 +61,15 @@ class FlashcardServiceTest {
     @Mock
     private CardMapper cardMapper;
 
+    @Mock
+    private UserSubscriptionRepository userSubscriptionRepository;
+
     @InjectMocks
     private FlashcardServiceImpl flashcardService;//
 
     private User testUser;
     private Card testCard;
+    private Topic testTopic;
     private UserCardState testState;
 
     private static final Long USER_ID = 1L;
@@ -78,9 +86,11 @@ class FlashcardServiceTest {
 
         Deck testDeck = Deck.builder()
                 .id(DECK_ID)
+                .status(DeckStatus.PUBLISHED)
+                .isPremium(false)
                 .build();
 
-        Topic testTopic = Topic.builder()
+        testTopic = Topic.builder()
                 .id(TOPIC_ID)
                 .build();
 
@@ -125,11 +135,13 @@ class FlashcardServiceTest {
             when(userCardStateRepository.findByCardIdAndUserId(CARD_ID, USER_ID)).thenReturn(Optional.empty());
             when(cardRepository.findById(CARD_ID)).thenReturn(Optional.of(testCard));
             when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+            when(userCardStateRepository.save(any(UserCardState.class)))
+                    .thenAnswer(AdditionalAnswers.returnsFirstArg());
 
             flashcardService.submitSrsReview(USER_ID, CARD_ID, request);
 
             verify(spacedRepetitionService).calculateNextSRS(any(UserCardState.class), eq(3));
-            verify(userCardStateRepository).save(any(UserCardState.class));
+            verify(userCardStateRepository, times(2)).save(any(UserCardState.class));
         }
 
         @Test
@@ -162,6 +174,62 @@ class FlashcardServiceTest {
             verify(spacedRepetitionService, never()).calculateNextSRS(any(UserCardState.class), anyInt());
             verify(userCardStateRepository, never()).save(any(UserCardState.class));
         }
+
+        @Test
+        @DisplayName("Submit SRS review successfully: Premium deck with active subscription")
+        void submitSrsReview_Success_PremiumDeckWithSubscription() {
+            SrsReviewRequest request = new SrsReviewRequest(3);
+            Deck premiumDeck = Deck.builder()
+                    .id(DECK_ID)
+                    .status(DeckStatus.PUBLISHED)
+                    .isPremium(true)
+                    .build();
+            UserCardState premiumState = UserCardState.builder()
+                    .id(2L)
+                    .user(testUser)
+                    .card(testCard)
+                    .deck(premiumDeck)
+                    .topic(testTopic)
+                    .build();
+            when(userCardStateRepository.findByCardIdAndUserId(CARD_ID, USER_ID)).thenReturn(Optional.of(premiumState));
+            when(userSubscriptionRepository.existsByUserIdAndStatusAndEndAtAfter(
+                    eq(USER_ID), eq(SubscriptionStatus.ACTIVE), any(LocalDateTime.class)))
+                    .thenReturn(true);
+
+            flashcardService.submitSrsReview(USER_ID, CARD_ID, request);
+
+            verify(spacedRepetitionService).calculateNextSRS(premiumState, 3);
+            verify(userCardStateRepository).save(premiumState);
+        }
+
+        @Test
+        @DisplayName("Submit SRS review failed: Premium deck, no active subscription")
+        void submitSrsReview_Fail_PremiumDeckNoSubscription() {
+            SrsReviewRequest request = new SrsReviewRequest(3);
+            Deck premiumDeck = Deck.builder()
+                    .id(DECK_ID)
+                    .status(DeckStatus.PUBLISHED)
+                    .isPremium(true)
+                    .build();
+            UserCardState premiumState = UserCardState.builder()
+                    .id(2L)
+                    .user(testUser)
+                    .card(testCard)
+                    .deck(premiumDeck)
+                    .topic(testTopic)
+                    .build();
+            when(userCardStateRepository.findByCardIdAndUserId(CARD_ID, USER_ID)).thenReturn(Optional.of(premiumState));
+            when(userSubscriptionRepository.existsByUserIdAndStatusAndEndAtAfter(
+                    eq(USER_ID), eq(SubscriptionStatus.ACTIVE), any(LocalDateTime.class)))
+                    .thenReturn(false);
+
+            assertThatThrownBy(() -> flashcardService.submitSrsReview(USER_ID, CARD_ID, request))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.DECK_PREMIUM_REQUIRED));
+
+            verify(spacedRepetitionService, never()).calculateNextSRS(any(UserCardState.class), anyInt());
+            verify(userCardStateRepository, never()).save(any(UserCardState.class));
+        }
     }
 
     @Nested
@@ -185,10 +253,12 @@ class FlashcardServiceTest {
             when(userCardStateRepository.findByCardIdAndUserId(CARD_ID, USER_ID)).thenReturn(Optional.empty());
             when(cardRepository.findById(CARD_ID)).thenReturn(Optional.of(testCard));
             when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+            when(userCardStateRepository.save(any(UserCardState.class)))
+                    .thenAnswer(AdditionalAnswers.returnsFirstArg());
 
             flashcardService.toggleStar(USER_ID, CARD_ID);
 
-            verify(userCardStateRepository).save(argThat(state ->
+            verify(userCardStateRepository, times(2)).save(argThat(state ->
                     state.getFlagsStarred() != null && state.getFlagsStarred()
             ));
         }
@@ -215,10 +285,12 @@ class FlashcardServiceTest {
             when(userCardStateRepository.findByCardIdAndUserId(CARD_ID, USER_ID)).thenReturn(Optional.empty());
             when(cardRepository.findById(CARD_ID)).thenReturn(Optional.of(testCard));
             when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+            when(userCardStateRepository.save(any(UserCardState.class)))
+                    .thenAnswer(AdditionalAnswers.returnsFirstArg());
 
             flashcardService.toggleHide(USER_ID, CARD_ID);
 
-            verify(userCardStateRepository).save(argThat(state ->
+            verify(userCardStateRepository, times(2)).save(argThat(state ->
                     state.getFlagsHidden() != null && state.getFlagsHidden()
             ));
         }
@@ -230,8 +302,9 @@ class FlashcardServiceTest {
         @Test
         @DisplayName("Get cards for review successfully")
         void getCardsForReview_Success() {
-            testState.setSrsNextReviewAt(LocalDateTime.now().plusDays(1));
-            when(userCardStateRepository.findCardsForReview(USER_ID, PageRequest.of(0, 100))).thenReturn(List.of(testState));
+            testState.setSrsNextReviewAt(LocalDateTime.now().minusHours(1));
+            when(userCardStateRepository.findCardsForReview(eq(USER_ID), any(LocalDateTime.class), eq(PageRequest.of(0, 100))))
+                    .thenReturn(List.of(testState));
             when(cardRepository.findAllWithPhoneticsByIdIn(List.of(CARD_ID))).thenReturn(List.of(testCard));
 
             CardResponse mockCardResponse = mock(CardResponse.class);
@@ -250,7 +323,8 @@ class FlashcardServiceTest {
         @Test
         @DisplayName("Get cards for review returns empty list when no review cards exist")
         void getCardsForReview_EmptyList() {
-            when(userCardStateRepository.findCardsForReview(USER_ID, PageRequest.of(0, 100))).thenReturn(List.of());
+            when(userCardStateRepository.findCardsForReview(eq(USER_ID), any(LocalDateTime.class), eq(PageRequest.of(0, 100))))
+                    .thenReturn(List.of());
 
             List<ReviewCardResponse> result = flashcardService.getCardsForReview(USER_ID, 100);
 
@@ -262,12 +336,13 @@ class FlashcardServiceTest {
         @Test
         @DisplayName("Get cards for review uses default limit 100 when limit is null or <= 0")
         void getCardsForReview_DefaultLimit() {
-            when(userCardStateRepository.findCardsForReview(USER_ID, PageRequest.of(0, 100))).thenReturn(List.of());
+            when(userCardStateRepository.findCardsForReview(eq(USER_ID), any(LocalDateTime.class), eq(PageRequest.of(0, 100))))
+                    .thenReturn(List.of());
 
             List<ReviewCardResponse> result = flashcardService.getCardsForReview(USER_ID, null);
 
             assertThat(result).isEmpty();
-            verify(userCardStateRepository).findCardsForReview(USER_ID, PageRequest.of(0, 100));
+            verify(userCardStateRepository).findCardsForReview(eq(USER_ID), any(LocalDateTime.class), eq(PageRequest.of(0, 100)));
         }
     }
 }

@@ -33,7 +33,7 @@ import com.elingo.common.entity.BaseEntity;
                 @UniqueConstraint(name = "uk_user_card", columnNames = {"user_id", "card_id"})
         },
         indexes = {
-                @Index(name = "idx_due_review", columnList = "user_id, srs_next_review_at")
+                @Index(name = "idx_due_review", columnList = "user_id, flags_hidden, srs_next_review_at")
         }
 )
 @Data
@@ -56,7 +56,7 @@ public class UserCardState extends BaseEntity {
     Deck deck;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "topic_id", nullable = false)
+    @JoinColumn(name = "topic_id")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     Topic topic;

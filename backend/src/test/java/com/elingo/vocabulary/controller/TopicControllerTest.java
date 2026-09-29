@@ -1,7 +1,6 @@
 package com.elingo.vocabulary.controller;
 
 import com.elingo.common.annotation.CurrentUserId;
-import com.elingo.learning.flashcard.dto.response.QuizOptionResponse;
 import com.elingo.vocabulary.service.TopicService;
 import com.elingo.vocabulary.dto.response.CardResponse;
 import org.jspecify.annotations.NonNull;
@@ -100,33 +99,6 @@ class TopicControllerTest {
                     .andExpect(jsonPath("$.data.length()").value(0));
 
             verify(topicService).getCardsByTopic(USER_ID, TOPIC_ID);
-        }
-    }
-
-    @Nested
-    @DisplayName("getQuizOptions")
-    class GetQuizOptionsTests {
-
-        @Test
-        @DisplayName("Get quiz options successfully")
-        void getQuizOptions_Success() throws Exception {
-            List<QuizOptionResponse> options = List.of(
-                    new QuizOptionResponse("hi", true),
-                    new QuizOptionResponse("bye", false),
-                    new QuizOptionResponse("thank", false),
-                    new QuizOptionResponse("sorry", false)
-            );
-            when(topicService.getQuizOptions(USER_ID, TOPIC_ID, CARD_ID)).thenReturn(options);
-
-            mockMvc.perform(get("/topics/{topicId}/cards/{cardId}/quiz-options", TOPIC_ID, CARD_ID))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data").isArray())
-                    .andExpect(jsonPath("$.data.length()").value(4))
-                    .andExpect(jsonPath("$.data[0].term").value("hi"))
-                    .andExpect(jsonPath("$.data[0].isCorrect").value(true));
-
-            verify(topicService).getQuizOptions(USER_ID, TOPIC_ID, CARD_ID);
         }
     }
 }

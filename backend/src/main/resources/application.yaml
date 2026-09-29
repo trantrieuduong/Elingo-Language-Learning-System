@@ -40,4 +40,5 @@ app:
       hard-interval-factor: 1.2
       easy-interval-factor: 1.3
       again-review-minutes: 10
+  battle:
     distractor-options: 3

@@ -81,6 +81,8 @@ public enum AppError {
     INVALID_SRS_GRADE("INVALID_SRS_GRADE", "Review grade must be between 0 (Again) and 3 (Easy)", HttpStatus.BAD_REQUEST),
     NO_CARDS_DUE("NO_CARDS_DUE", "No flashcards are due for review", HttpStatus.BAD_REQUEST),
     QUIZ_NOT_ENOUGH_CARDS("QUIZ_NOT_ENOUGH_CARDS", "Not enough cards in deck to generate 4 quiz options", HttpStatus.UNPROCESSABLE_CONTENT),
+    MAX_REVIEW_CARD_LIMIT_INVALID("MAX_REVIEW_CARD_LIMIT_INVALID", "Maximum review card limit must not exceed 200", HttpStatus.BAD_REQUEST),
+    MIN_REVIEW_CARD_LIMIT_INVALID("MIN_REVIEW_CARD_LIMIT_INVALID", "Minimum review card limit must be at least 1", HttpStatus.BAD_REQUEST),
 
     // ==========================================
     // 5. Learning - Lesson (Bài học, Dictation, Shadowing)

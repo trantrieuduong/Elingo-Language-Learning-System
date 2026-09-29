@@ -27,7 +27,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
-import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -77,20 +76,20 @@ public class TopicIntegrationTest extends BaseIntegrationTest {
         authToken = jwtService.generateAccessToken(testUser.getId().toString(), authorities);
     }
 
-    private Deck persistDeck(String title, String slug) {
+    private Deck persistDeck() {
         return deckRepository.save(Deck.builder()
-                .title(title)
-                .slug(slug)
+                .title("Animals Deck")
+                .slug("animals-deck")
                 .status(DeckStatus.PUBLISHED)
                 .ownerType(OwnerType.SYSTEM)
                 .build());
     }
 
-    private Topic persistTopic(Deck deck, String name, String slug) {
+    private Topic persistTopic(Deck deck) {
         return topicRepository.save(Topic.builder()
                 .deck(deck)
-                .name(name)
-                .slug(slug)
+                .name("Animals")
+                .slug("animals")
                 .build());
     }
 
@@ -122,8 +121,8 @@ public class TopicIntegrationTest extends BaseIntegrationTest {
 
         @BeforeEach
         void setUp() {
-            deck = persistDeck("Animals Deck", "animals-deck");
-            topic = persistTopic(deck, "Animals", "animals");
+            deck = persistDeck();
+            topic = persistTopic(deck);
         }
 
         private ResultActions performGetCardsByTopic(long topicId) throws Exception {
@@ -225,134 +224,6 @@ public class TopicIntegrationTest extends BaseIntegrationTest {
             mockMvc.perform(get("/topics/{topicId}/cards", topic.getId())
                             .header("Authorization", "Bearer invalid.jwt.token"))
                     .andExpect(status().isUnauthorized());
-        }
-    }
-
-    @Nested
-    @DisplayName("getQuizOptions")
-    class GetQuizOptionsTests {
-        private Deck deck;
-        private Topic topic;
-
-        @BeforeEach
-        void setUp() {
-            deck = persistDeck("Quiz Deck", "quiz-deck");
-            topic = persistTopic(deck, "Quiz Topic", "quiz-topic");
-        }
-
-        /**
-         * Persist 4 standard fruit cards; returns the target card (apple).
-         */
-        private Card persistFourFruitCards() {
-            Card target = persistCard(deck, topic, "apple", "qua tao", 1);
-            persistCard(deck, topic, "banana", "qua chuoi", 2);
-            persistCard(deck, topic, "cherry", "qua anh dao", 3);
-            persistCard(deck, topic, "mango", "qua xoai", 4);
-            return target;
-        }
-
-        private ResultActions performGetQuizOptions(long topicId, long cardId) throws Exception {
-            return mockMvc.perform(get("/topics/{topicId}/cards/{cardId}/quiz-options",
-                    topicId, cardId)
-                    .header("Authorization", "Bearer " + authToken));
-        }
-
-        @Test
-        @DisplayName("Get quiz options: Success")
-        void testGetQuizOptions_Success() throws Exception {
-            Card target = persistFourFruitCards();
-
-            performGetQuizOptions(topic.getId(), target.getId())
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data").isArray())
-                    .andExpect(jsonPath("$.data.length()").value(4));
-        }
-
-        @Test
-        @DisplayName("Get quiz options: Success - exactly one correct option")
-        void testGetQuizOptions_Success_ExactlyOneCorrectOption() throws Exception {
-            Card target = persistFourFruitCards();
-
-            performGetQuizOptions(topic.getId(), target.getId())
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data[?(@.isCorrect == true)]").value(hasSize(1)))
-                    .andExpect(jsonPath("$.data[?(@.isCorrect == false)]").value(hasSize(3)));
-        }
-
-        @Test
-        @DisplayName("Get quiz options: Success - correct option matches target term")
-        void testGetQuizOptions_Success_CorrectOptionMatchesTargetTerm() throws Exception {
-            Card target = persistFourFruitCards();
-
-            performGetQuizOptions(topic.getId(), target.getId())
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data[?(@.isCorrect == true)].term")
-                            //?(@.isCorrect == true): lọc ra các phần tử trong mảng thỏa isCorrect == true
-                            .value("apple"));
-        }
-
-        @Test
-        @DisplayName("Get quiz options: Success - fallback to distractors from deck")
-        void testGetQuizOptions_Success_FallbackToDistractorsFromDeck() throws Exception {
-            Topic otherTopic = persistTopic(deck, "Fruits Extra", "fruits-extra");
-            Card target = persistCard(deck, topic, "apple", "qua tao", 1);
-            persistCard(deck, otherTopic, "pear", "qua le", 1);
-            persistCard(deck, otherTopic, "peach", "qua dao", 2);
-            persistCard(deck, otherTopic, "plum", "qua man", 3);
-
-            performGetQuizOptions(topic.getId(), target.getId())
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.length()").value(4));
-        }
-
-        @Test
-        @DisplayName("Get quiz options: Fail because of not enough cards")
-        void testGetQuizOptions_Fail_NotEnoughCards() throws Exception {
-            Card target = persistCard(deck, topic, "apple", "qua tao", 1);
-
-            performGetQuizOptions(topic.getId(), target.getId())
-                    .andExpect(status().isUnprocessableContent())
-                    .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.errors[0].code").value("QUIZ_NOT_ENOUGH_CARDS"));
-        }
-
-        @Test
-        @DisplayName("Get quiz options: Fail because of card not found")
-        void testGetQuizOptions_Fail_CardNotFound() throws Exception {
-            performGetQuizOptions(topic.getId(), 99999)
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.errors[0].code").value("CARD_NOT_FOUND"));
-        }
-
-        @Test
-        @DisplayName("Get quiz options: Fail because of card not belong to topic")
-        void testGetQuizOptions_Fail_CardNotBelongToTopic() throws Exception {
-            Topic anotherTopic = persistTopic(deck, "Other", "other");
-            Card cardInOtherTopic = persistCard(deck, anotherTopic, "apple", "qua tao", 1);
-
-            performGetQuizOptions(topic.getId(), cardInOtherTopic.getId())
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.errors[0].code").value("CARD_NOT_FOUND"));
-        }
-
-        @Test
-        @DisplayName("Get quiz options: Fail because of topic not found")
-        void testGetQuizOptions_Fail_TopicNotFound() throws Exception {
-            performGetQuizOptions(99999, 1)
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.errors[0].code").value("TOPIC_NOT_FOUND"));
-        }
-
-        @Test
-        @DisplayName("Get quiz options: Fail because of missing token")
-        void testGetQuizOptions_Fail_Unauthenticated() throws Exception {
-            Card target = persistCard(deck, topic, "apple", "qua tao", 1);
-
-            mockMvc.perform(get("/topics/{topicId}/cards/{cardId}/quiz-options",
-                            topic.getId(), target.getId()))
-                    .andExpect(status().isForbidden());
         }
     }
 }

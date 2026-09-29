@@ -9,12 +9,16 @@ import com.elingo.learning.flashcard.service.FlashcardService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Validated// Kiểm tra max/min ở controller
 @RestController
 @RequestMapping("/flashcards")
 @Slf4j(topic = "FLASHCARD-CONTROLLER")
@@ -67,7 +71,10 @@ public class FlashcardController {
     @GetMapping("/reviews")
     @Operation(summary = "Get list of flashcards due for review")
     public ApiResponse<List<ReviewCardResponse>> getCardsForReview(
-            @RequestParam(required = false, defaultValue = "100") Integer limit,
+            @RequestParam(required = false, defaultValue = "100")
+            @Max(value = 200, message = "MAX_REVIEW_CARD_LIMIT_INVALID")
+            @Min(value = 1, message = "MIN_REVIEW_CARD_LIMIT_INVALID")
+            Integer limit,
             @CurrentUserId Long currentUserId) {
         log.info("Get cards for review request received: userId={}, limit={}", currentUserId, limit);
 

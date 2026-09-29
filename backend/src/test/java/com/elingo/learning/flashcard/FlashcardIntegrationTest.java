@@ -28,10 +28,12 @@ import org.springframework.test.web.servlet.ResultActions;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -182,9 +184,8 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
             // EF ban dau = 2.5, hard-ef-penalty = -0.14 -> 2.36
             assertThat(state.getSrsEaseFactor()).isEqualByComparingTo(new BigDecimal("2.36"));
 
-            assertThat(state.getSrsNextReviewAt().toLocalTime()).isEqualTo(LocalTime.MIDNIGHT);
-            assertThat(state.getSrsNextReviewAt().toLocalDate())
-                    .isEqualTo(LocalDate.now().plusDays(1));
+            assertThat(state.getSrsNextReviewAt()).isCloseTo(LocalDateTime.now().plusDays(1), within(1, ChronoUnit.SECONDS));
+            // Cho phép lệch tối đa 1 giây
         }
 
         @Test
@@ -204,9 +205,8 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
             // EF ban dau = 2.5
             assertThat(state.getSrsEaseFactor()).isEqualByComparingTo(new BigDecimal("2.5"));
 
-            assertThat(state.getSrsNextReviewAt().toLocalTime()).isEqualTo(LocalTime.MIDNIGHT);
-            assertThat(state.getSrsNextReviewAt().toLocalDate())
-                    .isEqualTo(LocalDate.now().plusDays(3));
+            assertThat(state.getSrsNextReviewAt())
+                    .isCloseTo(LocalDateTime.now().plusDays(3), within(1, ChronoUnit.SECONDS));
         }
 
         @Test
@@ -350,6 +350,59 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.success").value(false))
                     .andExpect(jsonPath("$.errors[0].code").value("INVALID_SRS_GRADE"));
+        }
+    }
+
+    @Nested
+    @DisplayName("getCardsForReview")
+    class GetCardsForReviewTests {
+        private Deck deck;
+        private Topic topic;
+
+        @BeforeEach
+        void setUp() {
+            deck = persistDeck();
+            topic = persistTopic(deck);
+        }
+
+        @Test
+        @DisplayName("Get cards for review: only returns due cards that are not hidden")
+        void testGetCardsForReview_FiltersDueAndNotHidden() throws Exception {
+            Card dueCard = persistCard(deck, topic);
+            Card futureCard = persistCard(deck, topic);
+            Card hiddenCard = persistCard(deck, topic);
+            Card unlearnedCard = persistCard(deck, topic);
+
+            userCardStateRepository.save(UserCardState.builder()
+                    .user(testUser).card(dueCard).deck(deck).topic(topic)
+                    .srsNextReviewAt(LocalDateTime.now().minusHours(1))
+                    .flagsHidden(false)
+                    .build());
+
+            userCardStateRepository.save(UserCardState.builder()
+                    .user(testUser).card(futureCard).deck(deck).topic(topic)
+                    .srsNextReviewAt(LocalDateTime.now().plusDays(1))
+                    .flagsHidden(false)
+                    .build());
+
+            userCardStateRepository.save(UserCardState.builder()
+                    .user(testUser).card(hiddenCard).deck(deck).topic(topic)
+                    .srsNextReviewAt(LocalDateTime.now().minusHours(1))
+                    .flagsHidden(true)
+                    .build());
+
+            userCardStateRepository.save(UserCardState.builder()
+                    .user(testUser).card(unlearnedCard).deck(deck).topic(topic)
+                    .srsNextReviewAt(null)
+                    .flagsHidden(false)
+                    .build());
+
+            mockMvc.perform(get("/flashcards/reviews")
+                            .header("Authorization", "Bearer " + authToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.length()").value(1))
+                    .andExpect(jsonPath("$.data[0].card.id").value(dueCard.getId()));
         }
     }
 }

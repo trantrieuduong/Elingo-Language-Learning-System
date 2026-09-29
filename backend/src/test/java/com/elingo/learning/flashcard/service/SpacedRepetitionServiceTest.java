@@ -1,5 +1,6 @@
 package com.elingo.learning.flashcard.service;
 
+import com.elingo.config.FlashcardProperties;
 import com.elingo.learning.flashcard.entity.UserCardState;
 import com.elingo.learning.flashcard.service.impl.SpacedRepetitionServiceImpl;
 import com.elingo.user.entity.User;
@@ -11,42 +12,50 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 
-@SpringBootTest(classes = SpacedRepetitionServiceImpl.class)
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")
 class SpacedRepetitionServiceTest {
 
-    @Autowired// Spring sẽ tự nạp bean và inject các @Value
+    private static final BigDecimal INITIAL_EF = new BigDecimal("2.50");
+    private static final BigDecimal EF_MIN = new BigDecimal("1.30");
+    private static final BigDecimal AGAIN_EF_PENALTY = new BigDecimal("0.32");
+    private static final BigDecimal HARD_EF_PENALTY = new BigDecimal("0.14");
+    private static final BigDecimal EASY_EF_BONUS = new BigDecimal("0.10");
+    private static final BigDecimal HARD_INTERVAL_FACTOR = new BigDecimal("1.2");
+    private static final BigDecimal EASY_INTERVAL_FACTOR = new BigDecimal("1.3");
+    private static final int AGAIN_REVIEW_MINUTES = 10;
+
     private SpacedRepetitionServiceImpl spacedRepetitionService;
-
     private UserCardState state;
-
-    @Value("${app.flashcard.srs.ef-min}")
-    private BigDecimal efMin;
-
-    @Value("${app.flashcard.srs.again-review-minutes}")
-    private int againReviewMinutes;
 
     @BeforeEach
     void setUp() {
-        User testUser = User.builder().id(1L).build();
-        Card testCard = Card.builder().id(100L).build();
+        FlashcardProperties.Srs srs = new FlashcardProperties.Srs();
+        srs.setEfMin(EF_MIN);
+        srs.setAgainEfPenalty(AGAIN_EF_PENALTY);
+        srs.setHardEfPenalty(HARD_EF_PENALTY);
+        srs.setEasyEfBonus(EASY_EF_BONUS);
+        srs.setHardIntervalFactor(HARD_INTERVAL_FACTOR);
+        srs.setEasyIntervalFactor(EASY_INTERVAL_FACTOR);
+        srs.setAgainReviewMinutes(AGAIN_REVIEW_MINUTES);
+
+        FlashcardProperties props = new FlashcardProperties();
+        props.setSrs(srs);
+
+        spacedRepetitionService = new SpacedRepetitionServiceImpl(props);
 
         state = UserCardState.builder()
-                .user(testUser)
-                .card(testCard)
-                .srsEaseFactor(new BigDecimal("2.50"))
+                .user(User.builder().id(1L).build())
+                .card(Card.builder().id(100L).build())
+                .srsEaseFactor(INITIAL_EF)
                 .srsInterval(0)
                 .build();
     }
@@ -56,29 +65,39 @@ class SpacedRepetitionServiceTest {
     class CalculateNextSRS_AgainTests {
 
         @Test
-        @DisplayName("Grade 0: Should decrease EF and set interval to 0")
+        @DisplayName("Grade 0: Should decrease EF, set interval to 0 and learn after AGAIN_REVIEW_MINUTES")
         void calculateNextSRS_Grade0_DecreaseEF() {
-            LocalDateTime beforeCalculation = LocalDateTime.now();
-
             spacedRepetitionService.calculateNextSRS(state, 0);
 
             assertThat(state.getSrsLastGrade()).isEqualTo((short) 0);
             assertThat(state.getSrsInterval()).isEqualTo(0);
-            assertThat(state.getSrsEaseFactor()).isEqualTo(new BigDecimal("2.18")); // 2.50 - 0.32
-
+            // 2.50 - 0.32 = 2.18
+            assertThat(state.getSrsEaseFactor()).isEqualByComparingTo(new BigDecimal("2.18"));
             // Interval = 0 -> nextReviewAt = now + 10 mins
-            assertThat(state.getSrsNextReviewAt()).isBeforeOrEqualTo(beforeCalculation.plusMinutes(againReviewMinutes + 5));// + 5 trừ hao thời gian test chạy
+            assertThat(state.getSrsNextReviewAt())
+                    .isCloseTo(LocalDateTime.now().plusMinutes(AGAIN_REVIEW_MINUTES), within(1, ChronoUnit.SECONDS));
         }
 
         @Test
         @DisplayName("Grade 0: Should not decrease EF below efMin")
         void calculateNextSRS_Grade0_MinEF() {
-            state.setSrsEaseFactor(new BigDecimal("1.40")); // 1.40 - 0.32 = 1.08 < 1.30
+            // 1.40 - 0.32 = 1.08 < 1.30 -> to 1.30
+            state.setSrsEaseFactor(new BigDecimal("1.40"));
 
             spacedRepetitionService.calculateNextSRS(state, 0);
 
-            assertThat(state.getSrsEaseFactor()).isEqualByComparingTo(efMin);
+            assertThat(state.getSrsEaseFactor()).isEqualByComparingTo(EF_MIN);
             assertThat(state.getSrsInterval()).isEqualTo(0);
+        }
+
+        @Test
+        @DisplayName("Grade 0: Should keep EF to efMin when EF is already at efMin")
+        void calculateNextSRS_Grade0_EfAlreadyAtMin() {
+            state.setSrsEaseFactor(EF_MIN);
+
+            spacedRepetitionService.calculateNextSRS(state, 0);
+
+            assertThat(state.getSrsEaseFactor()).isEqualByComparingTo(EF_MIN);
         }
     }
 
@@ -93,11 +112,11 @@ class SpacedRepetitionServiceTest {
 
             assertThat(state.getSrsLastGrade()).isEqualTo((short) 1);
             assertThat(state.getSrsInterval()).isEqualTo(1);
-            assertThat(state.getSrsEaseFactor()).isEqualByComparingTo(new BigDecimal("2.36")); // 2.50 - 0.14
-
-            // Interval = 1 -> targetDate = now + 1 day at midnight
-            LocalDateTime expectedNextReview = LocalDateTime.of(LocalDate.now().plusDays(1), LocalTime.MIDNIGHT);
-            assertThat(state.getSrsNextReviewAt()).isEqualTo(expectedNextReview);
+            // 2.50 - 0.14 = 2.36
+            assertThat(state.getSrsEaseFactor()).isEqualByComparingTo(new BigDecimal("2.36"));
+            // Interval = 1 -> nextReviewAt = now + 1 day
+            assertThat(state.getSrsNextReviewAt())
+                    .isCloseTo(LocalDateTime.now().plusDays(1), within(1, ChronoUnit.SECONDS));
         }
 
         @Test
@@ -110,10 +129,21 @@ class SpacedRepetitionServiceTest {
             assertThat(state.getSrsLastGrade()).isEqualTo((short) 1);
             // 10 * 1.2 = 12
             assertThat(state.getSrsInterval()).isEqualTo(12);
-            assertThat(state.getSrsEaseFactor()).isEqualByComparingTo(new BigDecimal("2.36")); // 2.50 - 0.14
+            // 2.50 - 0.14 = 2.36
+            assertThat(state.getSrsEaseFactor()).isEqualByComparingTo(new BigDecimal("2.36"));
+            assertThat(state.getSrsNextReviewAt())
+                    .isCloseTo(LocalDateTime.now().plusDays(12), within(1, ChronoUnit.SECONDS));
+        }
 
-            LocalDateTime expectedNextReview = LocalDateTime.of(LocalDate.now().plusDays(12), LocalTime.MIDNIGHT);
-            assertThat(state.getSrsNextReviewAt()).isEqualTo(expectedNextReview);
+        @Test
+        @DisplayName("Grade 1: Should not decrease EF below efMin")
+        void calculateNextSRS_Grade1_MinEF() {
+            // 1.40 - 0.14 = 1.26 < 1.30
+            state.setSrsEaseFactor(new BigDecimal("1.40"));
+
+            spacedRepetitionService.calculateNextSRS(state, 1);
+
+            assertThat(state.getSrsEaseFactor()).isEqualByComparingTo(EF_MIN);
         }
     }
 
@@ -128,10 +158,9 @@ class SpacedRepetitionServiceTest {
 
             assertThat(state.getSrsLastGrade()).isEqualTo((short) 2);
             assertThat(state.getSrsInterval()).isEqualTo(3);
-            assertThat(state.getSrsEaseFactor()).isEqualByComparingTo(new BigDecimal("2.50")); // EF unchanged
-
-            LocalDateTime expectedNextReview = LocalDateTime.of(LocalDate.now().plusDays(3), LocalTime.MIDNIGHT);
-            assertThat(state.getSrsNextReviewAt()).isEqualTo(expectedNextReview);
+            assertThat(state.getSrsEaseFactor()).isEqualByComparingTo(INITIAL_EF); // EF unchanged
+            assertThat(state.getSrsNextReviewAt())
+                    .isCloseTo(LocalDateTime.now().plusDays(3), within(1, ChronoUnit.SECONDS));
         }
 
         @Test
@@ -144,10 +173,9 @@ class SpacedRepetitionServiceTest {
             assertThat(state.getSrsLastGrade()).isEqualTo((short) 2);
             // 10 * 2.50 = 25
             assertThat(state.getSrsInterval()).isEqualTo(25);
-            assertThat(state.getSrsEaseFactor()).isEqualByComparingTo(new BigDecimal("2.50"));
-
-            LocalDateTime expectedNextReview = LocalDateTime.of(LocalDate.now().plusDays(25), LocalTime.MIDNIGHT);
-            assertThat(state.getSrsNextReviewAt()).isEqualTo(expectedNextReview);
+            assertThat(state.getSrsEaseFactor()).isEqualByComparingTo(INITIAL_EF);
+            assertThat(state.getSrsNextReviewAt())
+                    .isCloseTo(LocalDateTime.now().plusDays(25), within(1, ChronoUnit.SECONDS));
         }
     }
 
@@ -162,10 +190,10 @@ class SpacedRepetitionServiceTest {
 
             assertThat(state.getSrsLastGrade()).isEqualTo((short) 3);
             assertThat(state.getSrsInterval()).isEqualTo(5);
-            assertThat(state.getSrsEaseFactor()).isEqualByComparingTo(new BigDecimal("2.6")); // 2.5 + 0.1
-
-            LocalDateTime expectedNextReview = LocalDateTime.of(LocalDate.now().plusDays(5), LocalTime.MIDNIGHT);
-            assertThat(state.getSrsNextReviewAt()).isEqualTo(expectedNextReview);
+            // 2.50 + 0.10 = 2.60
+            assertThat(state.getSrsEaseFactor()).isEqualByComparingTo(new BigDecimal("2.60"));
+            assertThat(state.getSrsNextReviewAt())
+                    .isCloseTo(LocalDateTime.now().plusDays(5), within(1, ChronoUnit.SECONDS));
         }
 
         @Test
@@ -176,12 +204,12 @@ class SpacedRepetitionServiceTest {
             spacedRepetitionService.calculateNextSRS(state, 3);
 
             assertThat(state.getSrsLastGrade()).isEqualTo((short) 3);
-            assertThat(state.getSrsEaseFactor()).isEqualByComparingTo(new BigDecimal("2.6")); // 2.5 + 0.1
-            // 10 * 2.6 * 1.30 = 33.8 -> 34
+            // 2.50 + 0.10 = 2.60
+            assertThat(state.getSrsEaseFactor()).isEqualByComparingTo(new BigDecimal("2.60"));
+            // 10 * 2.60 * 1.30 = 33.8 -> 34
             assertThat(state.getSrsInterval()).isEqualTo(34);
-
-            LocalDateTime expectedNextReview = LocalDateTime.of(LocalDate.now().plusDays(34), LocalTime.MIDNIGHT);
-            assertThat(state.getSrsNextReviewAt()).isEqualTo(expectedNextReview);
+            assertThat(state.getSrsNextReviewAt())
+                    .isCloseTo(LocalDateTime.now().plusDays(34), within(1, ChronoUnit.SECONDS));
         }
     }
 }
