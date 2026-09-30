@@ -230,6 +230,58 @@ class FlashcardServiceTest {
             verify(spacedRepetitionService, never()).calculateNextSRS(any(UserCardState.class), anyInt());
             verify(userCardStateRepository, never()).save(any(UserCardState.class));
         }
+
+        @Test
+        @DisplayName("Submit SRS review failed: Unpublished deck (DRAFT)")
+        void submitSrsReview_Fail_DeckDraft() {
+            SrsReviewRequest request = new SrsReviewRequest(3);
+            Deck draftDeck = Deck.builder()
+                    .id(DECK_ID)
+                    .status(DeckStatus.DRAFT)
+                    .isPremium(false)
+                    .build();
+            UserCardState draftState = UserCardState.builder()
+                    .id(3L)
+                    .user(testUser)
+                    .card(testCard)
+                    .deck(draftDeck)
+                    .topic(testTopic)
+                    .build();
+            when(userCardStateRepository.findByCardIdAndUserId(CARD_ID, USER_ID)).thenReturn(Optional.of(draftState));
+
+            assertThatThrownBy(() -> flashcardService.submitSrsReview(USER_ID, CARD_ID, request))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.DECK_NOT_FOUND));
+
+            verify(spacedRepetitionService, never()).calculateNextSRS(any(UserCardState.class), anyInt());
+            verify(userCardStateRepository, never()).save(any(UserCardState.class));
+        }
+
+        @Test
+        @DisplayName("Submit SRS review failed: Unpublished deck (ARCHIVED)")
+        void submitSrsReview_Fail_DeckArchived() {
+            SrsReviewRequest request = new SrsReviewRequest(3);
+            Deck archivedDeck = Deck.builder()
+                    .id(DECK_ID)
+                    .status(DeckStatus.ARCHIVED)
+                    .isPremium(false)
+                    .build();
+            UserCardState archivedState = UserCardState.builder()
+                    .id(4L)
+                    .user(testUser)
+                    .card(testCard)
+                    .deck(archivedDeck)
+                    .topic(testTopic)
+                    .build();
+            when(userCardStateRepository.findByCardIdAndUserId(CARD_ID, USER_ID)).thenReturn(Optional.of(archivedState));
+
+            assertThatThrownBy(() -> flashcardService.submitSrsReview(USER_ID, CARD_ID, request))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.DECK_NOT_FOUND));
+
+            verify(spacedRepetitionService, never()).calculateNextSRS(any(UserCardState.class), anyInt());
+            verify(userCardStateRepository, never()).save(any(UserCardState.class));
+        }
     }
 
     @Nested
@@ -262,6 +314,84 @@ class FlashcardServiceTest {
                     state.getFlagsStarred() != null && state.getFlagsStarred()
             ));
         }
+
+        @Test
+        @DisplayName("Toggle star failed: Unpublished deck")
+        void toggleStar_Fail_DeckNotPublished() {
+            Deck draftDeck = Deck.builder()
+                    .id(DECK_ID)
+                    .status(DeckStatus.DRAFT)
+                    .isPremium(false)
+                    .build();
+            UserCardState draftState = UserCardState.builder()
+                    .id(3L)
+                    .user(testUser)
+                    .card(testCard)
+                    .deck(draftDeck)
+                    .topic(testTopic)
+                    .build();
+            when(userCardStateRepository.findByCardIdAndUserId(CARD_ID, USER_ID)).thenReturn(Optional.of(draftState));
+
+            assertThatThrownBy(() -> flashcardService.toggleStar(USER_ID, CARD_ID))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.DECK_NOT_FOUND));
+
+            verify(userCardStateRepository, never()).save(any(UserCardState.class));
+        }
+
+        @Test
+        @DisplayName("Toggle star failed: Premium deck without active subscription")
+        void toggleStar_Fail_PremiumDeckNoSubscription() {
+            Deck premiumDeck = Deck.builder()
+                    .id(DECK_ID)
+                    .status(DeckStatus.PUBLISHED)
+                    .isPremium(true)
+                    .build();
+            UserCardState premiumState = UserCardState.builder()
+                    .id(2L)
+                    .user(testUser)
+                    .card(testCard)
+                    .deck(premiumDeck)
+                    .topic(testTopic)
+                    .build();
+            when(userCardStateRepository.findByCardIdAndUserId(CARD_ID, USER_ID)).thenReturn(Optional.of(premiumState));
+            when(userSubscriptionRepository.existsByUserIdAndStatusAndEndAtAfter(
+                    eq(USER_ID), eq(SubscriptionStatus.ACTIVE), any(LocalDateTime.class)))
+                    .thenReturn(false);
+
+            assertThatThrownBy(() -> flashcardService.toggleStar(USER_ID, CARD_ID))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.DECK_PREMIUM_REQUIRED));
+
+            verify(userCardStateRepository, never()).save(any(UserCardState.class));
+        }
+
+        @Test
+        @DisplayName("Toggle star successfully: Premium deck with active subscription")
+        void toggleStar_Success_PremiumDeckWithSubscription() {
+            Deck premiumDeck = Deck.builder()
+                    .id(DECK_ID)
+                    .status(DeckStatus.PUBLISHED)
+                    .isPremium(true)
+                    .build();
+            UserCardState premiumState = UserCardState.builder()
+                    .id(2L)
+                    .user(testUser)
+                    .card(testCard)
+                    .deck(premiumDeck)
+                    .topic(testTopic)
+                    .flagsStarred(false)
+                    .build();
+            when(userCardStateRepository.findByCardIdAndUserId(CARD_ID, USER_ID)).thenReturn(Optional.of(premiumState));
+            when(userSubscriptionRepository.existsByUserIdAndStatusAndEndAtAfter(
+                    eq(USER_ID), eq(SubscriptionStatus.ACTIVE), any(LocalDateTime.class)))
+                    .thenReturn(true);
+
+            flashcardService.toggleStar(USER_ID, CARD_ID);
+
+            assertThat(premiumState.getFlagsStarred()).isTrue();
+            verify(userCardStateRepository).save(premiumState);
+        }
     }
 
     @Nested
@@ -293,6 +423,84 @@ class FlashcardServiceTest {
             verify(userCardStateRepository, times(2)).save(argThat(state ->
                     state.getFlagsHidden() != null && state.getFlagsHidden()
             ));
+        }
+
+        @Test
+        @DisplayName("Toggle hide failed: Unpublished deck")
+        void toggleHide_Fail_DeckNotPublished() {
+            Deck draftDeck = Deck.builder()
+                    .id(DECK_ID)
+                    .status(DeckStatus.DRAFT)
+                    .isPremium(false)
+                    .build();
+            UserCardState draftState = UserCardState.builder()
+                    .id(3L)
+                    .user(testUser)
+                    .card(testCard)
+                    .deck(draftDeck)
+                    .topic(testTopic)
+                    .build();
+            when(userCardStateRepository.findByCardIdAndUserId(CARD_ID, USER_ID)).thenReturn(Optional.of(draftState));
+
+            assertThatThrownBy(() -> flashcardService.toggleHide(USER_ID, CARD_ID))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.DECK_NOT_FOUND));
+
+            verify(userCardStateRepository, never()).save(any(UserCardState.class));
+        }
+
+        @Test
+        @DisplayName("Toggle hide failed: Premium deck without active subscription")
+        void toggleHide_Fail_PremiumDeckNoSubscription() {
+            Deck premiumDeck = Deck.builder()
+                    .id(DECK_ID)
+                    .status(DeckStatus.PUBLISHED)
+                    .isPremium(true)
+                    .build();
+            UserCardState premiumState = UserCardState.builder()
+                    .id(2L)
+                    .user(testUser)
+                    .card(testCard)
+                    .deck(premiumDeck)
+                    .topic(testTopic)
+                    .build();
+            when(userCardStateRepository.findByCardIdAndUserId(CARD_ID, USER_ID)).thenReturn(Optional.of(premiumState));
+            when(userSubscriptionRepository.existsByUserIdAndStatusAndEndAtAfter(
+                    eq(USER_ID), eq(SubscriptionStatus.ACTIVE), any(LocalDateTime.class)))
+                    .thenReturn(false);
+
+            assertThatThrownBy(() -> flashcardService.toggleHide(USER_ID, CARD_ID))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.DECK_PREMIUM_REQUIRED));
+
+            verify(userCardStateRepository, never()).save(any(UserCardState.class));
+        }
+
+        @Test
+        @DisplayName("Toggle hide successfully: Premium deck with active subscription")
+        void toggleHide_Success_PremiumDeckWithSubscription() {
+            Deck premiumDeck = Deck.builder()
+                    .id(DECK_ID)
+                    .status(DeckStatus.PUBLISHED)
+                    .isPremium(true)
+                    .build();
+            UserCardState premiumState = UserCardState.builder()
+                    .id(2L)
+                    .user(testUser)
+                    .card(testCard)
+                    .deck(premiumDeck)
+                    .topic(testTopic)
+                    .flagsHidden(false)
+                    .build();
+            when(userCardStateRepository.findByCardIdAndUserId(CARD_ID, USER_ID)).thenReturn(Optional.of(premiumState));
+            when(userSubscriptionRepository.existsByUserIdAndStatusAndEndAtAfter(
+                    eq(USER_ID), eq(SubscriptionStatus.ACTIVE), any(LocalDateTime.class)))
+                    .thenReturn(true);
+
+            flashcardService.toggleHide(USER_ID, CARD_ID);
+
+            assertThat(premiumState.getFlagsHidden()).isTrue();
+            verify(userCardStateRepository).save(premiumState);
         }
     }
 

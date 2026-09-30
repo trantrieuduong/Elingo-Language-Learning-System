@@ -14,6 +14,11 @@ import com.elingo.vocabulary.entity.Topic;
 import com.elingo.vocabulary.repository.CardRepository;
 import com.elingo.vocabulary.repository.DeckRepository;
 import com.elingo.vocabulary.repository.TopicRepository;
+import com.elingo.premium.entity.PremiumPlan;
+import com.elingo.premium.entity.SubscriptionStatus;
+import com.elingo.premium.entity.UserSubscription;
+import com.elingo.premium.repository.PremiumPlanRepository;
+import com.elingo.premium.repository.UserSubscriptionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -63,6 +68,12 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private UserSubscriptionRepository userSubscriptionRepository;
+
+    @Autowired
+    private PremiumPlanRepository premiumPlanRepository;
+
     private User testUser;
     private String authToken;
 
@@ -92,6 +103,16 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
                 .build());
     }
 
+    private Deck persistDeckWithStatusAndPremium(String title, String slug, DeckStatus status, boolean isPremium) {
+        return deckRepository.save(Deck.builder()
+                .title(title)
+                .slug(slug)
+                .status(status)
+                .isPremium(isPremium)
+                .ownerType(OwnerType.SYSTEM)
+                .build());
+    }
+
     private Topic persistTopic(Deck deck) {
         return topicRepository.save(Topic.builder()
                 .deck(deck)
@@ -107,6 +128,42 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
                 .term("hello")
                 .translation("xin chao")
                 .order(1)
+                .build());
+    }
+
+    private void persistActiveSubscription(User user) {
+        PremiumPlan plan = premiumPlanRepository.save(PremiumPlan.builder()
+                .name("Pro Monthly")
+                .price(new BigDecimal("99000.00"))
+                .currency("VND")
+                .durationDays(30)
+                .isActive(true)
+                .build());
+
+        userSubscriptionRepository.save(UserSubscription.builder()
+                .user(user)
+                .plan(plan)
+                .status(SubscriptionStatus.ACTIVE)
+                .startAt(LocalDateTime.now().minusDays(5))
+                .endAt(LocalDateTime.now().plusDays(25))
+                .build());
+    }
+
+    private void persistExpiredSubscription(User user) {
+        PremiumPlan plan = premiumPlanRepository.save(PremiumPlan.builder()
+                .name("Pro Expired")
+                .price(new BigDecimal("99000.00"))
+                .currency("VND")
+                .durationDays(30)
+                .isActive(true)
+                .build());
+
+        userSubscriptionRepository.save(UserSubscription.builder()
+                .user(user)
+                .plan(plan)
+                .status(SubscriptionStatus.ACTIVE)
+                .startAt(LocalDateTime.now().minusDays(35))
+                .endAt(LocalDateTime.now().minusDays(5))
                 .build());
     }
 
@@ -351,6 +408,92 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
                     .andExpect(jsonPath("$.success").value(false))
                     .andExpect(jsonPath("$.errors[0].code").value("INVALID_SRS_GRADE"));
         }
+
+        @Test
+        @DisplayName("Submit SRS review: Fail because deck is unpublished (DRAFT)")
+        void testSubmitSrsReview_Fail_UnpublishedDeck_Draft() throws Exception {
+            Deck draftDeck = persistDeckWithStatusAndPremium("Draft Deck", "draft-deck", DeckStatus.DRAFT, false);
+            Topic draftTopic = persistTopic(draftDeck);
+            Card draftCard = persistCard(draftDeck, draftTopic);
+
+            mockMvc.perform(patch("/flashcards/{cardId}/srs", draftCard.getId())
+                            .header("Authorization", "Bearer " + authToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"grade\": 3}"))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.errors[0].code").value("DECK_NOT_FOUND"));
+        }
+
+        @Test
+        @DisplayName("Submit SRS review: Fail because deck is unpublished (ARCHIVED)")
+        void testSubmitSrsReview_Fail_UnpublishedDeck_Archived() throws Exception {
+            Deck archivedDeck = persistDeckWithStatusAndPremium("Archived Deck", "archived-deck", DeckStatus.ARCHIVED, false);
+            Topic archivedTopic = persistTopic(archivedDeck);
+            Card archivedCard = persistCard(archivedDeck, archivedTopic);
+
+            mockMvc.perform(patch("/flashcards/{cardId}/srs", archivedCard.getId())
+                            .header("Authorization", "Bearer " + authToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"grade\": 3}"))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.errors[0].code").value("DECK_NOT_FOUND"));
+        }
+
+        @Test
+        @DisplayName("Submit SRS review: Fail because premium deck without active subscription")
+        void testSubmitSrsReview_Fail_PremiumDeck_NoSubscription() throws Exception {
+            Deck premiumDeck = persistDeckWithStatusAndPremium("Premium Deck", "premium-deck", DeckStatus.PUBLISHED, true);
+            Topic premiumTopic = persistTopic(premiumDeck);
+            Card premiumCard = persistCard(premiumDeck, premiumTopic);
+
+            mockMvc.perform(patch("/flashcards/{cardId}/srs", premiumCard.getId())
+                            .header("Authorization", "Bearer " + authToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"grade\": 3}"))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.errors[0].code").value("DECK_PREMIUM_REQUIRED"));
+        }
+
+        @Test
+        @DisplayName("Submit SRS review: Fail because premium deck with expired subscription")
+        void testSubmitSrsReview_Fail_PremiumDeck_ExpiredSubscription() throws Exception {
+            Deck premiumDeck = persistDeckWithStatusAndPremium("Premium Deck Expired", "premium-deck-expired", DeckStatus.PUBLISHED, true);
+            Topic premiumTopic = persistTopic(premiumDeck);
+            Card premiumCard = persistCard(premiumDeck, premiumTopic);
+            persistExpiredSubscription(testUser);
+
+            mockMvc.perform(patch("/flashcards/{cardId}/srs", premiumCard.getId())
+                            .header("Authorization", "Bearer " + authToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"grade\": 3}"))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.errors[0].code").value("DECK_PREMIUM_REQUIRED"));
+        }
+
+        @Test
+        @DisplayName("Submit SRS review: Success for premium deck with active subscription")
+        void testSubmitSrsReview_Success_PremiumDeck_WithActiveSubscription() throws Exception {
+            Deck premiumDeck = persistDeckWithStatusAndPremium("Premium Deck Active", "premium-deck-active", DeckStatus.PUBLISHED, true);
+            Topic premiumTopic = persistTopic(premiumDeck);
+            Card premiumCard = persistCard(premiumDeck, premiumTopic);
+            persistActiveSubscription(testUser);
+
+            mockMvc.perform(patch("/flashcards/{cardId}/srs", premiumCard.getId())
+                            .header("Authorization", "Bearer " + authToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"grade\": 3}"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true));
+
+            UserCardState state = userCardStateRepository
+                    .findByCardIdAndUserId(premiumCard.getId(), testUser.getId())
+                    .orElseThrow();
+            assertThat(state.getSrsInterval()).isEqualTo(5);
+        }
     }
 
     @Nested
@@ -366,7 +509,7 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
         }
 
         @Test
-        @DisplayName("Get cards for review: only returns due cards that are not hidden")
+        @DisplayName("Get cards for review: only returns due cards (srsNextReviewAt <= now) that are not hidden")
         void testGetCardsForReview_FiltersDueAndNotHidden() throws Exception {
             Card dueCard = persistCard(deck, topic);
             Card futureCard = persistCard(deck, topic);
@@ -403,6 +546,233 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.length()").value(1))
                     .andExpect(jsonPath("$.data[0].card.id").value(dueCard.getId()));
+        }
+
+        @Test
+        @DisplayName("Get cards for review: excludes cards from unpublished decks (DRAFT / ARCHIVED)")
+        void testGetCardsForReview_ExcludesCardsFromUnpublishedDecks() throws Exception {
+            Deck draftDeck = persistDeckWithStatusAndPremium("Draft Deck Rev", "draft-deck-rev", DeckStatus.DRAFT, false);
+            Topic draftTopic = persistTopic(draftDeck);
+            Card draftCard = persistCard(draftDeck, draftTopic);
+
+            Deck archivedDeck = persistDeckWithStatusAndPremium("Archived Deck Rev", "archived-deck-rev", DeckStatus.ARCHIVED, false);
+            Topic archivedTopic = persistTopic(archivedDeck);
+            Card archivedCard = persistCard(archivedDeck, archivedTopic);
+
+            userCardStateRepository.save(UserCardState.builder()
+                    .user(testUser).card(draftCard).deck(draftDeck).topic(draftTopic)
+                    .srsNextReviewAt(LocalDateTime.now().minusHours(1))
+                    .flagsHidden(false)
+                    .build());
+
+            userCardStateRepository.save(UserCardState.builder()
+                    .user(testUser).card(archivedCard).deck(archivedDeck).topic(archivedTopic)
+                    .srsNextReviewAt(LocalDateTime.now().minusHours(2))
+                    .flagsHidden(false)
+                    .build());
+
+            mockMvc.perform(get("/flashcards/reviews")
+                            .header("Authorization", "Bearer " + authToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.length()").value(0));
+        }
+
+        @Test
+        @DisplayName("Get cards for review: excludes cards belonging to other users")
+        void testGetCardsForReview_ExcludesCardsFromOtherUsers() throws Exception {
+            Card dueCardOtherUser = persistCard(deck, topic);
+            User otherUser = userRepository.save(User.builder()
+                    .username("other_reviewer")
+                    .email("other_reviewer@elingo.test")
+                    .passwordHash(passwordEncoder.encode("Password123@"))
+                    .fullName("Other Reviewer")
+                    .isActive(true)
+                    .isVerified(true)
+                    .build());
+
+            userCardStateRepository.save(UserCardState.builder()
+                    .user(otherUser).card(dueCardOtherUser).deck(deck).topic(topic)
+                    .srsNextReviewAt(LocalDateTime.now().minusHours(1))
+                    .flagsHidden(false)
+                    .build());
+
+            mockMvc.perform(get("/flashcards/reviews")
+                            .header("Authorization", "Bearer " + authToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.length()").value(0));
+        }
+
+        @Test
+        @DisplayName("Get cards for review: orders cards by srsNextReviewAt ascending (oldest overdue first)")
+        void testGetCardsForReview_OrdersBySrsNextReviewAtAscending() throws Exception {
+            Card cardOverdueMore = persistCard(deck, topic);
+            Card cardOverdueLess = persistCard(deck, topic);
+
+            userCardStateRepository.save(UserCardState.builder()
+                    .user(testUser).card(cardOverdueMore).deck(deck).topic(topic)
+                    .srsNextReviewAt(LocalDateTime.now().minusHours(5))
+                    .flagsHidden(false)
+                    .build());
+
+            userCardStateRepository.save(UserCardState.builder()
+                    .user(testUser).card(cardOverdueLess).deck(deck).topic(topic)
+                    .srsNextReviewAt(LocalDateTime.now().minusHours(1))
+                    .flagsHidden(false)
+                    .build());
+
+            mockMvc.perform(get("/flashcards/reviews")
+                            .header("Authorization", "Bearer " + authToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.length()").value(2))
+                    .andExpect(jsonPath("$.data[0].card.id").value(cardOverdueMore.getId()))
+                    .andExpect(jsonPath("$.data[1].card.id").value(cardOverdueLess.getId()));
+        }
+    }
+
+    @Nested
+    @DisplayName("toggleStar")
+    class ToggleStarTests {
+        private Card card;
+
+        @BeforeEach
+        void setUp() {
+            Deck deck = persistDeck();
+            Topic topic = persistTopic(deck);
+            card = persistCard(deck, topic);
+        }
+
+        @Test
+        @DisplayName("Toggle star: Success for normal published deck")
+        void testToggleStar_Success() throws Exception {
+            mockMvc.perform(patch("/flashcards/{cardId}/stars", card.getId())
+                            .header("Authorization", "Bearer " + authToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true));
+
+            UserCardState state = userCardStateRepository
+                    .findByCardIdAndUserId(card.getId(), testUser.getId()).orElseThrow();
+            assertThat(state.getFlagsStarred()).isTrue();
+        }
+
+        @Test
+        @DisplayName("Toggle star: Fail because deck is unpublished (DRAFT)")
+        void testToggleStar_Fail_UnpublishedDeck() throws Exception {
+            Deck draftDeck = persistDeckWithStatusAndPremium("Draft Deck Star", "draft-deck-star", DeckStatus.DRAFT, false);
+            Topic draftTopic = persistTopic(draftDeck);
+            Card draftCard = persistCard(draftDeck, draftTopic);
+
+            mockMvc.perform(patch("/flashcards/{cardId}/stars", draftCard.getId())
+                            .header("Authorization", "Bearer " + authToken))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.errors[0].code").value("DECK_NOT_FOUND"));
+        }
+
+        @Test
+        @DisplayName("Toggle star: Fail because premium deck without active subscription")
+        void testToggleStar_Fail_PremiumDeck_NoSubscription() throws Exception {
+            Deck premiumDeck = persistDeckWithStatusAndPremium("Premium Deck Star", "premium-deck-star", DeckStatus.PUBLISHED, true);
+            Topic premiumTopic = persistTopic(premiumDeck);
+            Card premiumCard = persistCard(premiumDeck, premiumTopic);
+
+            mockMvc.perform(patch("/flashcards/{cardId}/stars", premiumCard.getId())
+                            .header("Authorization", "Bearer " + authToken))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.errors[0].code").value("DECK_PREMIUM_REQUIRED"));
+        }
+
+        @Test
+        @DisplayName("Toggle star: Success for premium deck with active subscription")
+        void testToggleStar_Success_PremiumDeck_WithActiveSubscription() throws Exception {
+            Deck premiumDeck = persistDeckWithStatusAndPremium("Premium Deck Star Active", "premium-deck-star-active", DeckStatus.PUBLISHED, true);
+            Topic premiumTopic = persistTopic(premiumDeck);
+            Card premiumCard = persistCard(premiumDeck, premiumTopic);
+            persistActiveSubscription(testUser);
+
+            mockMvc.perform(patch("/flashcards/{cardId}/stars", premiumCard.getId())
+                            .header("Authorization", "Bearer " + authToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true));
+
+            UserCardState state = userCardStateRepository
+                    .findByCardIdAndUserId(premiumCard.getId(), testUser.getId()).orElseThrow();
+            assertThat(state.getFlagsStarred()).isTrue();
+        }
+    }
+
+    @Nested
+    @DisplayName("toggleHide")
+    class ToggleHideTests {
+        private Card card;
+
+        @BeforeEach
+        void setUp() {
+            Deck deck = persistDeck();
+            Topic topic = persistTopic(deck);
+            card = persistCard(deck, topic);
+        }
+
+        @Test
+        @DisplayName("Toggle hide: Success for normal published deck")
+        void testToggleHide_Success() throws Exception {
+            mockMvc.perform(patch("/flashcards/{cardId}/hidden", card.getId())
+                            .header("Authorization", "Bearer " + authToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true));
+
+            UserCardState state = userCardStateRepository
+                    .findByCardIdAndUserId(card.getId(), testUser.getId()).orElseThrow();
+            assertThat(state.getFlagsHidden()).isTrue();
+        }
+
+        @Test
+        @DisplayName("Toggle hide: Fail because deck is unpublished (DRAFT)")
+        void testToggleHide_Fail_UnpublishedDeck() throws Exception {
+            Deck draftDeck = persistDeckWithStatusAndPremium("Draft Deck Hide", "draft-deck-hide", DeckStatus.DRAFT, false);
+            Topic draftTopic = persistTopic(draftDeck);
+            Card draftCard = persistCard(draftDeck, draftTopic);
+
+            mockMvc.perform(patch("/flashcards/{cardId}/hidden", draftCard.getId())
+                            .header("Authorization", "Bearer " + authToken))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.errors[0].code").value("DECK_NOT_FOUND"));
+        }
+
+        @Test
+        @DisplayName("Toggle hide: Fail because premium deck without active subscription")
+        void testToggleHide_Fail_PremiumDeck_NoSubscription() throws Exception {
+            Deck premiumDeck = persistDeckWithStatusAndPremium("Premium Deck Hide", "premium-deck-hide", DeckStatus.PUBLISHED, true);
+            Topic premiumTopic = persistTopic(premiumDeck);
+            Card premiumCard = persistCard(premiumDeck, premiumTopic);
+
+            mockMvc.perform(patch("/flashcards/{cardId}/hidden", premiumCard.getId())
+                            .header("Authorization", "Bearer " + authToken))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.errors[0].code").value("DECK_PREMIUM_REQUIRED"));
+        }
+
+        @Test
+        @DisplayName("Toggle hide: Success for premium deck with active subscription")
+        void testToggleHide_Success_PremiumDeck_WithActiveSubscription() throws Exception {
+            Deck premiumDeck = persistDeckWithStatusAndPremium("Premium Deck Hide Active", "premium-deck-hide-active", DeckStatus.PUBLISHED, true);
+            Topic premiumTopic = persistTopic(premiumDeck);
+            Card premiumCard = persistCard(premiumDeck, premiumTopic);
+            persistActiveSubscription(testUser);
+
+            mockMvc.perform(patch("/flashcards/{cardId}/hidden", premiumCard.getId())
+                            .header("Authorization", "Bearer " + authToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true));
+
+            UserCardState state = userCardStateRepository
+                    .findByCardIdAndUserId(premiumCard.getId(), testUser.getId()).orElseThrow();
+            assertThat(state.getFlagsHidden()).isTrue();
         }
     }
 }
