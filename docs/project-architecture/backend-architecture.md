@@ -27,6 +27,7 @@ com.elingo
 ├── premium/
 ├── community/
 ├── report/
+├── file/
 ├── notification/
 └── gamification/
 ```
@@ -331,6 +332,77 @@ gamification/
 
 ---
 
+## 16. `file/`
+**Ý nghĩa:** Lưu trữ file người dùng (ảnh đại diện, ảnh bài viết, audio shadowing/speaking) trên Cloudflare R2 qua presigned URL — backend không đi qua dòng byte của file. File được xác thực bằng magic bytes trước khi được công khai. **Không có bảng CSDL và không có job định kỳ**: layout của bucket tự mang ý nghĩa.
+
+```
+file/
+├── controller/FileController.java
+├── service/R2Service.java, R2ServiceImpl.java
+├── event/FilePromotionListener.java (chuyển file sang vùng vĩnh viễn)
+├── event/FileCleanupListener.java (dọn file cũ, nghe event từ module sở hữu)
+├── util/FileSignatureVerifier.java (bảng magic bytes, utility thuần không phụ thuộc Spring)
+├── util/FileKey.java (hằng vùng + đổi vùng, utility thuần)
+└── dto/
+    ├── request/PresignedUrlRequest.java, CompleteMultipartRequest.java, CompletedPartInfo.java, AbortMultipartRequest.java, VerifyUploadRequest.java
+    └── response/PresignedUrlResponse.java, InitiateMultipartResponse.java, CompleteMultipartResponse.java, VerifiedFileResponse.java
+```
+
+**Ba vùng trên bucket, mỗi vùng một nghĩa:**
+
+| Vùng | Nghĩa | Quy tắc vòng đời |
+|---|---|---|
+| `staging/{userId}/{uuid}.{ext}` | vừa tải lên, chưa kiểm tra | xoá sau 7 ngày |
+| `verified/{userId}/{uuid}.{ext}` | đã hợp lệ, **chưa ai dùng** | xoá sau 7 ngày |
+| `uploads/{userId}/{uuid}.{ext}` | **đã có bản ghi trỏ tới** | không — không ai đụng |
+
+File người dùng tải lên rồi không
+dùng tới sẽ nằm ở `verified/` và tự biến mất theo quy tắc vòng đời. Đổi lại, CSDL lưu key
+`uploads/`, nên `uploads/` không bao giờ chứa file nào chưa có bản ghi nào trỏ tới. Tên file không
+đổi khi đổi vùng nên `verified/12/a.png` và `uploads/12/a.png` là cùng một file ở hai nơi.
+
+**Luồng upload:**
+1. **Presign** — cấp key tạm `staging/{userId}/{uuid}.{ext}`. Client PUT thẳng lên R2, không đi qua backend.
+2. **Verify** (`POST /files/uploads`) — `headObject` lấy size thật, đọc 64 byte đầu bằng Range request, đối chiếu magic bytes với Content-Type client khai. Sai thì xoá object; đúng thì `copyObject` sang `verified/{userId}/{uuid}.{ext}` (đuôi lấy từ mime thật, không từ tên file client gửi lên) rồi xoá bản `staging/`.
+3. **Gắn vào bản ghi** — module sở hữu ghi key `uploads/` vào CSDL, commit, rồi phát `FileAttachedEvent`; `FilePromotionListener` copy `verified/` → `uploads/` và xoá bản chờ.
+4. **Dọn `staging/` và `verified/`** — quy tắc vòng đời của R2 xoá sau 7 ngày, cấu hình trên Cloudflare.
+
+**Đường dẫn phẳng:** `{vùng}/{userId}/{uuid}.{ext}`.  Mọi thành phần của key do server sinh — `userId` lấy từ token, tên là UUID mới sinh, đuôi lấy từ mime đã xác thực. Không có chuỗi nào từ request lọt vào key, nên không cần chặn traversal và không có đường trỏ tới file của người khác.
+
+**Điều phối bằng event — event-driven:** key là UUID nên mỗi file một tên riêng, module `file` không có cách nào đoán file nào là file cũ, và cũng không biết file nào đã được dùng. Module sở hữu dữ liệu thì biết chính xác (nó vừa đổi trường file trong entity của mình), nên nó phát event trong `common/event/`:
+
+| Event | Phát khi | Listener làm |
+|---|---|---|
+| `FileAttachedEvent(verifiedFileKey, uploadsFileKey)` | đã commit bản ghi tham chiếu tới file | copy `verified/` → `uploads/` |
+| `FileReplacedEvent(oldFileKey, newFileKey)` | đổi ảnh đại diện, sửa bài viết có ảnh | xoá `oldFileKey` |
+| `FileDeletedEvent(fileKeys)` | xoá bài viết, xoá bình luận có ảnh | xoá từng key trong `fileKeys` |
+
+`FileAttachedEvent` mang **cả hai** key vì module sở hữu vốn phải tự tính key `uploads/` để ghi vào CSDL — nó tính bằng `FileKey.toUploads(...)` chứ không tự viết `key.replace("verified/", "uploads/")`. `FileDeletedEvent` mang **danh sách** key vì một bản ghi có thể tham chiếu nhiều file (bài viết có nhiều ảnh): một lần commit xoá bản ghi thì phải dọn hết, xử lý trong một lần chạy của listener thay vì phát N event. `FileReplacedEvent` vẫn mang một key đơn vì thay file luôn thay *một* file.
+
+Cả ba nghe bằng `@TransactionalEventListener(phase = AFTER_COMMIT)`, theo cùng một nguyên tắc: **đừng đụng vào bucket trước khi trạng thái trong CSDL đã chốt.** Xoá trong transaction rồi rollback ⇒ CSDL quay lại bản ghi cũ trỏ tới `oldFileKey` nhưng file đã mất khỏi bucket, bản ghi hỏng. Copy sang `uploads/` trong transaction rồi rollback ⇒ để lại file ở vùng không có quy tắc vòng đời nào dọn, tức là rác vĩnh viễn. Cả hai chiều đều phải chờ commit.
+
+`promoteToUploads` xử lý ba trạng thái theo thứ tự cố định **đọc → copy → xoá**: `headObject` trước để nhận ra nguồn đã biến mất (đã promote ở lần trước rồi event bị phát lại — trạng thái bình thường, không phải lỗi), copy sau, và chỉ xoá bản chờ khi copy đã thành công. Xoá trước rồi copy sau thì hỏng giữa chừng là mất file thật.
+
+Cả hai listener đều nuốt lỗi: chạy sau khi request đã trả kết quả cho client nên ném exception là vô nghĩa. Bắt lỗi quanh *từng key* để một key hỏng không chặn các key còn lại.
+
+**Rủi ro đã biết:** nếu copy `verified/` → `uploads/` hỏng sau khi CSDL đã commit, mà bản `verified/` hết hạn 7 ngày, thì CSDL trỏ tới `uploads/` không tồn tại và file gốc cũng mất — ảnh hỏng vĩnh viễn. Đã hạn chế bằng `headObject` trước khi copy và log kèm key. Cách vá triệt để là một job chỉ quét vùng `verified/` (tối đa 7 ngày dữ liệu) rồi copy lại những key đang được CSDL tham chiếu mà `uploads/` còn thiếu — không cần quét ngược toàn bộ `uploads/`.
+
+**Quyền:** mọi endpoint nhận file từ client đều kiểm tra key bắt đầu bằng `staging/{userId}/` (`requireOwnedKey`) — chỉ vậy thôi, vì client không có đường nào chạm tới `verified/` hay `uploads/`. Đây là toàn bộ cơ chế chống IDOR, và nó không tốn truy vấn CSDL nào. Lời gọi xoá và promote trong listener thì không cần: chúng chạy nội bộ với key module sở hữu lấy từ CSDL của chính nó, không đến từ client.
+
+**Không có endpoint xoá file — đây là quyết định thiết kế, không phải khoảng trống chờ lấp.** Client chỉ yêu cầu upload; file thừa do backend dọn qua event. Vì client không đủ thông tin để biết file nào còn được dùng (chỉ module sở hữu mới biết), và vì key `uploads/{userId}/{uuid}.{ext}` là thứ client đọc được nên cũng đoán được — endpoint xoá sẽ cho phép dò UUID xoá file của người khác, đổi lại không mang lại gì. `DELETE /files/multipart-uploads` không phải ngoại lệ: nó huỷ upload chưa ghép, chưa tạo ra file nào.
+
+**Khu chờ tồn tại để bảo vệ file cũ, không phải chỉ để dọn rác:** nếu tải thẳng vào `uploads/12/`, một file `.exe` có thể ghi đè mất file đang dùng trước khi kịp bị từ chối. Qua khu chờ thì file hỏng chỉ bị chặn ở `staging/`. `verified/` là kiểu chờ thứ hai: nó chờ một bản ghi CSDL tham chiếu tới, chứ không chờ kết quả kiểm tra.
+
+**Quy ước cho module khác:** module sở hữu dữ liệu phát `FileAttachedEvent`/`FileReplacedEvent`/`FileDeletedEvent` sau khi cập nhật entity — không gọi `R2Service` trực tiếp, và không phụ thuộc ngược vào `file`.
+
+- **CSDL lưu key `uploads/`, tính bằng `FileKey.toUploads(verifiedKey)`** — không lưu key `verified/` mà API trả về. Lưu sai thì file không bao giờ rời vùng chờ và bị quy tắc vòng đời xoá mất sau 7 ngày.
+- Phát event **bên trong** transaction, sau khi đã ghi entity. `@TransactionalEventListener` lo phần chờ commit.
+- Vì key phẳng, xoá một bài viết nhiều ảnh nghĩa là gom key từ các dòng `post_media` rồi đưa vào `FileDeletedEvent` — chính xác hơn là dò cả thư mục rồi xoá, nên không sợ xoá nhầm.
+
+**Giả định: mỗi file chỉ được tham chiếu bởi một bản ghi.** Nếu sau này cho phép dùng lại một ảnh đã tải cho hai bài viết, lần tham chiếu thứ hai sẽ tìm key ở `verified/` mà nó đã sang `uploads/` → hỏng. Hiện tại mỗi lần verify sinh UUID mới nên chắc chắn không có chuyện này.
+
+---
+
 ## Nguyên tắc phân tầng trong mỗi package core
 
 - **controller/**: nhận request, validate (`@Valid`), gọi service, không chứa logic nghiệp vụ.
@@ -338,3 +410,5 @@ gamification/
 - **repository/**: interface `JpaRepository`/`JpaSpecificationExecutor`, chỉ chứa truy vấn dữ liệu.
 - **entity/**: ánh xạ bảng DB (`@Entity`), kế thừa `common.entity.BaseEntity`.
 - **dto/**: tách `request/` và `response/`, không tái sử dụng entity làm response để tránh lộ dữ liệu và dễ tuỳ biến theo từng API.
+- **util/**: hàm/ngữ cảnh thuần, không phụ thuộc Spring, không I/O (vd `FileSignatureVerifier`). Không phải bean.
+- **enums/**: enum nghiệp vụ thuần (vd `PostStatus`, `ReportStatus`) mang bảng hằng trạng thái, không phải bean.

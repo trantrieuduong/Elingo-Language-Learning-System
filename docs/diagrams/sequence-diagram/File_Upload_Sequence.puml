@@ -1,0 +1,81 @@
+@startuml File_Upload_Sequence
+
+actor "Client" as Client
+participant "Server" as Server
+database "Database" as DB
+participant "Cloudflare R2" as R2
+
+== Giai đoạn 1: Xin đường dẫn ==
+Client -> Server: yêu cầu Presigned Url
+activate Server
+Server -> Server: kiểm tra type & size,\nsinh key staging/{userId}/{uuid}.{ext}
+Server --> Client: Presigned Url có thời hạn
+deactivate Server
+
+== Giai đoạn 2: Client tải thẳng lên R2 ==
+Client -> R2: PUT dữ liệu file
+activate R2
+deactivate R2
+note right of R2
+  Dữ liệu file không đi qua máy chủ.
+  vùng staging/ tự xoá sau 7 ngày.
+end note
+
+== Giai đoạn 3: Kiểm tra file ==
+Client -> Server: xin kiểm tra (key staging + Content-Type)
+activate Server
+Server -> R2: kiểm tra kích thước thật sự
+activate R2
+R2 --> Server: contentLength
+Server -> R2: đọc 64 byte đầu (Range)
+R2 --> Server: magic bytes
+
+alt sai định dạng hoặc vượt giới hạn
+    Server -> R2: xoá object
+    Server --> Client: lỗi
+else hợp lệ
+    Server -> R2: copy staging/ → verified/
+    note right of R2
+      verified/ tự xoá sau 7 ngày
+      nếu không ai dùng tới
+    end note
+    Server -> R2: xoá bản staging/
+    Server --> Client: verifiedFileKey + URL xem trước
+end
+deactivate Server
+deactivate R2
+
+== Giai đoạn 4: Gắn file vào bản ghi ==
+Client -> Server: lưu bản ghi kèm verifiedFileKey
+activate Server
+Server -> Server: FileKey.toUploads(verifiedKey)
+Server -> DB: ghi key uploads/ vào bản ghi
+activate DB
+DB --> Server: ok
+deactivate DB
+Server --> Client: bản ghi đã lưu (URL vĩnh viễn)
+Server -> Server: phát FileAttachedEvent
+Server -> R2: copy verified/ → uploads/
+activate R2
+note over DB, R2
+  Mọi thao tác lên bucket diễn ra
+  SAU khi transaction đã commit
+end note
+Server -> R2: xoá bản chờ
+deactivate R2
+deactivate Server
+
+== Giai đoạn 5: Thay / xoá file ==
+Client -> Server: thay ảnh hoặc xoá bài viết (ví dụ)
+activate Server
+Server -> DB: cập nhật / xoá bản ghi
+activate DB
+DB --> Server: ok
+deactivate DB
+Server --> Client: kết quả
+Server -> Server: phát FileReplacedEvent\nhoặc FileDeletedEvent
+Server -> R2: xoá key cũ
+activate R2
+deactivate R2
+
+@enduml
