@@ -14,6 +14,7 @@ public interface CardRepository extends JpaRepository<Card, Long> {
               LEFT JOIN FETCH c.phonetics
               LEFT JOIN UserCardState ucs ON ucs.card.id = c.id AND ucs.user.id = :userId
               WHERE c.topic.id = :topicId
+              AND c.deck.status = DeckStatus.PUBLISHED
               AND (
                  ucs.id IS NULL
                  OR (ucs.srsNextReviewAt IS NULL AND ucs.flagsHidden = false)

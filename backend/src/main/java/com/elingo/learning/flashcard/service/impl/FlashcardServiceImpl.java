@@ -13,6 +13,7 @@ import com.elingo.premium.repository.UserSubscriptionRepository;
 import com.elingo.user.entity.User;
 import com.elingo.user.repository.UserRepository;
 import com.elingo.vocabulary.entity.Card;
+import com.elingo.vocabulary.entity.Deck;
 import com.elingo.vocabulary.entity.DeckStatus;
 import com.elingo.vocabulary.mapper.CardMapper;
 import com.elingo.vocabulary.repository.CardRepository;
@@ -108,7 +109,7 @@ public class FlashcardServiceImpl implements FlashcardService {
     }
 
     private void validateCardDeckAccess(UserCardState state) {
-        var deck = state.getDeck();
+        Deck deck = state.getDeck();
         Long deckId = deck.getId();
         Long userId = state.getUser().getId();
 
@@ -135,7 +136,17 @@ public class FlashcardServiceImpl implements FlashcardService {
     @Transactional(readOnly = true)
     public List<ReviewCardResponse> getCardsForReview(Long userId, Integer limit) {
         log.info("Fetching cards for review for userId={}, limit={}", userId, limit);
-        limit = limit != null && limit > 0 ? limit : 100;
+
+        if (limit != null) {
+            if (limit > 200) {
+                throw new AppException(AppError.MAX_REVIEW_CARD_LIMIT_INVALID);
+            }
+            if (limit < 1) {
+                throw new AppException(AppError.MIN_REVIEW_CARD_LIMIT_INVALID);
+            }
+        } else {
+            limit = 100;
+        }
 
         List<UserCardState> states = userCardStateRepository.findCardsForReview(
                 userId, LocalDateTime.now(), PageRequest.of(0, limit));
