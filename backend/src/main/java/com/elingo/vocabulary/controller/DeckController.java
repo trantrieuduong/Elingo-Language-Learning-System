@@ -2,6 +2,7 @@ package com.elingo.vocabulary.controller;
 
 import com.elingo.common.annotation.CurrentUserId;
 import com.elingo.common.dto.ApiResponse;
+import com.elingo.vocabulary.dto.response.DeckResponse;
 import com.elingo.vocabulary.service.DeckService;
 import com.elingo.vocabulary.dto.response.TopicResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,6 +23,18 @@ import java.util.List;
 @Tag(name = "Deck Controller")
 public class DeckController {
     private final DeckService deckService;
+
+    @GetMapping
+    @Operation(summary = "Get all published decks in the system")
+    public ApiResponse<List<DeckResponse>> getAllPublishedDecks() {
+        log.info("Get all published decks request received");//thiếu userId
+
+        List<DeckResponse> decks = deckService.getAllPublishedDecks();
+        return ApiResponse.<List<DeckResponse>>builder()
+                .success(true)
+                .data(decks)
+                .build();
+    }
 
     @GetMapping("/{deckId}/topics")
     @Operation(summary = "Get all topics belonging to a deck")

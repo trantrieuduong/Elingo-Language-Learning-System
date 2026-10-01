@@ -4,8 +4,10 @@ import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.premium.entity.SubscriptionStatus;
 import com.elingo.premium.repository.UserSubscriptionRepository;
+import com.elingo.vocabulary.dto.response.DeckResponse;
 import com.elingo.vocabulary.dto.response.TopicResponse;
 import com.elingo.vocabulary.entity.DeckStatus;
+import com.elingo.vocabulary.mapper.DeckMapper;
 import com.elingo.vocabulary.mapper.TopicMapper;
 import com.elingo.vocabulary.repository.DeckRepository;
 import com.elingo.vocabulary.repository.TopicRepository;
@@ -26,6 +28,22 @@ public class DeckServiceImpl implements DeckService {
     private final TopicRepository topicRepository;
     private final UserSubscriptionRepository userSubscriptionRepository;
     private final TopicMapper topicMapper;
+    private final DeckMapper deckMapper;
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DeckResponse> getAllPublishedDecks() {//param userId
+        log.info("Fetching all published decks");
+
+        List<DeckResponse> decks = deckRepository
+                .findAllByStatusWithDetails(DeckStatus.PUBLISHED)
+                .stream()
+                .map(deckMapper::toDeckResponse)
+                .toList();
+
+        log.info("Fetched {} published deck(s)", decks.size());
+        return decks;
+    }
 
     @Override
     @Transactional(readOnly = true)
