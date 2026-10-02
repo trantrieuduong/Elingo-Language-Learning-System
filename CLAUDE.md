@@ -22,6 +22,15 @@ The three are wired by convention: every backend module (`learning/flashcard`, `
 - `docs/diagrams/sequence-diagram/*.puml` — flows for auth/profile/password/email and dictation.
 - `.claude/rules/naming-conventions.md` — **binding naming rules** for all three languages (loaded as project instructions). Follow them exactly: e.g. backend packages are lowercase (`speaking`, not `speakingRoom`), DTOs are split `request/`+`response/` with `Request`/`Response` suffixes (never a bare `AuthDTO`), REST endpoints are kebab-case plural nouns, Python is `snake_case`, React components are `PascalCase`.
 
+## Frontend Foundation Documents (read before any FE work)
+
+Four markdown files in `frontend/docs/` define the official standards — **all AI assistants and team members must read them before writing any frontend code**:
+
+- `frontend/docs/FE_CONVENTIONS.md` — Stack, folder structure, naming conventions, routing, API patterns, state management, component patterns, form validation, comment style, and a full list of rules (must-do and must-not).
+- `frontend/docs/FE_DESIGN_SYSTEM.md` — Visual system ("Liquid Glass Minimalism"): color tokens, typography scale, spacing, border-radius, glass CSS classes, button system, cards, chips/badges, inputs, icons, transitions, and a per-screen checklist.
+- `frontend/docs/FE_ROUTES.md` — Full route map (public / private user / admin), dynamic route regex patterns, route guard logic, query param conventions, and rules for adding new routes.
+- `frontend/docs/FE_COMPONENT_GUIDELINES.md` — When to create shared vs module-specific components, component file structure, template, props conventions, how to use the design system inside components, API reference for all current shared components, and common mistakes to avoid.
+
 ## Commands
 
 ### Backend (run from `backend/`)

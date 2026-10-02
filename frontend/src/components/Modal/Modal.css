@@ -1,0 +1,85 @@
+/* ============================================================
+   Modal.css — Shared Modal Component
+   ============================================================ */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(30, 41, 59, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal);
+  padding: var(--spacing-lg);
+}
+
+.modal-container {
+  width: 100%;
+  max-width: 440px;
+  padding: var(--spacing-3xl);
+  border-radius: var(--radius-card-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.modal-title {
+  color: var(--color-text-high);
+  margin: 0;
+}
+
+.modal-message {
+  color: var(--color-text-body);
+  margin: 0;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+/* ── Danger confirm button ── */
+.modal-confirm-btn--danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.875rem 2rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-error);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  color: var(--color-on-error);
+  font-family: var(--font-display);
+  font-size: var(--font-size-label-lg);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: var(--transition-base);
+}
+
+.modal-confirm-btn--danger:hover:not(:disabled) {
+  background: #991616;
+}
+
+.modal-confirm-btn--danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Loading spinner inside button ── */
+.modal-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
