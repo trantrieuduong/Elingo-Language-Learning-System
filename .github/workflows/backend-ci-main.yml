@@ -1,0 +1,202 @@
+name: Backend CI - main
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci-main.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci-main.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-ci-main-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  JAVA_VERSION: "21"
+
+defaults:
+  run:
+    working-directory: backend
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # 1. BUILD
+  # ---------------------------------------------------------------------------
+  build:
+    name: 1. Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: temurin
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+
+      - name: Make mvnw executable
+        run: chmod +x mvnw
+
+      - name: Resolve Maven dependencies
+        run: ./mvnw -B dependency:go-offline --fail-fast
+
+      - name: Compile
+        run: ./mvnw -B compile
+
+  # ---------------------------------------------------------------------------
+  # 2. TEST
+  # ---------------------------------------------------------------------------
+  test:
+    name: 2. Test (+ JaCoCo coverage)
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: temurin
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+
+      - name: Make mvnw executable
+        run: chmod +x mvnw
+
+      - name: Run unit + integration tests
+        run: ./mvnw -B verify
+        env:
+          SPRING_PROFILES_ACTIVE: test
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: backend/target/surefire-reports
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload JaCoCo coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: backend/target/site/jacoco
+          retention-days: 7
+          if-no-files-found: warn
+
+  # ---------------------------------------------------------------------------
+  # 3. SONARQUBE (SonarCloud)
+  # ---------------------------------------------------------------------------
+  sonar:
+    name: 3. SonarQube (SonarCloud)
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_BACKEND }}
+    steps:
+      - name: Checkout
+        if: ${{ env.SONAR_TOKEN != '' }}
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # Sonar cần full history để blame/new-code
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        if: ${{ env.SONAR_TOKEN != '' }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: temurin
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+
+      - name: Make mvnw executable
+        if: ${{ env.SONAR_TOKEN != '' }}
+        run: chmod +x mvnw
+
+      - name: SonarCloud scan
+        if: ${{ env.SONAR_TOKEN != '' }}
+        run: >
+          ./mvnw -B -ntp verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+          -Dsonar.host.url=https://sonarcloud.io
+          -Dsonar.projectKey=elingo_backend
+          -Dsonar.organization=elingo
+          -Dsonar.projectName="elingo backend"
+          -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+        # -Dsonar.qualitygate.wait=true
+
+      - name: Skip notice
+        if: ${{ env.SONAR_TOKEN == '' }}
+        run: echo "::notice::SONAR_TOKEN_BACKEND không có (PR từ fork hoặc chưa cấu hình) - bỏ qua SonarCloud."
+
+  # ---------------------------------------------------------------------------
+  # 4. SECURITY / DEPENDENCY SCANNING
+  # ---------------------------------------------------------------------------
+  security:
+    name: 4. Security & Dependency Scanning
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ---- 4a. Secret scanning (Gitleaks) ---------------------------------
+      - name: Gitleaks secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ---- 4b. Dependency / source scanning (Trivy) -----------------------
+      - name: Trivy - scan filesystem (source, dependency, config)
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          scan-type: fs
+          scan-ref: backend
+          scanners: vuln,misconfig,secret
+          trivyignores: backend/.trivyignore
+          exit-code: '1'
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          format: sarif
+          output: trivy-fs.sarif
+        env:
+          TRIVY_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-db
+
+      - name: Upload Trivy filesystem SARIF
+        if: always() && hashFiles('backend/trivy-fs.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: backend/trivy-fs.sarif
+          category: trivy-filesystem
+
+  # ---------------------------------------------------------------------------
+  # 5. PACKAGING (soon)
+  # ---------------------------------------------------------------------------
+
+  # ---------------------------------------------------------------------------
+  # 6. AUTO-DEPLOY (soon)
+  # ---------------------------------------------------------------------------

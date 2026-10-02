@@ -1,0 +1,119 @@
+name: Backend CI - dev
+
+on:
+  push:
+    branches: [ dev ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci-dev.yml'
+  pull_request:
+    branches: [ dev ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci-dev.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-ci-dev-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  JAVA_VERSION: "21"
+
+defaults:
+  run:
+    working-directory: backend
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # 1. TEST - compile + unit & integration test
+  # ---------------------------------------------------------------------------
+  test:
+    name: 1. Test (+ JaCoCo coverage)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: temurin
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+
+      - name: Make mvnw executable
+        run: chmod +x mvnw
+
+      - name: Run unit + integration tests
+        run: ./mvnw -B verify
+        env:
+          SPRING_PROFILES_ACTIVE: test
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports-dev
+          path: backend/target/surefire-reports
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload JaCoCo coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report-dev
+          path: backend/target/site/jacoco
+          retention-days: 7
+          if-no-files-found: warn
+
+  # ---------------------------------------------------------------------------
+  # 2. SECURITY / DEPENDENCY SCANNING
+  # ---------------------------------------------------------------------------
+  security:
+    name: 2. Security & Dependency Scanning
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ---- 2a. Secret scanning (Gitleaks) ---------------------------------
+      - name: Gitleaks secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ---- 2b. Dependency / source scanning (Trivy) -----------------------
+      - name: Trivy - scan filesystem (source, dependency, config)
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          scan-type: fs
+          scan-ref: backend
+          scanners: vuln,misconfig,secret
+          trivyignores: backend/.trivyignore
+          exit-code: '1'
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          format: sarif
+          output: trivy-fs-dev.sarif
+        env:
+          TRIVY_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-db
+
+      - name: Upload Trivy filesystem SARIF
+        if: always() && hashFiles('backend/trivy-fs-dev.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: backend/trivy-fs-dev.sarif
+          category: trivy-filesystem-dev
