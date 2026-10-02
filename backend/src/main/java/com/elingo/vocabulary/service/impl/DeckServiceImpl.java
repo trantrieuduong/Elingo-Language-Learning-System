@@ -1,9 +1,11 @@
 package com.elingo.vocabulary.service.impl;
 
+import com.elingo.common.dto.PageResponse;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.premium.entity.SubscriptionStatus;
 import com.elingo.premium.repository.UserSubscriptionRepository;
+import com.elingo.vocabulary.dto.request.GetPublishedDecksRequest;
 import com.elingo.vocabulary.dto.response.DeckResponse;
 import com.elingo.vocabulary.dto.response.TopicResponse;
 import com.elingo.vocabulary.entity.DeckStatus;
@@ -14,8 +16,12 @@ import com.elingo.vocabulary.repository.TopicRepository;
 import com.elingo.vocabulary.service.DeckService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,6 +30,8 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j(topic = "DECK-SERVICE")
 public class DeckServiceImpl implements DeckService {
+    private static final int PAGE_SIZE = 9;
+
     private final DeckRepository deckRepository;
     private final TopicRepository topicRepository;
     private final UserSubscriptionRepository userSubscriptionRepository;
@@ -32,17 +40,25 @@ public class DeckServiceImpl implements DeckService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<DeckResponse> getAllPublishedDecks(Long userId) {
-        log.info("Fetching all published decks for userId = {}", userId);
+    public PageResponse<DeckResponse> getAllPublishedDecks(Long userId, GetPublishedDecksRequest request) {
+        log.info("Fetching all published decks for userId={}, cefrCode={}, tagCode={}, keyword='{}', page={}",
+                userId, request.cefrCode(), request.tagCode(), request.keyword(), request.page());
 
-        List<DeckResponse> decks = deckRepository
-                .findAllByStatusWithDetails(DeckStatus.PUBLISHED)
-                .stream()
-                .map(deckMapper::toDeckResponse)
-                .toList();
+        String cefrCode = StringUtils.hasText(request.cefrCode()) ? request.cefrCode().trim() : null;
+        String tagCode = StringUtils.hasText(request.tagCode()) ? request.tagCode().trim() : null;
+        String keyword = StringUtils.hasText(request.keyword()) ? request.keyword().trim() : null;
 
-        log.info("Fetched {} published deck(s) for userId={}", decks.size(), userId);
-        return decks;
+        Pageable pageable = PageRequest.of(request.page(), PAGE_SIZE);
+
+        Page<DeckResponse> resultPage = deckRepository
+                .findPublishedWithFilters(cefrCode, tagCode, keyword, pageable)
+                .map(deckMapper::toDeckResponse);
+
+        log.info("Fetched {}/{} published deck(s) (page {}/{}) for userId={}",
+                resultPage.getNumberOfElements(), resultPage.getTotalElements(),
+                resultPage.getNumber() + 1, resultPage.getTotalPages(), userId);
+
+        return PageResponse.of(resultPage);
     }
 
     @Override

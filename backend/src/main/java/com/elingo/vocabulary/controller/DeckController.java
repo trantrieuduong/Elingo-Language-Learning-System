@@ -2,14 +2,18 @@ package com.elingo.vocabulary.controller;
 
 import com.elingo.common.annotation.CurrentUserId;
 import com.elingo.common.dto.ApiResponse;
+import com.elingo.common.dto.PageResponse;
+import com.elingo.vocabulary.dto.request.GetPublishedDecksRequest;
 import com.elingo.vocabulary.dto.response.DeckResponse;
 import com.elingo.vocabulary.service.DeckService;
 import com.elingo.vocabulary.dto.response.TopicResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,14 +29,16 @@ public class DeckController {
     private final DeckService deckService;
 
     @GetMapping
-    @Operation(summary = "Get all published decks in the system")
-    public ApiResponse<List<DeckResponse>> getAllPublishedDecks(
+    @Operation(summary = "Get all published decks with optional filters (cefrCode, tagCode, keyword) and pagination (9 items/page)")
+    public ApiResponse<PageResponse<DeckResponse>> getAllPublishedDecks(
+            @ModelAttribute @Valid GetPublishedDecksRequest request,
             @CurrentUserId Long currentUserId
-    ) {
-        log.info("Get all published decks request received: currentUserId = {}", currentUserId);
+    ) {// @ModelAttribute là một "bộ gom dữ liệu" giúp không phải viết một hàng dài các @RequestParam
+        log.info("Get all published decks request received: currentUserId={}, cefrCode={}, tagCode={}, keyword='{}', page={}",
+                currentUserId, request.cefrCode(), request.tagCode(), request.keyword(), request.page());
 
-        List<DeckResponse> decks = deckService.getAllPublishedDecks(currentUserId);
-        return ApiResponse.<List<DeckResponse>>builder()
+        PageResponse<DeckResponse> decks = deckService.getAllPublishedDecks(currentUserId, request);
+        return ApiResponse.<PageResponse<DeckResponse>>builder()
                 .success(true)
                 .data(decks)
                 .build();
