@@ -26,6 +26,9 @@ public enum AppError {
     FILE_UPLOAD_FAILED("FILE_UPLOAD_FAILED", "Failed to upload file", HttpStatus.INTERNAL_SERVER_ERROR),
     FILE_TOO_LARGE("FILE_TOO_LARGE", "Uploaded file size exceeds the allowed limit", HttpStatus.BAD_REQUEST),
     INVALID_FILE_TYPE("INVALID_FILE_TYPE", "File format is not supported", HttpStatus.BAD_REQUEST),
+    FILE_NOT_FOUND("FILE_NOT_FOUND", "File not found", HttpStatus.NOT_FOUND),
+    FILE_ACCESS_DENIED("FILE_ACCESS_DENIED", "You do not own this file", HttpStatus.FORBIDDEN),
+    FILE_TYPE_MISMATCH("FILE_TYPE_MISMATCH", "File content does not match the declared file type", HttpStatus.BAD_REQUEST),
 
     // ==========================================
     // 2. Auth & User (Xác thực & Người dùng)

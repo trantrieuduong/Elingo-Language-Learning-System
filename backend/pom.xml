@@ -27,6 +27,7 @@
         <url/>
     </scm>
     <properties>
+        <aws.version>2.28.16</aws.version>
         <java.version>21</java.version>
         <swagger.version>2.7.0</swagger.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
@@ -138,6 +139,13 @@
             <groupId>com.google.api-client</groupId>
             <artifactId>google-api-client</artifactId>
             <version>${google-api-client.version}</version>
+        </dependency>
+
+        <!--    AWS SDK    -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>${aws.version}</version>
         </dependency>
 
         <!--    Test    -->

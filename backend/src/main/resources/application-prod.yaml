@@ -21,6 +21,16 @@ spring:
 jwt:
   signer-key: ${PROD_JWT_SIGNER_KEY}
 
+r2:
+  account-id: ${PROD_R2_ACCOUNT_ID}
+  access-key: ${PROD_R2_ACCESS_KEY}
+  secret-key: ${PROD_R2_SECRET_KEY}
+  bucket: ${PROD_R2_BUCKET}
+  public-url: ${PROD_R2_PUBLIC_URL}   # custom domain trỏ tới R2
+  max-file-size-bytes: 104857600
+  multipart-min-part-size: 5242880
+  presign-duration-minutes: 30
+
 springdoc:
   swagger-ui:
     enabled: false

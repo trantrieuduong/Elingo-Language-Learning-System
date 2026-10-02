@@ -20,3 +20,13 @@ spring:
 
 jwt:
   signer-key: ${TEST_JWT_SIGNER_KEY:nZ4myQcAacbTDoEzaSPWs7q0NkhVEHMki3J72A3AD75} # for test only
+
+r2:
+  account-id: test-account
+  access-key: test-access
+  secret-key: test-secret
+  bucket: test-bucket
+  public-url: https://cdn.test.elingo.com
+  max-file-size-bytes: 104857600
+  multipart-min-part-size: 5242880
+  presign-duration-minutes: 30
