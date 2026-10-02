@@ -32,8 +32,8 @@ public class DeckServiceImpl implements DeckService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<DeckResponse> getAllPublishedDecks() {//param userId
-        log.info("Fetching all published decks");
+    public List<DeckResponse> getAllPublishedDecks(Long userId) {
+        log.info("Fetching all published decks for userId = {}", userId);
 
         List<DeckResponse> decks = deckRepository
                 .findAllByStatusWithDetails(DeckStatus.PUBLISHED)
@@ -41,7 +41,7 @@ public class DeckServiceImpl implements DeckService {
                 .map(deckMapper::toDeckResponse)
                 .toList();
 
-        log.info("Fetched {} published deck(s)", decks.size());
+        log.info("Fetched {} published deck(s) for userId={}", decks.size(), userId);
         return decks;
     }
 

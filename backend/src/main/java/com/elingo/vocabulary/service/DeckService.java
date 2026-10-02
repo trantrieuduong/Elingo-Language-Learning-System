@@ -8,5 +8,5 @@ import java.util.List;
 public interface DeckService {
     List<TopicResponse> getTopicsByDeck(Long userId, Long deckId);
 
-    List<DeckResponse> getAllPublishedDecks();
+    List<DeckResponse> getAllPublishedDecks(Long userId);
 }

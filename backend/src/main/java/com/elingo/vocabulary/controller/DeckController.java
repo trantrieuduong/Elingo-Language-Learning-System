@@ -26,10 +26,12 @@ public class DeckController {
 
     @GetMapping
     @Operation(summary = "Get all published decks in the system")
-    public ApiResponse<List<DeckResponse>> getAllPublishedDecks() {
-        log.info("Get all published decks request received");//thiếu userId
+    public ApiResponse<List<DeckResponse>> getAllPublishedDecks(
+            @CurrentUserId Long currentUserId
+    ) {
+        log.info("Get all published decks request received: currentUserId = {}", currentUserId);
 
-        List<DeckResponse> decks = deckService.getAllPublishedDecks();
+        List<DeckResponse> decks = deckService.getAllPublishedDecks(currentUserId);
         return ApiResponse.<List<DeckResponse>>builder()
                 .success(true)
                 .data(decks)

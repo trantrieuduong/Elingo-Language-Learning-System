@@ -11,12 +11,12 @@ import java.util.List;
 @Repository
 public interface DeckRepository extends JpaRepository<Deck, Long> {
     @Query("""
-            SELECT DISTINCT d FROM Deck d
+            SELECT d FROM Deck d
             LEFT JOIN FETCH d.tags
             LEFT JOIN FETCH d.cefrLevels
             WHERE d.status = :status
             ORDER BY d.publishedAt DESC
-            """)// DISTINCT thừa
+            """)
     List<Deck> findAllByStatusWithDetails(DeckStatus status);
 }
 
