@@ -2,14 +2,12 @@ package com.elingo.vocabulary.service;
 
 import com.elingo.common.dto.PageResponse;
 import com.elingo.vocabulary.dto.request.GetPublishedDecksRequest;
-import com.elingo.vocabulary.dto.response.CefrLevelResponse;
 import com.elingo.vocabulary.dto.response.DeckResponse;
 import com.elingo.vocabulary.entity.DeckStatus;
 import com.elingo.vocabulary.entity.OwnerType;
 import com.elingo.vocabulary.mapper.DeckMapper;
 import com.elingo.vocabulary.repository.DeckRepository;
 import com.elingo.vocabulary.service.impl.DeckServiceImpl;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -42,16 +40,6 @@ class DeckServiceTest {
 
     @Mock
     private DeckMapper deckMapper;
-
-    // Inject only required mocks; unused mocks are left out intentionally.
-    @Mock
-    private com.elingo.vocabulary.repository.TopicRepository topicRepository;
-
-    @Mock
-    private com.elingo.premium.repository.UserSubscriptionRepository userSubscriptionRepository;
-
-    @Mock
-    private com.elingo.vocabulary.mapper.TopicMapper topicMapper;
 
     @InjectMocks
     private DeckServiceImpl deckService;
@@ -93,7 +81,7 @@ class DeckServiceTest {
             assertThat(result.totalElements()).isEqualTo(2);
             assertThat(result.page()).isEqualTo(0);
             assertThat(result.size()).isEqualTo(PAGE_SIZE);
-            assertThat(result.last()).isTrue();
+            assertThat(result.isLast()).isTrue();
             verify(deckRepository).findPublishedWithFilters(isNull(), isNull(), isNull(), any(Pageable.class));
         }
 
@@ -117,7 +105,7 @@ class DeckServiceTest {
             PageResponse<DeckResponse> result = deckService.getAllPublishedDecks(USER_ID, request);
 
             assertThat(result.content()).hasSize(1);
-            assertThat(result.content().get(0).title()).isEqualTo("B2 Vocabulary");
+            assertThat(result.content().getFirst().title()).isEqualTo("B2 Vocabulary");
             verify(deckRepository).findPublishedWithFilters(eq("B2"), isNull(), isNull(), any(Pageable.class));
         }
 

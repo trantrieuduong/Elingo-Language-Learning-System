@@ -9,7 +9,9 @@ import com.elingo.vocabulary.entity.Deck;
 import com.elingo.vocabulary.entity.DeckStatus;
 import com.elingo.vocabulary.entity.OwnerType;
 import com.elingo.vocabulary.entity.Tag;
+import com.elingo.vocabulary.repository.CefrLevelRepository;
 import com.elingo.vocabulary.repository.DeckRepository;
+import com.elingo.vocabulary.repository.TagRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -40,17 +42,22 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
     private DeckRepository deckRepository;
 
     @Autowired
+    private TagRepository tagRepository;
+
+    @Autowired
+    private CefrLevelRepository cefrLevelRepository;
+
+    @Autowired
     private JwtService jwtService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    private User testUser;
     private String authToken;
 
     @BeforeEach
     void setUp() {
-        testUser = userRepository.save(User.builder()
+        User testUser = userRepository.save(User.builder()
                 .username("deck_tester")
                 .email("deck_tester@elingo.test")
                 .passwordHash(passwordEncoder.encode("Password123@"))
@@ -68,16 +75,20 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
     // ─────────────────────── helpers ───────────────────────
 
     private Tag buildTag(String code, String label) {
-        return Tag.builder().code(code).label(label).build();
+        return tagRepository.save(
+                Tag.builder().code(code).label(label).build()
+        );
     }
 
     private CefrLevel buildCefrLevel(String code, String label) {
-        return CefrLevel.builder().code(code).label(label).build();
+        return cefrLevelRepository.save(
+                CefrLevel.builder().code(code).label(label).build()
+        );
     }
 
-    private Deck persistPublishedDeck(String title, String slug,
+    private void persistPublishedDeck(String title, String slug,
                                       Set<Tag> tags, Set<CefrLevel> cefrLevels) {
-        return deckRepository.save(Deck.builder()
+        deckRepository.save(Deck.builder()
                 .title(title)
                 .slug(slug)
                 .status(DeckStatus.PUBLISHED)
@@ -88,10 +99,10 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
                 .build());
     }
 
-    private Deck persistDraftDeck(String title, String slug) {
-        return deckRepository.save(Deck.builder()
-                .title(title)
-                .slug(slug)
+    private void persistDraftDeck() {
+        deckRepository.save(Deck.builder()
+                .title("Hidden Draft")
+                .slug("hidden-draft")
                 .status(DeckStatus.DRAFT)
                 .ownerType(OwnerType.SYSTEM)
                 .build());
@@ -123,14 +134,14 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
                     .andExpect(jsonPath("$.data.page").value(0))
                     .andExpect(jsonPath("$.data.totalElements").value(2))
                     .andExpect(jsonPath("$.data.totalPages").value(1))
-                    .andExpect(jsonPath("$.data.last").value(true));
+                    .andExpect(jsonPath("$.data.isLast").value(true));
         }
 
         @Test
         @DisplayName("Get published decks: Success - excludes draft decks")
         void testGetPublishedDecks_ExcludesDraftDecks() throws Exception {
             persistPublishedDeck("Animals", "animals", Set.of(), Set.of());
-            persistDraftDeck("Hidden Draft", "hidden-draft");
+            persistDraftDeck();
 
             performGetDecks("")
                     .andExpect(status().isOk())
@@ -163,7 +174,7 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
                     .andExpect(jsonPath("$.data.page").value(1))
                     .andExpect(jsonPath("$.data.totalElements").value(10))
                     .andExpect(jsonPath("$.data.totalPages").value(2))
-                    .andExpect(jsonPath("$.data.last").value(true));
+                    .andExpect(jsonPath("$.data.isLast").value(true));
         }
 
         // ─────── filter: CEFR level ───────
@@ -185,7 +196,6 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
         @DisplayName("Get published decks: Success - filter by CEFR code returns empty when no match")
         void testGetPublishedDecks_FilterByCefrCode_NotFound() throws Exception {
             CefrLevel a1 = buildCefrLevel("A1", "Beginner");
-            // có thể dùng lại CefrLevel b2
             persistPublishedDeck("A1 Vocab", "a1-vocab", Set.of(), Set.of(a1));
 
             performGetDecks("?cefrCode=C2")
@@ -214,7 +224,6 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
         @DisplayName("Get published decks: Success - filter by tag code returns empty when no match")
         void testGetPublishedDecks_FilterByTagCode_NotFound() throws Exception {
             Tag food = buildTag("FOOD", "Food");
-            // Có thể dùng lại Tag travel
             persistPublishedDeck("Food Deck", "food-deck", Set.of(food), Set.of());
 
             performGetDecks("?tagCode=TRAVEL")
@@ -247,7 +256,6 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
                     .andExpect(jsonPath("$.data.content.length()").value(1))
                     .andExpect(jsonPath("$.data.content[0].title").value("Animals Deck"));
         }
-        // testGetPublishedDecks_FilterByKeyword_CaseInsensitive có thể gộp testGetPublishedDecks_FilterByKeyword_Success
 
         @Test
         @DisplayName("Get published decks: Success - filter by keyword returns empty when no match")
@@ -280,12 +288,6 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
         }
 
         // ─────── security ───────
-        @Test
-        @DisplayName("Get published decks: Fail because of missing token")
-        void testGetPublishedDecks_Fail_Unauthenticated() throws Exception {
-            mockMvc.perform(get("/decks"))
-                    .andExpect(status().isForbidden());
-        }// thừa: khi lấy published decks, đối với người dùng chưa đăng nhập được miss token trong header authorization
 
         @Test
         @DisplayName("Get published decks: Fail because of invalid token")
@@ -300,9 +302,10 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Get published decks: Fail because of invalid CEFR code")
         void testGetPublishedDecks_Fail_InvalidCefrCode() throws Exception {
-            performGetDecks("?cefrCode=Z9")
+            performGetDecks("?cefrCode=B9999999999")
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.success").value(false));
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.errors[0].code").value("CEFR_LEVEL_CODE_INVALID"));
         }
 
         @Test

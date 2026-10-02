@@ -71,9 +71,13 @@ public enum AppError {
     CARD_PHONETIC_NOT_FOUND("CARD_PHONETIC_NOT_FOUND", "Card phonetic not found", HttpStatus.NOT_FOUND),
     TAG_NOT_FOUND("TAG_NOT_FOUND", "Tag not found", HttpStatus.NOT_FOUND),
     TAG_CODE_EXISTED("TAG_CODE_EXISTED", "Tag code already exists", HttpStatus.BAD_REQUEST),
+    TAG_CODE_INVALID("TAG_CODE_INVALID", "Tag code must not exceed 100 characters", HttpStatus.BAD_REQUEST),
     CEFR_LEVEL_NOT_FOUND("CEFR_LEVEL_NOT_FOUND", "CEFR level not found", HttpStatus.NOT_FOUND),
     CEFR_LEVEL_CODE_EXISTED("CEFR_LEVEL_CODE_EXISTED", "CEFR level code already exists", HttpStatus.BAD_REQUEST),
+    CEFR_LEVEL_CODE_INVALID("CEFR_LEVEL_CODE_INVALID", "CEFR level code must not exceed 10 characters", HttpStatus.BAD_REQUEST),
     IMPORT_VOCABULARY_FAILED("IMPORT_VOCABULARY_FAILED", "Failed to import vocabulary from file", HttpStatus.BAD_REQUEST),
+    KEYWORD_INVALID("KEYWORD_INVALID", "Keyword must not exceed 255 characters", HttpStatus.BAD_REQUEST),
+    PAGE_INDEX_INVALID("PAGE_INDEX_INVALID", "Page index must be 0 or greater", HttpStatus.BAD_REQUEST),
 
     // ==========================================
     // 4. Learning - Flashcard (Học thẻ SRS SM-2)

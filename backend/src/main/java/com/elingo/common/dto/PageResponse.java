@@ -13,7 +13,7 @@ import java.util.List;
  * @param size          number of items per page
  * @param totalElements total number of matching records
  * @param totalPages    total number of pages
- * @param last          whether this is the last page
+ * @param isLast          whether this is the last page
  */
 public record PageResponse<T>(
         List<T> content,
@@ -21,7 +21,7 @@ public record PageResponse<T>(
         int size,
         long totalElements,
         int totalPages,
-        boolean last//sai quy tắc -> đúng là isLast 
+        boolean isLast
 ) {// Constructor chính của record: tiện giả lập ở file test
     /**
      * Convenience factory that derives some built-in method from

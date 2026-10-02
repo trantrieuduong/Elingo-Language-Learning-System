@@ -103,9 +103,9 @@ class DeckControllerTest {
                     .andExpect(jsonPath("$.data.size").value(9))
                     .andExpect(jsonPath("$.data.page").value(0))
                     .andExpect(jsonPath("$.data.totalElements").value(2))
-                    .andExpect(jsonPath("$.data.last").value(true));
+                    .andExpect(jsonPath("$.data.isLast").value(true));
 
-            verify(deckService).getPublishedDecks(eq(USER_ID), any(GetPublishedDecksRequest.class));
+            verify(deckService).getAllPublishedDecks(eq(USER_ID), any(GetPublishedDecksRequest.class));
         }
 
         @Test
@@ -113,7 +113,6 @@ class DeckControllerTest {
         void getPublishedDecks_Success_EmptyPage() throws Exception {
             when(deckService.getAllPublishedDecks(eq(USER_ID), any(GetPublishedDecksRequest.class)))
                     .thenReturn(new PageResponse<>(List.of(), 0, 9, 0, 0, true));
-            // có thể gọi singlePageOf() thay new PageResponse<>()
 
             mockMvc.perform(get("/decks"))
                     .andExpect(status().isOk())
@@ -122,7 +121,7 @@ class DeckControllerTest {
                     .andExpect(jsonPath("$.data.content.length()").value(0))
                     .andExpect(jsonPath("$.data.totalElements").value(0));
 
-            verify(deckService).getPublishedDecks(eq(USER_ID), any(GetPublishedDecksRequest.class));
+            verify(deckService).getAllPublishedDecks(eq(USER_ID), any(GetPublishedDecksRequest.class));
         }
 
         @Test
@@ -137,22 +136,21 @@ class DeckControllerTest {
                     .andExpect(jsonPath("$.data.content.length()").value(1))
                     .andExpect(jsonPath("$.data.content[0].title").value("B2 Vocabulary"));
 
-            verify(deckService).getPublishedDecks(eq(USER_ID), any(GetPublishedDecksRequest.class));
-        }// lỗi syntax
+            verify(deckService).getAllPublishedDecks(eq(USER_ID), any(GetPublishedDecksRequest.class));
+        }
 
         @Test
         @DisplayName("Get published decks successfully: filter by tag code query param is forwarded")
         void getPublishedDecks_Success_WithTagFilter() throws Exception {
             when(deckService.getAllPublishedDecks(eq(USER_ID), any(GetPublishedDecksRequest.class)))
                     .thenReturn(new PageResponse<>(List.of(), 0, 9, 0, 0, true));
-            // thay bằng singlePageOf()
 
             mockMvc.perform(get("/decks").param("tagCode", "TRAVEL"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.content.length()").value(0));
 
-            verify(deckService).getPublishedDecks(eq(USER_ID), any(GetPublishedDecksRequest.class));
-        }// lỗi syntax
+            verify(deckService).getAllPublishedDecks(eq(USER_ID), any(GetPublishedDecksRequest.class));
+        }
 
         @Test
         @DisplayName("Get published decks successfully: filter by keyword query param is forwarded")
@@ -165,7 +163,7 @@ class DeckControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.content.length()").value(1));
 
-            verify(deckService).getPublishedDecks(eq(USER_ID), any(GetPublishedDecksRequest.class));
-        }// lỗi syntax
+            verify(deckService).getAllPublishedDecks(eq(USER_ID), any(GetPublishedDecksRequest.class));
+        }
     }
 }
