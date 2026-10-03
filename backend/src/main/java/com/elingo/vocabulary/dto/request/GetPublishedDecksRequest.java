@@ -13,10 +13,10 @@ public record GetPublishedDecksRequest(
         @Size(max = 255, message = "KEYWORD_INVALID")
         String keyword,
 
-        @Min(value = 0, message = "PAGE_INDEX_INVALID")
+        @Min(value = 1, message = "PAGE_INDEX_INVALID")
         Integer page) {
 
     public GetPublishedDecksRequest {
-        if (page == null) page = 0;
+        if (page == null) page = 1;
     }
 }

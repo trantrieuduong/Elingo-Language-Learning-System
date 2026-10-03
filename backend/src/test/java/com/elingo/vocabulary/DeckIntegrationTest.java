@@ -131,7 +131,7 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
                     .andExpect(jsonPath("$.data.content").isArray())
                     .andExpect(jsonPath("$.data.content.length()").value(2))
                     .andExpect(jsonPath("$.data.size").value(9))
-                    .andExpect(jsonPath("$.data.page").value(0))
+                    .andExpect(jsonPath("$.data.page").value(1))
                     .andExpect(jsonPath("$.data.totalElements").value(2))
                     .andExpect(jsonPath("$.data.totalPages").value(1))
                     .andExpect(jsonPath("$.data.isLast").value(true));
@@ -168,10 +168,10 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
                 persistPublishedDeck("Deck " + i, "deck-" + i, Set.of(), Set.of());
             }
 
-            performGetDecks("?page=1")
+            performGetDecks("?page=2")
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.content.length()").value(1))
-                    .andExpect(jsonPath("$.data.page").value(1))
+                    .andExpect(jsonPath("$.data.page").value(2))
                     .andExpect(jsonPath("$.data.totalElements").value(10))
                     .andExpect(jsonPath("$.data.totalPages").value(2))
                     .andExpect(jsonPath("$.data.isLast").value(true));

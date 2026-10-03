@@ -16,7 +16,7 @@ frontend/
 │   │   ├── learning/       # Module nội dung học tập
 │   │   │   ├── dictation/  # Module nghe chép chính tả
 │   │   │   ├── flashcard/  # Module học qua thẻ ghi nhớ
-│   │   │   ├── lesson/# Module bài học video
+│   │   │   ├── lesson/     # Module bài học video
 │   │   │   └── shadowing/  # Module luyện nói đuổi
 │   │   ├── notification/   # Module thông báo hệ thống
 │   │   ├── premium/        # Module quản lý gói Premium

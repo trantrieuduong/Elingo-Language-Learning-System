@@ -48,7 +48,7 @@ public class DeckServiceImpl implements DeckService {
         String tagCode = StringUtils.hasText(request.tagCode()) ? request.tagCode().trim() : null;
         String keyword = StringUtils.hasText(request.keyword()) ? request.keyword().trim() : null;
 
-        Pageable pageable = PageRequest.of(request.page(), PAGE_SIZE);
+        Pageable pageable = PageRequest.of(request.page() - 1, PAGE_SIZE);
 
         Page<DeckResponse> resultPage = deckRepository
                 .findPublishedWithFilters(cefrCode, tagCode, keyword, pageable)

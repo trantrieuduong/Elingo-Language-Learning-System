@@ -74,12 +74,12 @@ class DeckServiceTest {
                     any(Pageable.class))).thenReturn(entityPage);
             when(deckMapper.toDeckResponse(any())).thenReturn(deck1, deck2);
 
-            GetPublishedDecksRequest request = new GetPublishedDecksRequest(null, null, null, 0);
+            GetPublishedDecksRequest request = new GetPublishedDecksRequest(null, null, null, 1);
             PageResponse<DeckResponse> result = deckService.getAllPublishedDecks(USER_ID, request);
 
             assertThat(result.content()).hasSize(2);
             assertThat(result.totalElements()).isEqualTo(2);
-            assertThat(result.page()).isEqualTo(0);
+            assertThat(result.page()).isEqualTo(1);
             assertThat(result.size()).isEqualTo(PAGE_SIZE);
             assertThat(result.isLast()).isTrue();
             verify(deckRepository).findPublishedWithFilters(isNull(), isNull(), isNull(), any(Pageable.class));
@@ -101,7 +101,7 @@ class DeckServiceTest {
                     any(Pageable.class))).thenReturn(entityPage);
             when(deckMapper.toDeckResponse(any())).thenReturn(b2Deck);
 
-            GetPublishedDecksRequest request = new GetPublishedDecksRequest("B2", null, null, 0);
+            GetPublishedDecksRequest request = new GetPublishedDecksRequest("B2", null, null, 1);
             PageResponse<DeckResponse> result = deckService.getAllPublishedDecks(USER_ID, request);
 
             assertThat(result.content()).hasSize(1);
@@ -118,7 +118,7 @@ class DeckServiceTest {
             when(deckRepository.findPublishedWithFilters(isNull(), eq("TRAVEL"), isNull(),
                     any(Pageable.class))).thenReturn(entityPage);
 
-            GetPublishedDecksRequest request = new GetPublishedDecksRequest(null, "TRAVEL", null, 0);
+            GetPublishedDecksRequest request = new GetPublishedDecksRequest(null, "TRAVEL", null, 1);
             PageResponse<DeckResponse> result = deckService.getAllPublishedDecks(USER_ID, request);
 
             assertThat(result.content()).isEmpty();
@@ -138,7 +138,7 @@ class DeckServiceTest {
                     any(Pageable.class))).thenReturn(entityPage);
             when(deckMapper.toDeckResponse(any())).thenReturn(deck);
 
-            GetPublishedDecksRequest request = new GetPublishedDecksRequest(null, null, "animals", 0);
+            GetPublishedDecksRequest request = new GetPublishedDecksRequest(null, null, "animals", 1);
             PageResponse<DeckResponse> result = deckService.getAllPublishedDecks(USER_ID, request);
 
             assertThat(result.content()).hasSize(1);
@@ -154,7 +154,7 @@ class DeckServiceTest {
             when(deckRepository.findPublishedWithFilters(isNull(), isNull(), isNull(),
                     any(Pageable.class))).thenReturn(entityPage);
 
-            GetPublishedDecksRequest request = new GetPublishedDecksRequest(null, null, "   ", 0);
+            GetPublishedDecksRequest request = new GetPublishedDecksRequest(null, null, "   ", 1);
             deckService.getAllPublishedDecks(USER_ID, request);
 
             // Blank keyword must be converted to null before hitting the repository
@@ -170,27 +170,12 @@ class DeckServiceTest {
             when(deckRepository.findPublishedWithFilters(eq("C2"), isNull(), isNull(),
                     any(Pageable.class))).thenReturn(entityPage);
 
-            GetPublishedDecksRequest request = new GetPublishedDecksRequest("C2", null, null, 0);
+            GetPublishedDecksRequest request = new GetPublishedDecksRequest("C2", null, null, 1);
             PageResponse<DeckResponse> result = deckService.getAllPublishedDecks(USER_ID, request);
 
             assertThat(result.content()).isEmpty();
             assertThat(result.totalElements()).isEqualTo(0);
             assertThat(result.totalPages()).isEqualTo(0);
         }
-
-        @Test
-        @DisplayName("Get published decks successfully: page size is always fixed at 9")
-        void getPublishedDecks_Success_PageSizeAlwaysNine() {
-            Page<com.elingo.vocabulary.entity.Deck> entityPage =
-                    new PageImpl<>(List.of(), PageRequest.of(0, PAGE_SIZE), 0);
-
-            when(deckRepository.findPublishedWithFilters(any(), any(), any(), any(Pageable.class)))
-                    .thenReturn(entityPage);
-
-            GetPublishedDecksRequest request = new GetPublishedDecksRequest(null, null, null, 0);
-            PageResponse<DeckResponse> result = deckService.getAllPublishedDecks(USER_ID, request);
-
-            assertThat(result.size()).isEqualTo(PAGE_SIZE);
-        }// test thừa: chỉ kiểm tra xem Mockito có hoạt động đúng như đã cấu hình hay không, không hề kiểm tra logic của deckService
     }
 }

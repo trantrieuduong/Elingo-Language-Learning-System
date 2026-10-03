@@ -1,29 +1,9 @@
 import { useState, useEffect } from 'react'
-import { getDecksApi } from '../../vocabularyApi'
+import { getDecksApi, getTagsApi, getCefrLevelsApi } from '../../vocabularyApi'
 import Pagination from '../../../../components/Pagination/Pagination'
 import Filter from '../../../../components/Filter/Filter'
 import Input from '../../../../components/Input/Input'
 import './VocabularyListPage.css'
-
-// Giả lập dữ liệu CEFR Levels và Tags (Thực tế có thể lấy từ API metadata)
-const CEFR_LEVELS = [
-  { _id: '1', name: 'A1' },
-  { _id: '2', name: 'A2' },
-  { _id: '3', name: 'B1' },
-  { _id: '4', name: 'B2' },
-  { _id: '5', name: 'C1' },
-  { _id: '6', name: 'C2' },
-]
-
-const TAGS = [
-  { _id: '1', name: 'Giao tiếp' },
-  { _id: '2', name: 'IELTS' },
-  { _id: '3', name: 'TOEIC' },
-  { _id: '4', name: 'Kinh doanh' },
-  { _id: '5', name: 'Công nghệ IT' },
-]
-
-const LIMIT = 9
 
 /**
  * Trang danh sách các bộ từ vựng công khai (decks)
@@ -32,6 +12,8 @@ const LIMIT = 9
 function VocabularyListPage({ onNavigate }) {
   // States dữ liệu
   const [decks, setDecks] = useState([])
+  const [tags, setTags] = useState([])
+  const [cefrLevels, setCefrLevels] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -44,6 +26,8 @@ function VocabularyListPage({ onNavigate }) {
   // States phân trang
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  // retryCount: trigger re-fetch khi bấm "Thử lại" khi mất mạng (trường hợp setPage(1) không load lại khi page hiện tại là 1)
+  const [retryCount, setRetryCount] = useState(0)
 
   // Debounce tìm kiếm
   useEffect(() => {
@@ -60,6 +44,29 @@ function VocabularyListPage({ onNavigate }) {
     setPage(1)
   }, [selectedTagId, selectedCefrLevelId])
 
+  useEffect(() => {
+    const fetchMetadata = async () => {
+      try {
+        const [tagsRes, cefrRes] = await Promise.all([
+          getTagsApi(),
+          getCefrLevelsApi()
+        ])
+        
+        if (tagsRes.success && tagsRes.data) {
+          // Format theo id, name của component Filter
+          setTags(tagsRes.data.map(tag => ({ _id: tag.code, name: tag.label })))
+        }
+        if (cefrRes.success && cefrRes.data) {
+          setCefrLevels(cefrRes.data.map(cefr => ({ _id: cefr.code, name: cefr.label })))
+        }
+      } catch (err) {
+        console.error('Failed to fetch metadata:', err)
+      }
+    }
+    
+    fetchMetadata()
+  }, [])
+
   // Fetch dữ liệu
   useEffect(() => {
     const fetchDecks = async () => {
@@ -67,19 +74,17 @@ function VocabularyListPage({ onNavigate }) {
       setError(null)
       try {
         const response = await getDecksApi({
-          q: debouncedQuery || undefined,
-          tagId: selectedTagId || undefined,
-          cefrLevelId: selectedCefrLevelId || undefined,
+          keyword: debouncedQuery || undefined,
+          tagCode: selectedTagId || undefined,
+          cefrCode: selectedCefrLevelId || undefined,
           page,
-          limit: LIMIT,
         })
         
         if (response.success && response.data) {
-          // Xử lý list decks (tùy cấu trúc trả về, hỗ trợ cả Spring Data Pageable structure)
-          const fetchedDecks = response.data.content || response.data.items || response.data
+          const fetchedDecks = response.data.content
           setDecks(Array.isArray(fetchedDecks) ? fetchedDecks : [])
           
-          const fetchedTotalPages = response.data.totalPages || 1
+          const fetchedTotalPages = response.data.totalPages
           setTotalPages(fetchedTotalPages)
         } else {
           setError(response.message || 'Không thể tải danh sách bộ từ vựng.')
@@ -92,12 +97,22 @@ function VocabularyListPage({ onNavigate }) {
     }
     
     fetchDecks()
-  }, [debouncedQuery, selectedTagId, selectedCefrLevelId, page])
+  }, [debouncedQuery, selectedTagId, selectedCefrLevelId, page, retryCount])
 
   const handleDeckClick = (deckId) => {
     if (onNavigate) {
       onNavigate(`/vocabulary/${deckId}`)
     }
+  }
+
+  const hasActiveFilters = searchQuery !== '' || selectedTagId !== null || selectedCefrLevelId !== null
+
+  const handleClearFilters = () => {
+    setSearchQuery('')
+    setDebouncedQuery('')
+    setSelectedTagId(null)
+    setSelectedCefrLevelId(null)
+    setPage(1)
   }
 
   return (
@@ -107,7 +122,7 @@ function VocabularyListPage({ onNavigate }) {
         <header className="vocabulary-list-header glass-card">
           <div className="vocabulary-list-header__title">
             <span className="material-symbols-outlined icon-display">library_books</span>
-            <h1 className="text-headline-lg">Thư viện từ vựng</h1>
+            <h1 className="text-headline-lg">Từ vựng</h1>
           </div>
           <p className="text-body-lg text-disabled">
             Khám phá các bộ từ vựng được chọn lọc giúp bạn mở rộng vốn từ nhanh chóng.
@@ -116,18 +131,30 @@ function VocabularyListPage({ onNavigate }) {
 
         {/* Filter Section */}
         <section className="vocabulary-list-filters glass-well">
-          <div className="vocabulary-list-filters__search">
-            <Input
-              id="search-decks"
-              placeholder="Tìm kiếm theo tên bộ từ vựng..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              rightElement={<span className="material-symbols-outlined">search</span>}
-            />
+          <div className="vocabulary-list-filters__top">
+            <div className="vocabulary-list-filters__search">
+              <Input
+                id="search-decks"
+                placeholder="Tìm kiếm theo tên bộ từ vựng..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                rightElement={<span className="material-symbols-outlined">search</span>}
+              />
+            </div>
+            {hasActiveFilters && (
+              <button 
+                type="button" 
+                className="btn-clear-filter"
+                onClick={handleClearFilters}
+              >
+                <span className="material-symbols-outlined">filter_alt_off</span>
+                Xóa bộ lọc
+              </button>
+            )}
           </div>
           <Filter
-            cefrLevels={CEFR_LEVELS}
-            tags={TAGS}
+            cefrLevels={cefrLevels}
+            tags={tags}
             selectedCefrLevelId={selectedCefrLevelId}
             selectedTagId={selectedTagId}
             onCefrChange={setSelectedCefrLevelId}
@@ -145,7 +172,7 @@ function VocabularyListPage({ onNavigate }) {
             <div className="empty-state glass-card">
               <span className="material-symbols-outlined empty-state__icon text-error">error</span>
               <p className="text-body-lg text-error">{error}</p>
-              <button type="button" className="btn-secondary" onClick={() => setPage(1)}>
+              <button type="button" className="btn-secondary" onClick={() => setRetryCount(c => c + 1)}>
                 Thử lại
               </button>
             </div>
@@ -163,22 +190,37 @@ function VocabularyListPage({ onNavigate }) {
                     className="vocabulary-card glass-card"
                     onClick={() => handleDeckClick(deck.id || deck._id)}
                   >
-                    <div className="vocabulary-card__icon glass-thumb">
-                      <span className="material-symbols-outlined">style</span>
-                    </div>
-                    <div className="vocabulary-card__info">
-                      <h3 className="text-title-md">{deck.name || deck.title}</h3>
-                      <p className="text-body-sm text-disabled">
-                        {deck.description || 'Chưa có mô tả cho bộ từ vựng này.'}
-                      </p>
-                    </div>
-                    <div className="vocabulary-card__footer">
-                      {deck.cefrLevel && (
-                        <span className="badge--primary">{deck.cefrLevel}</span>
-                      )}
-                      <span className="text-body-sm text-disabled">
-                        {deck.totalWords || 0} từ vựng
-                      </span>
+                    <span className="vocabulary-card__word-count">
+                      {`${deck.topicCount} chủ đề - ${deck.cardCount} từ`}
+                    </span>
+                    {deck.coverImageUrl ? (
+                      <img 
+                        src={deck.coverImageUrl} 
+                        alt={deck.title}
+                        className="vocabulary-card__cover-image"
+                      />
+                    ) : (
+                      <div className="vocabulary-card__cover-placeholder">
+                        <span className="material-symbols-outlined">layers</span>
+                      </div>
+                    )}
+                    <div className="vocabulary-card__body">
+                      <div className="vocabulary-card__info">
+                        <h3 className="text-title-md">{deck.name || deck.title}</h3>
+                        <p className="text-body-sm text-disabled">
+                          {deck.description || 'Chưa có mô tả cho bộ từ vựng này.'}
+                        </p>
+                      </div>
+                      <div className="vocabulary-card__footer">
+                        <div className="vocabulary-card__tags">
+                          {deck.cefrLevels?.map((cefr) => (
+                            <span key={cefr.id} className="badge badge--primary">{cefr.label}</span>
+                          ))}
+                          {deck.tags?.map((tag) => (
+                            <span key={tag.id} className="badge badge--default">{tag.label}</span>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   </article>
                 ))}

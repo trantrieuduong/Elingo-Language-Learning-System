@@ -9,7 +9,7 @@ import java.util.List;
  *
  * @param <T>           element type
  * @param content       items in the current page
- * @param page          0-based current page index
+ * @param page          1-based current page index
  * @param size          number of items per page
  * @param totalElements total number of matching records
  * @param totalPages    total number of pages
@@ -30,7 +30,7 @@ public record PageResponse<T>(
     public static <T> PageResponse<T> of(Page<T> springPage) {
         return new PageResponse<>(
                 springPage.getContent(),
-                springPage.getNumber(),
+                springPage.getNumber() + 1,// +1 do org.springframework.data.domain.Page index từ 0
                 springPage.getSize(),
                 springPage.getTotalElements(),
                 springPage.getTotalPages(),

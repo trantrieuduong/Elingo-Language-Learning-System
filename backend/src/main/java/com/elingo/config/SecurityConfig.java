@@ -43,7 +43,9 @@ public class SecurityConfig {
             "/v3/api-docs/**",
             "/v3/api-docs*/**",
             "/ws/**",
-            "/decks"
+            "/decks",
+            "/tags",
+            "/cefr-levels"
     };
 
     public SecurityConfig(CustomUserDetailsService customUserDetailsService,

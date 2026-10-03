@@ -38,8 +38,37 @@
   gap: var(--spacing-lg);
 }
 
+.vocabulary-list-filters__top {
+  display: flex;/*Kích hoạt mô hình hộp linh hoạt (Flexbox)*/
+  align-items: center;/*Căn giữa các thành phần con theo chiều dọc*/
+  gap: var(--spacing-md);
+  width: 100%;/*giãn rộng ra hết 100% chiều rộng*/
+}
+
 .vocabulary-list-filters__search {
-  max-width: 480px;
+  flex: 1;/*ô tìm kiếm tự động giãn ra để lấp đầy toàn bộ khoảng trống còn lại trong hàng đó*/
+}
+
+.btn-clear-filter {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--color-error);
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: var(--transition-base);
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: var(--font-size-body-md);
+  white-space: nowrap;/*Buộc toàn bộ văn bản hiển thị trên một dòng duy nhất*/
+}
+
+.btn-clear-filter:hover {
+  background: var(--color-error-container);
+  color: var(--color-on-error-container);
 }
 
 /* Content Grid */
@@ -51,12 +80,45 @@
 
 .vocabulary-card {
   border-radius: var(--radius-card);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.vocabulary-card__word-count {
+  position: absolute;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  z-index: 2;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.vocabulary-card__cover-image {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-bottom: 1px solid var(--color-outline-variant);
+}
+
+.vocabulary-card__body {
   padding: var(--spacing-lg);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
-  cursor: pointer;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  flex: 1;
 }
 
 .vocabulary-card:hover {
@@ -64,18 +126,21 @@
   /* Optional: Tăng shadow hoặc độ đậm nhạt của background nếu cần, ở đây translateY là đủ theo design system */
 }
 
-.vocabulary-card__icon {
-  width: 56px;
-  height: 56px;
-  border-radius: var(--radius-pill);
+.vocabulary-card__cover-placeholder {
+  width: 100%;
+  height: 160px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: var(--color-surface-variant);
+  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(0, 0, 0, 0.05) 100%);
+  border-bottom: 1px solid var(--color-outline-variant);
 }
 
-.vocabulary-card__icon span {
-  font-size: 28px;
+.vocabulary-card__cover-placeholder span {
+  font-size: 48px;
   color: var(--color-primary);
+  opacity: 0.5;
 }
 
 .vocabulary-card__info {
@@ -94,6 +159,7 @@
   margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -105,6 +171,12 @@
   margin-top: auto;
   padding-top: var(--spacing-sm);
   border-top: 1px solid var(--color-outline-variant);
+}
+
+.vocabulary-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
 }
 
 /* Empty & Error States */
@@ -148,6 +220,11 @@
   
   .vocabulary-list-filters {
     padding: var(--spacing-md);
+  }
+
+  .vocabulary-list-filters__top {
+    flex-direction: column;
+    align-items: stretch;
   }
   
   .vocabulary-grid {
