@@ -17,24 +17,29 @@ export default defineConfig({
 
     setupFiles: ['./tests/setup.js'],
 
+    // Automatically find all test files
     include: ['tests/**/*.{test,spec}.{js,jsx}'],
-    exclude: ['node_modules', 'dist', '.idea', '.git', '.cache'],
+
+    exclude: [
+      'node_modules',
+      'dist',
+      '.idea',
+      '.git',
+      '.cache',
+    ],
 
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
       reportsDirectory: './coverage',
-      include: [
-        'src/modules/auth/authApi.js',
-        'src/context/AuthContext.jsx',
-        'src/services/apiClient.js',
-        'src/modules/auth/pages/LoginPage.jsx',
-        'src/modules/auth/pages/SignupPage.jsx',
-        'src/modules/auth/pages/AccountVerificationPage.jsx',
-        'src/modules/auth/pages/ResetPasswordPage.jsx',
-        'src/components/Input/Input.jsx',
+
+      exclude: [
+        'node_modules/',
+        'tests/',
+        '**/*.config.js',
+        '**/*.config.jsx',
       ],
-      exclude: ['node_modules/', 'tests/', '**/*.config.js'],
+
       thresholds: {
         lines: 80,
         branches: 65,
@@ -44,6 +49,7 @@ export default defineConfig({
     },
 
     reporters: ['verbose'],
+
     testTimeout: 10000,
   },
 })
