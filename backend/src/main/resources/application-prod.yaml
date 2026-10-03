@@ -38,8 +38,16 @@ springdoc:
     enabled: false
 
 logging:
+  structured:
+    format:
+      console: logstash
+    json:
+      add:
+        service: elingo
+        env: prod
   level:
-    root: WARN
-    com.elingo: INFO
-  file:
-    name: logs/elingo.log
+    root: INFO
+    org.springframework: WARN
+    org.springframework.boot: INFO
+    org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: ERROR
+    org.hibernate: WARN

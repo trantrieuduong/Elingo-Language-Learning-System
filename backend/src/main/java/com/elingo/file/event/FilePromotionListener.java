@@ -1,6 +1,7 @@
 package com.elingo.file.event;
 
 import com.elingo.common.event.FileAttachedEvent;
+import com.elingo.common.exception.AppException;
 import com.elingo.file.service.R2Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,11 +28,14 @@ public class FilePromotionListener {
             return; // Bản ghi vốn không đính kèm file nào.
         }
 
-        log.info("File attached. verifiedKey={}, uploadsKey={}", verifiedKey, uploadsKey);
+        log.info("File attached verifiedKey={} uploadsKey={}", verifiedKey, uploadsKey);
         try {
             r2Service.promoteToUploads(verifiedKey, uploadsKey);
+        } catch (AppException e) {
+            // R2ServiceImpl đã ghi lỗi copy kèm chi tiết; ở đây chỉ chặn nó không chạy tiếp.
+            log.debug("File promotion stopped, already reported uploadsKey={}", uploadsKey);
         } catch (Exception e) {
-            log.error("Failed to promote file. verifiedKey={}, uploadsKey={}", verifiedKey, uploadsKey, e);
+            log.warn("File promotion skipped verifiedKey={} uploadsKey={}", verifiedKey, uploadsKey, e);
         }
     }
 }

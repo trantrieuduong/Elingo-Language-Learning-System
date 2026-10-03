@@ -15,12 +15,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/files")
-@Slf4j(topic = "FILE-CONTROLLER")
 @RequiredArgsConstructor
 @Tag(name = "File Controller")
 public class FileController {
@@ -33,8 +31,6 @@ public class FileController {
             @Valid @RequestBody PresignedUrlRequest request,
             @CurrentUserId Long userId
     ) {
-        log.info("Presigned URL request received: userId={}, fileType={}, fileSize={}",
-                userId, request.fileType(), request.fileSize());
         return ApiResponse.<PresignedUrlResponse>builder()
                 .success(true)
                 .data(r2Service.generatePresignedUrl(request, userId))
@@ -47,8 +43,6 @@ public class FileController {
             @Valid @RequestBody PresignedUrlRequest request,
             @CurrentUserId Long userId
     ) {
-        log.info("Multipart upload request received: userId={}, fileType={}, fileSize={}",
-                userId, request.fileType(), request.fileSize());
         return ApiResponse.<InitiateMultipartResponse>builder()
                 .success(true)
                 .data(r2Service.initiateMultipart(request, userId))
@@ -61,8 +55,6 @@ public class FileController {
             @Valid @RequestBody CompleteMultipartRequest request,
             @CurrentUserId Long userId
     ) {
-        log.info("Multipart completion request received: userId={}, fileKey={}, partCount={}",
-                userId, request.fileKey(), request.parts().size());
         return ApiResponse.<CompleteMultipartResponse>builder()
                 .success(true)
                 .data(r2Service.completeMultipartUpload(request, userId))
@@ -75,7 +67,6 @@ public class FileController {
             @Valid @RequestBody AbortMultipartRequest request,
             @CurrentUserId Long userId
     ) {
-        log.info("Multipart abort request received: userId={}, fileKey={}", userId, request.fileKey());
         r2Service.abortMultipart(request.fileKey(), request.uploadId(), userId);
         return ApiResponse.<Void>builder()
                 .success(true)
@@ -88,8 +79,6 @@ public class FileController {
             @Valid @RequestBody VerifyUploadRequest request,
             @CurrentUserId Long userId
     ) {
-        log.info("File verification request received: userId={}, stagingKey={}, fileType={}",
-                userId, request.fileKey(), request.fileType());
         return ApiResponse.<VerifiedFileResponse>builder()
                 .success(true)
                 .data(r2Service.verifyUploadedFile(request.fileKey(), request, userId))

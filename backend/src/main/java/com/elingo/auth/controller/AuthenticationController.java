@@ -17,7 +17,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +28,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/auth")
-@Slf4j(topic = "AUTHENTICATION-CONTROLLER")
 @RequiredArgsConstructor
 @Tag(name = "Authentication Controller")
 public class AuthenticationController {
@@ -39,7 +37,6 @@ public class AuthenticationController {
     @PostMapping("/signup")
     @Operation(summary = "Sign up new user account")
     public ApiResponse<UserMeResponse> signUp(@RequestBody @Valid RegisterRequest registerRequest) {
-        log.info("User sign up request: username={}", registerRequest.username());
         return ApiResponse.<UserMeResponse>builder()
                 .success(true)
                 .data(authService.register(registerRequest))
@@ -50,7 +47,6 @@ public class AuthenticationController {
     @Operation(summary = "Sign in with username/email and password")
     public ResponseEntity<ApiResponse<AuthenticationResponse>> login(
             @RequestBody @Valid AuthenticationRequest authenticationRequest) {
-        log.info("User login request: identifier={}", authenticationRequest.username());
         LoginResult loginResult = authService.login(authenticationRequest);
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, loginResult.refreshCookie().toString())
@@ -64,7 +60,6 @@ public class AuthenticationController {
     @Operation(summary = "Refresh access token using HTTP-only refresh token cookie")
     public ResponseEntity<ApiResponse<AuthenticationResponse>> refreshToken(
             @CookieValue(name = "refresh_token", required = false) String refreshToken) {
-        log.info("Refresh token request received");
         LoginResult loginResult = authService.refreshToken(refreshToken);
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, loginResult.refreshCookie().toString())
@@ -77,7 +72,6 @@ public class AuthenticationController {
     @PostMapping("/logout")
     @Operation(summary = "Log out user and clear refresh token cookie")
     public ResponseEntity<ApiResponse<Void>> logout() {
-        log.info("User logout request received");
         ResponseCookie clearCookie = authService.createLogoutCookie();
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, clearCookie.toString())
@@ -90,7 +84,6 @@ public class AuthenticationController {
     @Operation(summary = "Sign in or sign up with Google OAuth")
     public ResponseEntity<ApiResponse<AuthenticationResponse>> authenticateWithGoogle(
             @RequestBody @Valid GoogleAuthRequest request) {
-        log.info("Google authentication request received");
         LoginResult loginResult = authService.authenticateWithGoogle(request);
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, loginResult.refreshCookie().toString())
@@ -104,7 +97,6 @@ public class AuthenticationController {
     @Operation(summary = "Send OTP for reset password via email")
     public ApiResponse<Void> sendResetPasswordOtp(
             @Valid @RequestBody SendResetPasswordOtpRequest request) {
-        log.info("Send reset password OTP request received: email={}", request.email());
         authService.sendResetPasswordOtp(request);
         return ApiResponse.<Void>builder()
                 .success(true)
@@ -115,7 +107,6 @@ public class AuthenticationController {
     @Operation(summary = "Reset password with OTP")
     public ApiResponse<Void> resetPassword(
             @Valid @RequestBody ResetPasswordRequest request) {
-        log.info("Reset Password request received: email={}", request.email());
         authService.resetPassword(request);
         return ApiResponse.<Void>builder()
                 .success(true)
@@ -126,7 +117,6 @@ public class AuthenticationController {
     @Operation(summary = "Verify account email using 6-digit OTP code")
     public ApiResponse<Void> verifyAccount(
             @Valid @RequestBody VerifyAccountRequest request) {
-        log.info("Verify account request received: email={}", request.email());
         authService.verifyAccount(request);
         return ApiResponse.<Void>builder()
                 .success(true)
@@ -137,7 +127,6 @@ public class AuthenticationController {
     @Operation(summary = "Resend verification OTP email for unverified account")
     public ApiResponse<Void> resendVerificationOtp(
             @Valid @RequestBody ResendVerificationOtpRequest request) {
-        log.info("Resend verification OTP request received: email={}", request.email());
         authService.resendVerificationOtp(request);
         return ApiResponse.<Void>builder()
                 .success(true)

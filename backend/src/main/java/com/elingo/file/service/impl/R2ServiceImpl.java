@@ -94,7 +94,7 @@ public class R2ServiceImpl implements R2Service {
                 .build();
 
         String uploadId = s3Client.createMultipartUpload(createRequest).uploadId();
-        log.info("Initiated multipart upload. key={}, uploadId={}", key, uploadId);
+        log.info("Multipart upload initiated key={} uploadId={}", key, uploadId);
 
         // Bảo đảm số part không vượt trần của S3, kể cả khi cấu hình minPartSize bị hạ thấp.
         long partSize = Math.max(minPartSize, ceilDiv(request.fileSize(), MAX_MULTIPART_PARTS));
@@ -126,9 +126,6 @@ public class R2ServiceImpl implements R2Service {
         String uploadId = request.uploadId();
         requireOwnedKey(key, userId);
 
-        log.info("Completing multipart upload. key={}, uploadId={}, parts={}",
-                key, uploadId, request.parts().size());
-
         List<CompletedPart> completedParts = request.parts().stream()
                 .map(part -> CompletedPart.builder()
                         .partNumber(part.partNumber())
@@ -147,10 +144,11 @@ public class R2ServiceImpl implements R2Service {
 
         try {
             s3Client.completeMultipartUpload(completeRequest);
-            log.info("Completed multipart upload. key={}, uploadId={}", key, uploadId);
+            log.info("Multipart upload completed key={} uploadId={} parts={}",
+                    key, uploadId, request.parts().size());
             return new CompleteMultipartResponse(key);
         } catch (S3Exception e) {
-            log.error("Failed to complete multipart upload. key={}, uploadId={}", key, uploadId, e);
+            // Abort để R2 không giữ part mồ côi; lỗi gốc ném ra để GlobalExceptionHandler ghi một lần.
             abortMultipart(key, uploadId, userId);
             throw new AppException(AppError.FILE_UPLOAD_FAILED);
         }
@@ -167,9 +165,9 @@ public class R2ServiceImpl implements R2Service {
                 .build();
         try {
             s3Client.abortMultipartUpload(abortRequest);
-            log.info("Aborted multipart upload. key={}, uploadId={}", key, uploadId);
+            log.info("Multipart upload aborted key={} uploadId={}", key, uploadId);
         } catch (S3Exception e) {
-            log.error("Abort multipart failed. key={}, uploadId={}", key, uploadId, e);
+            log.warn("Multipart upload abort failed key={} uploadId={}", key, uploadId, e);
         }
     }
 
@@ -183,9 +181,9 @@ public class R2ServiceImpl implements R2Service {
 
         long actualSize = Objects.requireNonNullElse(head.contentLength(), 0L);
         if (actualSize > maxFileSizeBytes) {
-            log.warn("Uploaded file exceeds size limit. key={}, size={}, limit={}",
-                    stagingKey, actualSize, maxFileSizeBytes);
             deleteFile(stagingKey);
+            log.warn("File verification rejected reason=sizeExceeded key={} size={} limit={}",
+                    stagingKey, actualSize, maxFileSizeBytes);
             throw new AppException(AppError.FILE_TOO_LARGE);
         }
 
@@ -198,9 +196,9 @@ public class R2ServiceImpl implements R2Service {
                 && !actualType.equals(declaredType);
 
         if (unsupportedFormat || mismatchedDeclaration) {
-            log.warn("File signature rejected. key={}, declared={}, actual={}",
-                    stagingKey, declaredType, actualType);
             deleteFile(stagingKey);
+            log.warn("File verification rejected reason=signature key={} declared={} actual={}",
+                    stagingKey, declaredType, actualType);
             throw new AppException(AppError.FILE_TYPE_MISMATCH);
         }
 
@@ -213,7 +211,7 @@ public class R2ServiceImpl implements R2Service {
                 .build());
         deleteFile(stagingKey);
 
-        log.info("Verified file. stagingKey={}, verifiedKey={}, type={}, size={}",
+        log.info("File verified stagingKey={} verifiedKey={} type={} size={}",
                 stagingKey, verifiedKey, actualType, actualSize);
 
         return new VerifiedFileResponse(verifiedKey, buildPublicUrl(verifiedKey), actualType, actualSize);
@@ -226,10 +224,10 @@ public class R2ServiceImpl implements R2Service {
                     .bucket(bucket)
                     .key(key)
                     .build());
-            log.info("Deleted file. key={}", key);
+            log.debug("File deleted key={}", key);
             return true;
         } catch (S3Exception e) {
-            log.error("Delete file failed. key={}", key, e);
+            log.warn("File delete failed key={}", key, e);
             return false;
         }
     }
@@ -250,7 +248,7 @@ public class R2ServiceImpl implements R2Service {
     public void promoteToUploads(String verifiedKey, String uploadsKey) {
         if (!objectExists(verifiedKey)) {
             // Đã promote ở lần trước rồi: đây là trạng thái đúng, không phải lỗi.
-            log.info("Source already promoted, nothing to do. uploadsKey={}", uploadsKey);
+            log.debug("File already promoted uploadsKey={}", uploadsKey);
             return;
         }
 
@@ -263,17 +261,17 @@ public class R2ServiceImpl implements R2Service {
             );
         } catch (AppException e) {
             // Copy hỏng thì giữ nguyên bản verified/ để còn đường sửa tay trong 7 ngày.
-            log.error("Promote to uploads failed. verifiedKey={}, uploadsKey={}", verifiedKey, uploadsKey, e);
+            log.error("File promote failed verifiedKey={} uploadsKey={}", verifiedKey, uploadsKey, e);
             return;
         }
 
         if (deleteFile(verifiedKey)) {
-            log.info("Promoted file. verifiedKey={}, uploadsKey={}", verifiedKey, uploadsKey);
+            log.info("File promoted verifiedKey={} uploadsKey={}", verifiedKey, uploadsKey);
         } else {
             // Bản trong uploads/ đã có rồi; bản verified/ sẽ tự chết sau 7 ngày. Chỉ cần
             // để lại dấu vết, không có gì phải làm thêm.
-            log.warn("Promoted, but the waiting copy could not be deleted; it will expire on its own. "
-                    + "verifiedKey={}, uploadsKey={}", verifiedKey, uploadsKey);
+            log.warn("Staging copy kept, it will expire on its own verifiedKey={} uploadsKey={}",
+                    verifiedKey, uploadsKey);
         }
     }
 
@@ -293,7 +291,7 @@ public class R2ServiceImpl implements R2Service {
         try {
             s3Client.copyObject(request);
         } catch (S3Exception e) {
-            log.error("Copy to object failed. key={}", request.key(), e);
+            log.error("File copy failed key={}", request.key(), e);
             throw new AppException(AppError.FILE_UPLOAD_FAILED);
         }
     }
@@ -305,7 +303,7 @@ public class R2ServiceImpl implements R2Service {
                     .key(key)
                     .build());
         } catch (S3Exception e) {
-            log.warn("Uploaded object not found. key={}", key);
+            log.warn("Uploaded object not found key={}", key);
             throw new AppException(AppError.FILE_NOT_FOUND);
         }
     }
@@ -323,7 +321,7 @@ public class R2ServiceImpl implements R2Service {
                     .build());
             return Optional.of(object.asByteArray());
         } catch (S3Exception e) {
-            log.error("Failed to read file header. key={}", key, e);
+            log.warn("File header read failed key={}", key, e);
             return Optional.empty();
         }
     }
@@ -352,7 +350,7 @@ public class R2ServiceImpl implements R2Service {
             throw new AppException(AppError.FILE_TOO_LARGE);
         }
         if (minPartSize <= 0) {
-            log.error("r2.multipart-min-part-size must be positive but was {}", minPartSize);
+            log.error("Invalid R2 config property=r2.multipart-min-part-size value={}", minPartSize);
             throw new AppException(AppError.UNCATEGORIZED_EXCEPTION);
         }
         return declaredType;

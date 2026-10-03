@@ -31,8 +31,7 @@ public class FileCleanupListener {
         if (oldFileKey == null || oldFileKey.isBlank()) {
             return; // Lần đầu gán file, không có bản cũ để xoá.
         }
-        log.info("File replaced. oldKey={}, newKey={}",
-                oldFileKey, event.newFileKey());
+        log.info("File replaced oldKey={} newKey={}", oldFileKey, event.newFileKey());
         safelyDeleteAll(List.of(oldFileKey));
     }
 
@@ -46,7 +45,7 @@ public class FileCleanupListener {
         if (event.fileKeys().isEmpty()) {
             return; // Bản ghi vốn không có file nào đính kèm.
         }
-        log.info("Files deleted. count={}, keys={}", event.fileKeys().size(), event.fileKeys());
+        log.info("Files deleted count={}", event.fileKeys().size());
         safelyDeleteAll(event.fileKeys());
     }
 
@@ -64,7 +63,7 @@ public class FileCleanupListener {
             try {
                 r2Service.deleteFile(fileKey);
             } catch (Exception e) {
-                log.error("Failed to clean up file. key={}", fileKey, e);
+                log.warn("File cleanup skipped reason=deleteFailed fileKey={}", fileKey, e);
             }
         }
     }

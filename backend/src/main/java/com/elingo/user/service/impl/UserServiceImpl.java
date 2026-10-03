@@ -37,32 +37,26 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void changePassword(Long userId, ChangePasswordRequest request) {
-        log.info("Processing change password request for userId={}", userId);
-
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
 
         if (!passwordEncoder.matches(request.oldPassword(), user.getPassword())) {
-            log.warn("Change password failed: Incorrect old password for userId={}", userId);
             throw new AppException(AppError.OLD_PASSWORD_INCORRECT);
         }
 
         if (passwordEncoder.matches(request.newPassword(), user.getPassword())) {
-            log.warn("Change password failed: New password is same as old password for userId={}", userId);
             throw new AppException(AppError.NEW_PASSWORD_SAME_AS_OLD);
         }
 
         user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
         user.setPasswordChangedAt(LocalDateTime.now());
 
-        log.info("Password changed successfully for userId={}", user.getId());
+        log.info("Password changed userId={}", user.getId());
     }
 
     @Override
     @Transactional
     public void setPassword(Long userId, SetPasswordRequest request) {
-        log.info("Processing set password for userId: {}", userId);
-
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
 
@@ -73,25 +67,22 @@ public class UserServiceImpl implements UserService {
         user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
         user.setPasswordChangedAt(LocalDateTime.now());
 
-        log.info("Password set successfully for userId: {}", userId);
+        log.info("Password set userId={}", userId);
     }
 
     @Override
     @Transactional(readOnly = true)
     public void sendOTPUpdateEmail(Long userId, SendOTPUpdateEmailRequest request) {
         String newEmail = request.newEmail();
-        log.info("Processing send otp update email request: email={}, userId={}", newEmail, userId);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
 
         String oldEmail = user.getEmail();
         if (oldEmail.equals(newEmail)) {
-            log.info("Send OTP update email failed: Email is unchange for email={}, userId={}", newEmail, userId);
             throw new AppException(AppError.EMAIL_UNCHANGED);
         }
 
         if (userRepository.existsByEmail(newEmail)) {
-            log.info("Send OTP update email failed: Email is existed for email={}, userId={}", newEmail, userId);
             throw new AppException(AppError.EMAIL_EXISTED);
         }
 
@@ -103,24 +94,21 @@ public class UserServiceImpl implements UserService {
                 newEmailOtp,
                 OtpType.CHANGE_EMAIL.getTitle()
         );
-        log.info("Update email OTP sent successfully: email={}, userId={}", newEmail, userId);
+        log.info("Update email OTP sent email={} userId={}", newEmail, userId);
     }
 
     @Override
     @Transactional
     public void updateEmail(Long userId, UpdateEmailRequest request) {
         String newEmail = request.newEmail();
-        log.info("Processing update email: email={}, userId={}", newEmail, userId);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
 
         if (userRepository.existsByEmail(newEmail)) {
-            log.warn("Update email failed: Email is existed for email={}, userId={}", newEmail, userId);
             throw new AppException(AppError.EMAIL_EXISTED);
         }
 
         if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
-            log.warn("Update email failed: Incorrect password for userId={}", userId);
             throw new AppException(AppError.PASSWORD_INCORRECT);
         }
 
@@ -128,13 +116,12 @@ public class UserServiceImpl implements UserService {
 
         user.setGoogleProviderId(null);
         user.setEmail(newEmail);
-        log.info("Email updated successfully for email={}, userId={}", newEmail, userId);
+        log.info("Email updated email={} userId={}", newEmail, userId);
     }
 
     @Override
     @Transactional(readOnly = true)
     public UserMeResponse getMyInfo(Long userId) {
-        log.info("Fetching my profile: userId={}", userId);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
         return userMapper.toUserMeResponse(user);
@@ -143,7 +130,6 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public Object getUserById(Long targetUserId, Long currentUserId) {
-        log.info("Fetching user profile: targetUserId={}, currentUserId={}", targetUserId, currentUserId);
         User user = userRepository.findById(targetUserId)
                 .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
 

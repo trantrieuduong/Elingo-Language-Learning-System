@@ -43,8 +43,6 @@ public class EmailServiceImpl implements EmailService {
         String templateName = Objects.requireNonNullElse(emailTemplateName, EmailTemplateName.SEND_OTP)
                 .getName();
 
-        log.info("Sending email to={}, username={}, template={}, subject={}", toEmail, username, templateName, subject);
-
         try {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(
@@ -67,9 +65,10 @@ public class EmailServiceImpl implements EmailService {
             mimeMessageHelper.setText(template, true);
 
             javaMailSender.send(mimeMessage);
-            log.info("Email sent successfully to {}", toEmail);
+            log.info("Email sent to={} template={}", toEmail, templateName);
         } catch (MessagingException | MailException e) {
-            log.error("Error sending email to {}: {}", toEmail, e.getMessage(), e);
+            // Chạy @Async nên không còn ai nhận lỗi này; nuốt và ghi lại để không làm hỏng request gọi.
+            log.warn("Email sending failed to={} template={} username={}", toEmail, templateName, username, e);
         }
     }
 }
