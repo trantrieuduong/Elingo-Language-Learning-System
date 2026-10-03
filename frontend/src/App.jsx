@@ -7,6 +7,7 @@ import LandingPage from './modules/home/pages/LandingPage'
 import LoginPage from './modules/auth/pages/LoginPage'
 import ResetPasswordPage from './modules/auth/pages/ResetPasswordPage'
 import SignupPage from './modules/auth/pages/SignupPage'
+import VocabularyListPage from './modules/vocabulary/pages/VocabularyListPage/VocabularyListPage'
 import './App.css'
 
 const PUBLIC_PATHS = ['/', '/login', '/signup', '/account-verification', '/reset-password']
@@ -134,7 +135,7 @@ function App() {
       case '/profile':
         return <PlaceholderPage title="Profile" path={currentPath} />
       case '/vocabulary':
-        return <PlaceholderPage title="Vocabulary" path={currentPath} />
+        return <VocabularyListPage onNavigate={navigate} />
       case '/notification':
         return <PlaceholderPage title="Notifications" path={currentPath} />
       default:
