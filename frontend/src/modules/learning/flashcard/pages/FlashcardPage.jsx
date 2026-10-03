@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getTopicsByDeckIdApi } from '../flashcardApi'
+import { getTopicsByDeckIdApi, getUnlearnedCardsByTopicIdApi } from '../flashcardApi'
 import './FlashcardPage.css'
 
 /**
@@ -10,9 +10,11 @@ function FlashcardPage({ deckId, onNavigate }) {
   const [topics, setTopics] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  
+
   // Trạng thái chọn topic hiện tại (dùng cho phần sau này)
   const [selectedTopicId, setSelectedTopicId] = useState(null)
+
+  const [topicProgress, setTopicProgress] = useState({})
 
   useEffect(() => {
     const fetchTopics = async () => {
@@ -23,15 +25,10 @@ function FlashcardPage({ deckId, onNavigate }) {
         if (res.success && res.data) {
           setTopics(res.data)
         } else {
-          // res.message sẽ chứa thông báo chi tiết từ backend cho các trường hợp:
-          // - Deck không tồn tại
-          // - DeckStatus khác PUBLISHED
-          // - User chưa có premium
-          setError(res.message || 'Không thể tải danh sách topic. Vui lòng thử lại sau.')
+          setError('Không thể tải danh sách topic. Vui lòng thử lại sau.')
         }
       } catch (err) {
-        // Trong trường hợp lỗi mạng hoặc lỗi không xác định từ axios
-        const errorMsg = err.response?.data?.message || 'Đã có lỗi mạng xảy ra khi tải topics.'
+        const errorMsg = 'Đã có lỗi mạng xảy ra khi tải topics.'
         setError(errorMsg)
       } finally {
         setLoading(false)
@@ -42,6 +39,36 @@ function FlashcardPage({ deckId, onNavigate }) {
       fetchTopics()
     }
   }, [deckId])
+
+  useEffect(() => {
+    if (!topics.length) {
+      return
+    }
+
+    const fetchProgress = async () => {
+      try {
+        const unlearnedResponses = await Promise.all(
+          topics.map((t) => getUnlearnedCardsByTopicIdApi(t.id))
+        )
+
+        const progressMap = {}
+
+        topics.forEach((t, index) => {
+          const ulRes = unlearnedResponses[index]
+          const unlearned = (ulRes && ulRes.success) ? ulRes.data.length : 0
+          const total = t.cardCount ?? 0
+
+          progressMap[t.id] = { unlearned, total }
+        })
+
+        setTopicProgress(progressMap)
+      } catch (err) {
+        console.error('Lỗi khi tải tiến độ:', err)
+      }
+    }
+
+    fetchProgress()
+  }, [topics])
 
   if (loading) {
     return (
@@ -57,8 +84,8 @@ function FlashcardPage({ deckId, onNavigate }) {
         <div className="auth-alert auth-alert--error" style={{ maxWidth: '600px', width: '100%', margin: '0 auto', textAlign: 'center' }}>
           <span className="material-symbols-outlined" style={{ fontSize: '48px', marginBottom: '16px' }}>error</span>
           <p>{error}</p>
-          <button 
-            className="btn-primary" 
+          <button
+            className="btn-primary"
             style={{ marginTop: '24px' }}
             onClick={() => {
               if (onNavigate) onNavigate('/')
@@ -74,13 +101,9 @@ function FlashcardPage({ deckId, onNavigate }) {
   return (
     <div className="flashcard-page-container">
       <div className="flashcard-layout">
-        
+
         {/* Cột trái: Danh sách Topics */}
         <aside className="flashcard-sidebar">
-          <h2 className="text-headline-sm" style={{ marginBottom: 'var(--spacing-sm)' }}>
-            Topics
-          </h2>
-          
           {topics.length === 0 && !loading && (
             <div className="empty-state glass-card" style={{ padding: 'var(--spacing-xl)', textAlign: 'center' }}>
               <span className="material-symbols-outlined">inbox</span>
@@ -88,18 +111,28 @@ function FlashcardPage({ deckId, onNavigate }) {
             </div>
           )}
 
-          {topics.map((topic) => (
-            <div 
-              key={topic.id || topic._id} 
-              className={`glass-card flashcard-topic-card ${selectedTopicId === (topic.id || topic._id) ? 'active' : ''}`}
-              onClick={() => setSelectedTopicId(topic.id || topic._id)}
-            >
-              <h3 className="flashcard-topic-title">{topic.name}</h3>
-              {topic.description && (
-                <p className="flashcard-topic-desc">{topic.description}</p>
-              )}
-            </div>
-          ))}
+          {topics.map((topic) => {
+            const progress = topicProgress[topic.id]
+            return (
+              <div
+                key={topic.id}
+                className={`glass-card flashcard-topic-card ${selectedTopicId === (topic.id) ? 'active' : ''}`}
+                onClick={() => setSelectedTopicId(topic.id)}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 className="flashcard-topic-title">{topic.name}</h3>
+                  {progress && (
+                    <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>
+                      {progress.total - progress.unlearned} / {progress.total}
+                    </span>
+                  )}
+                </div>
+                {topic.description && (
+                  <p className="flashcard-topic-desc">{topic.description}</p>
+                )}
+              </div>
+            )
+          })}
         </aside>
 
         {/* Cột phải: Không gian Flashcard */}
@@ -114,7 +147,7 @@ function FlashcardPage({ deckId, onNavigate }) {
             </p>
           </div>
         </main>
-        
+
       </div>
     </div>
   )

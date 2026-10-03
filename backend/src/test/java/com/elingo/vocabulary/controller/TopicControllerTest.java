@@ -74,7 +74,7 @@ class TopicControllerTest {
             CardResponse card2 = new CardResponse(CARD_ID + 1, 2, "world", "n", "the gioi",
                     "Hanh tinh chung ta", "Our planet", "The gioi that dep!", "The world is beautiful!", null, List.of());
 
-            when(topicService.getCardsByTopic(USER_ID, TOPIC_ID)).thenReturn(List.of(card1, card2));
+            when(topicService.getUnlearnedCardsByTopic(USER_ID, TOPIC_ID)).thenReturn(List.of(card1, card2));
 
             mockMvc.perform(get("/topics/{topicId}/cards", TOPIC_ID))
                     .andExpect(status().isOk())
@@ -84,13 +84,13 @@ class TopicControllerTest {
                     .andExpect(jsonPath("$.data[0].term").value("hello"))
                     .andExpect(jsonPath("$.data[1].term").value("world"));
 
-            verify(topicService).getCardsByTopic(USER_ID, TOPIC_ID);
+            verify(topicService).getUnlearnedCardsByTopic(USER_ID, TOPIC_ID);
         }
 
         @Test
         @DisplayName("Get cards by topic - returns empty list when no cards found")
         void getCardsByTopic_EmptyList() throws Exception {
-            when(topicService.getCardsByTopic(USER_ID, TOPIC_ID)).thenReturn(List.of());
+            when(topicService.getUnlearnedCardsByTopic(USER_ID, TOPIC_ID)).thenReturn(List.of());
 
             mockMvc.perform(get("/topics/{topicId}/cards", TOPIC_ID))
                     .andExpect(status().isOk())
@@ -98,7 +98,7 @@ class TopicControllerTest {
                     .andExpect(jsonPath("$.data").isArray())
                     .andExpect(jsonPath("$.data.length()").value(0));
 
-            verify(topicService).getCardsByTopic(USER_ID, TOPIC_ID);
+            verify(topicService).getUnlearnedCardsByTopic(USER_ID, TOPIC_ID);
         }
     }
 }

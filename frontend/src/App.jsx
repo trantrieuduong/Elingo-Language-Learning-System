@@ -8,6 +8,7 @@ import LoginPage from './modules/auth/pages/LoginPage'
 import ResetPasswordPage from './modules/auth/pages/ResetPasswordPage'
 import SignupPage from './modules/auth/pages/SignupPage'
 import VocabularyListPage from './modules/vocabulary/pages/VocabularyListPage/VocabularyListPage'
+import FlashcardPage from './modules/learning/flashcard/pages/FlashcardPage'
 import './App.css'
 
 const PUBLIC_PATHS = ['/', '/login', '/signup', '/account-verification', '/reset-password']
@@ -103,6 +104,12 @@ function App() {
   }
 
   const renderContent = () => {
+    // Dynamic route: /vocabulary/:id
+    const vocabularyDetailMatch = currentPath.match(/^\/vocabulary\/([^/]+)$/)
+    if (vocabularyDetailMatch) {
+      return <FlashcardPage deckId={vocabularyDetailMatch[1]} onNavigate={navigate} />
+    }
+
     switch (currentPath) {
       case '/':
         return <LandingPage onNavigate={navigate} />
@@ -118,8 +125,6 @@ function App() {
         return <PlaceholderPage title="Dashboard" path={currentPath} />
       case '/learning':
         return <PlaceholderPage title="Learning" path={currentPath} />
-      case '/flashcard':
-        return <PlaceholderPage title="Flashcard" path={currentPath} />
       case '/battle':
         return <PlaceholderPage title="Battle" path={currentPath} />
       case '/speaking':

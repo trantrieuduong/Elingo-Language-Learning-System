@@ -5,5 +5,5 @@ import com.elingo.vocabulary.dto.response.CardResponse;
 import java.util.List;
 
 public interface TopicService {
-    List<CardResponse> getCardsByTopic(Long userId, Long topicId);
+    List<CardResponse> getUnlearnedCardsByTopic(Long userId, Long topicId);
 }

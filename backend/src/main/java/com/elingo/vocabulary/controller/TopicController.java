@@ -21,13 +21,13 @@ public class TopicController {
     private final TopicService topicService;
 
     @GetMapping("/{topicId}/cards")
-    @Operation(summary = "Get all cards belonging to a topic")
-    public ApiResponse<List<CardResponse>> getCardsByTopic(
+    @Operation(summary = "Get all unlearned cards belonging to a topic of current user")
+    public ApiResponse<List<CardResponse>> getUnlearnedCardsByTopic(
             @PathVariable Long topicId,
             @CurrentUserId Long currentUserId) {
-        log.info("Get cards by topic request received: topicId={}, currentUserId={}", topicId, currentUserId);
+        log.info("Get unlearned cards by topic of current user request received: topicId={}, currentUserId={}", topicId, currentUserId);
 
-        List<CardResponse> cards = topicService.getCardsByTopic(currentUserId, topicId);
+        List<CardResponse> cards = topicService.getUnlearnedCardsByTopic(currentUserId, topicId);
         return ApiResponse.<List<CardResponse>>builder()
                 .success(true)
                 .data(cards)

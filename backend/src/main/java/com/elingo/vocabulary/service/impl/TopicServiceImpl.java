@@ -29,7 +29,7 @@ public class TopicServiceImpl implements TopicService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<CardResponse> getCardsByTopic(Long userId, Long topicId) {
+    public List<CardResponse> getUnlearnedCardsByTopic(Long userId, Long topicId) {
         log.info("Fetching cards for topicId={}, userId={}", topicId, userId);
 
         Topic topic = topicRepository.findByIdWithDeck(topicId)
