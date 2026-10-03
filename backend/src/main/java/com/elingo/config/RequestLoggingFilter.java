@@ -45,7 +45,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         try {
             filterChain.doFilter(request, response);
         } finally {
-            log.info("HTTP {} {} status={} durationMs={}",
+            log.info("Request completed method={} path={} status={} durationMs={}",
                     request.getMethod(),
                     request.getRequestURI(),
                     response.getStatus(),

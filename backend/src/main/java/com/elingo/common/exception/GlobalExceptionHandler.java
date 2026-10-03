@@ -23,7 +23,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(RuntimeException.class)
     ResponseEntity<ApiResponse<Void>> handleRuntimeException(RuntimeException ex) {
-        log.error("Unexpected error occurred", ex);
+        log.error("Unhandled runtime error errorType={}", ex.getClass().getSimpleName(), ex);
         AppError appError = AppError.UNCATEGORIZED_EXCEPTION;
         return ResponseEntity.status(appError.getHttpStatusCode())
                 .body(ApiResponse.<Void>builder()
@@ -41,7 +41,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AppException.class)
     ResponseEntity<ApiResponse<Void>> handleAppException(AppException ex) {
         AppError appError = ex.getAppError();
-        log.warn("Business error: {} - {}", appError.getCode(), ex.getMessage());
+        log.warn("Business error code={}", appError.getCode());
         return ResponseEntity.status(appError.getHttpStatusCode())
                 .body(ApiResponse.<Void>builder()
                         .success(false)
@@ -116,6 +116,11 @@ public class GlobalExceptionHandler {
                 }
             }
         }
+
+        if (appError == AppError.UNCATEGORIZED_EXCEPTION)
+            log.error("Unmapped data integrity violation", ex);
+        else
+            log.warn("Data integrity violation code={}", appError.getCode());
 
         return ResponseEntity.status(appError.getHttpStatusCode())
                 .body(ApiResponse.<Void>builder()

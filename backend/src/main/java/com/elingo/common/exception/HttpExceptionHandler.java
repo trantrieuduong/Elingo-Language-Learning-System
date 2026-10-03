@@ -29,7 +29,7 @@ public class HttpExceptionHandler {
      */
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     ResponseEntity<ApiResponse<Void>> handleHttpRequestMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
-        log.warn("HTTP method not supported: {}", ex.getMessage());
+        log.warn("Request rejected errorCode={} method={}", AppError.METHOD_NOT_SUPPORTED.getCode(), ex.getMethod());
         AppError appError = AppError.METHOD_NOT_SUPPORTED;
         return ResponseEntity.status(appError.getHttpStatusCode())
                 .body(ApiResponse.<Void>builder()
@@ -46,7 +46,8 @@ public class HttpExceptionHandler {
      */
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     ResponseEntity<ApiResponse<Void>> handleHttpMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex) {
-        log.warn("Media type not supported: {}", ex.getMessage());
+        log.warn("Request rejected errorCode={} contentType={}",
+                AppError.MEDIA_TYPE_NOT_SUPPORTED.getCode(), ex.getContentType());
         AppError appError = AppError.MEDIA_TYPE_NOT_SUPPORTED;
         return ResponseEntity.status(appError.getHttpStatusCode())
                 .body(ApiResponse.<Void>builder()
@@ -63,7 +64,7 @@ public class HttpExceptionHandler {
      */
     @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
     ResponseEntity<ApiResponse<Void>> handleHttpMediaTypeNotAcceptable(HttpMediaTypeNotAcceptableException ex) {
-        log.warn("Media type not acceptable: {}", ex.getMessage());
+        log.warn("Request rejected errorCode={}", AppError.MEDIA_TYPE_NOT_ACCEPTABLE.getCode());
         AppError appError = AppError.MEDIA_TYPE_NOT_ACCEPTABLE;
         return ResponseEntity.status(appError.getHttpStatusCode())
                 .body(ApiResponse.<Void>builder()
@@ -80,7 +81,8 @@ public class HttpExceptionHandler {
      */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     ResponseEntity<ApiResponse<Void>> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
-        log.warn("Malformed JSON request body: {}", ex.getMessage());
+        log.warn("Request rejected errorCode={} errorType={}",
+                AppError.MALFORMED_JSON.getCode(), ex.getClass().getSimpleName());
         AppError appError = AppError.MALFORMED_JSON;
         return ResponseEntity.status(appError.getHttpStatusCode())
                 .body(ApiResponse.<Void>builder()
@@ -97,7 +99,8 @@ public class HttpExceptionHandler {
      */
     @ExceptionHandler(MissingServletRequestParameterException.class)
     ResponseEntity<ApiResponse<Void>> handleMissingServletRequestParameter(MissingServletRequestParameterException ex) {
-        log.warn("Missing request parameter: {}", ex.getParameterName());
+        log.warn("Request rejected errorCode={} parameter={}",
+                AppError.PARAM_MISSING.getCode(), ex.getParameterName());
         AppError appError = AppError.PARAM_MISSING;
         return ResponseEntity.status(appError.getHttpStatusCode())
                 .body(ApiResponse.<Void>builder()
@@ -115,7 +118,8 @@ public class HttpExceptionHandler {
      */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     ResponseEntity<ApiResponse<Void>> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException ex) {
-        log.warn("Parameter type mismatch for '{}': {}", ex.getName(), ex.getMessage());
+        log.warn("Request rejected errorCode={} parameter={}",
+                AppError.PARAM_TYPE_MISMATCH.getCode(), ex.getName());
         AppError appError = AppError.PARAM_TYPE_MISMATCH;
         String message = String.format("Parameter '%s' should be of type '%s'",
                 ex.getName(),
@@ -137,7 +141,8 @@ public class HttpExceptionHandler {
      */
     @ExceptionHandler(NoResourceFoundException.class)
     ResponseEntity<ApiResponse<Void>> handleNoResourceFoundException(NoResourceFoundException ex) {
-        log.warn("Resource not found: {}", ex.getResourcePath());
+        log.warn("Request rejected errorCode={} path={}",
+                AppError.RESOURCE_NOT_FOUND.getCode(), ex.getResourcePath());
         AppError appError = AppError.RESOURCE_NOT_FOUND;
         return ResponseEntity.status(appError.getHttpStatusCode())
                 .body(ApiResponse.<Void>builder()
@@ -154,7 +159,7 @@ public class HttpExceptionHandler {
      */
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     ResponseEntity<ApiResponse<Void>> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException ex) {
-        log.warn("Upload file size exceeded: {}", ex.getMessage());
+        log.warn("Request rejected errorCode={}", AppError.FILE_TOO_LARGE.getCode());
         AppError appError = AppError.FILE_TOO_LARGE;
         return ResponseEntity.status(appError.getHttpStatusCode())
                 .body(ApiResponse.<Void>builder()

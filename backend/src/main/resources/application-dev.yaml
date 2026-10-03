@@ -46,4 +46,4 @@ logging:
     com.elingo: DEBUG
     org.hibernate.SQL: DEBUG
   pattern:
-    console: "%clr(%d{HH:mm:ss.SSS}){faint} %clr(%-5level) %clr([%X{requestId:-}]){yellow} %clr(%-30logger{30}){cyan} : %msg%n%wEx"
+    console: "%clr(%d{HH:mm:ss.SSS}){faint} %clr(%-5level) %clr([%X{requestId:-}]){yellow} %clr(%X{userId:-}){magenta} %clr(%-30logger{30}){cyan} : %msg%n%wEx"
