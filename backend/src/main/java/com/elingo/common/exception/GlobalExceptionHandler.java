@@ -4,11 +4,10 @@ import com.elingo.common.dto.ApiResponse;
 import com.elingo.common.dto.ErrorDetail;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.List;
 
 @RestControllerAdvice
-@Order(Ordered.LOWEST_PRECEDENCE)
 @Slf4j(topic = "GLOBAL-EXCEPTION-HANDLER")
 public class GlobalExceptionHandler {
 
@@ -43,7 +41,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AppException.class)
     ResponseEntity<ApiResponse<Void>> handleAppException(AppException ex) {
         AppError appError = ex.getAppError();
-        log.error("Business error: {} - {}", appError.getCode(), ex.getMessage());
+        log.warn("Business error: {} - {}", appError.getCode(), ex.getMessage());
         return ResponseEntity.status(appError.getHttpStatusCode())
                 .body(ApiResponse.<Void>builder()
                         .success(false)
@@ -75,6 +73,9 @@ public class GlobalExceptionHandler {
                             .build();
                 })
                 .toList();
+
+        log.info("Validation failed fields={}",
+                ex.getBindingResult().getFieldErrors().stream().map(FieldError::getField).toList());
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.<Void>builder()
