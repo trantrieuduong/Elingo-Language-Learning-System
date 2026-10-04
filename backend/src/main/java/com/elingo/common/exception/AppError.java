@@ -29,6 +29,7 @@ public enum AppError {
     FILE_NOT_FOUND("FILE_NOT_FOUND", "File not found", HttpStatus.NOT_FOUND),
     FILE_ACCESS_DENIED("FILE_ACCESS_DENIED", "You do not own this file", HttpStatus.FORBIDDEN),
     FILE_TYPE_MISMATCH("FILE_TYPE_MISMATCH", "File content does not match the declared file type", HttpStatus.BAD_REQUEST),
+    RATE_LIMIT_EXCEEDED("RATE_LIMIT_EXCEEDED", "Too many requests, please try again later", HttpStatus.TOO_MANY_REQUESTS),
 
     // ==========================================
     // 2. Auth & User (Xác thực & Người dùng)

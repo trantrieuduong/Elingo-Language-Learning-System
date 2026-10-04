@@ -2,6 +2,8 @@ package com.elingo.user.controller;
 
 import com.elingo.common.annotation.CurrentUserId;
 import com.elingo.common.dto.ApiResponse;
+import com.elingo.common.enums.RateLimitRule;
+import com.elingo.common.service.RateLimiterService;
 import com.elingo.user.dto.request.ChangePasswordRequest;
 import com.elingo.user.dto.request.SendOTPUpdateEmailRequest;
 import com.elingo.user.dto.request.SetPasswordRequest;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final RateLimiterService limiter;
 
     @GetMapping("/me")
     @Operation(summary = "Get current user profile")
@@ -74,6 +77,8 @@ public class UserController {
     public ApiResponse<Void> sendOTPUpdateEmail(
             @Valid @RequestBody SendOTPUpdateEmailRequest request,
             @CurrentUserId Long userId) {
+        limiter.check(RateLimitRule.OTP_SEND_EMAIL, request.newEmail());
+
         userService.sendOTPUpdateEmail(userId, request);
         return ApiResponse.<Void>builder()
                 .success(true)
@@ -85,6 +90,8 @@ public class UserController {
     public ApiResponse<Void> updateEmail(
             @Valid @RequestBody UpdateEmailRequest request,
             @CurrentUserId Long userId) {
+        limiter.check(RateLimitRule.OTP_RESET_EMAIL, request.newEmail());
+
         userService.updateEmail(userId, request);
         return ApiResponse.<Void>builder()
                 .success(true)
