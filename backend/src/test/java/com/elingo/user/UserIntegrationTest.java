@@ -5,6 +5,7 @@ import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.common.service.EmailService;
 import com.elingo.common.service.OtpService;
+import com.elingo.common.service.RateLimiterService;
 import com.elingo.common.util.EmailTemplateName;
 import com.elingo.common.util.OtpType;
 import com.elingo.user.dto.request.SendOTPUpdateEmailRequest;
@@ -48,6 +49,9 @@ public class UserIntegrationTest extends BaseIntegrationTest {
 
     @MockitoBean
     private OtpService otpService;
+
+    @MockitoBean
+    private RateLimiterService rateLimiterService;
 
     @Autowired
     private JwtService jwtService;

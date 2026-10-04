@@ -12,6 +12,8 @@ import com.elingo.auth.dto.response.AuthenticationResponse;
 import com.elingo.auth.dto.response.LoginResult;
 import com.elingo.auth.service.AuthService;
 import com.elingo.common.dto.ApiResponse;
+import com.elingo.common.service.RateLimiterService;
+import com.elingo.common.enums.RateLimitRule;
 import com.elingo.user.dto.response.UserMeResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,6 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthenticationController {
 
     private final AuthService authService;
+    private final RateLimiterService limiter;
 
     @PostMapping("/signup")
     @Operation(summary = "Sign up new user account")
@@ -47,6 +50,9 @@ public class AuthenticationController {
     @Operation(summary = "Sign in with username/email and password")
     public ResponseEntity<ApiResponse<AuthenticationResponse>> login(
             @RequestBody @Valid AuthenticationRequest authenticationRequest) {
+        // username hoặc email, tổng 10 lần/10 phút (chấp nhận được)
+        limiter.check(RateLimitRule.LOGIN_USERNAME, authenticationRequest.username());
+
         LoginResult loginResult = authService.login(authenticationRequest);
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, loginResult.refreshCookie().toString())
@@ -97,6 +103,8 @@ public class AuthenticationController {
     @Operation(summary = "Send OTP for reset password via email")
     public ApiResponse<Void> sendResetPasswordOtp(
             @Valid @RequestBody SendResetPasswordOtpRequest request) {
+        limiter.check(RateLimitRule.OTP_SEND_EMAIL, request.email());
+
         authService.sendResetPasswordOtp(request);
         return ApiResponse.<Void>builder()
                 .success(true)
@@ -107,6 +115,8 @@ public class AuthenticationController {
     @Operation(summary = "Reset password with OTP")
     public ApiResponse<Void> resetPassword(
             @Valid @RequestBody ResetPasswordRequest request) {
+        limiter.check(RateLimitRule.OTP_RESET_EMAIL, request.email());
+
         authService.resetPassword(request);
         return ApiResponse.<Void>builder()
                 .success(true)
@@ -117,6 +127,8 @@ public class AuthenticationController {
     @Operation(summary = "Verify account email using 6-digit OTP code")
     public ApiResponse<Void> verifyAccount(
             @Valid @RequestBody VerifyAccountRequest request) {
+        limiter.check(RateLimitRule.OTP_VERIFY_EMAIL, request.email());
+
         authService.verifyAccount(request);
         return ApiResponse.<Void>builder()
                 .success(true)
@@ -127,6 +139,8 @@ public class AuthenticationController {
     @Operation(summary = "Resend verification OTP email for unverified account")
     public ApiResponse<Void> resendVerificationOtp(
             @Valid @RequestBody ResendVerificationOtpRequest request) {
+        limiter.check(RateLimitRule.OTP_SEND_EMAIL, request.email());
+
         authService.resendVerificationOtp(request);
         return ApiResponse.<Void>builder()
                 .success(true)

@@ -4,6 +4,7 @@ import com.elingo.auth.dto.request.*;
 import com.elingo.auth.dto.response.AuthenticationResponse;
 import com.elingo.auth.dto.response.LoginResult;
 import com.elingo.auth.service.AuthService;
+import com.elingo.common.service.RateLimiterService;
 import com.elingo.user.dto.response.UserMeResponse;
 import com.elingo.user.entity.Role;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,6 +38,9 @@ class AuthenticationControllerTest {
 
     @Mock
     private AuthService authService;
+
+    @Mock
+    private RateLimiterService limiter;
 
     @InjectMocks
     private AuthenticationController authenticationController;
