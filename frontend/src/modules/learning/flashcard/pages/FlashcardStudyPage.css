@@ -76,3 +76,14 @@
   font-size: 48px;
   margin-bottom: var(--spacing-md);
 }
+
+.flashcard-study-area {
+  width: 100%;
+}
+
+.flashcard-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-xl);
+  justify-content: center;
+}

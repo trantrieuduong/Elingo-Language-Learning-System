@@ -32,7 +32,6 @@
 | `/learning/lesson/:lessonId` | `LessonDetailPage` | `learning/lesson/pages/` | Chi tiết bài học |
 | `/learning/dictation/:lessonId` | `DictationPage` | `learning/dictation/pages/` | Nghe chép chính tả |
 | `/learning/shadowing/:lessonId` | `ShadowingPage` | `learning/shadowing/pages/` | Luyện nói đuổi |
-| `/flashcard` | `FlashcardListPage` | `learning/flashcard/pages/` | Danh sách deck |
 | `/flashcard/:deckId` | `FlashcardStudyPage` | `learning/flashcard/pages/` | Học flashcard |
 | `/flashcard/:deckId/review` | `FlashcardReviewPage` | `learning/flashcard/pages/` | Ôn tập flashcard |
 | `/vocabulary` | `VocabularyListPage` | `vocabulary/pages/` | Danh sách bộ từ vựng |

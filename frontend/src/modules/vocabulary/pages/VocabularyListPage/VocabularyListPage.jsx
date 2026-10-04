@@ -101,7 +101,7 @@ function VocabularyListPage({ onNavigate }) {
 
   const handleDeckClick = (deckId) => {
     if (onNavigate) {
-      onNavigate(`/vocabulary/${deckId}`)
+      onNavigate(`/flashcard/${deckId}`)
     }
   }
 

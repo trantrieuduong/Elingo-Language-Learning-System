@@ -9,9 +9,8 @@ import './FlashCard.css'
 const formatLocale = (locale) => {
   if (!locale || typeof locale !== 'string') return ''
   const upper = locale.toUpperCase().trim()
-  if (upper.includes('UK') || upper.includes('GB')) return 'UK'
+  if (upper.includes('UK')) return 'UK'
   if (upper.includes('US')) return 'US'
-  if (upper.includes('VN') || upper.includes('VI')) return 'VN'
   return locale
 }
 
@@ -23,82 +22,29 @@ const formatLocale = (locale) => {
 const formatPhonetic = (text) => {
   if (!text || typeof text !== 'string') return ''
   const trimmed = text.trim()
-  if (trimmed.startsWith('/') || trimmed.startsWith('[')) return trimmed
+  if ((trimmed.startsWith('/') && trimmed.endsWith('/'))
+    || (trimmed.startsWith('[') && trimmed.endsWith(']'))) return trimmed
   return `/${trimmed}/`
 }
 
 /**
- * Phát âm dự phòng qua Web Speech API nếu không có file âm thanh hoặc tải file lỗi.
- * @param {string} text - Từ vựng cần phát âm
- * @param {string} locale - Locale ngôn ngữ (en-US, en-GB, ...)
- * @returns {boolean}
- */
-const playSpeechFallback = (text, locale = 'en-US') => {
-  if (!text || typeof window === 'undefined' || !('speechSynthesis' in window)) {
-    return false
-  }
-  try {
-    window.speechSynthesis.cancel()
-    const utterance = new SpeechSynthesisUtterance(text)
-    if (locale && (locale.includes('UK') || locale.includes('GB'))) {
-      utterance.lang = 'en-GB'
-    } else if (locale && (locale.includes('VN') || locale.includes('VI'))) {
-      utterance.lang = 'vi-VN'
-    } else {
-      utterance.lang = 'en-US'
-    }
-    utterance.rate = 0.9
-    window.speechSynthesis.speak(utterance)
-    return true
-  } catch (err) {
-    console.error('Lỗi khi phát âm qua SpeechSynthesis:', err)
-    return false
-  }
-}
-
-/**
- * Trích xuất danh sách phiên âm và audio từ thẻ từ vựng với đầy đủ fallback.
+ * Trích xuất danh sách phiên âm và audio từ thẻ từ vựng.
  * @param {Object} cardData
  * @returns {Array<{ text: string, audioUrl: string, locale: string }>}
  */
 const extractPhonetics = (cardData) => {
-  if (!cardData) return []
+  if (!cardData || !Array.isArray(cardData.phonetics)) return []
   const list = []
 
-  // 1. Kiểm tra mảng phonetics trả về từ backend (CardResponse.phonetics)
-  if (Array.isArray(cardData.phonetics) && cardData.phonetics.length > 0) {
-    cardData.phonetics.forEach((p) => {
-      if (p && (p.text || p.audioUrl || p.audio_url)) {
-        list.push({
-          text: p.text || '',
-          audioUrl: p.audioUrl || p.audio_url || '',
-          locale: p.locale || ''
-        })
-      }
-    })
-  }
-
-  // 2. Fallback nếu dữ liệu đặt trực tiếp ở root object
-  if (list.length === 0) {
-    const fallbackText = cardData.phonetic || cardData.phonetic_text || ''
-    const fallbackAudio = cardData.audioUrl || cardData.audio_url || ''
-    if (fallbackText || fallbackAudio) {
+  cardData.phonetics.forEach((p) => {
+    if (p && (p.text || p.audioUrl)) {
       list.push({
-        text: fallbackText,
-        audioUrl: fallbackAudio,
-        locale: ''
+        text: p.text || '',
+        audioUrl: p.audioUrl || '',
+        locale: p.locale || ''
       })
     }
-  }
-
-  // 3. Nếu chưa có phiên âm nhưng có từ vựng, tạo mục mặc định để hỗ trợ nút nghe audio qua Web Speech
-  if (list.length === 0 && cardData.term) {
-    list.push({
-      text: '',
-      audioUrl: '',
-      locale: 'en-US'
-    })
-  }
+  })
 
   return list
 }
@@ -114,30 +60,27 @@ export default function FlashCard({ card }) {
   const [playingAudioKey, setPlayingAudioKey] = useState(null)
   const audioRef = useRef(null)
 
-  // Dọn dẹp trình phát âm thanh khi component unmount
+  // Dọn dẹp trình phát âm thanh khi component unmount (chuyển trang)
   useEffect(() => {
     return () => {
       if (audioRef.current) {
         audioRef.current.pause()
         audioRef.current = null
       }
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        window.speechSynthesis.cancel()
-      }
     }
   }, [])
 
   if (!card) return null
 
-  // Trích xuất an toàn các trường dữ liệu (hỗ trợ cả camelCase và snake_case)
+  // Trích xuất các trường dữ liệu
   const term = card.term || ''
   const pos = card.pos || ''
-  const imageUrl = card.imageUrl || card.image_url || ''
-  const translation = card.translation || card.term || ''
-  const explanationVi = card.explanationVi || card.explanation_vi || ''
-  const explanationEn = card.explanationEn || card.explanation_en || ''
-  const examplesVi = card.examplesVi || card.examples_vi || ''
-  const examplesEn = card.examplesEn || card.examples_en || ''
+  const imageUrl = card.imageUrl || ''
+  const translation = card.translation || ''
+  const explanationVi = card.explanationVi || ''
+  const explanationEn = card.explanationEn || ''
+  const examplesVi = card.examplesVi || ''
+  const examplesEn = card.examplesEn || ''
 
   const phoneticsList = extractPhonetics(card)
 
@@ -147,11 +90,15 @@ export default function FlashCard({ card }) {
 
   /**
    * Xử lý phát âm khi click nút loa:
-   * Ngăn sự kiện nổi bọt (stopPropagation) để không kích hoạt lật thẻ flashcard.
+   * Ngăn sự kiện nổi bọt (stopPropagation) lên parent để không kích hoạt lật thẻ flashcard khi nhấn phát âm.
    */
-  const handlePlayAudio = (e, audioUrl, locale = 'en-US', key = 'default') => {
+  const handlePlayAudio = (e, audioUrl, key = 'default') => {
     if (e && typeof e.stopPropagation === 'function') {
       e.stopPropagation()
+    }
+
+    if (!audioUrl || typeof audioUrl !== 'string' || audioUrl.trim().length === 0) {
+      return
     }
 
     // Nếu đang phát chính audio này thì dừng lại (toggle play/pause)
@@ -160,10 +107,7 @@ export default function FlashCard({ card }) {
         audioRef.current.pause()
         audioRef.current.currentTime = 0
       }
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        window.speechSynthesis.cancel()
-      }
-      setPlayingAudioKey(null)
+      setPlayingAudioKey(null)// tránh âm thanh đã tắt nhưng icon trên màn hình vẫn hiển thị
       return
     }
 
@@ -172,62 +116,34 @@ export default function FlashCard({ card }) {
       audioRef.current.pause()
       audioRef.current.currentTime = 0
     }
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel()
-    }
 
-    if (audioUrl && typeof audioUrl === 'string' && audioUrl.trim().length > 0) {
-      setPlayingAudioKey(key)
-      try {
-        if (!audioRef.current) {
-          audioRef.current = new Audio()
-        }
-        audioRef.current.src = audioUrl
-
-        audioRef.current.onended = () => {
-          setPlayingAudioKey(null)
-        }
-
-        audioRef.current.onerror = () => {
-          console.warn('Không thể phát file âm thanh URL, chuyển sang dự phòng Web Speech API.')
-          const fallbackSuccess = playSpeechFallback(term, locale)
-          if (!fallbackSuccess) {
-            setPlayingAudioKey(null)
-          } else {
-            setTimeout(() => setPlayingAudioKey(null), 1200)
-          }
-        }
-
-        const playPromise = audioRef.current.play()
-        if (playPromise !== undefined) {
-          playPromise.catch((err) => {
-            console.warn('Lỗi khi gọi play audio, chuyển sang dự phòng Web Speech API:', err)
-            const fallbackSuccess = playSpeechFallback(term, locale)
-            if (!fallbackSuccess) {
-              setPlayingAudioKey(null)
-            } else {
-              setTimeout(() => setPlayingAudioKey(null), 1200)
-            }
-          })
-        }
-      } catch (err) {
-        console.error('Lỗi khởi tạo Audio player:', err)
-        const fallbackSuccess = playSpeechFallback(term, locale)
-        if (!fallbackSuccess) {
-          setPlayingAudioKey(null)
-        } else {
-          setTimeout(() => setPlayingAudioKey(null), 1200)
-        }
+    setPlayingAudioKey(key)
+    try {
+      if (!audioRef.current) {
+        audioRef.current = new Audio()
       }
-    } else if (term) {
-      // Trường hợp không có URL file âm thanh: dùng Web Speech API
-      setPlayingAudioKey(key)
-      const fallbackSuccess = playSpeechFallback(term, locale)
-      if (!fallbackSuccess) {
+      audioRef.current.src = audioUrl
+
+      audioRef.current.onended = () => {
         setPlayingAudioKey(null)
-      } else {
-        setTimeout(() => setPlayingAudioKey(null), 1200)
       }
+
+      audioRef.current.onerror = () => {
+        console.warn('Không thể phát file âm thanh URL:', audioUrl)
+        setPlayingAudioKey(null)
+      }
+
+      const playPromise = audioRef.current.play()
+      if (playPromise !== undefined) {
+        // Xử lý DOMException nếu trình duyệt chặn play hoặc file lỗi
+        playPromise.catch((err) => {
+          console.warn('Lỗi khi gọi play audio:', err)
+          setPlayingAudioKey(null)
+        })
+      }
+    } catch (err) {
+      console.error('Lỗi khởi tạo Audio player:', err)
+      setPlayingAudioKey(null)
     }
   }
 
@@ -236,14 +152,14 @@ export default function FlashCard({ card }) {
       className="flashcard-wrapper"
       onClick={handleFlip}
       role="button"
-      tabIndex={0}
+      tabIndex={0}//có thể tab đến thẻ này
+      aria-label={`Thẻ từ vựng: ${term}. Nhấn phím cách hoặc click để lật thẻ.`}
       onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
+        if (e.key === 'Enter' || e.key === ' ') {//enter or spacebar
           e.preventDefault()
           handleFlip()
         }
       }}
-      aria-label={`Thẻ từ vựng: ${term}. Nhấn phím cách hoặc click để lật thẻ.`}
     >
       <div className={`flashcard-inner ${isFlipped ? 'flipped' : ''}`}>
         {/* ── MẶT TRƯỚC: Ảnh minh họa, Từ vựng, Phiên âm, Audio ── */}
@@ -255,8 +171,7 @@ export default function FlashCard({ card }) {
                 src={imageUrl}
                 alt={term || 'Minh họa từ vựng'}
                 className="flashcard-image"
-                onError={() => setImgError(true)}
-                loading="lazy"
+                onError={() => setImgError(true)}//Ko có, lỗi ảnh -> hiện ảnh broken, xấu giao diện
               />
             </div>
           )}
@@ -265,7 +180,7 @@ export default function FlashCard({ card }) {
           <h2 className="flashcard-term">{term}</h2>
 
           {/* Từ loại (Part of Speech) */}
-          {pos && <span className="flashcard-pos badge-info">{pos}</span>}
+          {pos && <span className="badge badge--primary flashcard-pos">{pos}</span>}
 
           {/* Nhóm phiên âm & Nút Audio phát âm */}
           {phoneticsList.length > 0 && (
@@ -284,17 +199,19 @@ export default function FlashCard({ card }) {
                     {formattedPhonetic && (
                       <span className="flashcard-phonetic-text">{formattedPhonetic}</span>
                     )}
-                    <button
-                      type="button"
-                      className={`btn-icon flashcard-audio-btn ${isPlaying ? 'playing' : ''}`}
-                      onClick={(e) => handlePlayAudio(e, item.audioUrl, item.locale, key)}
-                      title={`Nghe phát âm ${localeLabel ? `(${localeLabel})` : ''} của "${term}"`}
-                      aria-label={`Phát âm ${localeLabel ? `(${localeLabel})` : ''} của "${term}"`}
-                    >
-                      <span className={`material-symbols-outlined ${isPlaying ? 'pulse-icon' : ''}`}>
-                        volume_up
-                      </span>
-                    </button>
+                    {item.audioUrl && (
+                      <button
+                        type="button"
+                        className={`btn-icon flashcard-audio-btn ${isPlaying ? 'playing' : ''}`}
+                        onClick={(e) => handlePlayAudio(e, item.audioUrl, key)}
+                        title={`Nghe phát âm ${localeLabel ? `(${localeLabel})` : ''} của "${term}"`}
+                        aria-label={`Phát âm ${localeLabel ? `(${localeLabel})` : ''} của "${term}"`}
+                      >
+                        <span className={`material-symbols-outlined ${isPlaying ? 'pulse-icon' : ''}`}>
+                          volume_up
+                        </span>
+                      </button>
+                    )}
                   </div>
                 )
               })}
@@ -316,8 +233,8 @@ export default function FlashCard({ card }) {
               <div className="flashcard-section">
                 <span className="material-symbols-outlined">menu_book</span>
                 <div>
-                  <p className="flashcard-section-label">Giải thích (VI):</p>
-                  <p>{explanationVi}</p>
+                  <p className="flashcard-section-label">Định nghĩa (VI):</p>
+                  <p className="flashcard-explanation-text">{explanationVi}</p>
                 </div>
               </div>
             )}
@@ -327,14 +244,14 @@ export default function FlashCard({ card }) {
                 <span className="material-symbols-outlined">menu_book</span>
                 <div>
                   <p className="flashcard-section-label">Định nghĩa (EN):</p>
-                  <p>{explanationEn}</p>
+                  <p className="flashcard-explanation-text">{explanationEn}</p>
                 </div>
               </div>
             )}
 
             {(examplesEn || examplesVi) && (
               <div className="flashcard-section">
-                <span className="material-symbols-outlined">record_voice_over</span>
+                <span className="material-symbols-outlined">format_quote</span>
                 <div>
                   <p className="flashcard-section-label">Ví dụ:</p>
                   {examplesEn && <p className="flashcard-example-en">"{examplesEn}"</p>}

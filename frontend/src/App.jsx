@@ -8,7 +8,7 @@ import LoginPage from './modules/auth/pages/LoginPage'
 import ResetPasswordPage from './modules/auth/pages/ResetPasswordPage'
 import SignupPage from './modules/auth/pages/SignupPage'
 import VocabularyListPage from './modules/vocabulary/pages/VocabularyListPage/VocabularyListPage'
-import FlashcardPage from './modules/learning/flashcard/pages/FlashcardPage'
+import FlashcardStudyPage from './modules/learning/flashcard/pages/FlashcardStudyPage'
 import './App.css'
 
 const PUBLIC_PATHS = ['/', '/login', '/signup', '/account-verification', '/reset-password']
@@ -91,8 +91,8 @@ function App() {
     )
   }
 
-  const vocabularyDetailMatch = currentPath.match(/^\/vocabulary\/([^/]+)$/)
-  const isFlashcardPage = vocabularyDetailMatch//dùng vocabularyDetailMatch là isFlashcardPage
+  const vocabularyDetailMatch = currentPath.match(/^\/flashcard\/([^/]+)$/)
+  const isFlashcardPage = Boolean(vocabularyDetailMatch)
 
   const renderAdminContent = () => {
     return (
@@ -108,7 +108,7 @@ function App() {
 
   const renderContent = () => {
     if (vocabularyDetailMatch) {
-      return <FlashcardPage deckId={vocabularyDetailMatch[1]} onNavigate={navigate} />
+      return <FlashcardStudyPage deckId={vocabularyDetailMatch[1]} onNavigate={navigate} />
     }
 
     switch (currentPath) {

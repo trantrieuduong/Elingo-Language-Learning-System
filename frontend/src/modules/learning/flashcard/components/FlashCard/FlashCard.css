@@ -99,7 +99,7 @@
 /* ── Từ vựng chính ── */
 .flashcard-term {
   font-family: var(--font-display);
-  font-size: var(--font-size-headline-lg, 32px);
+  font-size: var(--font-size-headline-lg);
   font-weight: 700;
   color: var(--color-primary);
   margin-bottom: var(--spacing-xs);
@@ -111,18 +111,7 @@
 /* ── Từ loại (POS) ── */
 .flashcard-pos {
   margin-bottom: var(--spacing-md);
-  font-family: var(--font-display);
-  font-size: var(--font-size-label-sm, 11px);
-  font-weight: 600;
-  padding: 4px 14px;
-  border-radius: var(--radius-pill, 9999px);
   text-transform: lowercase;
-}
-
-.badge-info {
-  background: var(--color-secondary-container, #d7e4f5);
-  color: var(--color-on-primary-container, #2b4872);
-  border: 1px solid var(--color-outline-variant, #c4c6d0);
 }
 
 /* ── Nhóm phiên âm & Nút Audio ── */
@@ -270,7 +259,7 @@
 
 .flashcard-section-label {
   font-family: var(--font-display);
-  font-size: var(--font-size-label-sm, 11px);
+  font-size: var(--font-size-label-lg);
   font-weight: 700;
   color: var(--color-primary);
   margin: 0 0 2px 0;
@@ -278,14 +267,25 @@
   letter-spacing: 0.03em;
 }
 
+.flashcard-explanation-text {
+  margin: 0;
+  color: var(--color-text-body);
+  font-size: var(--font-size-body-lg);
+  line-height: 1.4;
+}
+
 .flashcard-example-en {
+  font-size: var(--font-size-body-lg);
   font-style: italic;
+  font-weight: 500;
+  line-height: 1.5;
   margin: 0 0 4px 0;
-  color: var(--color-text-high, #1e293b);
+  color: var(--color-text-high);
 }
 
 .flashcard-example-vi {
   margin: 0;
-  color: var(--color-text-muted, #64748b);
-  font-size: var(--font-size-body-sm, 12px);
+  color: var(--color-text-body);
+  font-size: var(--font-size-body-lg);
+  line-height: 1.4;
 }

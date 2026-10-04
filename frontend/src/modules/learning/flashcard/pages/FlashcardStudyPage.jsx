@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react'
 import { getTopicsByDeckIdApi, getUnlearnedCardsByTopicIdApi } from '../flashcardApi'
-import FlashCard from '../components/FlashCard/FlashCard'
-import './FlashcardPage.css'
+import Flashcard from '../components/FlashCard/FlashCard'
+import './FlashcardStudyPage.css'
 
 /**
  * @param {string} deckId - ID của deck lấy từ URL param
  * @param {Function} onNavigate - navigate function từ App.jsx
  */
-function FlashcardPage({ deckId, onNavigate }) {
+function FlashcardStudyPage({ deckId, onNavigate }) {
   const [topics, setTopics] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -233,10 +233,13 @@ function FlashcardPage({ deckId, onNavigate }) {
               </p>
             </div>
           ) : unlearnedCardsByTopic[selectedTopicId] && unlearnedCardsByTopic[selectedTopicId].length > 0 ? (
-            <div className="flashcard-study-area" style={{ width: '100%' }}>
-              <FlashCard card={unlearnedCardsByTopic[selectedTopicId][0]} />
+            <div className="flashcard-study-area">
+              <Flashcard
+                key={`${selectedTopicId}-${unlearnedCardsByTopic[selectedTopicId][0]?.id ?? 0}`}
+                card={unlearnedCardsByTopic[selectedTopicId][0]}
+              />
               
-              <div className="flashcard-actions" style={{ display: 'flex', gap: 'var(--spacing-md)', marginTop: 'var(--spacing-xl)', justifyContent: 'center' }}>
+              <div className="flashcard-actions">
                  <button className="btn-secondary" onClick={() => alert('Sẽ implement API đánh giá khó')}>
                     <span className="material-symbols-outlined">psychology</span>
                     Khó
@@ -265,4 +268,4 @@ function FlashcardPage({ deckId, onNavigate }) {
   )
 }
 
-export default FlashcardPage
+export default FlashcardStudyPage
