@@ -1,5 +1,6 @@
 package com.elingo.user.controller;
 
+import com.elingo.common.service.RateLimiterService;
 import com.elingo.user.dto.request.ChangePasswordRequest;
 import com.elingo.user.dto.request.SendOTPUpdateEmailRequest;
 import com.elingo.user.dto.request.SetPasswordRequest;
@@ -39,6 +40,9 @@ class UserControllerTest {
 
     @Mock
     private UserService userService;
+
+    @Mock
+    private RateLimiterService limiter;
 
     @InjectMocks
     private UserController userController;
