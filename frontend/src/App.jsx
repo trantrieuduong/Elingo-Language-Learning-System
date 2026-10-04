@@ -91,6 +91,9 @@ function App() {
     )
   }
 
+  const vocabularyDetailMatch = currentPath.match(/^\/vocabulary\/([^/]+)$/)
+  const isFlashcardPage = vocabularyDetailMatch//dùng vocabularyDetailMatch là isFlashcardPage
+
   const renderAdminContent = () => {
     return (
       <main className="placeholder-page">
@@ -104,8 +107,6 @@ function App() {
   }
 
   const renderContent = () => {
-    // Dynamic route: /vocabulary/:id
-    const vocabularyDetailMatch = currentPath.match(/^\/vocabulary\/([^/]+)$/)
     if (vocabularyDetailMatch) {
       return <FlashcardPage deckId={vocabularyDetailMatch[1]} onNavigate={navigate} />
     }
@@ -161,9 +162,9 @@ function App() {
         <div className="ambient-bg__orb ambient-bg__orb--pink" />
         <div className="ambient-bg__orb ambient-bg__orb--ambient" />
       </div>
-      <Header onNavigate={navigate} currentPath={currentPath} />
+      {!isFlashcardPage && <Header onNavigate={navigate} currentPath={currentPath} />}
       <div className="app-main">{renderContent()}</div>
-      <Footer onNavigate={navigate} />
+      {!isFlashcardPage && <Footer onNavigate={navigate} />}
     </>
   )
 }
