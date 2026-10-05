@@ -5,6 +5,7 @@ public record TopicResponse(
         String name,
         String slug,
         Integer order,
-        Integer cardCount
+        Integer cardCount,
+        Integer unlearnedCardCount
 ) {
 }

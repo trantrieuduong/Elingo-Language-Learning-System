@@ -16,6 +16,7 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
 
   const [topicProgress, setTopicProgress] = useState({})
   const [unlearnedCardsByTopic, setUnlearnedCardsByTopic] = useState({})
+  const [topicCardsError, setTopicCardsError] = useState({})
 
   // State quản lý trạng thái xử lý tương tác thẻ
   const [isProcessing, setIsProcessing] = useState(false)
@@ -28,6 +29,16 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
         const res = await getTopicsByDeckIdApi(deckId)
         if (res.success && res.data) {
           setTopics(res.data)
+          
+          const progressMap = {}
+          res.data.forEach((t) => {
+            progressMap[t.id] = {
+              unlearned: t.unlearnedCardCount ?? 0,
+              total: t.cardCount ?? 0
+            }
+          })
+          setTopicProgress(progressMap)
+
           // Tự động chọn topic đầu tiên nếu có
           if (res.data.length > 0) {
             setSelectedTopicId(res.data[0].id)
@@ -50,39 +61,53 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
   }, [deckId])
 
   useEffect(() => {
-    if (!topics.length) {
-      return
-    }
+    if (!selectedTopicId) return
 
-    const fetchProgress = async () => {
+    // Nếu đã load thẻ của topic này rồi thì thôi
+    if (unlearnedCardsByTopic[selectedTopicId] !== undefined) return
+
+    const fetchCards = async () => {
+      setTopicCardsError(prev => ({ ...prev, [selectedTopicId]: false }))
       try {
-        const unlearnedResponses = await Promise.all(
-          topics.map((t) => getUnlearnedCardsByTopicIdApi(t.id))
-        )
-
-        const progressMap = {}
-
-        const cardsMap = {}
-
-        topics.forEach((t, index) => {
-          const ulRes = unlearnedResponses[index]
-          const unlearnedCards = (ulRes && ulRes.success) ? ulRes.data : []
-          const unlearned = unlearnedCards.length
-          const total = t.cardCount ?? 0
-
-          progressMap[t.id] = { unlearned, total }
-          cardsMap[t.id] = unlearnedCards
-        })
-
-        setTopicProgress(progressMap)
-        setUnlearnedCardsByTopic(cardsMap)
+        const res = await getUnlearnedCardsByTopicIdApi(selectedTopicId)
+        if (res && res.success) {
+          setUnlearnedCardsByTopic(prev => ({
+            ...prev,
+            [selectedTopicId]: res.data || []
+          }))
+        } else {
+          setTopicCardsError(prev => ({ ...prev, [selectedTopicId]: true }))
+        }
       } catch (err) {
-        console.error('Lỗi khi tải tiến độ:', err)
+        console.error('Lỗi khi tải danh sách thẻ cho topic:', err)
+        setTopicCardsError(prev => ({ ...prev, [selectedTopicId]: true }))
       }
     }
 
-    fetchProgress()
-  }, [topics])
+    fetchCards()
+  }, [selectedTopicId, unlearnedCardsByTopic])
+
+  const removeCurrentCardAndUpdateProgress = () => {
+    setUnlearnedCardsByTopic((prev) => {
+      const list = prev[selectedTopicId] || []
+      return {
+        ...prev,
+        [selectedTopicId]: list.slice(1)
+      }
+    })
+
+    setTopicProgress((prev) => {
+      const current = prev[selectedTopicId]
+      if (!current) return prev
+      return {
+        ...prev,
+        [selectedTopicId]: {
+          ...current,
+          unlearned: Math.max(0, current.unlearned - 1)
+        }
+      }
+    })
+  }
 
   /**
    * - Grade 0 (Học lại)
@@ -106,26 +131,7 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
     try {
       const res = await submitSrsReviewApi(currentCard.id, grade)
       if (res && res.success) {
-        setUnlearnedCardsByTopic((prev) => {
-          const list = prev[selectedTopicId] || []
-          return {
-            ...prev,
-          [selectedTopicId]: list.slice(1) // Lấy từ index 1 của list (Cắt bỏ index 0)
-          }
-        })
-
-        // Cập nhật tiến độ của topic (giảm số thẻ chưa học)
-        setTopicProgress((prev) => {
-          const current = prev[selectedTopicId]
-          if (!current) return prev
-          return {
-            ...prev,
-            [selectedTopicId]: {
-              ...current,
-              unlearned: Math.max(0, current.unlearned - 1)
-            }
-          }
-        })
+        removeCurrentCardAndUpdateProgress()
       } else {
         console.error('Đánh giá thẻ không thành công:', res)
       }
@@ -192,28 +198,7 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
     try {
       const res = await toggleHideApi(currentCard.id)
       if (res && res.success) {
-        // Loại bỏ thẻ bị ẩn khỏi danh sách học
-        setUnlearnedCardsByTopic((prev) => {
-          const list = prev[selectedTopicId] || []
-          return {
-            ...prev,
-            [selectedTopicId]: list.slice(1)
-          }
-        })
-
-        // Giảm unlearned & total trong tiến độ của topic
-        setTopicProgress((prev) => {
-          const current = prev[selectedTopicId]
-          if (!current) return prev
-          return {
-            ...prev,
-            [selectedTopicId]: {
-              ...current,
-              unlearned: Math.max(0, current.unlearned - 1),
-              total: Math.max(0, current.total - 1)
-            }
-          }
-        })
+        removeCurrentCardAndUpdateProgress()
       } else {
         console.error('Ẩn thẻ không thành công:', res)
       }
@@ -375,9 +360,35 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
               <span className="material-symbols-outlined flashcard-empty-placeholder-icon">
                 style
               </span>
-              <h2 className="text-title-md">Vùng học Flashcard</h2>
               <p className="text-body-md" style={{ marginTop: 'var(--spacing-sm)' }}>
-                Chọn một topic bên trái để bắt đầu học flashcard.
+                Không có flashcard để học.
+              </p>
+            </div>
+          ) : topicCardsError[selectedTopicId] ? (
+            <div className="flashcard-empty-placeholder">
+              <span className="material-symbols-outlined flashcard-empty-placeholder-icon" style={{ color: 'var(--color-error)' }}>
+                wifi_off
+              </span>
+              <h2 className="text-title-md">Lỗi kết nối</h2>
+              <p className="text-body-md" style={{ marginTop: 'var(--spacing-sm)' }}>
+                Không thể tải dữ liệu flashcard. Vui lòng kiểm tra mạng và thử lại.
+              </p>
+              <button 
+                className="btn-primary" 
+                style={{ marginTop: 'var(--spacing-md)' }}
+                onClick={() => {
+                  setTopicCardsError(prev => ({ ...prev, [selectedTopicId]: false }))
+                  setUnlearnedCardsByTopic(prev => ({ ...prev, [selectedTopicId]: undefined }))
+                }}
+              >
+                Thử lại
+              </button>
+            </div>
+          ) : unlearnedCardsByTopic[selectedTopicId] === undefined ? (
+            <div className="flashcard-empty-placeholder">
+              <div className="app-loading-spinner" />
+              <p className="text-body-md">
+                Đang tải thẻ học...
               </p>
             </div>
           ) : currentCard ? (

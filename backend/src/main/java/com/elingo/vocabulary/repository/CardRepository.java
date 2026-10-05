@@ -31,4 +31,23 @@ public interface CardRepository extends JpaRepository<Card, Long> {
     List<Card> findAllWithPhoneticsByIdIn(
             List<Long> ids
     );
+
+    interface TopicUnlearnedCardCount {
+        Long getTopicId();
+        Integer getUnlearnedCardCount();
+    }
+
+    @Query("""
+        SELECT c.topic.id AS topicId, COUNT(c) AS unlearnedCardCount
+        FROM Card c
+        LEFT JOIN UserCardState ucs ON ucs.card.id = c.id AND ucs.user.id = :userId
+        WHERE c.deck.id = :deckId
+        AND c.deck.status = DeckStatus.PUBLISHED
+        AND (
+            ucs.id IS NULL
+            OR (ucs.srsNextReviewAt IS NULL AND ucs.flagsHidden = false)
+        )
+        GROUP BY c.topic.id
+    """)
+    List<TopicUnlearnedCardCount> countUnlearnedCardsByDeckIdGroupByTopic(Long deckId, Long userId);
 }

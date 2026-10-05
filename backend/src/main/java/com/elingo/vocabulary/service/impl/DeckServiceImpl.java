@@ -11,6 +11,7 @@ import com.elingo.vocabulary.dto.response.TopicResponse;
 import com.elingo.vocabulary.entity.DeckStatus;
 import com.elingo.vocabulary.mapper.DeckMapper;
 import com.elingo.vocabulary.mapper.TopicMapper;
+import com.elingo.vocabulary.repository.CardRepository;
 import com.elingo.vocabulary.repository.DeckRepository;
 import com.elingo.vocabulary.repository.TopicRepository;
 import com.elingo.vocabulary.service.DeckService;
@@ -25,6 +26,8 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +37,7 @@ public class DeckServiceImpl implements DeckService {
 
     private final DeckRepository deckRepository;
     private final TopicRepository topicRepository;
+    private final CardRepository cardRepository;
     private final UserSubscriptionRepository userSubscriptionRepository;
     private final TopicMapper topicMapper;
     private final DeckMapper deckMapper;
@@ -67,10 +71,29 @@ public class DeckServiceImpl implements DeckService {
         log.info("Fetching topics for deckId={}, userId={}", deckId, userId);
 
         validateDeckAccess(userId, deckId);
+
+        List<CardRepository.TopicUnlearnedCardCount> unlearnedCounts =
+                cardRepository.countUnlearnedCardsByDeckIdGroupByTopic(deckId, userId);
+        Map<Long, Integer> unlearnedMap = unlearnedCounts.stream()
+                .collect(Collectors.toMap(
+                        CardRepository.TopicUnlearnedCardCount::getTopicId,
+                        CardRepository.TopicUnlearnedCardCount::getUnlearnedCardCount
+                ));
+
         List<TopicResponse> topics = topicRepository
                 .findAllByDeckIdOrderByOrderAsc(deckId)
                 .stream()
-                .map(topicMapper::toTopicResponse)
+                .map(topic -> {
+                    TopicResponse response = topicMapper.toTopicResponse(topic);
+                    return new TopicResponse(
+                            response.id(),
+                            response.name(),
+                            response.slug(),
+                            response.order(),
+                            response.cardCount(),
+                            unlearnedMap.getOrDefault(topic.getId(), 0)
+                    );
+                })
                 .toList();
 
         log.info("Fetched {} topic(s) for deckId={}", topics.size(), deckId);
