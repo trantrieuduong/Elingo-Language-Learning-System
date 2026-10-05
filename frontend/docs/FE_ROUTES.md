@@ -33,7 +33,7 @@
 | `/learning/dictation/:lessonId` | `DictationPage` | `learning/dictation/pages/` | Nghe chép chính tả |
 | `/learning/shadowing/:lessonId` | `ShadowingPage` | `learning/shadowing/pages/` | Luyện nói đuổi |
 | `/flashcard/:deckId` | `FlashcardStudyPage` | `learning/flashcard/pages/` | Học flashcard |
-| `/flashcard/:deckId/review` | `FlashcardReviewPage` | `learning/flashcard/pages/` | Ôn tập flashcard |
+| `/flashcard/review` | `FlashcardReviewPage` | `learning/flashcard/pages/` | Ôn tập toàn bộ flashcard đến hạn |
 | `/vocabulary` | `VocabularyListPage` | `vocabulary/pages/` | Danh sách bộ từ vựng |
 | `/vocabulary/:deckId` | `VocabularyDetailPage` | `vocabulary/pages/` | Chi tiết bộ từ vựng |
 | `/battle` | `BattleLobbyPage` | `battle/pages/` | Sảnh chờ thi đấu |
