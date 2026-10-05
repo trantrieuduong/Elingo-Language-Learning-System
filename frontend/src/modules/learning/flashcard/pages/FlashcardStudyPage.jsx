@@ -4,6 +4,20 @@ import Flashcard from '../components/FlashCard/FlashCard'
 import './FlashcardStudyPage.css'
 
 /**
+ * Cấu hình khoảng cách học tập SRS (SM-2) theo từng mức grade:
+ * - Grade 0 (Học lại): Khoảng cách ôn tiếp theo < 10 phút. //
+ * - Grade 1 (Khó): Khoảng cách ôn tiếp theo 1 ngày.
+ * - Grade 2 (Dễ): Khoảng cách ôn tiếp theo 3 ngày.
+ * - Grade 3 (Quá dễ): Khoảng cách ôn tiếp theo 5 ngày.
+ */
+const SRS_INTERVAL_MAP = {
+  0: { label: 'Học lại', interval: '< 10 phút' },
+  1: { label: 'Khó', interval: '1 ngày' },
+  2: { label: 'Dễ', interval: '3 ngày' },
+  3: { label: 'Quá dễ', interval: '5 ngày' }
+}
+
+/**
  * @param {string} deckId - ID của deck lấy từ URL param
  * @param {Function} onNavigate - navigate function từ App.jsx
  */
@@ -16,6 +30,9 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
 
   const [topicProgress, setTopicProgress] = useState({})
   const [unlearnedCardsByTopic, setUnlearnedCardsByTopic] = useState({})
+
+  // State quản lý trạng thái xử lý tương tác thẻ
+  const [isProcessing, setIsProcessing] = useState(false)
 
   useEffect(() => {
     const fetchTopics = async () => {
@@ -33,6 +50,7 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
           setError('Không thể tải danh sách topic. Vui lòng thử lại sau.')
         }
       } catch (err) {
+        console.error('Lỗi khi tải topics:', err)
         const errorMsg = 'Đã có lỗi mạng xảy ra khi tải topics.'
         setError(errorMsg)
       } finally {
@@ -80,6 +98,158 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
     fetchProgress()
   }, [topics])
 
+  /**
+   * Mock hàm xử lý đánh giá mức độ ghi nhớ flashcard theo 4 cấp độ SRS (SM-2):
+   * Tất cả các cấp độ đều mock ghi nhận khoảng cách học tập, hoàn thành lượt học của thẻ hiện tại
+   *  và chuyển sang thẻ tiếp theo.
+   * - Grade 0 (Học lại): Khoảng cách ôn tiếp theo < 10 phút. //
+   * - Grade 1 (Khó): Khoảng cách ôn tiếp theo 1 ngày.
+   * - Grade 2 (Dễ): Khoảng cách ôn tiếp theo 3 ngày.
+   * - Grade 3 (Quá dễ): Khoảng cách ôn tiếp theo 5 ngày.
+   *
+   * @param {number} grade - Điểm đánh giá (0, 1, 2, 3)
+   * @param {string} gradeLabel - Nhãn tiếng Việt tương ứng
+   */
+  const handleReviewCard = (grade, gradeLabel) => {
+    if (!selectedTopicId || isProcessing) return
+
+    const currentCardList = unlearnedCardsByTopic[selectedTopicId] || []
+    if (currentCardList.length === 0) return
+
+    const currentCard = currentCardList[0]
+    if (!currentCard || !currentCard.id) return
+
+    const srsConfig = SRS_INTERVAL_MAP[grade] || {
+      label: gradeLabel,
+      interval: '1 ngày'
+    }
+
+    setIsProcessing(true)
+    try {
+      console.log(
+        `[MOCK SRS] Đánh giá thẻ ID ${currentCard.id} ("${currentCard.term || ''}"): ` +
+        `${gradeLabel} (Grade: ${grade}, Khoảng cách ôn tiếp theo: ${srsConfig.interval})`
+      )
+
+      // Cả 4 cấp độ (kể cả Grade 0 - Học lại) đều ghi nhận hoàn thành lượt học thẻ này và chuyển sang thẻ tiếp theo
+      setUnlearnedCardsByTopic((prev) => {
+        const list = prev[selectedTopicId] || []
+        return {
+          ...prev,
+          [selectedTopicId]: list.slice(1) // Cắt từ index 1 (phần tử thứ hai) trở đi
+        }
+      })
+
+      // Cập nhật tiến độ của topic (giảm số thẻ chưa học)
+      setTopicProgress((prev) => {
+        const current = prev[selectedTopicId]
+        if (!current) return prev
+        return {
+          ...prev,
+          [selectedTopicId]: {
+            ...current,
+            unlearned: Math.max(0, current.unlearned - 1)
+          }
+        }
+      })
+    } catch (err) {
+      console.error('Lỗi khi đánh giá thẻ:', err)
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  /**
+   * Mock hàm xử lý đánh dấu sao / bỏ đánh dấu sao thẻ flashcard hiện tại (Star).
+   */
+  const handleToggleStar = () => {
+    if (!selectedTopicId || isProcessing) return
+
+    const currentCardList = unlearnedCardsByTopic[selectedTopicId] || []
+    if (currentCardList.length === 0) return
+
+    const currentCard = currentCardList[0]
+    if (!currentCard || !currentCard.id) return
+
+    const isStarred = Boolean(currentCard.isStarred ?? currentCard.flagsStarred)//
+    const nextStarredState = !isStarred
+
+    setIsProcessing(true)
+    try {
+      console.log(`[MOCK STAR] Thẻ ID ${currentCard.id} ("${currentCard.term || ''}") -> Đổi trạng thái star: ${nextStarredState}`)
+
+      // Cập nhật trạng thái star trong danh sách thẻ của topic
+      setUnlearnedCardsByTopic((prev) => {
+        const list = prev[selectedTopicId] || []
+        const updatedList = list.map((card, idx) => {
+          if (idx === 0) {
+            return {
+              ...card,
+              isStarred: nextStarredState,//
+              flagsStarred: nextStarredState
+            }
+          }
+          return card
+        })
+        return {
+          ...prev,
+          [selectedTopicId]: updatedList
+        }
+      })
+
+    } catch (err) {
+      console.error('Lỗi khi gắn sao thẻ:', err)
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  /**
+   * Mock hàm xử lý ẩn thẻ flashcard hiện tại khỏi danh sách học (Hidden).
+   */
+  const handleToggleHide = () => {
+    if (!selectedTopicId || isProcessing) return
+
+    const currentCardList = unlearnedCardsByTopic[selectedTopicId] || []
+    if (currentCardList.length === 0) return
+
+    const currentCard = currentCardList[0]
+    if (!currentCard || !currentCard.id) return
+
+    setIsProcessing(true)
+    try {
+      console.log(`[MOCK HIDDEN] Ẩn thẻ ID ${currentCard.id} ("${currentCard.term || ''}") khỏi danh sách học`)
+
+      // Loại bỏ thẻ bị ẩn khỏi danh sách học
+      setUnlearnedCardsByTopic((prev) => {
+        const list = prev[selectedTopicId] || []
+        return {
+          ...prev,
+          [selectedTopicId]: list.slice(1)
+        }
+      })
+
+      // Giảm unlearned & total trong tiến độ của topic
+      setTopicProgress((prev) => {
+        const current = prev[selectedTopicId]
+        if (!current) return prev
+        return {
+          ...prev,
+          [selectedTopicId]: {
+            ...current,
+            unlearned: Math.max(0, current.unlearned - 1),
+            total: Math.max(0, current.total - 1)
+          }
+        }
+      })
+
+    } catch (err) {
+      console.error('Lỗi khi ẩn thẻ:', err)
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="page-loading">
@@ -107,6 +277,10 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
       </div>
     )
   }
+
+  const currentCardList = selectedTopicId ? (unlearnedCardsByTopic[selectedTopicId] || []) : []
+  const currentCard = currentCardList[0] || null
+  const isCurrentCardStarred = Boolean(currentCard?.isStarred ?? currentCard?.flagsStarred)
 
   return (
     <div className="flashcard-page-container">
@@ -232,22 +406,105 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
                 Chọn một topic bên trái để bắt đầu học flashcard.
               </p>
             </div>
-          ) : unlearnedCardsByTopic[selectedTopicId] && unlearnedCardsByTopic[selectedTopicId].length > 0 ? (
+          ) : currentCard ? (
             <div className="flashcard-study-area">
-              <Flashcard
-                key={`${selectedTopicId}-${unlearnedCardsByTopic[selectedTopicId][0]?.id ?? 0}`}
-                card={unlearnedCardsByTopic[selectedTopicId][0]}
-              />
-              
+
+
+              {/* Vùng hiển thị thẻ Flashcard kèm 2 nút thao tác Star và Hidden hiển thị trực tiếp trên góc thẻ */}
+              <div className="flashcard-card-container">
+                <div className="flashcard-card-actions">
+                  <button
+                    type="button"
+                    className={`btn-icon flashcard-card-btn flashcard-card-btn-star ${
+                      isCurrentCardStarred ? 'active-star' : ''
+                    }`}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleToggleStar()
+                    }}
+                    disabled={isProcessing}
+                    title={
+                      isCurrentCardStarred
+                        ? 'Bỏ đánh dấu sao (Star)'
+                        : 'Đánh dấu sao (Star)'
+                    }
+                    aria-label="Đánh dấu sao"
+                  >
+                    <span
+                      className="material-symbols-outlined"
+                      style={isCurrentCardStarred ? { fontVariationSettings: "'FILL' 1" } : {}}
+                    >
+                      star
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn-icon flashcard-card-btn flashcard-card-btn-hidden"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleToggleHide()
+                    }}
+                    disabled={isProcessing}
+                    title="Ẩn thẻ này khỏi phiên học (Hidden)"
+                    aria-label="Ẩn thẻ này"
+                  >
+                    <span className="material-symbols-outlined">visibility_off</span>
+                  </button>
+                </div>
+
+                {/* Thẻ Flashcard 3D */}
+                <Flashcard
+                  key={`${selectedTopicId}-${currentCard.id ?? 0}`}
+                  card={currentCard}
+                />
+              </div>
+
+              {/* 4 Nút đánh giá mức độ ghi nhớ SM-2 */}
               <div className="flashcard-actions">
-                 <button className="btn-secondary" onClick={() => alert('Sẽ implement API đánh giá khó')}>
-                    <span className="material-symbols-outlined">psychology</span>
-                    Khó
-                 </button>
-                 <button className="btn-primary" onClick={() => alert('Sẽ implement API đánh giá dễ')}>
-                    <span className="material-symbols-outlined">check_circle</span>
-                    Đã thuộc
-                 </button>
+                <button
+                  type="button"
+                  className="btn-secondary flashcard-btn-rating flashcard-btn-rating--again"
+                  onClick={() => handleReviewCard(0, 'Học lại')}
+                  disabled={isProcessing}
+                  title="Đánh giá: Học lại (Khoảng cách ôn tiếp theo: < 10 phút, SRS Grade 0)"//
+                >
+                  <span className="material-symbols-outlined">replay</span>
+                  <span>Học lại</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="btn-secondary flashcard-btn-rating flashcard-btn-rating--hard"
+                  onClick={() => handleReviewCard(1, 'Khó')}
+                  disabled={isProcessing}
+                  title="Đánh giá: Khó (Khoảng cách ôn tiếp theo: 1 ngày, SRS Grade 1)"
+                >
+                  <span className="material-symbols-outlined">psychology</span>
+                  <span>Khó</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="btn-secondary flashcard-btn-rating flashcard-btn-rating--good"
+                  onClick={() => handleReviewCard(2, 'Dễ')}
+                  disabled={isProcessing}
+                  title="Đánh giá: Dễ (Khoảng cách ôn tiếp theo: 3 ngày, SRS Grade 2)"
+                >
+                  <span className="material-symbols-outlined">sentiment_satisfied</span>
+                  <span>Dễ</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="btn-primary flashcard-btn-rating flashcard-btn-rating--easy"
+                  onClick={() => handleReviewCard(3, 'Quá dễ')}
+                  disabled={isProcessing}
+                  title="Đánh giá: Quá dễ (Khoảng cách ôn tiếp theo: 5 ngày, SRS Grade 3)"
+                >
+                  <span className="material-symbols-outlined">sentiment_very_satisfied</span>
+                  <span>Quá dễ</span>
+                </button>
               </div>
             </div>
           ) : (

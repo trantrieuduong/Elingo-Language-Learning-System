@@ -79,11 +79,199 @@
 
 .flashcard-study-area {
   width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
+/* ── Container bọc thẻ Flashcard & nút Star / Hidden trực tiếp trên góc thẻ ── */
+.flashcard-card-container {
+  position: relative;
+  width: 100%;
+}
+
+.flashcard-card-actions {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  pointer-events: auto;
+}
+
+.flashcard-card-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: var(--blur-md);
+  -webkit-backdrop-filter: var(--blur-md);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  color: var(--color-on-surface-variant);
+  cursor: pointer;
+  transition: var(--transition-base);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flashcard-card-btn:hover:not(:disabled) {
+  transform: scale(1.08);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  color: var(--color-on-surface);
+}
+
+.flashcard-card-btn-star.active-star {
+  background: rgba(254, 243, 199, 0.9);
+  border-color: rgba(245, 158, 11, 0.5);
+  color: #d97706;
+}
+
+.flashcard-card-btn-star.active-star .material-symbols-outlined {
+  color: #d97706;
+}
+
+.flashcard-card-btn-hidden:hover:not(:disabled) {
+  color: var(--color-error);
+}
+
+/* Dark theme counterpart cho các nút trên thẻ */
+[data-theme='dark'] .flashcard-card-btn {
+  background: rgba(30, 48, 71, 0.85);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  color: var(--color-on-surface-variant);
+}
+
+[data-theme='dark'] .flashcard-card-btn:hover:not(:disabled) {
+  background: rgba(43, 68, 99, 0.95);
+  color: var(--color-on-surface);
+}
+
+[data-theme='dark'] .flashcard-card-btn-star.active-star {
+  background: rgba(85, 60, 20, 0.85);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+}
+
+[data-theme='dark'] .flashcard-card-btn-star.active-star .material-symbols-outlined {
+  color: #fbbf24;
+}
+
+
+/* ── 4 Nút đánh giá SM-2 (Học lại, Khó, Dễ, Quá dễ) ── */
 .flashcard-actions {
   display: flex;
-  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
   margin-top: var(--spacing-xl);
   justify-content: center;
+  width: 100%;
+}
+
+.flashcard-btn-rating {
+  flex: 1 1 calc(25% - var(--spacing-sm));
+  min-width: 120px;
+  max-width: 180px;
+  padding: 0.75rem 1rem;
+  font-size: var(--font-size-label-md);
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-semibold);
+  gap: var(--space-2);
+  border-radius: var(--radius-pill);
+  transition: var(--transition-base);
+}
+
+@media (max-width: 640px) {
+  .flashcard-btn-rating {
+    flex: 1 1 calc(50% - var(--spacing-sm));
+    min-width: 130px;
+    max-width: none;
+  }
+}
+
+.flashcard-btn-rating--again {
+  border-color: rgba(220, 38, 38, 0.35);
+  color: #ba1a1a;
+}
+
+.flashcard-btn-rating--again:hover:not(:disabled) {
+  background: var(--color-pastel-pink);
+  color: var(--color-pastel-pink-text);
+  border-color: rgba(220, 38, 38, 0.55);
+  transform: translateY(-2px);
+}
+
+.flashcard-btn-rating--hard {
+  border-color: rgba(217, 119, 6, 0.35);
+  color: #b45309;
+}
+
+.flashcard-btn-rating--hard:hover:not(:disabled) {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: rgba(217, 119, 6, 0.55);
+  transform: translateY(-2px);
+}
+
+.flashcard-btn-rating--good {
+  border-color: rgba(67, 95, 139, 0.35);
+  color: var(--color-primary);
+}
+
+.flashcard-btn-rating--good:hover:not(:disabled) {
+  background: var(--color-pastel-soft-blue);
+  color: var(--color-pastel-soft-blue-text);
+  border-color: rgba(67, 95, 139, 0.55);
+  transform: translateY(-2px);
+}
+
+.flashcard-btn-rating--easy {
+  background: linear-gradient(135deg, #1f5e4b 0%, #154536 100%);
+  color: #ffffff;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+}
+
+.flashcard-btn-rating--easy:hover:not(:disabled) {
+  background: linear-gradient(135deg, #28775f 0%, #1a5241 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(31, 94, 75, 0.28);
+}
+
+/* Thích ứng Dark theme cho các nút đánh giá */
+[data-theme='dark'] .flashcard-btn-rating--again {
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #f87171;
+}
+
+[data-theme='dark'] .flashcard-btn-rating--again:hover:not(:disabled) {
+  background: rgba(99, 30, 40, 0.65);
+  color: #fca5a5;
+}
+
+[data-theme='dark'] .flashcard-btn-rating--hard {
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+}
+
+[data-theme='dark'] .flashcard-btn-rating--hard:hover:not(:disabled) {
+  background: rgba(85, 60, 20, 0.65);
+  color: #fde68a;
+}
+
+[data-theme='dark'] .flashcard-btn-rating--good {
+  border-color: rgba(155, 183, 232, 0.35);
+  color: #9bb7e8;
+}
+
+[data-theme='dark'] .flashcard-btn-rating--good:hover:not(:disabled) {
+  background: rgba(30, 58, 95, 0.65);
+  color: #c0d5f8;
+}
+
+[data-theme='dark'] .flashcard-btn-rating--easy {
+  background: linear-gradient(135deg, #236551 0%, #194a3b 100%);
 }
