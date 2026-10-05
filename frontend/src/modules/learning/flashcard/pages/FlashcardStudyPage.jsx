@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getTopicsByDeckIdApi, getUnlearnedCardsByTopicIdApi, submitSrsReviewApi, toggleStarApi, toggleHideApi } from '../flashcardApi'
-import Flashcard from '../components/FlashCard/FlashCard'
+import FlashcardStudyArea from '../components/FlashcardStudyArea'
+import FlashcardCompletePlaceholder from '../components/FlashcardCompletePlaceholder'
 import './FlashcardStudyPage.css'
 
 /**
@@ -271,7 +272,7 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
             return (
               <div className="glass-card" style={{ padding: 'var(--spacing-sm) var(--spacing-lg)', borderRadius: 'var(--radius-full)', width: '100%' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                  <span className="text-title-sm" style={{ margin: 0, color: 'var(--color-text-high)' }}>Tiến độ toàn bộ</span>
+                  <span className="text-title-sm" style={{ margin: 0, color: 'var(--color-text-high)' }}>Tiến độ tổng quan</span>
                   <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>
                     {globalLearned} / {globalTotal}
                   </span>
@@ -392,114 +393,19 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
               </p>
             </div>
           ) : currentCard ? (
-            <div className="flashcard-study-area">
-              {/* Vùng hiển thị thẻ Flashcard kèm 2 nút thao tác Star và Hidden hiển thị trực tiếp trên góc thẻ */}
-              <div className="flashcard-card-container">
-                <div className="flashcard-card-actions">
-                  <button
-                    type="button"
-                    className={`btn-icon flashcard-card-btn flashcard-card-btn-star ${
-                      isCurrentCardStarred ? 'active-star' : ''
-                    }`}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleToggleStar()
-                    }}
-                    disabled={isProcessing}
-                    title={
-                      isCurrentCardStarred
-                        ? 'Bỏ đánh dấu sao (Unstar)'
-                        : 'Đánh dấu sao (Star)'
-                    }
-                    aria-label="Đánh / bỏ dấu sao"
-                  >
-                    <span
-                      className="material-symbols-outlined"
-                      style={isCurrentCardStarred ? { fontVariationSettings: "'FILL' 1" } : {}}
-                    >
-                      star
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    className="btn-icon flashcard-card-btn flashcard-card-btn-hidden"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleToggleHide()
-                    }}
-                    disabled={isProcessing}
-                    title="Ẩn thẻ này khỏi phiên học (Hidden)"
-                    aria-label="Ẩn thẻ này"
-                  >
-                    <span className="material-symbols-outlined">visibility_off</span>
-                  </button>
-                </div>
-
-                {/* Thẻ Flashcard 3D */}
-                <Flashcard
-                  key={`${selectedTopicId}-${currentCard.id ?? 0}`}
-                  card={currentCard}
-                />
-              </div>
-
-              {/* 4 Nút đánh giá mức độ ghi nhớ SM-2 */}
-              <div className="flashcard-actions">
-                <button
-                  type="button"
-                  className="btn-secondary flashcard-btn-rating flashcard-btn-rating--again"
-                  onClick={() => handleReviewCard(0, 'Học lại')}
-                  disabled={isProcessing}
-                  title="Đánh giá: Học lại (Khoảng cách ôn tiếp theo: 10 phút, SRS Grade 0)"
-                >
-                  <span className="material-symbols-outlined">replay</span>
-                  <span>Học lại</span>
-                </button>
-
-                <button
-                  type="button"
-                  className="btn-secondary flashcard-btn-rating flashcard-btn-rating--hard"
-                  onClick={() => handleReviewCard(1, 'Khó')}
-                  disabled={isProcessing}
-                  title="Đánh giá: Khó (Khoảng cách ôn tiếp theo: 1 ngày, SRS Grade 1)"
-                >
-                  <span className="material-symbols-outlined">psychology</span>
-                  <span>Khó</span>
-                </button>
-
-                <button
-                  type="button"
-                  className="btn-secondary flashcard-btn-rating flashcard-btn-rating--good"
-                  onClick={() => handleReviewCard(2, 'Dễ')}
-                  disabled={isProcessing}
-                  title="Đánh giá: Dễ (Khoảng cách ôn tiếp theo: 3 ngày, SRS Grade 2)"
-                >
-                  <span className="material-symbols-outlined">sentiment_satisfied</span>
-                  <span>Dễ</span>
-                </button>
-
-                <button
-                  type="button"
-                  className="btn-primary flashcard-btn-rating flashcard-btn-rating--easy"
-                  onClick={() => handleReviewCard(3, 'Quá dễ')}
-                  disabled={isProcessing}
-                  title="Đánh giá: Quá dễ (Khoảng cách ôn tiếp theo: 5 ngày, SRS Grade 3)"
-                >
-                  <span className="material-symbols-outlined">sentiment_very_satisfied</span>
-                  <span>Quá dễ</span>
-                </button>
-              </div>
-            </div>
+            <FlashcardStudyArea
+              card={currentCard}
+              cardKey={`${selectedTopicId}-${currentCard.id ?? 0}`}
+              isProcessing={isProcessing}
+              isStarred={isCurrentCardStarred}
+              onToggleStar={handleToggleStar}
+              onToggleHide={handleToggleHide}
+              onReviewCard={handleReviewCard}
+            />
           ) : (
-            <div className="flashcard-empty-placeholder">
-              <span className="material-symbols-outlined flashcard-empty-placeholder-icon" style={{ color: 'var(--color-success, #22c55e)' }}>
-                task_alt
-              </span>
-              <h2 className="text-title-md">Tuyệt vời!</h2>
-              <p className="text-body-md" style={{ marginTop: 'var(--spacing-sm)' }}>
-                Bạn đã học xong toàn bộ thẻ trong chủ đề này.
-              </p>
-            </div>
+            <FlashcardCompletePlaceholder
+              message="Bạn đã học xong toàn bộ thẻ trong chủ đề này."
+            />
           )}
         </main>
 

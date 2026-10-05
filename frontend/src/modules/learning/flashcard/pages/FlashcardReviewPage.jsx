@@ -5,7 +5,8 @@ import {
   toggleStarApi,
   toggleHideApi
 } from '../flashcardApi'
-import Flashcard from '../components/FlashCard/FlashCard'
+import FlashcardStudyArea from '../components/FlashcardStudyArea'
+import FlashcardCompletePlaceholder from '../components/FlashcardCompletePlaceholder'
 import './FlashcardReviewPage.css'
 
 /**
@@ -21,18 +22,21 @@ function FlashcardReviewPage({ onNavigate }) {
   const [error, setError] = useState(null)
   const [isProcessing, setIsProcessing] = useState(false)
 
-  /**
-   * Tải danh sách flashcard đến hạn ôn tập từ mock API
-   */
   const fetchDueReviewCards = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
-      const res = await getCardsForReviewApi({ limit: 100 })
-      if (res && res.success && Array.isArray(res.data)) {
-        setReviewCards(res.data)
+      const res = await getCardsForReviewApi(100)
+      if (res && res.success) {
+        const formattedCards = res.data
+          .filter((item) => item?.card)
+          .map((item) => ({
+            ...item.card,
+            flagsStarred: item.flagsStarred
+          }))
+        setReviewCards(formattedCards)
       } else {
-        setError(res?.message || 'Không thể tải danh sách thẻ đến hạn ôn tập.')
+        setError('Không thể tải danh sách thẻ đến hạn ôn tập.')
       }
     } catch (err) {
       console.error('Lỗi khi tải flashcard đến hạn ôn tập:', err)
@@ -53,28 +57,19 @@ function FlashcardReviewPage({ onNavigate }) {
     if (reviewCards.length === 0 || isProcessing) return
 
     const currentCard = reviewCards[0]
-    if (!currentCard || !currentCard.id) return
+    const cardId = currentCard?.id
+    if (!cardId) return
 
     setIsProcessing(true)
     try {
-      const res = await submitSrsReviewApi(currentCard.id, grade)
+      const res = await submitSrsReviewApi(cardId, grade)
       if (res && res.success) {
-        if (grade === 0) {
-          // Học lại: đưa thẻ về cuối hàng đợi ôn tập trong phiên
-          setReviewCards((prev) => {
-            if (prev.length <= 1) return prev
-            const [first, ...rest] = prev
-            return [...rest, first]
-          })
-        } else {
-          // Hoàn thành: loại bỏ thẻ khỏi queue
-          setReviewCards((prev) => prev.slice(1))
-        }
+        setReviewCards((prev) => prev.slice(1))
       } else {
         console.error('Đánh giá thẻ không thành công:', res)
       }
     } catch (err) {
-      console.error(`Lỗi khi gửi đánh giá SRS thẻ ID ${currentCard.id} (${gradeLabel}):`, err)
+      console.error(`Lỗi khi gửi đánh giá SRS thẻ ID ${cardId} (${gradeLabel}):`, err)
     } finally {
       setIsProcessing(false)
     }
@@ -87,25 +82,29 @@ function FlashcardReviewPage({ onNavigate }) {
     if (reviewCards.length === 0 || isProcessing) return
 
     const currentCard = reviewCards[0]
-    if (!currentCard || !currentCard.id) return
+    const cardId = currentCard?.id
+    if (!cardId) return
 
-    const nextStarredState = !currentCard.flagsStarred
+    const nextStarredState = !(currentCard.flagsStarred)
 
     setIsProcessing(true)
     try {
-      const res = await toggleStarApi(currentCard.id)
+      const res = await toggleStarApi(cardId)
       if (res && res.success) {
         setReviewCards((prev) => {
           if (prev.length === 0) return prev
           const updated = [...prev]
-          updated[0] = { ...updated[0], flagsStarred: nextStarredState }
+          updated[0] = {
+            ...updated[0],
+            flagsStarred: nextStarredState,
+          }
           return updated
         })
       } else {
         console.error('Đổi trạng thái gắn sao không thành công:', res)
       }
     } catch (err) {
-      console.error(`Lỗi khi đổi trạng thái gắn sao thẻ ID ${currentCard.id}:`, err)
+      console.error(`Lỗi khi đổi trạng thái gắn sao thẻ ID ${cardId}:`, err)
     } finally {
       setIsProcessing(false)
     }
@@ -118,18 +117,19 @@ function FlashcardReviewPage({ onNavigate }) {
     if (reviewCards.length === 0 || isProcessing) return
 
     const currentCard = reviewCards[0]
-    if (!currentCard || !currentCard.id) return
+    const cardId = currentCard?.id
+    if (!cardId) return
 
     setIsProcessing(true)
     try {
-      const res = await toggleHideApi(currentCard.id)
+      const res = await toggleHideApi(cardId)
       if (res && res.success) {
         setReviewCards((prev) => prev.slice(1))
       } else {
         console.error('Ẩn thẻ không thành công:', res)
       }
     } catch (err) {
-      console.error(`Lỗi khi ẩn thẻ ID ${currentCard.id}:`, err)
+      console.error(`Lỗi khi ẩn thẻ ID ${cardId}:`, err)
     } finally {
       setIsProcessing(false)
     }
@@ -161,7 +161,7 @@ function FlashcardReviewPage({ onNavigate }) {
               if (onNavigate) onNavigate('/vocabulary')
             }}
           >
-            Quay lại kho từ vựng
+            Quay lại trang chủ
           </button>
         </div>
       </div>
@@ -170,6 +170,7 @@ function FlashcardReviewPage({ onNavigate }) {
 
   const currentCard = reviewCards[0] || null
   const isCurrentCardStarred = Boolean(currentCard?.flagsStarred)
+  const currentCardId = currentCard?.id
 
   return (
     <div className="flashcard-review-page-container">
@@ -190,119 +191,19 @@ function FlashcardReviewPage({ onNavigate }) {
         {/* KHÔNG GIAN THẺ FLASHCARD & 4 NÚT ĐÁNH GIÁ SM-2 */}
         <main className="flashcard-main-content glass-well">
           {currentCard ? (
-            <div className="flashcard-study-area">
-              {/* Thẻ Flashcard kèm 2 nút thao tác Star và Hidden trên góc thẻ */}
-              <div className="flashcard-card-container">
-                <div className="flashcard-card-actions">
-                  <button
-                    type="button"
-                    className={`btn-icon flashcard-card-btn flashcard-card-btn-star ${
-                      isCurrentCardStarred ? 'active-star' : ''
-                    }`}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleToggleStar()
-                    }}
-                    disabled={isProcessing}
-                    title={isCurrentCardStarred ? 'Bỏ đánh dấu sao (Unstar)' : 'Đánh dấu sao (Star)'}
-                    aria-label="Đánh / bỏ dấu sao"
-                  >
-                    <span
-                      className="material-symbols-outlined"
-                      style={isCurrentCardStarred ? { fontVariationSettings: "'FILL' 1" } : {}}
-                    >
-                      star
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    className="btn-icon flashcard-card-btn flashcard-card-btn-hidden"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleToggleHide()
-                    }}
-                    disabled={isProcessing}
-                    title="Ẩn thẻ này khỏi phiên ôn tập (Hidden)"
-                    aria-label="Ẩn thẻ này"
-                  >
-                    <span className="material-symbols-outlined">visibility_off</span>
-                  </button>
-                </div>
-
-                {/* Thẻ Flashcard 3D tái sử dụng từ FlashcardStudyPage */}
-                <Flashcard key={`review-card-${currentCard.id ?? 0}`} card={currentCard} />
-              </div>
-
-              {/* 4 Nút đánh giá mức độ ghi nhớ SM-2 */}
-              <div className="flashcard-actions">
-                <button
-                  type="button"
-                  className="btn-secondary flashcard-btn-rating flashcard-btn-rating--again"
-                  onClick={() => handleReviewCard(0, 'Học lại')}
-                  disabled={isProcessing}
-                  title="Đánh giá: Học lại (Khoảng cách ôn tiếp theo: 10 phút, SRS Grade 0)"
-                >
-                  <span className="material-symbols-outlined">replay</span>
-                  <span>Học lại</span>
-                </button>
-
-                <button
-                  type="button"
-                  className="btn-secondary flashcard-btn-rating flashcard-btn-rating--hard"
-                  onClick={() => handleReviewCard(1, 'Khó')}
-                  disabled={isProcessing}
-                  title="Đánh giá: Khó (Khoảng cách ôn tiếp theo: 1 ngày, SRS Grade 1)"
-                >
-                  <span className="material-symbols-outlined">psychology</span>
-                  <span>Khó</span>
-                </button>
-
-                <button
-                  type="button"
-                  className="btn-secondary flashcard-btn-rating flashcard-btn-rating--good"
-                  onClick={() => handleReviewCard(2, 'Dễ')}
-                  disabled={isProcessing}
-                  title="Đánh giá: Dễ (Khoảng cách ôn tiếp theo: 3 ngày, SRS Grade 2)"
-                >
-                  <span className="material-symbols-outlined">sentiment_satisfied</span>
-                  <span>Dễ</span>
-                </button>
-
-                <button
-                  type="button"
-                  className="btn-primary flashcard-btn-rating flashcard-btn-rating--easy"
-                  onClick={() => handleReviewCard(3, 'Quá dễ')}
-                  disabled={isProcessing}
-                  title="Đánh giá: Quá dễ (Khoảng cách ôn tiếp theo: 5 ngày, SRS Grade 3)"
-                >
-                  <span className="material-symbols-outlined">sentiment_very_satisfied</span>
-                  <span>Quá dễ</span>
-                </button>
-              </div>
-            </div>
+            <FlashcardStudyArea
+              card={currentCard}
+              cardKey={`review-card-${currentCardId}`}
+              isProcessing={isProcessing}
+              isStarred={isCurrentCardStarred}
+              onToggleStar={handleToggleStar}
+              onToggleHide={handleToggleHide}
+              onReviewCard={handleReviewCard}
+            />
           ) : (
-            <div className="flashcard-empty-placeholder">
-              <span
-                className="material-symbols-outlined flashcard-empty-placeholder-icon"
-                style={{ color: 'var(--color-success, #22c55e)' }}
-              >
-                task_alt
-              </span>
-              <h2 className="text-title-md">Tuyệt vời!</h2>
-              <p className="text-body-md" style={{ marginTop: 'var(--spacing-sm)' }}>
-                Bạn đã hoàn thành toàn bộ thẻ flashcard đến hạn ôn tập hôm nay.
-              </p>
-              <button
-                type="button"
-                className="btn-secondary"
-                style={{ marginTop: 'var(--spacing-md)' }}
-                onClick={fetchDueReviewCards}
-              >
-                <span className="material-symbols-outlined">refresh</span>
-                Ôn lại từ đầu
-              </button>
-            </div>
+            <FlashcardCompletePlaceholder
+              message="Bạn đã hoàn thành toàn bộ thẻ flashcard đến hạn ôn tập hôm nay."
+            />
           )}
         </main>
       </div>

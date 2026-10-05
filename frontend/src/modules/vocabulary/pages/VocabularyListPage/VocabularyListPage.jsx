@@ -118,17 +118,6 @@ function VocabularyListPage({ onNavigate }) {
   return (
     <main className="vocabulary-list-page">
       <div className="container vocabulary-list-container">
-        {/* Header Section */}
-        <header className="vocabulary-list-header glass-card">
-          <div className="vocabulary-list-header__title">
-            <span className="material-symbols-outlined icon-display">library_books</span>
-            <h1 className="text-headline-lg">Từ vựng</h1>
-          </div>
-          <p className="text-body-lg text-disabled">
-            Khám phá các bộ từ vựng được chọn lọc giúp bạn mở rộng vốn từ nhanh chóng.
-          </p>
-        </header>
-
         {/* Filter Section */}
         <section className="vocabulary-list-filters glass-well">
           <div className="vocabulary-list-filters__top">
