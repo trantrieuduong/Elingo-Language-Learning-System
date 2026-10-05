@@ -16,3 +16,28 @@ export const getUnlearnedCardsByTopicIdApi = async (topicId) => {
   const response = await apiClient.get(`/topics/${topicId}/cards`)
   return response.data
 }
+
+/**
+ * @param {string} cardId
+ * @param {number} grade - Điểm đánh giá (0, 1, 2, 3)
+ */
+export const submitSrsReviewApi = async (cardId, grade) => {
+  const response = await apiClient.patch(`/flashcards/${cardId}/srs`, { grade })
+  return response.data
+}
+
+/**
+ * @param {string} cardId
+ */
+export const toggleStarApi = async (cardId) => {
+  const response = await apiClient.patch(`/flashcards/${cardId}/stars`)
+  return response.data
+}
+
+/**
+ * @param {string} cardId
+ */
+export const toggleHideApi = async (cardId) => {
+  const response = await apiClient.patch(`/flashcards/${cardId}/hidden`)
+  return response.data
+}

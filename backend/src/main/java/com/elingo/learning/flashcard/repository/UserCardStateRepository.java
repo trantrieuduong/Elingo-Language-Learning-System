@@ -23,6 +23,14 @@ public interface UserCardStateRepository extends JpaRepository<UserCardState, Lo
     @Query("""
             SELECT u FROM UserCardState u
             JOIN FETCH u.card c
+            WHERE u.user.id = :userId
+              AND u.card.id IN :cardIds
+            """)
+    List<UserCardState> findByUserIdAndCardIdIn(Long userId, List<Long> cardIds);
+
+    @Query("""
+            SELECT u FROM UserCardState u
+            JOIN FETCH u.card c
             JOIN FETCH u.deck d
             WHERE u.user.id = :userId
               AND u.srsNextReviewAt IS NOT NULL

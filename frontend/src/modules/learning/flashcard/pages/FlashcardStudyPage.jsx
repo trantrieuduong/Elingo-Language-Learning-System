@@ -1,21 +1,7 @@
 import { useState, useEffect } from 'react'
-import { getTopicsByDeckIdApi, getUnlearnedCardsByTopicIdApi } from '../flashcardApi'
+import { getTopicsByDeckIdApi, getUnlearnedCardsByTopicIdApi, submitSrsReviewApi, toggleStarApi, toggleHideApi } from '../flashcardApi'
 import Flashcard from '../components/FlashCard/FlashCard'
 import './FlashcardStudyPage.css'
-
-/**
- * Cấu hình khoảng cách học tập SRS (SM-2) theo từng mức grade:
- * - Grade 0 (Học lại): Khoảng cách ôn tiếp theo < 10 phút. //
- * - Grade 1 (Khó): Khoảng cách ôn tiếp theo 1 ngày.
- * - Grade 2 (Dễ): Khoảng cách ôn tiếp theo 3 ngày.
- * - Grade 3 (Quá dễ): Khoảng cách ôn tiếp theo 5 ngày.
- */
-const SRS_INTERVAL_MAP = {
-  0: { label: 'Học lại', interval: '< 10 phút' },
-  1: { label: 'Khó', interval: '1 ngày' },
-  2: { label: 'Dễ', interval: '3 ngày' },
-  3: { label: 'Quá dễ', interval: '5 ngày' }
-}
 
 /**
  * @param {string} deckId - ID của deck lấy từ URL param
@@ -99,18 +85,15 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
   }, [topics])
 
   /**
-   * Mock hàm xử lý đánh giá mức độ ghi nhớ flashcard theo 4 cấp độ SRS (SM-2):
-   * Tất cả các cấp độ đều mock ghi nhận khoảng cách học tập, hoàn thành lượt học của thẻ hiện tại
-   *  và chuyển sang thẻ tiếp theo.
-   * - Grade 0 (Học lại): Khoảng cách ôn tiếp theo < 10 phút. //
-   * - Grade 1 (Khó): Khoảng cách ôn tiếp theo 1 ngày.
-   * - Grade 2 (Dễ): Khoảng cách ôn tiếp theo 3 ngày.
-   * - Grade 3 (Quá dễ): Khoảng cách ôn tiếp theo 5 ngày.
+   * - Grade 0 (Học lại)
+   * - Grade 1 (Khó)
+   * - Grade 2 (Dễ)
+   * - Grade 3 (Quá dễ)
    *
    * @param {number} grade - Điểm đánh giá (0, 1, 2, 3)
    * @param {string} gradeLabel - Nhãn tiếng Việt tương ứng
    */
-  const handleReviewCard = (grade, gradeLabel) => {
+  const handleReviewCard = async (grade, gradeLabel) => {
     if (!selectedTopicId || isProcessing) return
 
     const currentCardList = unlearnedCardsByTopic[selectedTopicId] || []
@@ -119,50 +102,41 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
     const currentCard = currentCardList[0]
     if (!currentCard || !currentCard.id) return
 
-    const srsConfig = SRS_INTERVAL_MAP[grade] || {
-      label: gradeLabel,
-      interval: '1 ngày'
-    }
-
     setIsProcessing(true)
     try {
-      console.log(
-        `[MOCK SRS] Đánh giá thẻ ID ${currentCard.id} ("${currentCard.term || ''}"): ` +
-        `${gradeLabel} (Grade: ${grade}, Khoảng cách ôn tiếp theo: ${srsConfig.interval})`
-      )
-
-      // Cả 4 cấp độ (kể cả Grade 0 - Học lại) đều ghi nhận hoàn thành lượt học thẻ này và chuyển sang thẻ tiếp theo
-      setUnlearnedCardsByTopic((prev) => {
-        const list = prev[selectedTopicId] || []
-        return {
-          ...prev,
-          [selectedTopicId]: list.slice(1) // Cắt từ index 1 (phần tử thứ hai) trở đi
-        }
-      })
-
-      // Cập nhật tiến độ của topic (giảm số thẻ chưa học)
-      setTopicProgress((prev) => {
-        const current = prev[selectedTopicId]
-        if (!current) return prev
-        return {
-          ...prev,
-          [selectedTopicId]: {
-            ...current,
-            unlearned: Math.max(0, current.unlearned - 1)
+      const res = await submitSrsReviewApi(currentCard.id, grade)
+      if (res && res.success) {
+        setUnlearnedCardsByTopic((prev) => {
+          const list = prev[selectedTopicId] || []
+          return {
+            ...prev,
+          [selectedTopicId]: list.slice(1) // Lấy từ index 1 của list (Cắt bỏ index 0)
           }
-        }
-      })
+        })
+
+        // Cập nhật tiến độ của topic (giảm số thẻ chưa học)
+        setTopicProgress((prev) => {
+          const current = prev[selectedTopicId]
+          if (!current) return prev
+          return {
+            ...prev,
+            [selectedTopicId]: {
+              ...current,
+              unlearned: Math.max(0, current.unlearned - 1)
+            }
+          }
+        })
+      } else {
+        console.error('Đánh giá thẻ không thành công:', res)
+      }
     } catch (err) {
-      console.error('Lỗi khi đánh giá thẻ:', err)
+      console.error(`Lỗi khi gửi đánh giá SRS thẻ ID ${currentCard.id} (${gradeLabel}):`, err)
     } finally {
       setIsProcessing(false)
     }
   }
 
-  /**
-   * Mock hàm xử lý đánh dấu sao / bỏ đánh dấu sao thẻ flashcard hiện tại (Star).
-   */
-  const handleToggleStar = () => {
+  const handleToggleStar = async () => {
     if (!selectedTopicId || isProcessing) return
 
     const currentCardList = unlearnedCardsByTopic[selectedTopicId] || []
@@ -171,43 +145,41 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
     const currentCard = currentCardList[0]
     if (!currentCard || !currentCard.id) return
 
-    const isStarred = Boolean(currentCard.isStarred ?? currentCard.flagsStarred)//
+    const isStarred = Boolean(currentCard.flagsStarred)
     const nextStarredState = !isStarred
 
     setIsProcessing(true)
     try {
-      console.log(`[MOCK STAR] Thẻ ID ${currentCard.id} ("${currentCard.term || ''}") -> Đổi trạng thái star: ${nextStarredState}`)
-
-      // Cập nhật trạng thái star trong danh sách thẻ của topic
-      setUnlearnedCardsByTopic((prev) => {
-        const list = prev[selectedTopicId] || []
-        const updatedList = list.map((card, idx) => {
-          if (idx === 0) {
-            return {
-              ...card,
-              isStarred: nextStarredState,//
-              flagsStarred: nextStarredState
+      const res = await toggleStarApi(currentCard.id)
+      if (res && res.success) {
+        // Cập nhật trạng thái star trong danh sách thẻ của topic
+        setUnlearnedCardsByTopic((prev) => {
+          const list = prev[selectedTopicId] || []
+          const updatedList = list.map((card, idx) => {
+            if (idx === 0) {
+              return {
+                ...card,
+                flagsStarred: nextStarredState
+              }
             }
+            return card
+          })
+          return {
+            ...prev,
+            [selectedTopicId]: updatedList
           }
-          return card
         })
-        return {
-          ...prev,
-          [selectedTopicId]: updatedList
-        }
-      })
-
+      } else {
+        console.error('Đổi trạng thái gắn sao không thành công:', res)
+      }
     } catch (err) {
-      console.error('Lỗi khi gắn sao thẻ:', err)
+      console.error(`Lỗi khi đổi trạng thái gắn sao thẻ ID ${currentCard.id}:`, err)
     } finally {
       setIsProcessing(false)
     }
   }
 
-  /**
-   * Mock hàm xử lý ẩn thẻ flashcard hiện tại khỏi danh sách học (Hidden).
-   */
-  const handleToggleHide = () => {
+  const handleToggleHide = async () => {
     if (!selectedTopicId || isProcessing) return
 
     const currentCardList = unlearnedCardsByTopic[selectedTopicId] || []
@@ -218,33 +190,35 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
 
     setIsProcessing(true)
     try {
-      console.log(`[MOCK HIDDEN] Ẩn thẻ ID ${currentCard.id} ("${currentCard.term || ''}") khỏi danh sách học`)
-
-      // Loại bỏ thẻ bị ẩn khỏi danh sách học
-      setUnlearnedCardsByTopic((prev) => {
-        const list = prev[selectedTopicId] || []
-        return {
-          ...prev,
-          [selectedTopicId]: list.slice(1)
-        }
-      })
-
-      // Giảm unlearned & total trong tiến độ của topic
-      setTopicProgress((prev) => {
-        const current = prev[selectedTopicId]
-        if (!current) return prev
-        return {
-          ...prev,
-          [selectedTopicId]: {
-            ...current,
-            unlearned: Math.max(0, current.unlearned - 1),
-            total: Math.max(0, current.total - 1)
+      const res = await toggleHideApi(currentCard.id)
+      if (res && res.success) {
+        // Loại bỏ thẻ bị ẩn khỏi danh sách học
+        setUnlearnedCardsByTopic((prev) => {
+          const list = prev[selectedTopicId] || []
+          return {
+            ...prev,
+            [selectedTopicId]: list.slice(1)
           }
-        }
-      })
+        })
 
+        // Giảm unlearned & total trong tiến độ của topic
+        setTopicProgress((prev) => {
+          const current = prev[selectedTopicId]
+          if (!current) return prev
+          return {
+            ...prev,
+            [selectedTopicId]: {
+              ...current,
+              unlearned: Math.max(0, current.unlearned - 1),
+              total: Math.max(0, current.total - 1)
+            }
+          }
+        })
+      } else {
+        console.error('Ẩn thẻ không thành công:', res)
+      }
     } catch (err) {
-      console.error('Lỗi khi ẩn thẻ:', err)
+      console.error(`Lỗi khi ẩn thẻ ID ${currentCard.id}:`, err)
     } finally {
       setIsProcessing(false)
     }
@@ -280,7 +254,7 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
 
   const currentCardList = selectedTopicId ? (unlearnedCardsByTopic[selectedTopicId] || []) : []
   const currentCard = currentCardList[0] || null
-  const isCurrentCardStarred = Boolean(currentCard?.isStarred ?? currentCard?.flagsStarred)
+  const isCurrentCardStarred = Boolean(currentCard?.flagsStarred)
 
   return (
     <div className="flashcard-page-container">
@@ -408,8 +382,6 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
             </div>
           ) : currentCard ? (
             <div className="flashcard-study-area">
-
-
               {/* Vùng hiển thị thẻ Flashcard kèm 2 nút thao tác Star và Hidden hiển thị trực tiếp trên góc thẻ */}
               <div className="flashcard-card-container">
                 <div className="flashcard-card-actions">
@@ -425,10 +397,10 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
                     disabled={isProcessing}
                     title={
                       isCurrentCardStarred
-                        ? 'Bỏ đánh dấu sao (Star)'
+                        ? 'Bỏ đánh dấu sao (Unstar)'
                         : 'Đánh dấu sao (Star)'
                     }
-                    aria-label="Đánh dấu sao"
+                    aria-label="Đánh / bỏ dấu sao"
                   >
                     <span
                       className="material-symbols-outlined"
@@ -467,7 +439,7 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
                   className="btn-secondary flashcard-btn-rating flashcard-btn-rating--again"
                   onClick={() => handleReviewCard(0, 'Học lại')}
                   disabled={isProcessing}
-                  title="Đánh giá: Học lại (Khoảng cách ôn tiếp theo: < 10 phút, SRS Grade 0)"//
+                  title="Đánh giá: Học lại (Khoảng cách ôn tiếp theo: 10 phút, SRS Grade 0)"
                 >
                   <span className="material-symbols-outlined">replay</span>
                   <span>Học lại</span>

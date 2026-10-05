@@ -142,7 +142,28 @@ public class TopicIntegrationTest extends BaseIntegrationTest {
                     .andExpect(jsonPath("$.data").isArray())
                     .andExpect(jsonPath("$.data.length()").value(2))
                     .andExpect(jsonPath("$.data[0].term").value("cat"))
-                    .andExpect(jsonPath("$.data[1].term").value("dog"));
+                    .andExpect(jsonPath("$.data[0].flagsStarred").value(false))
+                    .andExpect(jsonPath("$.data[1].term").value("dog"))
+                    .andExpect(jsonPath("$.data[1].flagsStarred").value(false));
+        }
+
+        @Test
+        @DisplayName("Get cards by topic: Success - returns flagsStarred true when card is starred")
+        void testGetCardsByTopic_ReturnsFlagsStarredTrue() throws Exception {
+            Card card = persistCard(deck, topic, "cat", "con meo", 1);
+            userCardStateRepository.save(UserCardState.builder()
+                    .user(testUser)
+                    .card(card)
+                    .deck(deck)
+                    .topic(topic)
+                    .flagsStarred(true)
+                    .build());
+
+            performGetCardsByTopic(topic.getId())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.length()").value(1))
+                    .andExpect(jsonPath("$.data[0].term").value("cat"))
+                    .andExpect(jsonPath("$.data[0].flagsStarred").value(true));
         }
 
         @Test

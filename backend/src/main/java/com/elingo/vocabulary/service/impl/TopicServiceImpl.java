@@ -2,9 +2,11 @@ package com.elingo.vocabulary.service.impl;
 
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
+import com.elingo.learning.flashcard.repository.UserCardStateRepository;
 import com.elingo.premium.entity.SubscriptionStatus;
 import com.elingo.premium.repository.UserSubscriptionRepository;
 import com.elingo.vocabulary.dto.response.CardResponse;
+import com.elingo.vocabulary.entity.Card;
 import com.elingo.vocabulary.entity.Topic;
 import com.elingo.vocabulary.mapper.CardMapper;
 import com.elingo.vocabulary.repository.CardRepository;
@@ -17,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +30,7 @@ public class TopicServiceImpl implements TopicService {
     private final TopicRepository topicRepository;
     private final CardMapper cardMapper;
     private final UserSubscriptionRepository userSubscriptionRepository;
+    private final UserCardStateRepository userCardStateRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -48,10 +53,26 @@ public class TopicServiceImpl implements TopicService {
             }
         }
 
-        List<CardResponse> cards = cardRepository
-                .findAllUnlearnedCardsByTopicIdWithPhonetics(topicId, userId)
+        List<Card> unlearnedCards = cardRepository
+                .findAllUnlearnedCardsByTopicIdWithPhonetics(topicId, userId);
+
+        if (unlearnedCards.isEmpty()) {
+            log.info("Fetched 0 card(s) for topicId={}", topicId);
+            return List.of();
+        }
+
+        List<Long> cardIds = unlearnedCards.stream().map(Card::getId).toList();
+        Map<Long, Boolean> starredMap = userCardStateRepository
+                .findByUserIdAndCardIdIn(userId, cardIds)
                 .stream()
-                .map(cardMapper::toCardResponse)
+                .collect(Collectors.toMap(
+                        ucs -> ucs.getCard().getId(),
+                        ucs -> Boolean.TRUE.equals(ucs.getFlagsStarred())
+                ));
+
+        List<CardResponse> cards = unlearnedCards.stream()
+                .map(card -> cardMapper.toCardResponse(card)
+                        .withFlagsStarred(starredMap.getOrDefault(card.getId(), false)))
                 .toList();
 
         log.info("Fetched {} card(s) for topicId={}", cards.size(), topicId);
