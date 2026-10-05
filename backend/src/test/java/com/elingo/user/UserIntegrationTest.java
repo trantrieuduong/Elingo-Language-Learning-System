@@ -10,6 +10,7 @@ import com.elingo.common.util.EmailTemplateName;
 import com.elingo.common.util.OtpType;
 import com.elingo.user.dto.request.SendOTPUpdateEmailRequest;
 import com.elingo.user.dto.request.UpdateEmailRequest;
+import com.elingo.user.dto.request.UpdateProfileRequest;
 import com.elingo.user.entity.User;
 import com.elingo.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,8 +26,10 @@ import com.elingo.auth.service.JwtService;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
+import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -208,5 +211,129 @@ public class UserIntegrationTest extends BaseIntegrationTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.errors[0].code").value("OTP_INVALID"));
+    }
+
+    @Test
+    @DisplayName("Update profile: Success — assert response and DB persist")
+    void testUpdateProfile_Success() throws Exception {
+        UpdateProfileRequest request = new UpdateProfileRequest("New Full Name", "newusername");
+        mockMvc.perform(patch("/users/me")
+                .header("Authorization", "Bearer " + authToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.fullName").value("New Full Name"))
+                .andExpect(jsonPath("$.data.username").value("newusername"));
+
+        User updatedUser = userRepository.findById(testUser.getId()).orElseThrow();
+        assertThat(updatedUser.getFullName()).isEqualTo("New Full Name");
+        assertThat(updatedUser.getUsername()).isEqualTo("newusername");
+        assertThat(updatedUser.getUsernameChangedAt()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Update profile: Fail — unauthenticated (no JWT) → 403")
+    void testUpdateProfile_Fail_Unauthenticated() throws Exception {
+        UpdateProfileRequest request = new UpdateProfileRequest("New Name", null);
+        mockMvc.perform(patch("/users/me")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("Update profile: Fail — invalid username (contains space)")
+    void testUpdateProfile_Fail_InvalidUsername() throws Exception {
+        UpdateProfileRequest request = new UpdateProfileRequest(null, "a b");
+        mockMvc.perform(patch("/users/me")
+                .header("Authorization", "Bearer " + authToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.errors[0].code").value("USERNAME_INVALID"));
+    }
+
+    @Test
+    @DisplayName("Update profile: Fail — fullName too long (151 chars)")
+    void testUpdateProfile_Fail_FullNameTooLong() throws Exception {
+        String tooLong = "A".repeat(151);
+        UpdateProfileRequest request = new UpdateProfileRequest(tooLong, null);
+        mockMvc.perform(patch("/users/me")
+                .header("Authorization", "Bearer " + authToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.errors[0].code").value("FULL_NAME_INVALID"));
+    }
+
+    @Test
+    @DisplayName("Update profile: Fail — fullName blank (whitespace only)")
+    void testUpdateProfile_Fail_FullNameBlank() throws Exception {
+        UpdateProfileRequest request = new UpdateProfileRequest("   ", null);
+        mockMvc.perform(patch("/users/me")
+                .header("Authorization", "Bearer " + authToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.errors[0].code").value("FULL_NAME_INVALID"));
+    }
+
+    @Test
+    @DisplayName("Update profile: Fail — username cooldown (changed within 30 days)")
+    void testUpdateProfile_Fail_UsernameCooldown() throws Exception {
+        testUser.setUsernameChangedAt(LocalDateTime.now().minusDays(5));
+        userRepository.save(testUser);
+
+        UpdateProfileRequest request = new UpdateProfileRequest(null, "anotheruser");
+        mockMvc.perform(patch("/users/me")
+                .header("Authorization", "Bearer " + authToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.errors[0].code").value("CANNOT_CHANGE_USERNAME_YET"));
+    }
+
+    @Test
+    @DisplayName("Update profile: Fail — username already exists (belongs to another user)")
+    void testUpdateProfile_Fail_UsernameAlreadyExists() throws Exception {
+        User anotherUser = User.builder()
+                .username("takenuser")
+                .email("another@gmail.com")
+                .passwordHash(passwordEncoder.encode(PASSWORD))
+                .fullName("Another User")
+                .isActive(true)
+                .isVerified(true)
+                .build();
+        userRepository.save(anotherUser);
+
+        UpdateProfileRequest request = new UpdateProfileRequest(null, "takenuser");
+        mockMvc.perform(patch("/users/me")
+                .header("Authorization", "Bearer " + authToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.errors[0].code").value("USERNAME_EXISTED"));
+    }
+
+    @Test
+    @DisplayName("Update profile: Empty body {} → 200 OK, no changes (documented behavior)")
+    void testUpdateProfile_EmptyBody_Returns200NoChange() throws Exception {
+        mockMvc.perform(patch("/users/me")
+                .header("Authorization", "Bearer " + authToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
+
+        User unchanged = userRepository.findById(testUser.getId()).orElseThrow();
+        assertThat(unchanged.getFullName()).isEqualTo("Test User");
+        assertThat(unchanged.getUsername()).isEqualTo("testuser");
+        assertThat(unchanged.getUsernameChangedAt()).isNull();
     }
 }

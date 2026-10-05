@@ -10,6 +10,7 @@ import com.elingo.common.util.EmailTemplateName;
 import com.elingo.common.util.OtpType;
 import com.elingo.user.dto.request.SendOTPUpdateEmailRequest;
 import com.elingo.user.dto.request.UpdateEmailRequest;
+import com.elingo.user.dto.request.UpdateProfileRequest;
 import com.elingo.user.entity.User;
 import com.elingo.user.repository.UserRepository;
 import com.elingo.user.service.UserService;
@@ -33,6 +34,8 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+
+    private static final int USERNAME_CHANGE_COOLDOWN_DAYS = 30;
 
     @Override
     @Transactional
@@ -92,8 +95,7 @@ public class UserServiceImpl implements UserService {
                 user.getUsername(),
                 EmailTemplateName.SEND_OTP,
                 newEmailOtp,
-                OtpType.CHANGE_EMAIL.getTitle()
-        );
+                OtpType.CHANGE_EMAIL.getTitle());
         log.info("Update email OTP sent email={} userId={}", newEmail, userId);
     }
 
@@ -135,7 +137,44 @@ public class UserServiceImpl implements UserService {
 
         if (Objects.equals(targetUserId, currentUserId))
             return userMapper.toUserMeResponse(user);
-        
+
         return userMapper.toUserPublicResponse(user);
+    }
+
+    @Override
+    @Transactional
+    public UserMeResponse updateProfile(Long userId, UpdateProfileRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
+
+        boolean isUsernameChanged = false;
+
+        if (request.fullName() != null) {
+            user.setFullName(request.fullName().trim());
+        }
+
+        if (request.username() != null) {
+            String newUsername = request.username();
+            if (!newUsername.equals(user.getUsername())) {
+                if (!user.canChangeUsername(USERNAME_CHANGE_COOLDOWN_DAYS)) {
+                    log.warn("Username change rejected due to cooldown userId={} lastChangedAt={}",
+                            userId, user.getUsernameChangedAt());
+                    throw new AppException(AppError.CANNOT_CHANGE_USERNAME_YET);
+                }
+
+                if (userRepository.existsByUsername(newUsername)) {
+                    log.warn("Username change rejected, already exists userId={} newUsername={}",
+                            userId, newUsername);
+                    throw new AppException(AppError.USERNAME_EXISTED);
+                }
+
+                user.setUsername(newUsername);
+                user.setUsernameChangedAt(LocalDateTime.now());
+                isUsernameChanged = true;
+            }
+        }
+
+        log.info("User profile updated userId={} usernameChanged={}", userId, isUsernameChanged);
+        return userMapper.toUserMeResponse(user);
     }
 }

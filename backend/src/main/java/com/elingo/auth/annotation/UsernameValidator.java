@@ -9,7 +9,8 @@ public class UsernameValidator implements ConstraintValidator<ValidUsername, Str
 
     @Override
     public boolean isValid(String username, ConstraintValidatorContext context) {
-        if (username == null) return false;
+        if (username == null || username.isBlank())
+            return true; // Allow null or blank for PATCH partial update
         return username.matches(USERNAME_REGEX);
     }
 }

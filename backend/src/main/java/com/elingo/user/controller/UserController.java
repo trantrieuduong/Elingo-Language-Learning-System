@@ -8,14 +8,17 @@ import com.elingo.user.dto.request.ChangePasswordRequest;
 import com.elingo.user.dto.request.SendOTPUpdateEmailRequest;
 import com.elingo.user.dto.request.SetPasswordRequest;
 import com.elingo.user.dto.request.UpdateEmailRequest;
+import com.elingo.user.dto.request.UpdateProfileRequest;
 import com.elingo.user.dto.response.UserMeResponse;
 import com.elingo.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j(topic = "USER-CONTROLLER")
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
@@ -95,6 +98,20 @@ public class UserController {
         userService.updateEmail(userId, request);
         return ApiResponse.<Void>builder()
                 .success(true)
+                .build();
+    }
+
+    @PatchMapping("/me")
+    @Operation(summary = "Update current user profile (fullName, username)")
+    public ApiResponse<UserMeResponse> updateProfile(
+            @Valid @RequestBody UpdateProfileRequest request,
+            @CurrentUserId Long userId
+    ) {
+        log.info("Request received to update profile userId={}", userId);
+        UserMeResponse response = userService.updateProfile(userId, request);
+        return ApiResponse.<UserMeResponse>builder()
+                .success(true)
+                .data(response)
                 .build();
     }
 }

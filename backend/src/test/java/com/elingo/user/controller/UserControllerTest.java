@@ -5,6 +5,7 @@ import com.elingo.user.dto.request.ChangePasswordRequest;
 import com.elingo.user.dto.request.SendOTPUpdateEmailRequest;
 import com.elingo.user.dto.request.SetPasswordRequest;
 import com.elingo.user.dto.request.UpdateEmailRequest;
+import com.elingo.user.dto.request.UpdateProfileRequest;
 import com.elingo.user.dto.response.UserMeResponse;
 import com.elingo.user.entity.Role;
 import com.elingo.user.service.UserService;
@@ -169,6 +170,28 @@ class UserControllerTest {
                     .andExpect(jsonPath("$.success").value(true));
 
             verify(userService).updateEmail(eq(USER_ID), any(UpdateEmailRequest.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("updateProfile")
+    class UpdateProfileTests {
+        @Test
+        @DisplayName("Update profile successfully")
+        void updateProfile_Success() throws Exception {
+            UpdateProfileRequest request = new UpdateProfileRequest("New Name", "newuser");
+            UserMeResponse responseMock = new UserMeResponse(USER_ID, "newuser", "test@gmail.com", "New Name", null, Role.USER, true, false, null, null, true, false);
+            when(userService.updateProfile(USER_ID, request)).thenReturn(responseMock);
+
+            mockMvc.perform(patch("/users/me")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.username").value("newuser"))
+                    .andExpect(jsonPath("$.data.fullName").value("New Name"));
+
+            verify(userService).updateProfile(eq(USER_ID), any(UpdateProfileRequest.class));
         }
     }
 }

@@ -7,6 +7,7 @@ import com.elingo.common.service.OtpService;
 import com.elingo.common.util.EmailTemplateName;
 import com.elingo.common.util.OtpType;
 import com.elingo.user.dto.request.ChangePasswordRequest;
+import com.elingo.user.dto.request.UpdateProfileRequest;
 import com.elingo.user.dto.request.SendOTPUpdateEmailRequest;
 import com.elingo.user.dto.request.SetPasswordRequest;
 import com.elingo.user.dto.request.UpdateEmailRequest;
@@ -28,6 +29,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -445,6 +447,111 @@ class UserServiceTest {
             when(userRepository.findById(targetUserId)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> userService.getUserById(targetUserId, USER_ID))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.USER_NOT_FOUND));
+        }
+    }
+
+    // ========================================================================
+    // updateProfile
+    // ========================================================================
+    @Nested
+    @DisplayName("updateProfile")
+    class UpdateProfileTests {
+
+        @Test
+        @DisplayName("Update profile successfully: only fullName changed")
+        void updateProfile_Success_UpdateFullNameOnly() {
+            when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+            UserMeResponse expectedResponse = new UserMeResponse(
+                    USER_ID, USERNAME, EMAIL, "New Name", null, Role.USER, true, true, null, null, true, false
+            );
+            when(userMapper.toUserMeResponse(testUser)).thenReturn(expectedResponse);
+
+            UpdateProfileRequest request = new UpdateProfileRequest("New Name", null);
+            UserMeResponse result = userService.updateProfile(USER_ID, request);
+
+            assertThat(testUser.getFullName()).isEqualTo("New Name");
+            assertThat(testUser.getUsernameChangedAt()).isNull(); // username not touched
+            assertThat(result).isEqualTo(expectedResponse);
+            verify(userRepository, never()).existsByUsername(any());
+        }
+
+        @Test
+        @DisplayName("Update profile successfully: both fullName and username changed")
+        void updateProfile_Success_UpdateBothFields() {
+            // usernameChangedAt = null → canChangeUsername = true
+            when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+            when(userRepository.existsByUsername("newuser")).thenReturn(false);
+            UserMeResponse expectedResponse = new UserMeResponse(
+                    USER_ID, "newuser", EMAIL, "New Name", null, Role.USER, true, true, null, null, true, false
+            );
+            when(userMapper.toUserMeResponse(testUser)).thenReturn(expectedResponse);
+
+            UpdateProfileRequest request = new UpdateProfileRequest("New Name", "newuser");
+            UserMeResponse result = userService.updateProfile(USER_ID, request);
+
+            assertThat(testUser.getFullName()).isEqualTo("New Name");
+            assertThat(testUser.getUsername()).isEqualTo("newuser");
+            assertThat(testUser.getUsernameChangedAt()).isNotNull();
+            assertThat(result).isEqualTo(expectedResponse);
+        }
+
+        @Test
+        @DisplayName("Update profile successfully: same username passed → no change, no existsByUsername call")
+        void updateProfile_Success_SameUsernamePassed() {
+            when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+            UserMeResponse expectedResponse = new UserMeResponse(
+                    USER_ID, USERNAME, EMAIL, FULL_NAME, null, Role.USER, true, true, null, null, true, false
+            );
+            when(userMapper.toUserMeResponse(testUser)).thenReturn(expectedResponse);
+
+            UpdateProfileRequest request = new UpdateProfileRequest(null, USERNAME); // same username
+            userService.updateProfile(USER_ID, request);
+
+            assertThat(testUser.getUsernameChangedAt()).isNull();
+            verify(userRepository, never()).existsByUsername(any());
+        }
+
+        @Test
+        @DisplayName("Update profile failed: username cooldown active")
+        void updateProfile_Failure_UsernameCooldown() {
+            testUser.setUsernameChangedAt(LocalDateTime.now().minusDays(5)); // within 30-day cooldown
+            when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+
+            UpdateProfileRequest request = new UpdateProfileRequest(null, "newuser");
+
+            assertThatThrownBy(() -> userService.updateProfile(USER_ID, request))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.CANNOT_CHANGE_USERNAME_YET));
+
+            verify(userRepository, never()).existsByUsername(any());
+        }
+
+        @Test
+        @DisplayName("Update profile failed: username already exists")
+        void updateProfile_Failure_UsernameAlreadyExists() {
+            when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+            when(userRepository.existsByUsername("takenuser")).thenReturn(true);
+
+            UpdateProfileRequest request = new UpdateProfileRequest(null, "takenuser");
+
+            assertThatThrownBy(() -> userService.updateProfile(USER_ID, request))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.USERNAME_EXISTED));
+        }
+
+        @Test
+        @DisplayName("Update profile failed: user not found")
+        void updateProfile_Failure_UserNotFound() {
+            when(userRepository.findById(USER_ID)).thenReturn(Optional.empty());
+
+            UpdateProfileRequest request = new UpdateProfileRequest("New Name", "newuser");
+
+            assertThatThrownBy(() -> userService.updateProfile(USER_ID, request))
                     .isInstanceOf(AppException.class)
                     .satisfies(ex -> assertThat(((AppException) ex).getAppError())
                             .isEqualTo(AppError.USER_NOT_FOUND));
