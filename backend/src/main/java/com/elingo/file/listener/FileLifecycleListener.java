@@ -1,6 +1,7 @@
-package com.elingo.file.event;
+package com.elingo.file.listener;
 
 import com.elingo.common.event.FileAttachedEvent;
+import com.elingo.common.event.FileDeletedEvent;
 import com.elingo.common.exception.AppException;
 import com.elingo.file.service.R2Service;
 import lombok.RequiredArgsConstructor;
@@ -9,17 +10,16 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-/**
- * Chuyển file từ vùng chờ {@code verified/} sang vùng vĩnh viễn {@code uploads/} khi module
- * sở hữu dữ liệu đã thật sự tham chiếu tới nó.
- */
+import java.util.List;
+
 @Component
 @RequiredArgsConstructor
-@Slf4j(topic = "FILE-PROMOTION-LISTENER")
-public class FilePromotionListener {
+@Slf4j(topic = "FILE-LIFECYCLE-LISTENER")
+public class FileLifecycleListener {
 
     private final R2Service r2Service;
 
+    /** File đã được một bản ghi tham chiếu, nên nó rời vùng chờ sang vùng vĩnh viễn. */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onFileAttached(FileAttachedEvent event) {
         String verifiedKey = event.verifiedFileKey();
@@ -36,6 +36,26 @@ public class FilePromotionListener {
             log.debug("File promotion stopped, already reported uploadsKey={}", uploadsKey);
         } catch (Exception e) {
             log.warn("File promotion skipped verifiedKey={} uploadsKey={}", verifiedKey, uploadsKey, e);
+        }
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onFileDeleted(FileDeletedEvent event) {
+        if (event.fileKeys().isEmpty()) {
+            return; // Bản ghi vốn không có file nào đính kèm.
+        }
+
+        log.info("Files deleted count={}", event.fileKeys().size());
+        safelyDeleteAll(event.fileKeys());
+    }
+
+    private void safelyDeleteAll(List<String> fileKeys) {
+        for (String fileKey : fileKeys) {
+            try {
+                r2Service.deleteFile(fileKey);
+            } catch (Exception e) {
+                log.warn("File cleanup skipped reason=deleteFailed fileKey={}", fileKey, e);
+            }
         }
     }
 }
