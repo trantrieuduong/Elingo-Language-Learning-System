@@ -7,18 +7,17 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record RegisterRequest(
-        @NotBlank(message = "USERNAME_INVALID")
-        @ValidUsername
+        @ValidUsername 
         String username,
 
-        @NotBlank(message = "EMAIL_INVALID")
-        @Email(message = "EMAIL_INVALID")
+        @NotBlank(message = "EMAIL_INVALID") 
+        @Email(message = "EMAIL_INVALID") 
         String email,
 
-        @NotBlank(message = "FULL_NAME_INVALID")
-        @Size(max = 150, message = "FULL_NAME_INVALID")
+        @NotBlank(message = "FULL_NAME_INVALID") 
+        @Size(max = 150, message = "FULL_NAME_INVALID") 
         String fullName,
 
-        @ValidPassword
+        @ValidPassword 
         String password
 ) { }

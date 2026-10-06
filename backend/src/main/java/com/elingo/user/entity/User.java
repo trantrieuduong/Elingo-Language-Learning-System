@@ -90,10 +90,7 @@ public class User extends BaseEntity implements UserDetails  {
         return passwordHash;
     }
 
-    public boolean canChangeUsername(int cooldownDays) {
-        if (usernameChangedAt == null) {
-            return true;
-        }
-        return !usernameChangedAt.isAfter(LocalDateTime.now().minusDays(cooldownDays));
+    public boolean canChangeUsername() {
+        return usernameChangedAt == null || !usernameChangedAt.isAfter(LocalDateTime.now().minusDays(30));
     }
 }

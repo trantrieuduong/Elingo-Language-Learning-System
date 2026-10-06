@@ -25,93 +25,89 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "User Controller")
 public class UserController {
 
-    private final UserService userService;
-    private final RateLimiterService limiter;
+        private final UserService userService;
+        private final RateLimiterService limiter;
 
-    @GetMapping("/me")
-    @Operation(summary = "Get current user profile")
-    public ApiResponse<UserMeResponse> getMyInfo(@CurrentUserId Long userId) {
-        UserMeResponse response = userService.getMyInfo(userId);
-        return ApiResponse.<UserMeResponse>builder()
-                .success(true)
-                .data(response)
-                .build();
-    }
+        @GetMapping("/me")
+        @Operation(summary = "Get current user profile")
+        public ApiResponse<UserMeResponse> getMyInfo(@CurrentUserId Long userId) {
+                UserMeResponse response = userService.getMyInfo(userId);
+                return ApiResponse.<UserMeResponse>builder()
+                                .success(true)
+                                .data(response)
+                                .build();
+        }
 
-    @GetMapping("/{id}")
-    @Operation(summary = "Get user profile by id")
-    public ApiResponse<Object> getUserById(
-            @PathVariable Long id,
-            @CurrentUserId Long currentUserId
-    ) {
-        Object response = userService.getUserById(id, currentUserId);
-        return ApiResponse.builder()
-                .success(true)
-                .data(response)
-                .build();
-    }
+        @GetMapping("/{id}")
+        @Operation(summary = "Get user profile by id")
+        public ApiResponse<Object> getUserById(
+                        @PathVariable Long id,
+                        @CurrentUserId Long currentUserId) {
+                Object response = userService.getUserById(id, currentUserId);
+                return ApiResponse.builder()
+                                .success(true)
+                                .data(response)
+                                .build();
+        }
 
-    @PatchMapping("/me/password")
-    @Operation(summary = "Change current user password")
-    public ApiResponse<Void> changePassword(
-            @Valid @RequestBody ChangePasswordRequest request,
-            @CurrentUserId Long userId
-    ) {
-        userService.changePassword(userId, request);
-        return ApiResponse.<Void>builder()
-                .success(true)
-                .build();
-    }
+        @PatchMapping("/me/password")
+        @Operation(summary = "Change current user password")
+        public ApiResponse<Void> changePassword(
+                        @Valid @RequestBody ChangePasswordRequest request,
+                        @CurrentUserId Long userId) {
+                userService.changePassword(userId, request);
+                return ApiResponse.<Void>builder()
+                                .success(true)
+                                .build();
+        }
 
-    @PostMapping("/me/password")
-    @Operation(summary = "Set password for Google-authenticated account (first time only)")
-    public ApiResponse<Void> setPassword(
-            @Valid @RequestBody SetPasswordRequest request,
-            @CurrentUserId Long userId
-    ) {
-        userService.setPassword(userId, request);
-        return ApiResponse.<Void>builder()
-                .success(true)
-                .build();
-    }
+        @PostMapping("/me/password")
+        @Operation(summary = "Set password for Google-authenticated account (first time only)")
+        public ApiResponse<Void> setPassword(
+                        @Valid @RequestBody SetPasswordRequest request,
+                        @CurrentUserId Long userId) {
+                userService.setPassword(userId, request);
+                return ApiResponse.<Void>builder()
+                                .success(true)
+                                .build();
+        }
 
-    @PostMapping("/me/email/otp")
-    @Operation(summary = "Send OTP for update email via email")
-    public ApiResponse<Void> sendOTPUpdateEmail(
-            @Valid @RequestBody SendOTPUpdateEmailRequest request,
-            @CurrentUserId Long userId) {
-        limiter.check(RateLimitRule.OTP_SEND_EMAIL, request.newEmail());
+        @PostMapping("/me/email/otp")
+        @Operation(summary = "Send OTP for update email via email")
+        public ApiResponse<Void> sendOTPUpdateEmail(
+                        @Valid @RequestBody SendOTPUpdateEmailRequest request,
+                        @CurrentUserId Long userId) {
+                limiter.check(RateLimitRule.OTP_SEND_EMAIL, request.newEmail());
 
-        userService.sendOTPUpdateEmail(userId, request);
-        return ApiResponse.<Void>builder()
-                .success(true)
-                .build();
-    }
+                userService.sendOTPUpdateEmail(userId, request);
+                return ApiResponse.<Void>builder()
+                                .success(true)
+                                .build();
+        }
 
-    @PatchMapping("/me/email")
-    @Operation(summary = "Confirm email update with OTP")
-    public ApiResponse<Void> updateEmail(
-            @Valid @RequestBody UpdateEmailRequest request,
-            @CurrentUserId Long userId) {
-        limiter.check(RateLimitRule.OTP_RESET_EMAIL, request.newEmail());
+        @PatchMapping("/me/email")
+        @Operation(summary = "Confirm email update with OTP")
+        public ApiResponse<Void> updateEmail(
+                        @Valid @RequestBody UpdateEmailRequest request,
+                        @CurrentUserId Long userId) {
+                limiter.check(RateLimitRule.OTP_RESET_EMAIL, request.newEmail());
 
-        userService.updateEmail(userId, request);
-        return ApiResponse.<Void>builder()
-                .success(true)
-                .build();
-    }
+                userService.updateEmail(userId, request);
+                return ApiResponse.<Void>builder()
+                                .success(true)
+                                .build();
+        }
 
-    @PatchMapping("/me")
-    @Operation(summary = "Update current user profile (fullName, username)")
-    public ApiResponse<UserMeResponse> updateProfile(
-            @Valid @RequestBody UpdateProfileRequest request,
-            @CurrentUserId Long userId
-    ) {
-        log.info("Request received to update profile userId={}", userId);
-        UserMeResponse response = userService.updateProfile(userId, request);
-        return ApiResponse.<UserMeResponse>builder()
-                .success(true)
-                .data(response)
-                .build();
-    }
+        @PutMapping("/me")
+        @Operation(summary = "Update current user profile")
+        public ApiResponse<UserMeResponse> updateProfile(
+                        @Valid @RequestBody UpdateProfileRequest request,
+                        @CurrentUserId Long userId) {
+                                
+                UserMeResponse response = userService.updateProfile(userId, request);
+                return ApiResponse.<UserMeResponse>builder()
+                                .success(true)
+                                .data(response)
+                                .build();
+        }
 }

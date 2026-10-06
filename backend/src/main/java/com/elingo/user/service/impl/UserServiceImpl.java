@@ -35,8 +35,6 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
-    private static final int USERNAME_CHANGE_COOLDOWN_DAYS = 30;
-
     @Override
     @Transactional
     public void changePassword(Long userId, ChangePasswordRequest request) {
@@ -147,34 +145,27 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
 
-        boolean isUsernameChanged = false;
+        // verify avt
 
-        if (request.fullName() != null) {
-            user.setFullName(request.fullName().trim());
-        }
+        boolean isUsernameChanged = !request.username().equals(user.getUsername());
 
-        if (request.username() != null) {
-            String newUsername = request.username();
-            if (!newUsername.equals(user.getUsername())) {
-                if (!user.canChangeUsername(USERNAME_CHANGE_COOLDOWN_DAYS)) {
-                    log.warn("Username change rejected due to cooldown userId={} lastChangedAt={}",
-                            userId, user.getUsernameChangedAt());
-                    throw new AppException(AppError.CANNOT_CHANGE_USERNAME_YET);
-                }
-
-                if (userRepository.existsByUsername(newUsername)) {
-                    log.warn("Username change rejected, already exists userId={} newUsername={}",
-                            userId, newUsername);
-                    throw new AppException(AppError.USERNAME_EXISTED);
-                }
-
-                user.setUsername(newUsername);
-                user.setUsernameChangedAt(LocalDateTime.now());
-                isUsernameChanged = true;
+        if (isUsernameChanged) {
+            if (!user.canChangeUsername()) {
+                log.warn("Username change rejected due to cooldown userId={} lastChangedAt={}",
+                        userId, user.getUsernameChangedAt());
+                throw new AppException(AppError.CANNOT_CHANGE_USERNAME_YET);
+            }
+            if (userRepository.existsByUsername(request.username())) {
+                log.warn("Username change rejected, already exists userId={}", userId);
+                throw new AppException(AppError.USERNAME_EXISTED);
             }
         }
 
-        log.info("User profile updated userId={} usernameChanged={}", userId, isUsernameChanged);
+        userMapper.updateUser(user, request);
+        if (isUsernameChanged) {
+            user.setUsernameChangedAt(LocalDateTime.now());
+        }
+
         return userMapper.toUserMeResponse(user);
     }
 }

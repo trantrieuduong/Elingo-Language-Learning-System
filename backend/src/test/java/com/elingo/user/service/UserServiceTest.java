@@ -37,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -227,8 +228,7 @@ class UserServiceTest {
                     eq(USERNAME),
                     eq(EmailTemplateName.SEND_OTP),
                     eq(OTP),
-                    anyString()
-            );
+                    anyString());
         }
 
         @Test
@@ -374,8 +374,7 @@ class UserServiceTest {
         void getMyInfo_Success() {
             UserMeResponse expectedResponse = new UserMeResponse(
                     USER_ID, USERNAME, EMAIL, FULL_NAME, null,
-                    Role.USER, true, true, null, null, true, false
-            );
+                    Role.USER, true, true, null, null, true, false);
             when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
             when(userMapper.toUserMeResponse(testUser)).thenReturn(expectedResponse);
 
@@ -411,8 +410,7 @@ class UserServiceTest {
         void getUserById_Self_ReturnsUserMeResponse() {
             UserMeResponse expectedResponse = new UserMeResponse(
                     USER_ID, USERNAME, EMAIL, FULL_NAME, null,
-                    Role.USER, true, true, null, null, true, false
-            );
+                    Role.USER, true, true, null, null, true, false);
             when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
             when(userMapper.toUserMeResponse(testUser)).thenReturn(expectedResponse);
 
@@ -428,8 +426,7 @@ class UserServiceTest {
         void getUserById_OtherUser_ReturnsUserPublicResponse() {
             Long otherUserId = 2L;
             UserPublicResponse expectedResponse = new UserPublicResponse(
-                    USER_ID, USERNAME, FULL_NAME, null, Role.USER
-            );
+                    USER_ID, USERNAME, FULL_NAME, null, Role.USER);
             when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
             when(userMapper.toUserPublicResponse(testUser)).thenReturn(expectedResponse);
 
@@ -465,17 +462,22 @@ class UserServiceTest {
         void updateProfile_Success_UpdateFullNameOnly() {
             when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
             UserMeResponse expectedResponse = new UserMeResponse(
-                    USER_ID, USERNAME, EMAIL, "New Name", null, Role.USER, true, true, null, null, true, false
-            );
+                    USER_ID, USERNAME, EMAIL, "New Name", null, Role.USER, true, true, null, null, true, false);
             when(userMapper.toUserMeResponse(testUser)).thenReturn(expectedResponse);
+            doAnswer(invocation -> {
+                User u = invocation.getArgument(0);
+                UpdateProfileRequest req = invocation.getArgument(1);
+                if (req.fullName() != null)
+                    u.setFullName(req.fullName());
+                return null;
+            }).when(userMapper).updateUser(eq(testUser), any(UpdateProfileRequest.class));
 
-            UpdateProfileRequest request = new UpdateProfileRequest("New Name", null);
+            UpdateProfileRequest request = new UpdateProfileRequest(null, "New Name", USERNAME);
             UserMeResponse result = userService.updateProfile(USER_ID, request);
 
-            assertThat(testUser.getFullName()).isEqualTo("New Name");
             assertThat(testUser.getUsernameChangedAt()).isNull(); // username not touched
             assertThat(result).isEqualTo(expectedResponse);
-            verify(userRepository, never()).existsByUsername(any());
+            verify(userMapper).updateUser(eq(testUser), eq(request));
         }
 
         @Test
@@ -483,35 +485,40 @@ class UserServiceTest {
         void updateProfile_Success_UpdateBothFields() {
             // usernameChangedAt = null → canChangeUsername = true
             when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
-            when(userRepository.existsByUsername("newuser")).thenReturn(false);
             UserMeResponse expectedResponse = new UserMeResponse(
-                    USER_ID, "newuser", EMAIL, "New Name", null, Role.USER, true, true, null, null, true, false
-            );
+                    USER_ID, "newuser", EMAIL, "New Name", null, Role.USER, true, true, null, null, true, false);
             when(userMapper.toUserMeResponse(testUser)).thenReturn(expectedResponse);
+            doAnswer(invocation -> {
+                User u = invocation.getArgument(0);
+                UpdateProfileRequest req = invocation.getArgument(1);
+                if (req.fullName() != null)
+                    u.setFullName(req.fullName());
+                if (req.username() != null)
+                    u.setUsername(req.username());
+                return null;
+            }).when(userMapper).updateUser(eq(testUser), any(UpdateProfileRequest.class));
 
-            UpdateProfileRequest request = new UpdateProfileRequest("New Name", "newuser");
+            UpdateProfileRequest request = new UpdateProfileRequest(null, "New Name", "newuser");
             UserMeResponse result = userService.updateProfile(USER_ID, request);
 
-            assertThat(testUser.getFullName()).isEqualTo("New Name");
-            assertThat(testUser.getUsername()).isEqualTo("newuser");
             assertThat(testUser.getUsernameChangedAt()).isNotNull();
             assertThat(result).isEqualTo(expectedResponse);
+            verify(userMapper).updateUser(eq(testUser), eq(request));
         }
 
         @Test
-        @DisplayName("Update profile successfully: same username passed → no change, no existsByUsername call")
+        @DisplayName("Update profile successfully: same username passed → no change, no cooldown trigger")
         void updateProfile_Success_SameUsernamePassed() {
             when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
             UserMeResponse expectedResponse = new UserMeResponse(
-                    USER_ID, USERNAME, EMAIL, FULL_NAME, null, Role.USER, true, true, null, null, true, false
-            );
+                    USER_ID, USERNAME, EMAIL, FULL_NAME, null, Role.USER, true, true, null, null, true, false);
             when(userMapper.toUserMeResponse(testUser)).thenReturn(expectedResponse);
 
-            UpdateProfileRequest request = new UpdateProfileRequest(null, USERNAME); // same username
+            UpdateProfileRequest request = new UpdateProfileRequest(null, FULL_NAME, USERNAME); // same username
             userService.updateProfile(USER_ID, request);
 
             assertThat(testUser.getUsernameChangedAt()).isNull();
-            verify(userRepository, never()).existsByUsername(any());
+            verify(userMapper).updateUser(eq(testUser), eq(request));
         }
 
         @Test
@@ -520,14 +527,12 @@ class UserServiceTest {
             testUser.setUsernameChangedAt(LocalDateTime.now().minusDays(5)); // within 30-day cooldown
             when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
 
-            UpdateProfileRequest request = new UpdateProfileRequest(null, "newuser");
+            UpdateProfileRequest request = new UpdateProfileRequest(null, FULL_NAME, "newuser");
 
             assertThatThrownBy(() -> userService.updateProfile(USER_ID, request))
                     .isInstanceOf(AppException.class)
                     .satisfies(ex -> assertThat(((AppException) ex).getAppError())
                             .isEqualTo(AppError.CANNOT_CHANGE_USERNAME_YET));
-
-            verify(userRepository, never()).existsByUsername(any());
         }
 
         @Test
@@ -536,7 +541,7 @@ class UserServiceTest {
             when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
             when(userRepository.existsByUsername("takenuser")).thenReturn(true);
 
-            UpdateProfileRequest request = new UpdateProfileRequest(null, "takenuser");
+            UpdateProfileRequest request = new UpdateProfileRequest(null, FULL_NAME, "takenuser");
 
             assertThatThrownBy(() -> userService.updateProfile(USER_ID, request))
                     .isInstanceOf(AppException.class)
@@ -549,7 +554,7 @@ class UserServiceTest {
         void updateProfile_Failure_UserNotFound() {
             when(userRepository.findById(USER_ID)).thenReturn(Optional.empty());
 
-            UpdateProfileRequest request = new UpdateProfileRequest("New Name", "newuser");
+            UpdateProfileRequest request = new UpdateProfileRequest(null, "New Name", "newuser");
 
             assertThatThrownBy(() -> userService.updateProfile(USER_ID, request))
                     .isInstanceOf(AppException.class)
