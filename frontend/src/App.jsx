@@ -7,17 +7,17 @@ import LandingPage from './modules/home/pages/LandingPage'
 import LoginPage from './modules/auth/pages/LoginPage'
 import ResetPasswordPage from './modules/auth/pages/ResetPasswordPage'
 import SignupPage from './modules/auth/pages/SignupPage'
-import VocabularyListPage from './modules/vocabulary/pages/VocabularyListPage/VocabularyListPage'
+import DeckListPage from './modules/vocabulary/pages/DeckListPage/DeckListPage'
 import FlashcardStudyPage from './modules/learning/flashcard/pages/FlashcardStudyPage'
 import FlashcardReviewPage from './modules/learning/flashcard/pages/FlashcardReviewPage'
 import './App.css'
 
-const PUBLIC_PATHS = ['/', '/login', '/signup', '/account-verification', '/reset-password']
+const PUBLIC_PATHS = ['/login', '/signup', '/account-verification', '/reset-password']
 
 const PRIVATE_USER_PATHS = [
   '/dashboard',
   '/learning',
-  '/flashcard',
+  '/review',
   '/battle',
   '/speaking',
   '/community',
@@ -25,7 +25,6 @@ const PRIVATE_USER_PATHS = [
   '/gamification',
   '/premium',
   '/profile',
-  '/vocabulary',
   '/notification',
 ]
 
@@ -51,14 +50,14 @@ function App() {
     const isAdminPath = currentPath.startsWith('/admin')
     const isPrivateUserPath = PRIVATE_USER_PATHS.some((path) => {
       return currentPath === path || currentPath.startsWith(`${path}/`)
-    })
+    }) || !!flashcardStudyMatch // Trang học flashcard (/decks/:id) bắt buộc đăng nhập
 
     if (!user && (isAdminPath || isPrivateUserPath)) {
       navigate('/login')
       return
     }
 
-    if (user && isPublic && currentPath !== '/') {
+    if (user && isPublic) {
       navigate(isAdmin ? '/admin' : '/dashboard')
       return
     }
@@ -92,10 +91,8 @@ function App() {
     )
   }
 
-  const isFlashcardPage = currentPath.startsWith('/flashcard')
-  const isFlashcardReview = currentPath === '/flashcard/review'
-  const flashcardStudyMatch = currentPath.match(/^\/flashcard\/([^/]+)$/)
-
+  const flashcardStudyMatch = currentPath.match(/^\/decks\/([^/]+)$/)
+  const isFlashcardPage =  !!flashcardStudyMatch || currentPath === '/review'
 
   const renderAdminContent = () => {
     return (
@@ -110,10 +107,6 @@ function App() {
   }
 
   const renderContent = () => {
-    if (isFlashcardReview) {
-      return <FlashcardReviewPage onNavigate={navigate} />
-    }
-
     if (flashcardStudyMatch) {
       return <FlashcardStudyPage deckId={flashcardStudyMatch[1]} onNavigate={navigate} />
     }
@@ -133,6 +126,8 @@ function App() {
         return <PlaceholderPage title="Dashboard" path={currentPath} />
       case '/learning':
         return <PlaceholderPage title="Learning" path={currentPath} />
+      case '/review':
+        return <FlashcardReviewPage onNavigate={navigate} />
       case '/battle':
         return <PlaceholderPage title="Battle" path={currentPath} />
       case '/speaking':
@@ -147,8 +142,8 @@ function App() {
         return <PlaceholderPage title="Premium" path={currentPath} />
       case '/profile':
         return <PlaceholderPage title="Profile" path={currentPath} />
-      case '/vocabulary':
-        return <VocabularyListPage onNavigate={navigate} />
+      case '/decks':
+        return <DeckListPage onNavigate={navigate} />
       case '/notification':
         return <PlaceholderPage title="Notifications" path={currentPath} />
       default:

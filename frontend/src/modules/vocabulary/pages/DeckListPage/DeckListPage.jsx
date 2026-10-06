@@ -3,13 +3,13 @@ import { getDecksApi, getTagsApi, getCefrLevelsApi } from '../../vocabularyApi'
 import Pagination from '../../../../components/Pagination/Pagination'
 import Filter from '../../../../components/Filter/Filter'
 import Input from '../../../../components/Input/Input'
-import './VocabularyListPage.css'
+import './DeckListPage.css'
 
 /**
  * Trang danh sách các bộ từ vựng công khai (decks)
  * @param {Function} onNavigate - Hàm điều hướng từ App.jsx
  */
-function VocabularyListPage({ onNavigate }) {
+function DeckListPage({ onNavigate }) {
   // States dữ liệu
   const [decks, setDecks] = useState([])
   const [tags, setTags] = useState([])
@@ -100,9 +100,7 @@ function VocabularyListPage({ onNavigate }) {
   }, [debouncedQuery, selectedTagId, selectedCefrLevelId, page, retryCount])
 
   const handleDeckClick = (deckId) => {
-    if (onNavigate) {
-      onNavigate(`/flashcard/${deckId}`)
-    }
+      onNavigate(`/decks/${deckId}`)
   }
 
   const hasActiveFilters = searchQuery !== '' || selectedTagId !== null || selectedCefrLevelId !== null
@@ -116,12 +114,12 @@ function VocabularyListPage({ onNavigate }) {
   }
 
   return (
-    <main className="vocabulary-list-page">
-      <div className="container vocabulary-list-container">
+    <main className="deck-list-page">
+      <div className="container deck-list-container">
         {/* Filter Section */}
-        <section className="vocabulary-list-filters glass-well">
-          <div className="vocabulary-list-filters__top">
-            <div className="vocabulary-list-filters__search">
+        <section className="deck-list-filters glass-well">
+          <div className="deck-list-filters__top">
+            <div className="deck-list-filters__search">
               <Input
                 id="search-decks"
                 placeholder="Tìm kiếm theo tên bộ từ vựng..."
@@ -152,7 +150,7 @@ function VocabularyListPage({ onNavigate }) {
         </section>
 
         {/* Content Section */}
-        <section className="vocabulary-list-content">
+        <section className="deck-list-content">
           {loading ? (
             <div className="page-loading">
               <div className="app-loading-spinner" />
@@ -160,7 +158,7 @@ function VocabularyListPage({ onNavigate }) {
           ) : error ? (
             <div className="empty-state glass-card">
               <span className="material-symbols-outlined empty-state__icon text-error">error</span>
-              <p className="text-body-lg text-error">{error}</p>
+              <p className="text-body-lg text-error">{error}</p>{/* Lỗi danh sách nội dung */}
               <button type="button" className="btn-secondary" onClick={() => setRetryCount(c => c + 1)}>
                 Thử lại
               </button>
@@ -232,4 +230,4 @@ function VocabularyListPage({ onNavigate }) {
   )
 }
 
-export default VocabularyListPage
+export default DeckListPage

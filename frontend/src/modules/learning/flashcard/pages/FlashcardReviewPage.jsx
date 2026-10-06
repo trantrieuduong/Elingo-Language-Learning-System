@@ -7,10 +7,11 @@ import {
 } from '../flashcardApi'
 import FlashcardStudyArea from '../components/FlashcardStudyArea'
 import FlashcardCompletePlaceholder from '../components/FlashcardCompletePlaceholder'
+import PageError from '../../../../components/PageError/PageError'
 import './FlashcardReviewPage.css'
 
 /**
- * FlashcardReviewPage — Trang ôn tập flashcard đến hạn (SM-2) tại route /flashcard/review.
+ * FlashcardReviewPage — Trang ôn tập flashcard đến hạn (SM-2) tại route /review.
  * Giao diện tối giản: chỉ gồm nút quay lại, thẻ Flashcard 3D và 4 nút đánh giá.
  *
  * @param {Function} onNavigate - Hàm điều hướng custom router từ App.jsx
@@ -145,26 +146,12 @@ function FlashcardReviewPage({ onNavigate }) {
 
   if (error) {
     return (
-      <div className="page-loading">
-        <div
-          className="auth-alert auth-alert--error"
-          style={{ maxWidth: '600px', width: '100%', margin: '0 auto', textAlign: 'center' }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: '48px', marginBottom: '16px' }}>
-            error
-          </span>
-          <p>{error}</p>
-          <button
-            className="btn-primary"
-            style={{ marginTop: '24px' }}
-            onClick={() => {
-              if (onNavigate) onNavigate('/vocabulary')
-            }}
-          >
-            Quay lại trang chủ
-          </button>
-        </div>
-      </div>
+      <PageError 
+        error={error} 
+        onAction={() => {
+          if (onNavigate) onNavigate('/')
+        }} 
+      />
     )
   }
 
@@ -173,20 +160,25 @@ function FlashcardReviewPage({ onNavigate }) {
   const currentCardId = currentCard?.id
 
   return (
-    <div className="flashcard-review-page-container">
-      <div className="flashcard-review-layout">
-        {/* HEADER: Nút quay lại */}
-        <div className="flashcard-review-header-bar">
+    <div className="flashcard-page-container">
+      <div className="flashcard-layout">
+        <div className="flashcard-header-bar">
           <button
             className="btn-secondary"
             onClick={() => {
-              if (onNavigate) onNavigate('/vocabulary')
+              if (onNavigate) onNavigate('/decks')
             }}
           >
             <span className="material-symbols-outlined">arrow_back</span>
             Quay lại
           </button>
         </div>
+        
+        {/*Thanh tiến độ rỗng tựa bên StudyPage */}
+        <div></div>
+
+        {/* Danh sách Topics rỗng */}
+        <aside className="flashcard-sidebar"></aside>
 
         {/* KHÔNG GIAN THẺ FLASHCARD & 4 NÚT ĐÁNH GIÁ SM-2 */}
         <main className="flashcard-main-content glass-well">

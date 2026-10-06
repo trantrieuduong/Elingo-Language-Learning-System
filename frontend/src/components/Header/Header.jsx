@@ -99,8 +99,8 @@ function Header({ onNavigate, currentPath }) {
 
   // Nav items cho user đã đăng nhập
   const NAV_ITEMS = [
-    { key: 'vocabulary', label: 'Bộ từ', path: '/vocabulary' },
-    { key: 'review', label: 'Ôn tập', path: '/flashcard/review' },
+    { key: 'decks', label: 'Bộ từ', path: '/decks' },
+    { key: 'review', label: 'Ôn tập', path: '/review' },
     { key: 'learning', label: 'Học tập', path: '/learning' },
     { key: 'battle', label: 'Thi đấu', path: '/battle' },
     { key: 'community', label: 'Cộng đồng', path: '/community' },

@@ -24,7 +24,7 @@ function Footer({ onNavigate }) {
             <span className="footer__nav-heading text-label-md">Học tập</span>
             <a href="/learning" className="footer__nav-link" onClick={(e) => { e.preventDefault(); handleNav('/learning') }}>Bài học</a>
             <a href="/flashcard" className="footer__nav-link" onClick={(e) => { e.preventDefault(); handleNav('/flashcard') }}>Flashcard</a>
-            <a href="/vocabulary" className="footer__nav-link" onClick={(e) => { e.preventDefault(); handleNav('/vocabulary') }}>Từ vựng</a>
+            <a href="/decks" className="footer__nav-link" onClick={(e) => { e.preventDefault(); handleNav('/decks') }}>Bộ từ vựng</a>
           </div>
 
           <div className="footer__nav-group">

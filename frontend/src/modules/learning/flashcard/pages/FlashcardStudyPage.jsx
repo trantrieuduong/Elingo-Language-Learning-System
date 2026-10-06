@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { getTopicsByDeckIdApi, getUnlearnedCardsByTopicIdApi, submitSrsReviewApi, toggleStarApi, toggleHideApi } from '../flashcardApi'
 import FlashcardStudyArea from '../components/FlashcardStudyArea'
 import FlashcardCompletePlaceholder from '../components/FlashcardCompletePlaceholder'
+import PageError from '../../../../components/PageError/PageError'
 import './FlashcardStudyPage.css'
 
 /**
@@ -220,21 +221,12 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
 
   if (error) {
     return (
-      <div className="page-loading">
-        <div className="auth-alert auth-alert--error" style={{ maxWidth: '600px', width: '100%', margin: '0 auto', textAlign: 'center' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: '48px', marginBottom: '16px' }}>error</span>
-          <p>{error}</p>
-          <button
-            className="btn-primary"
-            style={{ marginTop: '24px' }}
-            onClick={() => {
-              if (onNavigate) onNavigate('/')
-            }}
-          >
-            Quay lại trang chủ
-          </button>
-        </div>
-      </div>
+      <PageError 
+        error={error} 
+        onAction={() => {
+          if (onNavigate) onNavigate('/')
+        }} 
+      />
     )
   }
 
@@ -246,19 +238,18 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
     <div className="flashcard-page-container">
       <div className="flashcard-layout">
         
-        {/* DÒNG 1 (HEADER): Sẽ tự động chia 2 cột khớp với grid bên dưới */}
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        {/* Sẽ tự động chia 2 cột khớp với grid bên dưới */}
+        <div className="flashcard-header-bar">
           <button 
             className="btn-secondary" 
-            onClick={() => { if (onNavigate) onNavigate('/vocabulary') }}
-            style={{ fontWeight: 600 }}
+            onClick={() => { if (onNavigate) onNavigate('/decks') }}
           >
             <span className="material-symbols-outlined">arrow_back</span>
             Quay lại
           </button>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', padding: '0 var(--spacing-sm)' }}>
+        <div>
           {/* Thanh tiến độ tổng quan */}
           {(() => {
             const progressValues = Object.values(topicProgress)
@@ -270,29 +261,17 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
             const globalProgressPercent = Math.round((globalLearned / globalTotal) * 100)
 
             return (
-              <div className="glass-card" style={{ padding: 'var(--spacing-sm) var(--spacing-lg)', borderRadius: 'var(--radius-full)', width: '100%' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                  <span className="text-title-sm" style={{ margin: 0, color: 'var(--color-text-high)' }}>Tiến độ tổng quan</span>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>
+              <div className="glass-card flashcard-global-progress">
+                <div className="flashcard-progress-header">
+                  <span className="text-title-sm flashcard-progress-title">Tiến độ tổng quan</span>
+                  <span className="flashcard-progress-stats">
                     {globalLearned} / {globalTotal}
                   </span>
                 </div>
-                <div 
-                  style={{ 
-                    width: '100%', 
-                    height: '6px', 
-                    backgroundColor: 'var(--color-surface-variant)', 
-                    borderRadius: 'var(--radius-full)', 
-                    overflow: 'hidden'
-                  }}
-                >
+                <div className="flashcard-progress-track">
                   <div 
-                    style={{ 
-                      width: `${globalProgressPercent}%`, 
-                      height: '100%', 
-                      backgroundColor: 'var(--color-primary)', 
-                      transition: 'width 0.4s ease' 
-                    }} 
+                    className="flashcard-progress-bar"
+                    style={{ width: `${globalProgressPercent}%` }} 
                   />
                 </div>
               </div>
@@ -303,9 +282,9 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
         {/* Cột trái: Danh sách Topics */}
         <aside className="flashcard-sidebar">
           {topics.length === 0 && !loading && (
-            <div className="empty-state glass-card" style={{ padding: 'var(--spacing-xl)', textAlign: 'center' }}>
+            <div className="empty-state glass-card flashcard-empty-topic">
               <span className="material-symbols-outlined">inbox</span>
-              <p>Deck này chưa có topic nào.</p>
+              <p>Bộ từ này chưa có chủ để nào.</p>
             </div>
           )}
 
@@ -317,10 +296,10 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
                 className={`glass-card flashcard-topic-card ${selectedTopicId === (topic.id) ? 'active' : ''}`}
                 onClick={() => setSelectedTopicId(topic.id)}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div className="flashcard-topic-header">
                   <h3 className="flashcard-topic-title">{topic.name}</h3>
                   {progress && (
-                    <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>
+                    <span className="flashcard-progress-stats">
                       {progress.total - progress.unlearned} / {progress.total}
                     </span>
                   )}
@@ -329,23 +308,10 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
                   <p className="flashcard-topic-desc">{topic.description}</p>
                 )}
                 {progress && progress.total > 0 && (
-                  <div 
-                    style={{ 
-                      width: '100%', 
-                      height: '6px', 
-                      backgroundColor: 'var(--color-surface-variant)', 
-                      borderRadius: 'var(--radius-full)', 
-                      marginTop: 'var(--spacing-xs)',
-                      overflow: 'hidden'
-                    }}
-                  >
+                  <div className="flashcard-progress-track">
                     <div 
-                      style={{ 
-                        width: `${Math.round(((progress.total - progress.unlearned) / progress.total) * 100)}%`, 
-                        height: '100%', 
-                        backgroundColor: 'var(--color-primary)', 
-                        transition: 'width 0.4s ease' 
-                      }} 
+                      className="flashcard-progress-bar"
+                      style={{ width: `${Math.round(((progress.total - progress.unlearned) / progress.total) * 100)}%` }} 
                     />
                   </div>
                 )}
@@ -361,22 +327,21 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
               <span className="material-symbols-outlined flashcard-empty-placeholder-icon">
                 style
               </span>
-              <p className="text-body-md" style={{ marginTop: 'var(--spacing-sm)' }}>
+              <p className="text-body-md flashcard-placeholder-text">
                 Không có flashcard để học.
               </p>
             </div>
           ) : topicCardsError[selectedTopicId] ? (
             <div className="flashcard-empty-placeholder">
-              <span className="material-symbols-outlined flashcard-empty-placeholder-icon" style={{ color: 'var(--color-error)' }}>
+              <span className="material-symbols-outlined flashcard-empty-placeholder-icon flashcard-placeholder-icon--error">
                 wifi_off
               </span>
               <h2 className="text-title-md">Lỗi kết nối</h2>
-              <p className="text-body-md" style={{ marginTop: 'var(--spacing-sm)' }}>
+              <p className="text-body-md flashcard-placeholder-text">
                 Không thể tải dữ liệu flashcard. Vui lòng kiểm tra mạng và thử lại.
               </p>
               <button 
-                className="btn-primary" 
-                style={{ marginTop: 'var(--spacing-md)' }}
+                className="btn-primary flashcard-placeholder-btn"
                 onClick={() => {
                   setTopicCardsError(prev => ({ ...prev, [selectedTopicId]: false }))
                   setUnlearnedCardsByTopic(prev => ({ ...prev, [selectedTopicId]: undefined }))

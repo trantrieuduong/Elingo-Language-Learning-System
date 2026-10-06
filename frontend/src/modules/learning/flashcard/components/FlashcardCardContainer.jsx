@@ -19,27 +19,25 @@ export default function FlashcardCardContainer({
 }) {
   if (!card) return null
 
-  const starred = isStarred !== undefined ? Boolean(isStarred) : Boolean(card.flagsStarred)//
-
   return (
     <div className="flashcard-card-container">
       <div className="flashcard-card-actions">
         <button
           type="button"
           className={`btn-icon flashcard-card-btn flashcard-card-btn-star ${
-            starred ? 'active-star' : ''
+            isStarred ? 'active-star' : ''
           }`}
           onClick={(e) => {
             e.stopPropagation()
             if (onToggleStar) onToggleStar()
           }}
           disabled={isProcessing}
-          title={starred ? 'Bỏ đánh dấu sao (Unstar)' : 'Đánh dấu sao (Star)'}
+          title={isStarred ? 'Bỏ đánh dấu sao (Unstar)' : 'Đánh dấu sao (Star)'}
           aria-label="Đánh / bỏ dấu sao"
         >
           <span
             className="material-symbols-outlined"
-            style={starred ? { fontVariationSettings: "'FILL' 1" } : {}}
+            style={isStarred ? { fontVariationSettings: "'FILL' 1" } : {}}
           >
             star
           </span>

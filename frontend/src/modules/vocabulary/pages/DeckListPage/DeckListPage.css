@@ -1,37 +1,17 @@
-.vocabulary-list-page {
+.deck-list-page {
   min-height: calc(100vh - 140px); /* Bù chiều cao header/footer để vừa màn hình */
   padding-top: calc(var(--spacing-3xl) + var(--spacing-xl));
 }
 
 
-.vocabulary-list-container {
+.deck-list-container {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xl);
 }
 
-/* Header Section */
-.vocabulary-list-header {
-  border-radius: var(--radius-card-lg);
-  padding: var(--spacing-3xl);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-.vocabulary-list-header__title {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-}
-
-.icon-display {
-  font-size: 32px;
-  color: var(--color-primary);
-}
-
 /* Filters Section */
-.vocabulary-list-filters {
+.deck-list-filters {
   border-radius: var(--radius-card);
   padding: var(--spacing-xl);
   display: flex;
@@ -39,14 +19,14 @@
   gap: var(--spacing-lg);
 }
 
-.vocabulary-list-filters__top {
+.deck-list-filters__top {
   display: flex;/*Kích hoạt mô hình hộp linh hoạt (Flexbox)*/
   align-items: center;/*Căn giữa các thành phần con theo chiều dọc*/
   gap: var(--spacing-md);
   width: 100%;/*giãn rộng ra hết 100% chiều rộng*/
 }
 
-.vocabulary-list-filters__search {
+.deck-list-filters__search {
   flex: 1;/*ô tìm kiếm tự động giãn ra để lấp đầy toàn bộ khoảng trống còn lại trong hàng đó*/
 }
 
@@ -211,19 +191,19 @@
 }
 
 @media (max-width: 600px) {
-  .vocabulary-list-page {
+  .deck-list-page {
     padding-top: calc(var(--spacing-3xl) + var(--spacing-xl));
   }
 
-  .vocabulary-list-header {
+  .deck-list-header {
     padding: var(--spacing-xl);
   }
   
-  .vocabulary-list-filters {
+  .deck-list-filters {
     padding: var(--spacing-md);
   }
 
-  .vocabulary-list-filters__top {
+  .deck-list-filters__top {
     flex-direction: column;
     align-items: stretch;
   }

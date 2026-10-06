@@ -243,11 +243,11 @@
   align-items: flex-start;
   gap: var(--spacing-sm);
   font-size: var(--font-size-body-md, 14px);
-  color: var(--color-text-body, #4b5563);
-  background: rgba(255, 255, 255, 0.4);
+  color: var(--color-text-body);
+  background: var(--color-surface-container-low);
   padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--radius-sm, 8px);
-  border: 1px solid var(--color-glass-border-faint, rgba(255, 255, 255, 0.4));
+  border: 1px solid var(--color-outline-variant);
 }
 
 .flashcard-section .material-symbols-outlined {
