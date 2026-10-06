@@ -67,13 +67,13 @@ public class FileController {
             @Valid @RequestBody AbortMultipartRequest request,
             @CurrentUserId Long userId
     ) {
-        r2Service.abortMultipart(request.fileKey(), request.uploadId(), userId);
+        r2Service.abortMultipart(request, userId);
         return ApiResponse.<Void>builder()
                 .success(true)
                 .build();
     }
 
-    @PostMapping("/uploads")
+    @PostMapping("/verifications")
     @Operation(summary = "Verify an uploaded file and move it out of the staging area")
     public ApiResponse<VerifiedFileResponse> verifyUploadedFile(
             @Valid @RequestBody VerifyUploadRequest request,
@@ -81,7 +81,7 @@ public class FileController {
     ) {
         return ApiResponse.<VerifiedFileResponse>builder()
                 .success(true)
-                .data(r2Service.verifyUploadedFile(request.fileKey(), request, userId))
+                .data(r2Service.verifyUploadedFile(request, userId))
                 .build();
     }
 }

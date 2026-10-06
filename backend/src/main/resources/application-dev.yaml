@@ -30,7 +30,6 @@ r2:
   secret-key: ${DEV_R2_SECRET_KEY}
   bucket: ${DEV_R2_BUCKET}
   public-url: ${DEV_R2_PUBLIC_URL:http://localhost:8787}
-  max-file-size-bytes: 104857600
   multipart-min-part-size: 5242880
   presign-duration-minutes: 30
 

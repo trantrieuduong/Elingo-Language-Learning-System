@@ -18,7 +18,7 @@ activate R2
 deactivate R2
 note right of R2
   Dữ liệu file không đi qua máy chủ.
-  vùng staging/ tự xoá sau 7 ngày.
+  vùng staging/ tự xoá.
 end note
 
 == Giai đoạn 3: Kiểm tra file ==
@@ -36,7 +36,7 @@ alt sai định dạng hoặc vượt giới hạn
 else hợp lệ
     Server -> R2: copy staging/ → verified/
     note right of R2
-      verified/ tự xoá sau 7 ngày
+      verified/ tự xoá
       nếu không ai dùng tới
     end note
     Server -> R2: xoá bản staging/

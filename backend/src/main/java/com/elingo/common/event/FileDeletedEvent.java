@@ -12,7 +12,7 @@ import java.util.List;
  * commit, thay vì phát nhiều event và gọi R2 nhiều lần.
  *
  * <p>Module {@code file} nghe event này để xoá các key đó — xoá sau khi transaction
- * commit, xem {@code FileCleanupListener}.
+ * commit, xem {@code FileLifecycleListener}.
  *
  * @param fileKeys  các key cần xoá; rỗng hoặc {@code null} thì listener không làm gì
  */
