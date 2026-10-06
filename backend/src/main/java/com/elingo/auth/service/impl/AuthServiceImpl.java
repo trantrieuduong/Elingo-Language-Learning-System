@@ -62,8 +62,6 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public UserMeResponse register(RegisterRequest request) {
-        log.info("Processing user registration: username={}, email={}", request.username(), request.email());
-
         if (userRepository.existsByUsername(request.username()))
             throw new AppException(AppError.USERNAME_EXISTED);
 
@@ -85,16 +83,14 @@ public class AuthServiceImpl implements AuthService {
                 OtpType.VERIFY_ACCOUNT.getTitle()
         );
 
-        log.info("User registered successfully and verification OTP sent: userId={}, username={}", user.getId(),
-                user.getUsername());
+        log.info("User registered userId={} username={}",
+                user.getId(), user.getUsername());
         return userMapper.toUserMeResponse(user);
     }
 
     @Override
     @Transactional(readOnly = true)
     public LoginResult login(AuthenticationRequest request) {
-        log.info("Processing login for identifier: {}", request.username());
-
         User user = userRepository.findByUsernameOrEmail(request.username(), request.username())
                 .orElseThrow(() -> new AppException(AppError.INVALID_CREDENTIALS));
 
@@ -105,7 +101,6 @@ public class AuthServiceImpl implements AuthService {
             throw new AppException(AppError.USER_INACTIVE);
 
         if (Boolean.FALSE.equals(user.getIsVerified())) {
-            log.info("User account not verified yet, sending new verification OTP: userId={}", user.getId());
             String otp = otpService.generateAndSaveOtp(OtpType.VERIFY_ACCOUNT, user.getEmail());
             emailService.sendEmail(
                     user.getEmail(),
@@ -123,17 +118,14 @@ public class AuthServiceImpl implements AuthService {
 
         ResponseCookie refreshCookie = buildRefreshTokenCookie(refreshToken, Duration.ofDays(refreshTokenDays));
 
-        log.info("User logged in successfully: userId={}, username={}", user.getId(), user.getUsername());
+        log.info("Login succeeded userId={} username={}", user.getId(), user.getUsername());
         return new LoginResult(new AuthenticationResponse(accessToken), refreshCookie);
     }
 
     @Override
     @Transactional
     public LoginResult authenticateWithGoogle(GoogleAuthRequest request) {
-        log.info("Processing Google authentication, verifying token...");
-
         GoogleIdToken.Payload payload = googleTokenVerifierService.verify(request.idToken());
-        log.info("Google token verified successfully for email: {}", payload.getEmail());
 
         User user = userRepository.findByGoogleProviderId(payload.getSubject())
                 .orElseGet(() -> linkOrCreateByEmail(payload));
@@ -147,15 +139,13 @@ public class AuthServiceImpl implements AuthService {
         String refreshToken = jwtService.generateRefreshToken(userId);
         ResponseCookie refreshCookie = buildRefreshTokenCookie(refreshToken, Duration.ofDays(refreshTokenDays));
 
-        log.info("Google authentication successful: userId={}, email={}", user.getId(), user.getEmail());
+        log.info("Google login succeeded userId={} email={}", user.getId(), user.getEmail());
         return new LoginResult(new AuthenticationResponse(accessToken), refreshCookie);
     }
 
     @Override
     @Transactional(readOnly = true)
     public LoginResult refreshToken(String refreshToken) {
-        log.info("Processing refresh token request");
-
         if (!StringUtils.hasText(refreshToken))
             throw new AppException(AppError.REFRESH_TOKEN_INVALID);
 
@@ -163,13 +153,11 @@ public class AuthServiceImpl implements AuthService {
         try {
             claims = jwtService.getClaimsJws(refreshToken).getBody();
         } catch (JwtException ex) {
-            log.warn("Invalid refresh token: {}", ex.getMessage());
             throw new AppException(AppError.REFRESH_TOKEN_INVALID);
         }
 
         String tokenType = claims.get("token_type", String.class);
         if (!"REFRESH".equals(tokenType)) {
-            log.warn("Token is not a refresh token: tokenType={}", tokenType);
             throw new AppException(AppError.REFRESH_TOKEN_INVALID);
         }
 
@@ -185,7 +173,7 @@ public class AuthServiceImpl implements AuthService {
 
         ResponseCookie refreshCookie = buildRefreshTokenCookie(newRefreshToken, Duration.ofDays(refreshTokenDays));
 
-        log.info("Token refreshed successfully for userId={}", user.getId());
+        log.info("Token refreshed userId={}", user.getId());
         return new LoginResult(new AuthenticationResponse(newAccessToken), refreshCookie);
     }
 
@@ -197,8 +185,6 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional(readOnly = true)
     public void sendResetPasswordOtp(SendResetPasswordOtpRequest request) {
-        log.info("Processing send reset password OTP for email: {}", request.email());
-
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new AppException(AppError.EMAIL_NOT_EXISTED));
         String otp = otpService.generateAndSaveOtp(OtpType.RESET_PASSWORD, request.email());
@@ -209,14 +195,12 @@ public class AuthServiceImpl implements AuthService {
                 otp,
                 OtpType.RESET_PASSWORD.getTitle()
         );
-        log.info("Reset password OTP dispatched successfully to email: {}", user.getEmail());
+        log.info("Reset password OTP sent email={}", user.getEmail());
     }
 
     @Override
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {
-        log.info("Processing reset password for email: {}", request.email());
-
         otpService.verifyOtp(OtpType.RESET_PASSWORD, request.email(), request.otp());
 
         String hashedPassword = passwordEncoder.encode(request.newPassword());
@@ -224,33 +208,29 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new AppException(AppError.EMAIL_NOT_EXISTED));
         user.setPasswordHash(hashedPassword);
         user.setPasswordChangedAt(LocalDateTime.now());
-        log.info("Password reset successfully for user: userId={}, username={}", user.getId(), user.getUsername());
+        log.info("Password reset userId={} username={}", user.getId(), user.getUsername());
     }
 
     @Override
     @Transactional
     public void verifyAccount(VerifyAccountRequest request) {
-        log.info("Processing account verification for identifier: {}", request.email());
-
         User user = userRepository.findByUsernameOrEmail(request.email(), request.email())
                 .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
 
         otpService.verifyOtp(OtpType.VERIFY_ACCOUNT, user.getEmail(), request.otp());
 
         user.setIsVerified(true);
-        log.info("Account verified successfully: userId={}, username={}", user.getId(), user.getUsername());
+        log.info("Account verified userId={} username={}", user.getId(), user.getUsername());
     }
 
     @Override
     @Transactional(readOnly = true)
     public void resendVerificationOtp(ResendVerificationOtpRequest request) {
-        log.info("Processing resend verification OTP for identifier: {}", request.email());
-
         User user = userRepository.findByUsernameOrEmail(request.email(), request.email())
                 .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
 
         if (Boolean.TRUE.equals(user.getIsVerified())) {
-            log.info("User account is already verified: userId={}", user.getId());
+            log.debug("Verification OTP resend skipped reason=alreadyVerified userId={}", user.getId());
             return;
         }
 
@@ -262,7 +242,7 @@ public class AuthServiceImpl implements AuthService {
                 otp,
                 OtpType.VERIFY_ACCOUNT.getTitle()
         );
-        log.info("Verification OTP resent successfully to email: {}", user.getEmail());
+        log.info("Verification OTP resent email={}", user.getEmail());
     }
 
     private ResponseCookie buildRefreshTokenCookie(String value, Duration maxAge) {
@@ -289,7 +269,7 @@ public class AuthServiceImpl implements AuthService {
         existing.setGoogleProviderId(payload.getSubject());
         existing.setIsVerified(true);
 
-        log.info("Google account linked to existing user: userId={}, email={}", existing.getId(), existing.getEmail());
+        log.info("Google account linked userId={} email={}", existing.getId(), existing.getEmail());
         return userRepository.save(existing);
     }
 

@@ -15,6 +15,7 @@ import java.util.List;
 public class ApiResponse<T> {
     boolean success;
     String message;
+    String requestId;
     T data;
     List<ErrorDetail> errors;
 }

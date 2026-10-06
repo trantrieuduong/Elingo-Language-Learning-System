@@ -29,6 +29,7 @@ import java.util.List;
 public class SecurityConfig {
     private final CustomUserDetailsService customUserDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final IpRateLimitFilter ipRateLimitFilter;
     private final List<String> ALLOW_ORIGINS;
     private final String[] PUBLIC_ENDPOINTS = {
             "/auth/login",
@@ -49,10 +50,12 @@ public class SecurityConfig {
     };
 
     public SecurityConfig(CustomUserDetailsService customUserDetailsService,
-            JwtAuthenticationFilter jwtAuthenticationFilter,
-            @Value("#{'${app.front-end-domain}'.split(',')}") List<String> ALLOW_ORIGINS) {
+                          JwtAuthenticationFilter jwtAuthenticationFilter,
+                          IpRateLimitFilter ipRateLimitFilter,
+                          @Value("#{'${app.front-end-domain}'.split(',')}") List<String> ALLOW_ORIGINS) {
         this.customUserDetailsService = customUserDetailsService;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.ipRateLimitFilter = ipRateLimitFilter;
         this.ALLOW_ORIGINS = ALLOW_ORIGINS;
     }
 
@@ -66,6 +69,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // REST API
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(ipRateLimitFilter, JwtAuthenticationFilter.class)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
         return http.build();
@@ -97,6 +101,7 @@ public class SecurityConfig {
         corsConfiguration.setAllowedMethods(List.of("*"));
         corsConfiguration.setAllowedHeaders(List.of("*"));
         corsConfiguration.setAllowCredentials(true);
+        corsConfiguration.setExposedHeaders(List.of("X-Request-Id"));
 
         UrlBasedCorsConfigurationSource urlBasedCorsConfigurationSource = new UrlBasedCorsConfigurationSource();
         urlBasedCorsConfigurationSource.registerCorsConfiguration("/**", corsConfiguration);

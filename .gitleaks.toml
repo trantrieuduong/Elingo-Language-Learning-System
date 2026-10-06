@@ -1,0 +1,7 @@
+[extend]
+useDefault = true
+
+[allowlists]
+description = "Sonar project key is not a secret"
+regexTarget = "line"
+regexes = ['''-Dsonar\.projectKey=''']

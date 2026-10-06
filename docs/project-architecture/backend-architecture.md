@@ -27,6 +27,7 @@ com.elingo
 ├── premium/
 ├── community/
 ├── report/
+├── file/
 ├── notification/
 └── gamification/
 ```
@@ -331,6 +332,55 @@ gamification/
 
 ---
 
+## 16. `file/`
+**Ý nghĩa:** Lưu trữ file người dùng (ảnh đại diện, ảnh bài viết, audio shadowing/speaking) trên Cloudflare R2 qua presigned URL — backend không đi qua dòng byte của file. File được xác thực bằng magic bytes trước khi được công khai. **Không có bảng CSDL và không có job định kỳ**: layout của bucket tự mang ý nghĩa.
+
+```
+file/
+├── controller/FileController.java
+├── service/R2Service.java, R2ServiceImpl.java
+├── listener/FileLifecycleListener.java (nghe 3 event: promote sang vùng vĩnh viễn, dọn file cũ)
+├── util/FileSignatureVerifier.java (bảng magic bytes, utility thuần không phụ thuộc Spring)
+├── util/FileKey.java (hằng vùng + đổi vùng, utility thuần)
+└── dto/
+    ├── request/PresignedUrlRequest.java, CompleteMultipartRequest.java, CompletedPartInfo.java, AbortMultipartRequest.java, VerifyUploadRequest.java
+    └── response/PresignedUrlResponse.java, InitiateMultipartResponse.java, CompleteMultipartResponse.java, VerifiedFileResponse.java
+```
+
+**Ba vùng trên bucket, mỗi vùng một nghĩa:**
+
+| Vùng | Nghĩa | Quy tắc vòng đời |
+|---|---|---|
+| `staging/{userId}/{uuid}.{ext}` | vừa tải lên, chưa kiểm tra | xoá sau 1 ngày |
+| `verified/{userId}/{uuid}.{ext}` | đã hợp lệ, **chưa ai dùng** | xoá sau 3 ngày |
+| `uploads/{userId}/{uuid}.{ext}` | **đã có bản ghi trỏ tới** | không — không ai đụng |
+
+File người dùng tải lên rồi không
+dùng tới sẽ nằm ở `verified/` và tự biến mất theo quy tắc vòng đời. Đổi lại, CSDL lưu key
+`uploads/`, nên `uploads/` không bao giờ chứa file nào chưa có bản ghi nào trỏ tới. Tên file không
+đổi khi đổi vùng từ `verified` sang `uploads/` nên `verified/12/a.png` và `uploads/12/a.png` là cùng một file ở hai nơi.
+
+**Luồng upload:**
+1. **Presign** — cấp key tạm `staging/{userId}/{uuid}.{ext}`. Client PUT thẳng lên R2, không đi qua backend.
+2. **Verify** (`POST /files/verifications`) — `headObject` lấy size thật, đọc 64 byte đầu bằng Range request, đối chiếu magic bytes với Content-Type client khai. Sai thì xoá object; đúng thì `copyObject` sang `verified/{userId}/{uuid}.{ext}` (đuôi lấy từ mime thật, không từ tên file client gửi lên) rồi xoá bản `staging/`.
+
+**Trần dung lượng tính theo nhóm định dạng**, khai trong `MediaKind.maxBytes()`: ảnh 5 MB, video 100 MB, audio 25 MB. 
+
+3. **Gắn vào bản ghi** — module sở hữu ghi key `uploads/` vào CSDL, commit, rồi phát `FileAttachedEvent`; `FileLifecycleListener` copy `verified/` → `uploads/` và xoá bản chờ.
+
+4. **Dọn `staging/` và `verified/`** — quy tắc vòng đời của R2 sẽ tự xóa, cấu hình trên Cloudflare.
+
+**Đường dẫn phẳng:** `{vùng}/{userId}/{uuid}.{ext}`.  Mọi thành phần của key do server sinh — `userId` lấy từ token, tên là UUID mới sinh, đuôi lấy từ mime đã xác thực. Không có chuỗi nào từ request lọt vào key, nên không cần chặn traversal và không có đường trỏ tới file của người khác.
+
+**Điều phối bằng event — event-driven:** key là UUID nên mỗi file một tên riêng, module `file` không có cách nào đoán file nào là file cũ, và cũng không biết file nào đã được dùng. Module sở hữu dữ liệu thì biết chính xác (nó vừa đổi trường file trong entity của mình), nên nó phát event trong `common/event/`:
+
+| Event | Phát khi | Listener làm |
+|---|---|---|
+| `FileAttachedEvent(verifiedFileKey, uploadsFileKey)` | đã commit bản ghi tham chiếu tới file | copy `verified/` → `uploads/` |
+| `FileDeletedEvent(fileKeys)` | xoá bản ghi (thay file hoặc xoá hoàn toàn) | xoá các key cũ trong `fileKeys` |
+
+---
+
 ## Nguyên tắc phân tầng trong mỗi package core
 
 - **controller/**: nhận request, validate (`@Valid`), gọi service, không chứa logic nghiệp vụ.
@@ -338,3 +388,5 @@ gamification/
 - **repository/**: interface `JpaRepository`/`JpaSpecificationExecutor`, chỉ chứa truy vấn dữ liệu.
 - **entity/**: ánh xạ bảng DB (`@Entity`), kế thừa `common.entity.BaseEntity`.
 - **dto/**: tách `request/` và `response/`, không tái sử dụng entity làm response để tránh lộ dữ liệu và dễ tuỳ biến theo từng API.
+- **util/**: hàm/ngữ cảnh thuần, không phụ thuộc Spring, không I/O (vd `FileSignatureVerifier`). Không phải bean.
+- **enums/**: enum nghiệp vụ thuần (vd `PostStatus`, `ReportStatus`) mang bảng hằng trạng thái, không phải bean.

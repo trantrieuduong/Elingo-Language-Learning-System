@@ -2,6 +2,8 @@ package com.elingo.user.controller;
 
 import com.elingo.common.annotation.CurrentUserId;
 import com.elingo.common.dto.ApiResponse;
+import com.elingo.common.enums.RateLimitRule;
+import com.elingo.common.service.RateLimiterService;
 import com.elingo.user.dto.request.ChangePasswordRequest;
 import com.elingo.user.dto.request.SendOTPUpdateEmailRequest;
 import com.elingo.user.dto.request.SetPasswordRequest;
@@ -12,22 +14,20 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/users")
-@Slf4j(topic = "USER-CONTROLLER")
 @RequiredArgsConstructor
 @Tag(name = "User Controller")
 public class UserController {
 
     private final UserService userService;
+    private final RateLimiterService limiter;
 
     @GetMapping("/me")
     @Operation(summary = "Get current user profile")
     public ApiResponse<UserMeResponse> getMyInfo(@CurrentUserId Long userId) {
-        log.info("Get current user profile request received: userId={}", userId);
         UserMeResponse response = userService.getMyInfo(userId);
         return ApiResponse.<UserMeResponse>builder()
                 .success(true)
@@ -41,7 +41,6 @@ public class UserController {
             @PathVariable Long id,
             @CurrentUserId Long currentUserId
     ) {
-        log.info("Get user profile by id request received: targetId={}, currentUserId={}", id, currentUserId);
         Object response = userService.getUserById(id, currentUserId);
         return ApiResponse.builder()
                 .success(true)
@@ -55,7 +54,6 @@ public class UserController {
             @Valid @RequestBody ChangePasswordRequest request,
             @CurrentUserId Long userId
     ) {
-        log.info("Change password request received: userId={}", userId);
         userService.changePassword(userId, request);
         return ApiResponse.<Void>builder()
                 .success(true)
@@ -68,7 +66,6 @@ public class UserController {
             @Valid @RequestBody SetPasswordRequest request,
             @CurrentUserId Long userId
     ) {
-        log.info("Set password request received: userId={}", userId);
         userService.setPassword(userId, request);
         return ApiResponse.<Void>builder()
                 .success(true)
@@ -80,7 +77,8 @@ public class UserController {
     public ApiResponse<Void> sendOTPUpdateEmail(
             @Valid @RequestBody SendOTPUpdateEmailRequest request,
             @CurrentUserId Long userId) {
-        log.info("Send OTP update email request received: userId={}", userId);
+        limiter.check(RateLimitRule.OTP_SEND_EMAIL, request.newEmail());
+
         userService.sendOTPUpdateEmail(userId, request);
         return ApiResponse.<Void>builder()
                 .success(true)
@@ -92,7 +90,8 @@ public class UserController {
     public ApiResponse<Void> updateEmail(
             @Valid @RequestBody UpdateEmailRequest request,
             @CurrentUserId Long userId) {
-        log.info("Update email request received: userId={}", userId);
+        limiter.check(RateLimitRule.OTP_RESET_EMAIL, request.newEmail());
+
         userService.updateEmail(userId, request);
         return ApiResponse.<Void>builder()
                 .success(true)
