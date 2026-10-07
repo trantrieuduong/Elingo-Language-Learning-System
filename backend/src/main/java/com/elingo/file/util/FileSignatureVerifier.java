@@ -1,11 +1,7 @@
 package com.elingo.file.util;
 
-import com.elingo.common.enums.MediaKind;
-
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 /**
  * Suy ra mime type từ chữ ký nhị phân (magic bytes) của file, không tin vào
@@ -21,11 +17,7 @@ import java.util.stream.Stream;
  *       các element đứng trước nó nên không có offset cố định.</li>
  * </ul>
  *
- * <p>Định dạng không khớp bảng trả về {@code null} — coi như không được phép upload.
- * Lưu ý {@code image/svg+xml} không có chữ ký riêng nên không nằm trong bảng này.
- *
- * <p>Danh sách mime type/đuôi file được phép nằm ở {@link MediaKind}; mime type do
- * {@link #detect} trả về luôn phải là một khoá trong bảng đó.
+ * <p>Định dạng không khớp bảng trả về {@code null}
  */
 public final class FileSignatureVerifier {
 
@@ -80,17 +72,6 @@ public final class FileSignatureVerifier {
             "matroska", "video/x-matroska"
     );
 
-    public static final List<String> ALLOWED_IMAGE_TYPES = List.copyOf(MediaKind.IMAGE.mimeTypes());
-
-    public static final List<String> ALLOWED_VIDEO_TYPES = List.copyOf(MediaKind.VIDEO.mimeTypes());
-
-    public static final List<String> ALLOWED_AUDIO_TYPES = List.copyOf(MediaKind.AUDIO.mimeTypes());
-
-    public static final List<String> ALLOWED_FILE_TYPES =
-            Stream.of(ALLOWED_IMAGE_TYPES, ALLOWED_VIDEO_TYPES, ALLOWED_AUDIO_TYPES)
-                    .flatMap(List::stream)
-                    .toList();
-
     private FileSignatureVerifier() {
     }
 
@@ -132,19 +113,6 @@ public final class FileSignatureVerifier {
             return ISO_BMFF_BRANDS.get(readAscii(header, FTYP_BRAND_OFFSET, 4));
         }
         return null;
-    }
-
-    /**
-     * Chuẩn hoá Content-Type do client khai: bỏ phần tham số ({@code ;charset=...},
-     * {@code ;codecs=...}) và hạ chữ thường, để so khớp với kết quả {@link #detect}.
-     */
-    public static String normalizeDeclaredType(String contentType) {
-        return MediaKind.normalizeMimeType(contentType);
-    }
-
-    public static boolean isAllowedFileType(String contentType) {
-        String normalized = MediaKind.normalizeMimeType(contentType);
-        return normalized != null && ALLOWED_FILE_TYPES.contains(normalized);
     }
 
     private static boolean isMp3FrameSync(byte[] header) {

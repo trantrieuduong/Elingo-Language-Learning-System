@@ -107,39 +107,45 @@ class FileKeyTest {
     @DisplayName("isOwnedBy - key belongs to userId in zone")
     class IsOwnedBy {
         @Test
-        @DisplayName("owned")
-        void owned() {
-            assertThat(FileKey.isOwnedBy("staging/12/a.png", FileKey.STAGING_PREFIX, 12L)).isTrue();
+        @DisplayName("correct user in verified zone")
+        void correctUserVerified() {
+            assertThat(FileKey.isOwnedBy("verified/12/a.png", 12L)).isTrue();
         }
 
         @Test
-        @DisplayName("different user -> false (IDOR protection)")
-        void otherUser() {
-            assertThat(FileKey.isOwnedBy("staging/99/a.png", FileKey.STAGING_PREFIX, 12L)).isFalse();
+        @DisplayName("correct user in uploads zone")
+        void correctUserUploads() {
+            assertThat(FileKey.isOwnedBy("uploads/12/a.png", 12L)).isTrue();
         }
 
         @Test
-        @DisplayName("userId prefix collision (1 vs 12) does not match")
-        void prefixUserIdNotConfused() {
-            assertThat(FileKey.isOwnedBy("staging/12/a.png", FileKey.STAGING_PREFIX, 1L)).isFalse();
+        @DisplayName("wrong user")
+        void wrongUser() {
+            assertThat(FileKey.isOwnedBy("verified/12/a.png", 99L)).isFalse();
         }
 
         @Test
-        @DisplayName("wrong zone -> false")
-        void wrongZone() {
-            assertThat(FileKey.isOwnedBy("verified/12/a.png", FileKey.STAGING_PREFIX, 12L)).isFalse();
+        @DisplayName("null userId")
+        void nullUserId() {
+            assertThat(FileKey.isOwnedBy("verified/12/a.png", null)).isFalse();
         }
 
         @Test
-        @DisplayName("userId null -> false")
-        void nullUser() {
-            assertThat(FileKey.isOwnedBy("staging/12/a.png", FileKey.STAGING_PREFIX, null)).isFalse();
+        @DisplayName("null fileKey")
+        void nullFileKey() {
+            assertThat(FileKey.isOwnedBy(null, 12L)).isFalse();
         }
 
         @Test
-        @DisplayName("key null -> false")
-        void nullKey() {
-            assertThat(FileKey.isOwnedBy(null, FileKey.STAGING_PREFIX, 12L)).isFalse();
+        @DisplayName("key with path traversal")
+        void pathTraversal() {
+            assertThat(FileKey.isOwnedBy("verified/12/../a.png", 12L)).isFalse();
+        }
+
+        @Test
+        @DisplayName("missing user segment")
+        void missingUserSegment() {
+            assertThat(FileKey.isOwnedBy("verified/a.png", 12L)).isFalse();
         }
     }
 

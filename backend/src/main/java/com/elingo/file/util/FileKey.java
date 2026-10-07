@@ -13,7 +13,7 @@ import com.elingo.common.enums.MediaKind;
  *
  * <p><b>Tên file không đổi khi promote từ verified sang uploads.</b>
  * {@code verified/12/a.png} và {@code uploads/12/a.png} là cùng một file ở hai nơi, nên
- * việc sửa chữa hậu kỳ chỉ cần biết tên file là dò lại được. (Bước staging → verified thì
+ * việc sửa chữa hậu kỳ chỉ cần biết tên file là dò lại được. (Bước staging -> verified thì
  * sinh tên mới, vì lúc đó mới biết đuôi file thật.)
  */
 public final class FileKey {
@@ -77,15 +77,20 @@ public final class FileKey {
     }
 
     /**
-     * Key có nằm trong thư mục của user trong vùng đó không, tức là bắt đầu bằng
+     * Key có nằm trong thư mục của user trong vùng đó không
      * {@code {zone}/{userId}/}.
      *
      * <p>Đây là toàn bộ cơ chế chống IDOR của module: userId lấy từ token, không cần tra
      * CSDL.
      */
-    public static boolean isOwnedBy(String fileKey, String zone, Long userId) {
-        return userId != null && fileKey != null
-                && fileKey.startsWith(zone + "/" + userId + "/");
+    public static boolean isOwnedBy(String fileKey, Long userId) {
+        if (userId == null || fileKey == null || fileKey.contains("..")) {
+            return false;
+        }
+        String[] parts = fileKey.split("/", 3);
+        return parts.length == 3
+                && !parts[0].isEmpty()
+                && parts[1].equals(String.valueOf(userId));
     }
 
     /**
