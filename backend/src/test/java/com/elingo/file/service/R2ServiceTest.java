@@ -11,6 +11,7 @@ import com.elingo.file.dto.response.CompleteMultipartResponse;
 import com.elingo.file.dto.response.InitiateMultipartResponse;
 import com.elingo.file.dto.response.PresignedUrlResponse;
 import com.elingo.file.dto.response.VerifiedFileResponse;
+import com.elingo.file.service.impl.R2ServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
