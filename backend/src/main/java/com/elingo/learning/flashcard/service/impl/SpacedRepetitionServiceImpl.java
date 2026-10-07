@@ -22,9 +22,6 @@ public class SpacedRepetitionServiceImpl implements SpacedRepetitionService {
     // Tham khảo: https://super-memory.com/english/ol/sm2.htm
     @Override
     public void calculateNextSRS(UserCardState state, int grade) {
-        log.info("Calculate next SRS for userId={}, cardId={}, grade={}",
-                state.getUser().getId(), state.getCard().getId(), grade);
-
         FlashcardProperties.Srs srs = flashcardProperties.getSrs();
         BigDecimal ef = state.getSrsEaseFactor();
         int prevInterval = state.getSrsInterval();
@@ -59,8 +56,7 @@ public class SpacedRepetitionServiceImpl implements SpacedRepetitionService {
         state.setSrsLastGrade((short) grade);
         state.setSrsNextReviewAt(nextReviewAt);
 
-        log.info("Calculate next SRS successfully for userId={}, cardId={}, grade={}, ef={}->{}, interval={}->{}, next={}",
-                state.getUser().getId(), state.getCard().getId(),
-                grade, ef, newEf, prevInterval, newInterval, nextReviewAt);
+        log.info("SRS calculation completed cardId={} grade={} oldEf={} newEf={} oldInterval={} newInterval={} nextReviewAt={}",
+                state.getCard().getId(), grade, ef, newEf, prevInterval, newInterval, nextReviewAt);
     }
 }

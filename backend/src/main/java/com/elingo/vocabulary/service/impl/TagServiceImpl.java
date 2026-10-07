@@ -21,11 +21,10 @@ public class TagServiceImpl implements TagService {
     @Override
     @Transactional(readOnly = true)
     public List<TagResponse> getAllTags(Long userId) {
-        log.info("Fetching all tags for userId={}", userId);
         List<TagResponse> tags = tagRepository.findAll().stream()
                 .map(tagMapper::toTagResponse)
                 .toList();
-        log.info("Fetched {} tag(s) for userId={}", tags.size(), userId);
+        log.info("Tags fetched count={}", tags.size());
         return tags;
     }
 }

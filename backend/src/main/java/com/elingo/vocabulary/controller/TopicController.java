@@ -7,14 +7,12 @@ import com.elingo.vocabulary.service.TopicService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/topics")
-@Slf4j(topic = "TOPIC-CONTROLLER")
 @RequiredArgsConstructor
 @Tag(name = "Topic Controller")
 public class TopicController {
@@ -25,8 +23,6 @@ public class TopicController {
     public ApiResponse<List<CardResponse>> getUnlearnedCardsByTopic(
             @PathVariable Long topicId,
             @CurrentUserId Long currentUserId) {
-        log.info("Get unlearned cards by topic of current user request received: topicId={}, currentUserId={}", topicId, currentUserId);
-
         List<CardResponse> cards = topicService.getUnlearnedCardsByTopic(currentUserId, topicId);
         return ApiResponse.<List<CardResponse>>builder()
                 .success(true)

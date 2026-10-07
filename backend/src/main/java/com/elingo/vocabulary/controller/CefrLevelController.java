@@ -7,7 +7,6 @@ import com.elingo.vocabulary.service.CefrLevelService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,7 +15,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/cefr-levels")
-@Slf4j(topic = "CEFR-LEVEL-CONTROLLER")
 @RequiredArgsConstructor
 @Tag(name = "CEFR Level Controller")
 public class CefrLevelController {
@@ -25,8 +23,6 @@ public class CefrLevelController {
     @GetMapping
     @Operation(summary = "Get all CEFR levels")
     public ApiResponse<List<CefrLevelResponse>> getAllCefrLevels(@CurrentUserId Long currentUserId) {
-        log.info("Get all CEFR levels request received for currentUserId={}", currentUserId);
-        
         List<CefrLevelResponse> cefrLevels = cefrLevelService.getAllCefrLevels(currentUserId);
         return ApiResponse.<List<CefrLevelResponse>>builder()
                 .success(true)

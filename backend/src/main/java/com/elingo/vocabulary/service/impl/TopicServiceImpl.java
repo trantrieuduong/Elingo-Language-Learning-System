@@ -35,11 +35,8 @@ public class TopicServiceImpl implements TopicService {
     @Override
     @Transactional(readOnly = true)
     public List<CardResponse> getUnlearnedCardsByTopic(Long userId, Long topicId) {
-        log.info("Fetching cards for topicId={}, userId={}", topicId, userId);
-
         Topic topic = topicRepository.findByIdWithDeck(topicId)
                 .orElseThrow(() -> {
-                    log.warn("Topic not found: topicId={}", topicId);
                     return new AppException(AppError.TOPIC_NOT_FOUND);
                 });
 
@@ -47,8 +44,6 @@ public class TopicServiceImpl implements TopicService {
             boolean hasActiveSubscription = userSubscriptionRepository
                     .existsByUserIdAndStatusAndEndAtAfter(userId, SubscriptionStatus.ACTIVE, LocalDateTime.now());
             if (!hasActiveSubscription) {
-                log.warn("User {} tried to access topic {} of premium deck without active subscription",
-                        userId, topicId);
                 throw new AppException(AppError.DECK_PREMIUM_REQUIRED);
             }
         }
@@ -57,7 +52,7 @@ public class TopicServiceImpl implements TopicService {
                 .findAllUnlearnedCardsByTopicIdWithPhonetics(topicId, userId);
 
         if (unlearnedCards.isEmpty()) {
-            log.info("Fetched 0 card(s) for topicId={}", topicId);
+            log.info("Cards fetched count=0 topicId={}", topicId);
             return List.of();
         }
 
@@ -75,7 +70,7 @@ public class TopicServiceImpl implements TopicService {
                         .withFlagsStarred(starredMap.getOrDefault(card.getId(), false)))
                 .toList();
 
-        log.info("Fetched {} card(s) for topicId={}", cards.size(), topicId);
+        log.info("Cards fetched count={} topicId={}", cards.size(), topicId);
         return cards;
     }
 }

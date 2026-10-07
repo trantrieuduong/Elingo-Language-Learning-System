@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,7 +21,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/decks")
-@Slf4j(topic = "DECK-CONTROLLER")
 @RequiredArgsConstructor
 @Tag(name = "Deck Controller")
 public class DeckController {
@@ -34,9 +32,6 @@ public class DeckController {
             @ModelAttribute @Valid GetPublishedDecksRequest request,
             @CurrentUserId Long currentUserId
     ) {// @ModelAttribute là một "bộ gom dữ liệu" giúp không phải viết một hàng dài các @RequestParam
-        log.info("Get all published decks request received: currentUserId={}, cefrCode={}, tagCode={}, keyword='{}', page={}",
-                currentUserId, request.cefrCode(), request.tagCode(), request.keyword(), request.page());
-
         PageResponse<DeckResponse> decks = deckService.getAllPublishedDecks(currentUserId, request);
         return ApiResponse.<PageResponse<DeckResponse>>builder()
                 .success(true)
@@ -49,8 +44,6 @@ public class DeckController {
     public ApiResponse<List<TopicResponse>> getTopicsByDeck(
             @PathVariable Long deckId,
             @CurrentUserId Long currentUserId) {
-        log.info("Get topics by deck request received: deckId={}, currentUserId={}", deckId, currentUserId);
-
         List<TopicResponse> topics = deckService.getTopicsByDeck(currentUserId, deckId);
         return ApiResponse.<List<TopicResponse>>builder()
                 .success(true)

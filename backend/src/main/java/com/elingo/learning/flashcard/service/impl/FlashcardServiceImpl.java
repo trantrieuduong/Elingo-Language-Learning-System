@@ -44,7 +44,6 @@ public class FlashcardServiceImpl implements FlashcardService {
     @Transactional
     public void submitSrsReview(Long userId, Long cardId, SrsReviewRequest request) {
         int grade = request.grade();
-        log.info("Processing Srs review submission for userId={}, cardId={}, grade={}", userId, cardId, grade);
 
         UserCardState state = getOrCreateState(userId, cardId);
         validateCardDeckAccess(state);
@@ -52,8 +51,8 @@ public class FlashcardServiceImpl implements FlashcardService {
         spacedRepetitionService.calculateNextSRS(state, grade);
         userCardStateRepository.save(state);
 
-        log.info("Submit Srs review successfully for userId={}, cardId={}, grade={}, newInterval={}, nextReview={}",
-                userId, cardId, grade, state.getSrsInterval(), state.getSrsNextReviewAt());
+        log.info("Srs review submitted cardId={} grade={} newInterval={} nextReview={}",
+                cardId, grade, state.getSrsInterval(), state.getSrsNextReviewAt());
 
         // publishEvent FlashcardReviewedEvent
     }
@@ -61,8 +60,6 @@ public class FlashcardServiceImpl implements FlashcardService {
     @Override
     @Transactional
     public void toggleStar(Long userId, Long cardId) {
-        log.info("Processing toggle star for userId={}, cardId={}", userId, cardId);
-
         UserCardState state = getOrCreateState(userId, cardId);
         validateCardDeckAccess(state);
 
@@ -70,14 +67,12 @@ public class FlashcardServiceImpl implements FlashcardService {
         state.setFlagsStarred(newStarredState);
         userCardStateRepository.save(state);
 
-        log.info("Toggle star successfully for userId={}, cardId={}, isStarred={}", userId, cardId, newStarredState);
+        log.info("Star toggled cardId={} isStarred={}", cardId, newStarredState);
     }
 
     @Override
     @Transactional
     public void toggleHide(Long userId, Long cardId) {
-        log.info("Processing toggle hide for userId={}, cardId={}", userId, cardId);
-
         UserCardState state = getOrCreateState(userId, cardId);
         validateCardDeckAccess(state);
 
@@ -85,7 +80,7 @@ public class FlashcardServiceImpl implements FlashcardService {
         state.setFlagsHidden(newHiddenState);
         userCardStateRepository.save(state);
 
-        log.info("Toggle hide successfully for userId={}, cardId={}, isHidden={}", userId, cardId, newHiddenState);
+        log.info("Hide toggled cardId={} isHidden={}", cardId, newHiddenState);
     }
 
     @Transactional
@@ -93,7 +88,7 @@ public class FlashcardServiceImpl implements FlashcardService {
         return userCardStateRepository
                 .findByCardIdAndUserId(cardId, userId)
                 .orElseGet(() -> {
-                    log.info("No existing UserCardState for userId={}, cardId={} - creating new record", userId, cardId);
+                    log.info("UserCardState record created cardId={}", cardId);
                     Card card = cardRepository.findById(cardId)
                             .orElseThrow(() -> new AppException(AppError.CARD_NOT_FOUND));
                     User user = userRepository.findById(userId)
@@ -114,8 +109,6 @@ public class FlashcardServiceImpl implements FlashcardService {
         Long userId = state.getUser().getId();
 
         if (deck.getStatus() != DeckStatus.PUBLISHED) {
-            log.warn("Card belongs to unpublished deck: cardId={}, deckId={}, status={}",
-                    state.getCard().getId(), deckId, deck.getStatus());
             throw new AppException(AppError.DECK_NOT_FOUND);
         }
 
@@ -123,20 +116,16 @@ public class FlashcardServiceImpl implements FlashcardService {
             boolean hasActiveSubscription = userSubscriptionRepository
                     .existsByUserIdAndStatusAndEndAtAfter(userId, SubscriptionStatus.ACTIVE, LocalDateTime.now());
             if (!hasActiveSubscription) {
-                log.warn("User {} tried to access premium deck {} without active subscription",
-                        userId, deckId);
                 throw new AppException(AppError.DECK_PREMIUM_REQUIRED);
             }
         }
-        log.info("Deck access granted: cardId={}, deckId={}, userId={}",
-                state.getCard().getId(), deckId, userId);
+        log.info("Deck access granted cardId={} deckId={}",
+                state.getCard().getId(), deckId);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ReviewCardResponse> getCardsForReview(Long userId, Integer limit) {
-        log.info("Fetching cards for review for userId={}, limit={}", userId, limit);
-
         if (limit != null) {
             if (limit > 200) {
                 throw new AppException(AppError.MAX_REVIEW_CARD_LIMIT_INVALID);
@@ -158,6 +147,7 @@ public class FlashcardServiceImpl implements FlashcardService {
                 .toList();
         List<Card> cards = cardRepository.findAllWithPhoneticsByIdIn(cardIds);
         Map<Long, Card> cardMap = cards.stream().collect(Collectors.toMap(Card::getId, Function.identity()));
+        log.info("Review cards fetched count={} limit={}", cards.size(), limit);
         return states.stream().map(
                 state -> new ReviewCardResponse(
                         cardMapper.toCardResponse(cardMap.get(state.getCard().getId())),

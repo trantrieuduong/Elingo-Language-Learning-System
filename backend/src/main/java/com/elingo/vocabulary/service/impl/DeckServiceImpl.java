@@ -45,9 +45,6 @@ public class DeckServiceImpl implements DeckService {
     @Override
     @Transactional(readOnly = true)
     public PageResponse<DeckResponse> getAllPublishedDecks(Long userId, GetPublishedDecksRequest request) {
-        log.info("Fetching all published decks for userId={}, cefrCode={}, tagCode={}, keyword='{}', page={}",
-                userId, request.cefrCode(), request.tagCode(), request.keyword(), request.page());
-
         String cefrCode = StringUtils.hasText(request.cefrCode()) ? request.cefrCode().trim() : null;
         String tagCode = StringUtils.hasText(request.tagCode()) ? request.tagCode().trim() : null;
         String keyword = StringUtils.hasText(request.keyword()) ? request.keyword().trim() : null;
@@ -58,9 +55,9 @@ public class DeckServiceImpl implements DeckService {
                 .findPublishedWithFilters(cefrCode, tagCode, keyword, pageable)
                 .map(deckMapper::toDeckResponse);
 
-        log.info("Fetched {}/{} published deck(s) (page {}/{}) for userId={}",
+        log.info("Published decks fetched count={} total={} page={} totalPages={}",
                 resultPage.getNumberOfElements(), resultPage.getTotalElements(),
-                resultPage.getNumber() + 1, resultPage.getTotalPages(), userId);
+                resultPage.getNumber() + 1, resultPage.getTotalPages());
 
         return PageResponse.of(resultPage);
     }
@@ -68,8 +65,6 @@ public class DeckServiceImpl implements DeckService {
     @Override
     @Transactional(readOnly = true)
     public List<TopicResponse> getTopicsByDeck(Long userId, Long deckId) {
-        log.info("Fetching topics for deckId={}, userId={}", deckId, userId);
-
         validateDeckAccess(userId, deckId);
 
         List<CardRepository.TopicUnlearnedCardCount> unlearnedCounts =
@@ -96,19 +91,17 @@ public class DeckServiceImpl implements DeckService {
                 })
                 .toList();
 
-        log.info("Fetched {} topic(s) for deckId={}", topics.size(), deckId);
+        log.info("Topics fetched count={} deckId={}", topics.size(), deckId);
         return topics;
     }
 
     private void validateDeckAccess(Long userId, Long deckId) {
         var deck = deckRepository.findById(deckId)
                 .orElseThrow(() -> {
-                    log.warn("Deck not found: deckId={}", deckId);
                     return new AppException(AppError.DECK_NOT_FOUND);
                 });
 
         if (deck.getStatus() != DeckStatus.PUBLISHED) {
-            log.warn("Deck not published: deckId={}, status={}", deckId, deck.getStatus());
             throw new AppException(AppError.DECK_NOT_FOUND);
         }
 
@@ -116,11 +109,9 @@ public class DeckServiceImpl implements DeckService {
             boolean hasActiveSubscription = userSubscriptionRepository
                     .existsByUserIdAndStatusAndEndAtAfter(userId, SubscriptionStatus.ACTIVE, LocalDateTime.now());
             if (!hasActiveSubscription) {
-                log.warn("User {} tried to access premium deck {} without active subscription",
-                        userId, deckId);
                 throw new AppException(AppError.DECK_PREMIUM_REQUIRED);
             }
         }
-        log.info("Deck access granted: deckId={}, userId={}", deckId, userId);
+        log.info("Deck access granted deckId={}", deckId);
     }
 }

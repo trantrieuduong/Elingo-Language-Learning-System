@@ -7,7 +7,6 @@ import com.elingo.vocabulary.service.TagService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,7 +15,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/tags")
-@Slf4j(topic = "TAG-CONTROLLER")
 @RequiredArgsConstructor
 @Tag(name = "Tag Controller")
 public class TagController {
@@ -25,8 +23,6 @@ public class TagController {
     @GetMapping
     @Operation(summary = "Get all tags")
     public ApiResponse<List<TagResponse>> getAllTags(@CurrentUserId Long currentUserId) {
-        log.info("Get all tags request received for currentUserId={}", currentUserId);
-        
         List<TagResponse> tags = tagService.getAllTags(currentUserId);
         return ApiResponse.<List<TagResponse>>builder()
                 .success(true)

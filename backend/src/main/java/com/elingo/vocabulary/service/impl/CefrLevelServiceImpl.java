@@ -21,11 +21,10 @@ public class CefrLevelServiceImpl implements CefrLevelService {
     @Override
     @Transactional(readOnly = true)
     public List<CefrLevelResponse> getAllCefrLevels(Long userId) {
-        log.info("Fetching all CEFR levels for userId={}", userId);
         List<CefrLevelResponse> cefrLevels = cefrLevelRepository.findAll().stream()
                 .map(cefrLevelMapper::toCefrLevelResponse)
                 .toList();
-        log.info("Fetched {} CEFR level(s) for userId={}", cefrLevels.size(), userId);
+        log.info("CEFR levels fetched count={}", cefrLevels.size());
         return cefrLevels;
     }
 }

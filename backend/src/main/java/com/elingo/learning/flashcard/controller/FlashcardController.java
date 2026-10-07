@@ -10,14 +10,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/flashcards")
-@Slf4j(topic = "FLASHCARD-CONTROLLER")
 @RequiredArgsConstructor
 @Tag(name = "Flashcard Controller")
 public class FlashcardController {
@@ -29,9 +27,6 @@ public class FlashcardController {
             @PathVariable Long cardId,
             @Valid @RequestBody SrsReviewRequest request,
             @CurrentUserId Long currentUserId) {
-        log.info("SRS review request received: cardId={}, grade={}, userId={}",
-                cardId, request.grade(), currentUserId);
-
         flashcardService.submitSrsReview(currentUserId, cardId, request);
         return ApiResponse.<Void>builder()
                 .success(true)
@@ -43,8 +38,6 @@ public class FlashcardController {
     public ApiResponse<Void> toggleStar(
             @PathVariable Long cardId,
             @CurrentUserId Long currentUserId) {
-        log.info("Toggle star request received: cardId={}, userId={}", cardId, currentUserId);
-
         flashcardService.toggleStar(currentUserId, cardId);
         return ApiResponse.<Void>builder()
                 .success(true)
@@ -56,8 +49,6 @@ public class FlashcardController {
     public ApiResponse<Void> toggleHidden(
             @PathVariable Long cardId,
             @CurrentUserId Long currentUserId) {
-        log.info("Toggle hidden request received: cardId={}, userId={}", cardId, currentUserId);
-
         flashcardService.toggleHide(currentUserId, cardId);
         return ApiResponse.<Void>builder()
                 .success(true)
@@ -69,8 +60,6 @@ public class FlashcardController {
     public ApiResponse<List<ReviewCardResponse>> getCardsForReview(
             @RequestParam(required = false, defaultValue = "100") Integer limit,
             @CurrentUserId Long currentUserId) {
-        log.info("Get cards for review request received: userId={}, limit={}", currentUserId, limit);
-
         List<ReviewCardResponse> response = flashcardService.getCardsForReview(currentUserId, limit);
         return ApiResponse.<List<ReviewCardResponse>>builder()
                 .success(true)
