@@ -1,15 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import './Header.css'
-
-const LANDING_NAV_ITEMS = [
-  { key: 'home', label: 'Trang chủ', path: '#hero', sectionId: 'hero' },
-  { key: 'features', label: 'Tính năng', path: '#features', sectionId: 'features' },
-  { key: 'learning', label: 'Học tập', path: '#learning', sectionId: 'learning' },
-  { key: 'community', label: 'Cộng đồng', path: '#community', sectionId: 'community' },
-  { key: 'pricing', label: 'Bảng giá', path: '#pricing', sectionId: 'pricing' },
-]
 
 /**
  * Header component — glassmorphism navbar, fixed floating style.
@@ -19,6 +12,7 @@ const LANDING_NAV_ITEMS = [
  * @param {string} currentPath - currentPath state từ App.jsx
  */
 function Header({ onNavigate, currentPath }) {
+  const { t, i18n } = useTranslation('nav')
   const { user, logout } = useAuth()
   const { isDark, toggleTheme } = useTheme()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -26,6 +20,21 @@ function Header({ onNavigate, currentPath }) {
   const [activeLandingSection, setActiveLandingSection] = useState('hero')
   const dropdownRef = useRef(null)
   const activeLandingSectionRef = useRef('hero')
+
+  const LANDING_NAV_ITEMS = [
+    { key: 'home', label: t('home'), path: '#hero', sectionId: 'hero' },
+    { key: 'features', label: t('features'), path: '#features', sectionId: 'features' },
+    { key: 'learning', label: t('learning'), path: '#learning', sectionId: 'learning' },
+    { key: 'community', label: t('community'), path: '#community', sectionId: 'community' },
+    { key: 'pricing', label: t('pricing'), path: '#pricing', sectionId: 'pricing' },
+  ]
+
+  const NAV_ITEMS = [
+    { key: 'learning', label: t('learning'), path: '/learning' },
+    { key: 'battle', label: t('battle'), path: '/battle' },
+    { key: 'community', label: t('community'), path: '/community' },
+    { key: 'gamification', label: t('gamification'), path: '/gamification' },
+  ]
 
   // ── Đóng dropdown khi click outside ──
   useEffect(() => {
@@ -75,6 +84,7 @@ function Header({ onNavigate, currentPath }) {
       window.removeEventListener('scroll', handleScroll)
       if (animationFrameId !== null) window.cancelAnimationFrame(animationFrameId)
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPath, user])
 
   const handleLogout = async () => {
@@ -97,15 +107,13 @@ function Header({ onNavigate, currentPath }) {
     document.getElementById(item.sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
-  // Nav items cho user đã đăng nhập
-  const NAV_ITEMS = [
-    { key: 'learning', label: 'Học tập', path: '/learning' },
-    { key: 'battle', label: 'Thi đấu', path: '/battle' },
-    { key: 'community', label: 'Cộng đồng', path: '/community' },
-    { key: 'gamification', label: 'Bảng xếp hạng', path: '/gamification' },
-  ]
-
   const isActive = (path) => currentPath === path || currentPath.startsWith(path + '/')
+
+  const changeLanguage = (lng) => {
+    i18n.changeLanguage(lng)
+  }
+
+  const currentLanguage = i18n.language || 'vi'
 
   return (
     <header className={`header ${currentPath !== '/' ? 'header--auth' : ''} glass-capsule glass-sheen`}>
@@ -135,12 +143,25 @@ function Header({ onNavigate, currentPath }) {
 
         {/* Right side */}
         <div className="header__right">
+          {/* Language switch button */}
+          <button
+            type="button"
+            className="btn-icon header__lang-btn"
+            onClick={() => changeLanguage(currentLanguage.startsWith('vi') ? 'en' : 'vi')}
+            aria-label="Switch language"
+            title={currentLanguage.startsWith('vi') ? 'Switch to English' : 'Chuyển sang Tiếng Việt'}
+          >
+            <span className="header__lang-code">
+              {currentLanguage.startsWith('vi') ? 'VI' : 'EN'}
+            </span>
+          </button>
+
           {/* Theme toggle */}
           <button
             type="button"
             className="btn-icon"
             onClick={toggleTheme}
-            aria-label={isDark ? 'Chuyển sang light mode' : 'Chuyển sang dark mode'}
+            aria-label={isDark ? t('lightMode') : t('darkMode')}
           >
             <span className="material-symbols-outlined">
               {isDark ? 'light_mode' : 'dark_mode'}
@@ -149,12 +170,12 @@ function Header({ onNavigate, currentPath }) {
 
           {user ? (
             <>
-              {/* Notification bell — placeholder */}
+              {/* Notification bell */}
               <button
                 type="button"
                 className="btn-icon"
                 onClick={() => handleNav('/notification')}
-                aria-label="Thông báo"
+                aria-label={t('notifications')}
               >
                 <span className="material-symbols-outlined">notifications</span>
               </button>
@@ -165,7 +186,7 @@ function Header({ onNavigate, currentPath }) {
                   type="button"
                   className="header__avatar btn-icon"
                   onClick={() => setIsUserDropdownOpen((prev) => !prev)}
-                  aria-label="Menu người dùng"
+                  aria-label={t('userMenu')}
                   aria-expanded={isUserDropdownOpen}
                 >
                   <span className="material-symbols-outlined">account_circle</span>
@@ -186,7 +207,7 @@ function Header({ onNavigate, currentPath }) {
                       onClick={(e) => { e.preventDefault(); setIsUserDropdownOpen(false); handleNav('/profile') }}
                     >
                       <span className="material-symbols-outlined">person</span>
-                      Hồ sơ cá nhân
+                      {t('profile')}
                     </a>
                     <a
                       href="/progress"
@@ -194,7 +215,7 @@ function Header({ onNavigate, currentPath }) {
                       onClick={(e) => { e.preventDefault(); setIsUserDropdownOpen(false); handleNav('/progress') }}
                     >
                       <span className="material-symbols-outlined">insights</span>
-                      Tiến độ học tập
+                      {t('progress')}
                     </a>
                     <a
                       href="/premium"
@@ -202,7 +223,7 @@ function Header({ onNavigate, currentPath }) {
                       onClick={(e) => { e.preventDefault(); setIsUserDropdownOpen(false); handleNav('/premium') }}
                     >
                       <span className="material-symbols-outlined">star</span>
-                      Gói Premium
+                      {t('premium')}
                     </a>
                     <hr className="header__dropdown-divider" />
                     <button
@@ -211,7 +232,7 @@ function Header({ onNavigate, currentPath }) {
                       onClick={handleLogout}
                     >
                       <span className="material-symbols-outlined">logout</span>
-                      Đăng xuất
+                      {t('logout')}
                     </button>
                   </div>
                 )}
@@ -221,8 +242,8 @@ function Header({ onNavigate, currentPath }) {
                 type="button"
                 className="header__logout-button btn-icon"
                 onClick={handleLogout}
-                aria-label="Đăng xuất"
-                title="Đăng xuất"
+                aria-label={t('logout')}
+                title={t('logout')}
               >
                 <span className="material-symbols-outlined">logout</span>
               </button>
@@ -235,14 +256,14 @@ function Header({ onNavigate, currentPath }) {
                 className={currentPath === '/login' ? 'btn-primary header__auth-button--active' : 'btn-secondary'}
                 onClick={() => handleNav('/login')}
               >
-                Đăng nhập
+                {t('login')}
               </button>
               <button
                 type="button"
                 className={currentPath === '/signup' ? 'btn-primary header__auth-button--active' : 'btn-secondary'}
                 onClick={() => handleNav('/signup')}
               >
-                Đăng ký
+                {t('signup')}
               </button>
             </div>
           )}
@@ -253,7 +274,7 @@ function Header({ onNavigate, currentPath }) {
               type="button"
               className="header__hamburger btn-icon"
               onClick={() => setIsMenuOpen((prev) => !prev)}
-              aria-label={isMenuOpen ? 'Đóng menu' : 'Mở menu'}
+              aria-label={isMenuOpen ? t('closeMenu') : t('openMenu')}
               aria-expanded={isMenuOpen}
             >
               <span className="material-symbols-outlined">

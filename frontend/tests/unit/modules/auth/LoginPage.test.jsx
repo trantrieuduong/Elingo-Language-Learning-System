@@ -155,6 +155,43 @@ describe('LoginPage', () => {
       }
     })
 
+    it('should set field error when login fails with USER_NOT_FOUND or array errors', async () => {
+      const user = userEvent.setup()
+      mockLogin.mockResolvedValueOnce({
+        success: false,
+        code: 'USER_NOT_FOUND',
+        message: 'Không tìm thấy người dùng',
+      })
+
+      render(<LoginPage onNavigate={mockNavigate} />)
+
+      await user.type(screen.getByLabelText(/email hoặc username/i), 'notfound')
+      await user.type(screen.getByLabelText(/^mật khẩu$/i), 'Password123@')
+      await user.click(screen.getByRole('button', { name: /đăng nhập/i }))
+
+      await waitFor(() => {
+        expect(screen.getByText(/không tìm thấy người dùng/i)).toBeInTheDocument()
+      })
+    })
+
+    it('should set field errors when backend returns errors array', async () => {
+      const user = userEvent.setup()
+      mockLogin.mockResolvedValueOnce({
+        success: false,
+        errors: [{ field: 'username', message: 'Username không tồn tại' }],
+      })
+
+      render(<LoginPage onNavigate={mockNavigate} />)
+
+      await user.type(screen.getByLabelText(/email hoặc username/i), 'baduser')
+      await user.type(screen.getByLabelText(/^mật khẩu$/i), 'Password123@')
+      await user.click(screen.getByRole('button', { name: /đăng nhập/i }))
+
+      await waitFor(() => {
+        expect(screen.getByText(/username không tồn tại/i)).toBeInTheDocument()
+      })
+    })
+
     it('should clear errors when typing in username and password inputs', async () => {
       const user = userEvent.setup()
       mockLogin.mockResolvedValue({ success: false, message: 'Lỗi chung' })

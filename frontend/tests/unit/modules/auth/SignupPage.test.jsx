@@ -121,6 +121,57 @@ describe('SignupPage', () => {
       })
     })
 
+    it('should show error when username, email, or password formats are invalid', async () => {
+      const user = userEvent.setup()
+      render(<SignupPage onNavigate={mockNavigate} />)
+
+      await user.type(screen.getByLabelText(/họ và tên/i), 'Test User')
+      await user.type(screen.getByLabelText(/^username$/i), 'ab')
+      await user.type(screen.getByLabelText(/email/i), 'invalid-email')
+      await user.type(screen.getByLabelText(/^mật khẩu$/i), 'short')
+      await user.type(screen.getByLabelText(/xác nhận mật khẩu/i), 'short')
+
+      await user.click(screen.getByRole('button', { name: /tạo tài khoản/i }))
+
+      expect(screen.getByText(/username gồm 3-15 chữ cái/i)).toBeInTheDocument()
+      expect(screen.getByText(/email không đúng định dạng/i)).toBeInTheDocument()
+      expect(screen.getByText(/mật khẩu phải có ít nhất 8 ký tự/i)).toBeInTheDocument()
+    })
+
+    it('should handle backend errors array and general error on signup', async () => {
+      const user = userEvent.setup()
+      mockSignup.mockResolvedValueOnce({
+        success: false,
+        errors: [{ field: 'email', message: 'Email đã tồn tại' }],
+      })
+      render(<SignupPage onNavigate={mockNavigate} />)
+
+      await user.type(screen.getByLabelText(/họ và tên/i), 'Test User')
+      await user.type(screen.getByLabelText(/^username$/i), 'testuser')
+      await user.type(screen.getByLabelText(/email/i), 'test@example.com')
+      await user.type(screen.getByLabelText(/^mật khẩu$/i), 'Password123@')
+      await user.type(screen.getByLabelText(/xác nhận mật khẩu/i), 'Password123@')
+
+      await user.click(screen.getByRole('button', { name: /tạo tài khoản/i }))
+
+      await waitFor(() => {
+        expect(screen.getByText(/email đã tồn tại/i)).toBeInTheDocument()
+      })
+
+      // General error branch
+      mockSignup.mockResolvedValueOnce({
+        success: false,
+        code: 'UNKNOWN_ERROR',
+        message: 'Lỗi hệ thống',
+      })
+
+      await user.click(screen.getByRole('button', { name: /tạo tài khoản/i }))
+
+      await waitFor(() => {
+        expect(screen.getByText(/lỗi hệ thống/i)).toBeInTheDocument()
+      })
+    })
+
     it('should navigate to login page when clicking login link', async () => {
       const user = userEvent.setup()
       render(<SignupPage onNavigate={mockNavigate} />)

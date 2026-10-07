@@ -228,5 +228,76 @@ describe('AuthContext', () => {
       expect(sendFailRes.success).toBe(false)
       expect(resetFailRes.success).toBe(false)
     })
+
+    it('should handle window auth:logout event', async () => {
+      server.use(
+        http.post('*/auth/refresh', () => HttpResponse.json({ success: false }, { status: 401 }))
+      )
+
+      localStorage.setItem('user', JSON.stringify({ id: 1, name: 'Stored' }))
+      localStorage.setItem('accessToken', 'stored-token')
+
+      const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
+      await waitFor(() => expect(result.current.loading).toBe(false))
+
+      act(() => {
+        window.dispatchEvent(new Event('auth:logout'))
+      })
+
+      expect(result.current.user).toBeNull()
+      expect(result.current.accessToken).toBeNull()
+    })
+
+    it('should initialize auth with valid session refresh on mount', async () => {
+      server.use(
+        http.post('*/auth/refresh', () => HttpResponse.json({ success: true, data: { accessToken: 'init-token' } })),
+        http.get('*/users/me', () => HttpResponse.json({ success: true, data: { id: 99, username: 'inituser' } }))
+      )
+
+      const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
+      await waitFor(() => expect(result.current.loading).toBe(false))
+
+      expect(result.current.user).toMatchObject({ id: 99, username: 'inituser' })
+      expect(result.current.accessToken).toBe('init-token')
+    })
+
+    it('should handle non-success responses and errors for login, signup, verifyAccount', async () => {
+      server.use(
+        http.post('*/auth/refresh', () => HttpResponse.json({ success: false }, { status: 401 })),
+        http.post('*/auth/login', () => HttpResponse.json({ success: false, message: '' })),
+        http.post('*/auth/google', () => HttpResponse.json({ success: false, message: '' })),
+        http.post('*/auth/signup', () => HttpResponse.json({ success: false, message: '' })),
+        http.post('*/auth/account-verifications', () => HttpResponse.json({ success: false, message: '' })),
+        http.post('*/auth/account-verifications/otp', () => HttpResponse.json({ success: false, message: '' })),
+        http.post('*/auth/password-reset/otp', () => HttpResponse.json({ success: false, message: '' })),
+        http.post('*/auth/password-reset', () => HttpResponse.json({ success: false, message: '' }))
+      )
+
+      const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
+      await waitFor(() => expect(result.current.loading).toBe(false))
+
+      let loginRes, googleRes, signupRes, verifyRes, resendRes, sendOtpRes, resetRes
+      await act(async () => {
+        loginRes = await result.current.login('u', 'p')
+        googleRes = await result.current.loginWithGoogle('gt')
+        signupRes = await result.current.signup({})
+        verifyRes = await result.current.verifyAccount('e', 'o')
+        resendRes = await result.current.resendVerificationOtp('e')
+        sendOtpRes = await result.current.sendResetPasswordOtp('e')
+        resetRes = await result.current.resetPassword('e', 'o', 'p')
+      })
+
+      expect(loginRes.success).toBe(false)
+      expect(googleRes.success).toBe(false)
+      expect(signupRes.success).toBe(false)
+      expect(verifyRes.success).toBe(false)
+      expect(resendRes.success).toBe(false)
+      expect(sendOtpRes.success).toBe(false)
+      expect(resetRes.success).toBe(false)
+    })
+
+    it('should throw error when useAuth is used outside AuthProvider', () => {
+      expect(() => renderHook(() => useAuth())).toThrow('useAuth phai duoc su dung trong AuthProvider')
+    })
   })
 })

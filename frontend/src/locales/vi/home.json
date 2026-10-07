@@ -1,0 +1,181 @@
+{
+  "hero": {
+    "eyebrow": "Học tiếng Anh mỗi ngày",
+    "title": "Học tiếng Anh tự nhiên, ghi nhớ sâu & tự tin giao tiếp cùng <brand>ELINGO</brand>",
+    "description": "Nền tảng kết hợp phương pháp Spaced Repetition khoa học, luyện Shadowing và đấu trường từ vựng 1vs1 sôi động.",
+    "cta": "Bắt đầu học",
+    "ctaSecondary": "Khám phá tính năng",
+    "stats": {
+      "learners": "Người học tích cực",
+      "rating": "Đánh giá hài lòng",
+      "reflex": "Tăng phản xạ 30 ngày"
+    },
+    "preview": {
+      "chip": "Bài học hôm nay",
+      "saveLesson": "Lưu bài học",
+      "wordDesc": "Có khả năng phục hồi nhanh chóng, kiên cường vượt qua khó khăn.",
+      "listenBtn": "Nghe phát âm",
+      "exampleBtn": "Ví dụ câu mẫu",
+      "streakLabel": "Streak học tập",
+      "streakVal": "14 ngày",
+      "vocabLabel": "Từ vựng nhớ",
+      "vocabVal": "320 từ",
+      "arenaLabel": "Arena 1vs1",
+      "arenaVal": "Top 5%"
+    }
+  },
+  "modes": {
+    "vocabulary": "Từ vựng",
+    "dictation": "Nghe chép",
+    "shadowing": "Shadowing",
+    "ariaLabel": "Chế độ học tập"
+  },
+  "overview": {
+    "badge": "Giới thiệu ELINGO",
+    "title": "Tất cả những gì bạn cần để làm chủ tiếng Anh",
+    "description": "ELINGO đồng hành cùng bạn trong suốt quá trình học: học từ vựng, luyện nghe và cải thiện phát âm",
+    "items": {
+      "vocabulary": { "title": "Kho từ vựng", "description": "Flashcard thông minh với lịch ôn tập cá nhân." },
+      "dictation": { "title": "Nghe chép", "description": "Bài luyện nghe theo ngữ cảnh đời sống." },
+      "shadowing": { "title": "Shadowing AI", "description": "Phản hồi phát âm theo từng âm tiết." },
+      "arena": { "title": "Arena 1vs1", "description": "Đấu trường từ vựng theo thời gian thực." },
+      "community": { "title": "Cộng đồng", "description": "Cùng học, chia sẻ và duy trì động lực." }
+    }
+  },
+  "features": {
+    "badge": "Đặc quyền phương pháp",
+    "title": "Tính năng cốt lõi được thiết kế cho sự tiến bộ bền vững",
+    "description": "Mỗi công cụ được tinh chỉnh để giải quyết triệt để rào cản sợ nói, nhanh quên từ và thiếu kiên trì.",
+    "items": {
+      "vocabulary": {
+        "title": "Vocabulary Spaced Repetition",
+        "description": "Học từ vựng thông minh qua Flashcard 2 mặt kèm phiên âm IPA, hình ảnh minh họa và thuật toán nhắc học từ vựng.",
+        "action": "Tìm hiểu thuật toán"
+      },
+      "dictation": {
+        "title": "Dictation Nghe Chép Chính Tả",
+        "description": "Luyện nghe qua bài tập chép chính tả từ hội thoại đời sống, tin tức ngắn và phim tài liệu với tốc độ tùy chỉnh.",
+        "action": "Khám phá kho audio"
+      },
+      "shadowing": {
+        "title": "Shadowing & AI Pronunciation",
+        "description": "Luyện nói theo giọng bản ngữ, phân tích ngữ điệu và phát hiện lỗi phát âm từng nguyên âm, phụ âm.",
+        "action": "Luyện nói thử"
+      },
+      "arena": {
+        "title": "Vocabulary Arena 1vs1",
+        "description": "Thi đấu từ vựng trực tiếp theo thời gian thực để tranh thứ hạng hàng tuần.",
+        "action": "Vào đấu trường"
+      },
+      "community": {
+        "title": "Cộng Đồng Học Tập Tương Tác",
+        "description": "Không gian giao lưu, chia sẻ kinh nghiệm học tập thực chiến và tìm đồng đội luyện phản xạ mỗi ngày.",
+        "action": "Tham gia thảo luận"
+      },
+      "premium": {
+        "title": "Lộ Trình & Phân Tích Chuyên Sâu",
+        "description": "Mở khóa kho tài liệu không giới hạn.",
+        "action": "Xem quyền lợi Pro"
+      }
+    }
+  },
+  "learning": {
+    "badge": "Trải nghiệm trực quan",
+    "title": "Lộ trình học tập 4 bước tinh gọn",
+    "description": "Học → Luyện tập → Ôn tập → Tiến bộ: Một lộ trình đơn giản, giúp bạn dễ dàng duy trì thói quen học và tiến bộ mỗi ngày.",
+    "steps": {
+      "flashcard": {
+        "step": "Bước 1: Học",
+        "title": "Học từ qua Flashcard",
+        "description": "Học từ vựng, ngữ pháp dễ nhớ hơn với định nghĩa rõ ràng và cách phát âm chuẩn.",
+        "listenBtn": "Nghe phát âm chuẩn"
+      },
+      "dictation": {
+        "step": "Bước 2: Luyện",
+        "title": "Nghe & Điền Chính Tả",
+        "description": "Luyện nghe qua những tình huống thực tế, giúp bạn nghe và hiểu tiếng Anh tốt hơn.",
+        "playBtn": "Bấm nghe lại câu mẫu (1.0x)"
+      },
+      "review": {
+        "step": "Bước 3: Ôn tập",
+        "title": "Lặp Lại Ngắt Quãng",
+        "description": "Ôn tập đúng lúc, giúp từ vựng được ghi nhớ lâu hơn.",
+        "memoryLabel": "Độ bền trí nhớ",
+        "reminderLabel": "Nhắc lại sau 3 ngày"
+      },
+      "progress": {
+        "step": "Bước 4: Tiến bộ",
+        "title": "Theo Dõi Kết Quả",
+        "description": "Theo dõi tiến độ và nhìn thấy sự tiến bộ của bạn qua từng ngày.",
+        "monthGoal": "Đạt mục tiêu tháng"
+      }
+    }
+  },
+  "community": {
+    "badge": "Đấu trường & Cộng đồng",
+    "title": "Học tập không cô đơn - Kết nối & Đua tài",
+    "description": "Thực chiến với hàng nghìn học viên cùng trình độ qua trận đấu 1vs1 và thảo luận nhóm bài học sôi động.",
+    "arena": {
+      "chip": "ARENA 1VS1",
+      "title": "Đấu trường từ vựng 1vs1",
+      "description": "Thử thách phản xạ từ vựng trực tiếp cùng bạn bè với thời gian đếm ngược kịch tính.",
+      "question": "Từ đồng nghĩa với \"Persistent\"?",
+      "avgTime": "Thời gian trả lời trung bình: 3.2s • Thắng +30 XP"
+    },
+    "feed": {
+      "chip": "CỘNG ĐỒNG HỌC VIÊN",
+      "online": "1.4k thành viên online",
+      "title": "Chia sẻ & Thảo luận",
+      "description": "Học hỏi kinh nghiệm thực tế, tra cứu thắc mắc ngữ pháp và tìm bạn cùng luyện giọng.",
+      "comments": "bình luận",
+      "post1": {
+        "time": "15 phút trước • #IELTS_Shadowing",
+        "text": "Hôm nay hoàn thành 15 bài Dictation về chủ đề Environment. Ai muốn luyện nói Shadowing cặp đôi tối nay lúc 20:00 không ạ?"
+      },
+      "post2": {
+        "time": "1 giờ trước • #Vocabulary_Tips",
+        "text": "Tip nhớ từ vựng lâu: kết hợp Spaced Repetition + tự viết lại câu mẫu đời sống của chính mình. Sau 2 tuần thuộc 180 từ tự nhiên!"
+      }
+    }
+  },
+  "pricing": {
+    "badge": "Bảng giá minh bạch",
+    "title": "Lựa chọn gói học phù hợp với mục tiêu của bạn",
+    "description": "Bắt đầu miễn phí hoặc nâng cấp để tiếp cận toàn bộ tính năng cao cấp không giới hạn.",
+    "popularFree": "Miễn phí",
+    "popularPro": "Được yêu thích nhất",
+    "basic": {
+      "name": "Gói Cơ Bản",
+      "price": "0đ",
+      "period": "/ Vĩnh viễn",
+      "description": "Phù hợp cho người mới bắt đầu làm quen với phương pháp học phản xạ tự nhiên.",
+      "btn": "Sử dụng miễn phí",
+      "features": [
+        "Kho từ vựng cơ bản",
+        "Kho bài nghe chép Dictation cơ bản",
+        "3 trận đấu Arena 1vs1 mỗi ngày",
+        "Tham gia thảo luận cộng đồng"
+      ]
+    },
+    "pro": {
+      "name": "Gói ELINGO Pro",
+      "price": "89.000đ",
+      "period": "/ tháng",
+      "description": "Hoặc tiết kiệm hơn với 799.000đ / năm (chỉ ~66.000đ / tháng).",
+      "btn": "Nâng cấp Premium",
+      "features": [
+        "Không giới hạn bộ từ vựng",
+        "Toàn bộ kho bài tập Dictation chuyên sâu",
+        "Đấu trường Arena 1vs1 không giới hạn lượt chơi"
+      ]
+    }
+  },
+  "cta": {
+    "title": "Sẵn sàng bắt đầu hành trình học tiếng Anh?",
+    "description": "Học một chút mỗi ngày và tiến bộ từng bước cùng phương pháp của ELINGO.",
+    "btn": "Bắt đầu học ngay miễn phí",
+    "benefit1": "Miễn phí trải nghiệm",
+    "benefit2": "Không yêu cầu thẻ tín dụng",
+    "benefit3": "Hủy bất kỳ lúc nào"
+  }
+}

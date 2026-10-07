@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import Input from '../../../components/Input/Input'
 import { useAuth } from '../../../context/AuthContext'
 import './AuthPages.css'
@@ -11,18 +12,10 @@ const initialForm = {
   confirmPassword: '',
 }
 
-const PASSWORD_REQUIREMENTS = [
-  { key: 'length', label: 'Ít nhất 8 ký tự', isMet: (password) => password.length >= 8 },
-  { key: 'case', label: 'Ít nhất có một chữ hoa và một chữ thường', isMet: (password) => /[A-Z]/.test(password) && /[a-z]/.test(password) },
-  { key: 'number', label: 'Ít nhất có một số', isMet: (password) => /\d/.test(password) },
-  { key: 'special', label: 'Ít nhất có một ký tự đặc biệt', isMet: (password) => /[^A-Za-z0-9]/.test(password) },
-]
-
 const USERNAME_PATTERN = /^[A-Za-z0-9]{3,15}$/
 
-
-
 function SignupPage({ onNavigate }) {
+  const { t } = useTranslation('auth')
   const { signup } = useAuth()
   const [form, setForm] = useState(initialForm)
   const [errors, setErrors] = useState({})
@@ -31,24 +24,24 @@ function SignupPage({ onNavigate }) {
 
   const validate = () => {
     const newErrors = {}
-    if (!form.fullName.trim()) newErrors.fullName = 'Họ và tên là bắt buộc.'
+    if (!form.fullName.trim()) newErrors.fullName = t('fullNameRequired')
     if (!form.username.trim()) {
-      newErrors.username = 'Username là bắt buộc.'
+      newErrors.username = t('usernameSignupRequired')
     } else if (!USERNAME_PATTERN.test(form.username)) {
-      newErrors.username = 'Username gồm 3-15 chữ cái hoặc chữ số, không có khoảng trắng hay ký tự đặc biệt.'
+      newErrors.username = t('usernameSignupInvalid')
     }
     if (!form.email.trim()) {
-      newErrors.email = 'Email là bắt buộc.'
+      newErrors.email = t('emailRequired')
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      newErrors.email = 'Email không đúng định dạng.'
+      newErrors.email = t('emailInvalid')
     }
     if (!form.password) {
-      newErrors.password = 'Mật khẩu là bắt buộc.'
-    } else if (!PASSWORD_REQUIREMENTS.every((requirement) => requirement.isMet(form.password))) {
-      newErrors.password = 'Mật khẩu phải có ít nhất 8 ký tự và bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.'
+      newErrors.password = t('passwordSignupRequired')
+    } else if (!getPasswordRequirements(form.password).every((r) => r.isMet)) {
+      newErrors.password = t('passwordSignupInvalid')
     }
     if (form.confirmPassword !== form.password) {
-      newErrors.confirmPassword = 'Mật khẩu xác nhận không khớp.'
+      newErrors.confirmPassword = t('confirmPasswordMismatch')
     }
 
     setErrors(newErrors)
@@ -82,10 +75,29 @@ function SignupPage({ onNavigate }) {
       return
     }
 
-    if (result.code === 'USERNAME_EXISTED') {
-      setErrors((prev) => ({ ...prev, username: result.message }))
-    } else if (result.code === 'EMAIL_EXISTED') {
-      setErrors((prev) => ({ ...prev, email: result.message }))
+    // Xử lý validation errors từ backend
+    if (result.errors && Array.isArray(result.errors)) {
+      const newErrors = {}
+      result.errors.forEach((err) => {
+        if (err.field && err.message) {
+          newErrors[err.field] = err.message
+        }
+      })
+      if (Object.keys(newErrors).length > 0) {
+        setErrors((prev) => ({ ...prev, ...newErrors }))
+        return
+      }
+    }
+
+    // Map code-specific errors vào field tương ứng
+    const fieldErrorMap = {
+      USERNAME_EXISTED: 'username',
+      EMAIL_EXISTED: 'email',
+    }
+
+    const field = fieldErrorMap[result.code]
+    if (field) {
+      setErrors((prev) => ({ ...prev, [field]: result.message }))
     } else {
       setGeneralError(result.message)
     }
@@ -101,11 +113,11 @@ function SignupPage({ onNavigate }) {
       <section className="auth-card auth-card--wide glass-card">
         <span className="badge badge--mint auth-card__badge">
           <span className="material-symbols-outlined">person_add</span>
-          Bắt đầu cùng Elingo
+          {t('signupBadge')}
         </span>
         <div className="auth-card__header">
-          <h1>Tạo tài khoản Elingo</h1>
-          <p>Thiết lập hồ sơ học viên và xác thực email để bắt đầu.</p>
+          <h1>{t('signupTitle')}</h1>
+          <p>{t('signupSubtitle')}</p>
         </div>
 
         {generalError && <div className="auth-alert auth-alert--error">{generalError}</div>}
@@ -114,9 +126,9 @@ function SignupPage({ onNavigate }) {
           <div className="auth-form__grid">
             <Input
               id="signup-full-name"
-              label="Họ và tên"
+              label={t('fullNameLabel')}
               type="text"
-              placeholder="Nguyễn Văn A"
+              placeholder={t('fullNamePlaceholder')}
               value={form.fullName}
               onChange={(e) => handleChange('fullName', e.target.value)}
               error={errors.fullName}
@@ -125,9 +137,9 @@ function SignupPage({ onNavigate }) {
             />
             <Input
               id="signup-username"
-              label="Username"
+              label={t('usernameSignupLabel')}
               type="text"
-              placeholder="ANguyen"
+              placeholder={t('usernameSignupPlaceholder')}
               value={form.username}
               onChange={(e) => handleChange('username', e.target.value)}
               error={errors.username}
@@ -138,9 +150,9 @@ function SignupPage({ onNavigate }) {
 
           <Input
             id="signup-email"
-            label="Email"
+            label={t('emailLabel')}
             type="email"
-            placeholder="AN123@example.com"
+            placeholder={t('emailPlaceholder')}
             value={form.email}
             onChange={(e) => handleChange('email', e.target.value)}
             error={errors.email}
@@ -151,21 +163,21 @@ function SignupPage({ onNavigate }) {
             <div className="auth-password-field">
               <Input
                 id="signup-password"
-                label="Mật khẩu"
+                label={t('passwordSignupLabel')}
                 type="password"
-                placeholder="Nhập mật khẩu"
+                placeholder={t('passwordSignupPlaceholder')}
                 value={form.password}
                 onChange={(e) => handleChange('password', e.target.value)}
                 error={errors.password}
                 disabled={isSubmitting}
               />
-              <PasswordRequirements password={form.password} />
+              <PasswordRequirements password={form.password} t={t} />
             </div>
             <Input
               id="signup-confirm-password"
-              label="Xác nhận mật khẩu"
+              label={t('confirmPasswordLabel')}
               type="password"
-              placeholder="Nhập lại mật khẩu"
+              placeholder={t('confirmPasswordPlaceholder')}
               value={form.confirmPassword}
               onChange={(e) => handleChange('confirmPassword', e.target.value)}
               error={errors.confirmPassword}
@@ -174,15 +186,15 @@ function SignupPage({ onNavigate }) {
           </div>
 
           <button type="submit" className="btn-primary auth-submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Đang tạo tài khoản...' : 'Tạo tài khoản'}
+            {isSubmitting ? t('submittingSignup') : t('submitSignup')}
             {!isSubmitting && <span className="material-symbols-outlined">arrow_forward</span>}
           </button>
         </form>
 
         <p className="auth-card__footer">
-          Đã có tài khoản?{' '}
+          {t('hasAccount')}{' '}
           <a href="/login" onClick={handleLoginClick}>
-            Đăng nhập
+            {t('loginLink')}
           </a>
         </p>
       </section>
@@ -190,22 +202,31 @@ function SignupPage({ onNavigate }) {
   )
 }
 
-function PasswordRequirements({ password }) {
+function getPasswordRequirements(password) {
+  return [
+    { key: 'length', isMet: password.length >= 8 },
+    { key: 'case', isMet: /[A-Z]/.test(password) && /[a-z]/.test(password) },
+    { key: 'number', isMet: /\d/.test(password) },
+    { key: 'special', isMet: /[^A-Za-z0-9]/.test(password) },
+  ]
+}
+
+function PasswordRequirements({ password, t }) {
   const hasPasswordInput = password.length > 0
+  const requirements = getPasswordRequirements(password)
 
   return (
-    <ul className="auth-password-requirements" aria-label="Yêu cầu mật khẩu">
-      {PASSWORD_REQUIREMENTS.map((requirement) => {
-        const isMet = requirement.isMet(password)
+    <ul className="auth-password-requirements" aria-label={t('passwordRequirements.title')}>
+      {requirements.map((req) => {
         const statusClass = !hasPasswordInput
           ? 'auth-password-requirements__item--neutral'
-          : isMet
+          : req.isMet
             ? 'auth-password-requirements__item--met'
             : 'auth-password-requirements__item--unmet'
         return (
-          <li className={statusClass} key={requirement.key}>
-            <span className="material-symbols-outlined">{isMet ? 'check_circle' : 'cancel'}</span>
-            {requirement.label}
+          <li className={statusClass} key={req.key}>
+            <span className="material-symbols-outlined">{req.isMet ? 'check_circle' : 'cancel'}</span>
+            {t(`passwordRequirements.${req.key}`)}
           </li>
         )
       })}

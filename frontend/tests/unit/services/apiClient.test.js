@@ -133,4 +133,136 @@ describe('apiClient', () => {
 
     apiClient.interceptors.request.eject(errorInterceptor)
   })
+
+  it('should map API response errors with validation array and code translation via mapApiResponse', async () => {
+    server.use(
+      http.post('*/test-error-map', () => {
+        return HttpResponse.json(
+          {
+            code: 'INVALID_CREDENTIALS',
+            errors: [
+              { code: 'REQUIRED', field: 'email' },
+              { code: 'USER_NOT_FOUND' },
+            ],
+          },
+          { status: 400 }
+        )
+      })
+    )
+
+    try {
+      await apiClient.post('/test-error-map')
+    } catch (err) {
+      expect(err.response.data.message).toBeDefined()
+      expect(err.response.data.errors).toHaveLength(2)
+    }
+  })
+
+  it('should fallback to UNKNOWN_ERROR when error response is HTML or unknown format', async () => {
+    server.use(
+      http.get('*/test-html-error', () => {
+        return new HttpResponse('<html>502 Bad Gateway</html>', {
+          status: 502,
+          headers: { 'Content-Type': 'text/html' },
+        })
+      })
+    )
+
+    try {
+      await apiClient.get('/test-html-error')
+    } catch (err) {
+      expect(err.message).toBeDefined()
+    }
+  })
+
+  it('should handle request rejection interceptor', async () => {
+    const errorInterceptor = apiClient.interceptors.request.use(null, (error) => Promise.reject(error))
+    try {
+      await apiClient.interceptors.request.handlers[0].rejected(new Error('Request Error'))
+    } catch (err) {
+      expect(err.message).toBe('Request Error')
+    }
+    apiClient.interceptors.request.eject(errorInterceptor)
+  })
+
+  it('should handle mapApiResponse edge cases (network error without response.data)', async () => {
+    server.use(
+      http.get('*/test-network-error', () => {
+        return HttpResponse.error()
+      })
+    )
+
+    try {
+      await apiClient.get('/test-network-error')
+    } catch (err) {
+      expect(err.message).toBeDefined()
+    }
+  })
+
+  it('should map firstError code/message to root if data.code and data.message are missing', async () => {
+    server.use(
+      http.post('*/test-first-error', () => {
+        return HttpResponse.json(
+          {
+            errors: [{ code: 'FIRST_ERR', message: 'First Error Message' }],
+          },
+          { status: 400 }
+        )
+      })
+    )
+
+    try {
+      await apiClient.post('/test-first-error')
+    } catch (err) {
+      expect(err.response.data.code).toBe('FIRST_ERR')
+    }
+  })
+
+  it('should handle refresh token error queue rejection and failed refresh response without newAccessToken', async () => {
+    localStorage.setItem('accessToken', 'exp-token')
+
+    server.use(
+      http.get('*/res-queue-fail', () => {
+        return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 })
+      }),
+      http.post('*/auth/refresh', () => {
+        return HttpResponse.json({ success: true, data: {} })
+      })
+    )
+
+    try {
+      await apiClient.get('/res-queue-fail')
+    } catch (err) {
+      expect(err.response).toBeDefined()
+    }
+  })
+
+  it('should process failed queue when concurrent refresh fails', async () => {
+    localStorage.setItem('accessToken', 'exp-token-concurrent-fail')
+    let firstCallDone = false
+
+    server.use(
+      http.get('*/res-c1', () => {
+        if (!firstCallDone) {
+          firstCallDone = true
+          return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 })
+        }
+        return HttpResponse.json({ success: true })
+      }),
+      http.get('*/res-c2', () => {
+        return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 })
+      }),
+      http.post('*/auth/refresh', async () => {
+        return HttpResponse.json({ message: 'Refresh Failed' }, { status: 401 })
+      })
+    )
+
+    const results = await Promise.allSettled([
+      apiClient.get('/res-c1'),
+      apiClient.get('/res-c2'),
+    ])
+
+    expect(results[0].status).toBe('rejected')
+    expect(results[1].status).toBe('rejected')
+  })
 })

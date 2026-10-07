@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import Header from './components/Header/Header'
 import Footer from './components/Footer/Footer'
 import { useAuth } from './context/AuthContext'
@@ -163,13 +164,14 @@ function App() {
 }
 
 function PlaceholderPage({ title, path }) {
+  const { t } = useTranslation()
   return (
     <main className="placeholder-page">
       <div className="placeholder-page__card glass-card">
         <span className="material-symbols-outlined placeholder-page__icon">construction</span>
         <h1 className="text-headline-md">{title}</h1>
         <p className="text-body-md text-disabled">
-          Route: <code>{path}</code>
+          {t('underConstruction')} — Route: <code>{path}</code>
         </p>
       </div>
     </main>
@@ -177,13 +179,14 @@ function PlaceholderPage({ title, path }) {
 }
 
 function NotFoundPage({ onNavigate }) {
+  const { t } = useTranslation()
   return (
     <main className="placeholder-page">
       <div className="placeholder-page__card glass-card">
         <span className="material-symbols-outlined placeholder-page__icon">error</span>
-        <h1 className="text-headline-md">Page not found</h1>
+        <h1 className="text-headline-md">{t('pageNotFound')}</h1>
         <button className="btn-primary" onClick={() => onNavigate('/')}>
-          Back home
+          {t('backHome')}
         </button>
       </div>
     </main>

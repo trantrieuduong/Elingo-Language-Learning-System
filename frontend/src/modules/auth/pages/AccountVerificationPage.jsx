@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import Input from '../../../components/Input/Input'
 import { useAuth } from '../../../context/AuthContext'
 import './AuthPages.css'
 
-const OTP_RESEND_COOLDOWN = 60
+const OTP_RESEND_COOLDOWN = Number(import.meta.env.VITE_OTP_RESEND_COOLDOWN) || 60
 
 function AccountVerificationPage({ email: initialEmail = '', onNavigate }) {
+  const { t } = useTranslation('auth')
   const { verifyAccount, resendVerificationOtp } = useAuth()
   const [otp, setOtp] = useState('')
   const [otpError, setOtpError] = useState('')
@@ -30,12 +32,12 @@ function AccountVerificationPage({ email: initialEmail = '', onNavigate }) {
     setSuccessMsg('')
 
     if (!otp.trim()) {
-      setOtpError('Mã OTP là bắt buộc.')
+      setOtpError(t('otpRequired'))
       return
     }
 
     if (!initialEmail) {
-      setError('Không tìm thấy thông tin xác thực. Vui lòng đăng nhập lại.')
+      setError(t('verifyError'))
       return
     }
 
@@ -44,14 +46,19 @@ function AccountVerificationPage({ email: initialEmail = '', onNavigate }) {
     setIsSubmitting(false)
 
     if (result.success) {
-      setSuccessMsg('Tài khoản đã được xác thực. Bạn có thể đăng nhập ngay.')
+      setSuccessMsg(result.message)
       redirectTimerRef.current = setTimeout(() => {
         if (onNavigate) onNavigate('/login')
       }, 800)
       return
     }
 
-    setError(result.message)
+    // Xử lý lỗi field-specific
+    if (result.code === 'OTP_INVALID') {
+      setOtpError(result.message)
+    } else {
+      setError(result.message)
+    }
   }
 
   const handleResendOtp = async () => {
@@ -64,7 +71,7 @@ function AccountVerificationPage({ email: initialEmail = '', onNavigate }) {
     setIsResending(false)
 
     if (result.success) {
-      setSuccessMsg('Mã xác thực mới đã được gửi đến email của bạn.')
+      setSuccessMsg(result.message)
       setResendCooldown(OTP_RESEND_COOLDOWN)
       return
     }
@@ -83,11 +90,11 @@ function AccountVerificationPage({ email: initialEmail = '', onNavigate }) {
       <section className="auth-card glass-card">
         <span className="badge badge--soft-blue auth-card__badge">
           <span className="material-symbols-outlined">mark_email_read</span>
-          Xác thực email
+          {t('verifyBadge')}
         </span>
         <div className="auth-card__header">
-          <h1>Xác thực tài khoản</h1>
-          <p>Nhập mã gồm 6 chữ số đã được gửi đến email đăng ký của bạn.</p>
+          <h1>{t('verifyTitle')}</h1>
+          <p>{t('verifySubtitle')}</p>
         </div>
 
         {error && <div className="auth-alert auth-alert--error">{error}</div>}
@@ -96,7 +103,7 @@ function AccountVerificationPage({ email: initialEmail = '', onNavigate }) {
         <form className="auth-form" onSubmit={handleSubmit} noValidate>
           <Input
             id="verification-otp"
-            label="Mã xác thực"
+            label={t('otpLabel')}
             type="text"
             placeholder="123456"
             value={otp}
@@ -113,7 +120,7 @@ function AccountVerificationPage({ email: initialEmail = '', onNavigate }) {
           />
 
           <button type="submit" className="btn-primary auth-submit" disabled={isSubmitting || !initialEmail}>
-            {isSubmitting ? 'Đang xác thực...' : 'Xác thực tài khoản'}
+            {isSubmitting ? t('submittingVerify') : t('submitVerify')}
             {!isSubmitting && <span className="material-symbols-outlined">check_circle</span>}
           </button>
         </form>
@@ -124,7 +131,11 @@ function AccountVerificationPage({ email: initialEmail = '', onNavigate }) {
           onClick={handleResendOtp}
           disabled={isResending || isSubmitting || resendCooldown > 0 || !initialEmail}
         >
-          {isResending ? 'Đang gửi mã...' : resendCooldown > 0 ? `Gửi lại mã sau ${formatCooldown()}` : 'Gửi lại mã xác thực'}
+          {isResending
+            ? t('resendingCode')
+            : resendCooldown > 0
+              ? t('resendAfter', { time: formatCooldown() })
+              : t('resendCode')}
         </button>
       </section>
     </main>

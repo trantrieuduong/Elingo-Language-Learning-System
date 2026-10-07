@@ -1,0 +1,24 @@
+{
+  "all": "All",
+  "save": "Save",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "close": "Close",
+  "delete": "Delete",
+  "edit": "Edit",
+  "search": "Search...",
+  "loading": "Loading...",
+  "backHome": "Back to Home",
+  "pageNotFound": "Page not found",
+  "underConstruction": "Feature under development",
+  "filter": {
+    "level": "Level",
+    "topic": "Topic"
+  },
+  "pagination": {
+    "prev": "Previous",
+    "next": "Next",
+    "goTo": "Go to",
+    "page": "Page {{page}}"
+  }
+}

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import Input from '../../../components/Input/Input'
 import { useAuth } from '../../../context/AuthContext'
 import './AuthPages.css'
@@ -6,24 +7,39 @@ import './AuthPages.css'
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID
 let googleScriptPromise = null
 
-const loadGoogleIdentityScript = () => {
-  if (window.google?.accounts?.id) return Promise.resolve()
-  if (googleScriptPromise) return googleScriptPromise
+const loadGoogleIdentityScript = (lang = 'vi') => {
+  const scriptId = 'google-gsi-script'
+  const currentScript = document.getElementById(scriptId)
+  const targetSrc = `https://accounts.google.com/gsi/client?hl=${lang}`
 
-  googleScriptPromise = new Promise((resolve, reject) => {
+  if (currentScript && currentScript.getAttribute('data-lang') === lang && window.google?.accounts?.id) {
+    return Promise.resolve()
+  }
+
+  if (currentScript) {
+    currentScript.remove()
+    if (window.google?.accounts) {
+      delete window.google.accounts
+    }
+  }
+
+  return new Promise((resolve, reject) => {
     const script = document.createElement('script')
-    script.src = 'https://accounts.google.com/gsi/client'
+    script.id = scriptId
+    script.src = targetSrc
     script.async = true
     script.defer = true
-    script.onload = resolve
-    script.onerror = () => reject(new Error('Không thể tải dịch vụ đăng nhập Google.'))
+    script.setAttribute('data-lang', lang)
+    script.onload = () => {
+      setTimeout(resolve, 50)
+    }
+    script.onerror = () => reject(new Error('google_load_error'))
     document.head.appendChild(script)
   })
-
-  return googleScriptPromise
 }
 
 function LoginPage({ onNavigate }) {
+  const { t, i18n } = useTranslation('auth')
   const { login, loginWithGoogle } = useAuth()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -40,10 +56,8 @@ function LoginPage({ onNavigate }) {
 
   const validate = () => {
     const newErrors = {}
-
-    if (!username.trim()) newErrors.username = 'Email hoặc Username là bắt buộc.'
-    if (!password) newErrors.password = 'Mật khẩu là bắt buộc.'
-
+    if (!username.trim()) newErrors.username = t('usernameRequired')
+    if (!password) newErrors.password = t('passwordRequired')
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -51,7 +65,6 @@ function LoginPage({ onNavigate }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-
     if (!validate()) return
 
     setIsSubmitting(true)
@@ -70,7 +83,26 @@ function LoginPage({ onNavigate }) {
       return
     }
 
-    setError(result.message)
+    // Xử lý validation errors từ backend
+    if (result.errors && Array.isArray(result.errors)) {
+      const newErrors = {}
+      result.errors.forEach((err) => {
+        if (err.field && err.message) {
+          newErrors[err.field] = err.message
+        }
+      })
+      if (Object.keys(newErrors).length > 0) {
+        setErrors((prev) => ({ ...prev, ...newErrors }))
+        return
+      }
+    }
+
+    // Map code-specific errors: USER_NOT_FOUND vào field, còn lại vào general error
+    if (result.code === 'USER_NOT_FOUND') {
+      setErrors((prev) => ({ ...prev, username: result.message }))
+    } else {
+      setError(result.message)
+    }
   }
 
   const handleSignupClick = (e) => {
@@ -85,7 +117,7 @@ function LoginPage({ onNavigate }) {
 
   const handleGoogleCredential = useCallback(async (credentialResponse) => {
     if (!credentialResponse.credential) {
-      if (isMountedRef.current) setError('Không nhận được thông tin đăng nhập từ Google.')
+      if (isMountedRef.current) setError(t('googleCredentialError'))
       return
     }
 
@@ -100,23 +132,26 @@ function LoginPage({ onNavigate }) {
     }
 
     setError(result.message)
-  }, [loginWithGoogle, onNavigate])
+  }, [loginWithGoogle, onNavigate, t])
 
   useEffect(() => {
     if (!GOOGLE_CLIENT_ID || !googleButtonRef.current) return undefined
 
     let isActive = true
     let renderedWidth = 0
+    let renderedLang = ''
+    const currentLang = (i18n.resolvedLanguage || 'vi').startsWith('en') ? 'en' : 'vi'
 
     const renderGoogleButton = async () => {
       try {
-        await loadGoogleIdentityScript()
+        await loadGoogleIdentityScript(currentLang)
         if (!isActive || !googleButtonRef.current) return
 
         const buttonWidth = Math.floor(googleButtonRef.current.getBoundingClientRect().width)
-        if (!buttonWidth || buttonWidth === renderedWidth) return
+        if (!buttonWidth || (buttonWidth === renderedWidth && renderedLang === currentLang)) return
 
         renderedWidth = buttonWidth
+        renderedLang = currentLang
         googleButtonRef.current.replaceChildren()
 
         window.google.accounts.id.initialize({
@@ -131,11 +166,11 @@ function LoginPage({ onNavigate }) {
           size: 'large',
           text: 'signin_with',
           shape: 'pill',
-          locale: 'vi',
+          locale: currentLang,
           width: buttonWidth,
         })
       } catch (googleError) {
-        if (isActive) setError(googleError.message || 'Không thể tải đăng nhập Google. Vui lòng thử lại.')
+        if (isActive) setError(t('googleServiceError'))
       }
     }
 
@@ -149,18 +184,18 @@ function LoginPage({ onNavigate }) {
       isActive = false
       resizeObserver.disconnect()
     }
-  }, [handleGoogleCredential])
+  }, [handleGoogleCredential, i18n.resolvedLanguage, t])
 
   return (
     <main className="auth-page">
       <section className="auth-card glass-card">
         <span className="badge badge--primary auth-card__badge">
           <span className="material-symbols-outlined">login</span>
-          Chào mừng bạn trở lại
+          {t('badge')}
         </span>
         <div className="auth-card__header">
-          <h1>Đăng nhập Elingo</h1>
-          <p>Tiếp tục bài học, ôn tập và luyện nói của bạn.</p>
+          <h1>{t('title')}</h1>
+          <p>{t('subtitle')}</p>
         </div>
 
         {error && <div className="auth-alert auth-alert--error">{error}</div>}
@@ -168,9 +203,9 @@ function LoginPage({ onNavigate }) {
         <form className="auth-form" onSubmit={handleSubmit}>
           <Input
             id="login-username"
-            label="Email hoặc Username"
+            label={t('usernameLabel')}
             type="text"
-            placeholder="you@example.com"
+            placeholder={t('usernamePlaceholder')}
             value={username}
             onChange={(e) => {
               setUsername(e.target.value)
@@ -184,9 +219,9 @@ function LoginPage({ onNavigate }) {
 
           <Input
             id="login-password"
-            label="Mật khẩu"
+            label={t('passwordLabel')}
             type="password"
-            placeholder="Nhập mật khẩu"
+            placeholder={t('passwordPlaceholder')}
             value={password}
             onChange={(e) => {
               setPassword(e.target.value)
@@ -198,26 +233,26 @@ function LoginPage({ onNavigate }) {
           />
 
           <a className="auth-forgot-password" href="#forgot-password" onClick={handleForgotPasswordClick}>
-            Quên mật khẩu?
+            {t('forgotPassword')}
           </a>
 
           <button type="submit" className="btn-primary auth-submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
+            {isSubmitting ? t('submitting') : t('submit')}
             {!isSubmitting && <span className="material-symbols-outlined">arrow_forward</span>}
           </button>
         </form>
 
-        <div className="auth-divider" aria-hidden="true"><span>hoặc</span></div>
+        <div className="auth-divider" aria-hidden="true"><span>{t('dividerOr')}</span></div>
         {GOOGLE_CLIENT_ID ? (
           <div className={`auth-google-button ${isGoogleSubmitting ? 'auth-google-button--loading' : ''}`} ref={googleButtonRef} />
         ) : (
-          <p className="auth-google-config-error">Google Sign-In chưa được cấu hình.</p>
+          <p className="auth-google-config-error">{t('googleNotConfigured')}</p>
         )}
 
         <p className="auth-card__footer">
-          Chưa có tài khoản Elingo?{' '}
+          {t('noAccount')}{' '}
           <a href="/signup" onClick={handleSignupClick}>
-            Đăng ký ngay
+            {t('signupNow')}
           </a>
         </p>
       </section>

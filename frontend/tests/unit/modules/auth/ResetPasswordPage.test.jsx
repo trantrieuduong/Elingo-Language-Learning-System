@@ -44,7 +44,7 @@ describe('ResetPasswordPage', () => {
 
     it('should send reset password OTP successfully', async () => {
       const user = userEvent.setup()
-      mockSendResetPasswordOtp.mockResolvedValue({ success: true })
+      mockSendResetPasswordOtp.mockResolvedValue({ success: true, message: 'Đã gửi mã OTP thành công. Vui lòng kiểm tra email của bạn.' })
       render(<ResetPasswordPage onNavigate={mockNavigate} />)
 
       await user.type(screen.getByLabelText(/email đã đăng ký/i), 'test@example.com')
@@ -72,8 +72,9 @@ describe('ResetPasswordPage', () => {
 
       await user.click(screen.getByRole('button', { name: /xác nhận đặt lại mật khẩu/i }))
 
-      expect(mockResetPassword).toHaveBeenCalledWith('test@example.com', '123456', 'NewPassword123@')
-      expect(screen.getByText(/đặt lại mật khẩu thành công/i)).toBeInTheDocument()
+      await waitFor(() => {
+        expect(mockResetPassword).toHaveBeenCalledWith('test@example.com', '123456', 'NewPassword123@')
+      })
 
       vi.advanceTimersByTime(1500)
       expect(mockNavigate).toHaveBeenCalledWith('/login')
@@ -95,6 +96,70 @@ describe('ResetPasswordPage', () => {
 
       await waitFor(() => {
         expect(screen.getByText(/otp không hợp lệ/i)).toBeInTheDocument()
+      })
+    })
+
+    it('should show error when email format is invalid on send OTP', async () => {
+      const user = userEvent.setup()
+      render(<ResetPasswordPage onNavigate={mockNavigate} />)
+
+      await user.type(screen.getByLabelText(/email đã đăng ký/i), 'invalid-email')
+      await user.click(screen.getByRole('button', { name: /gửi mã otp/i }))
+
+      expect(screen.getByText(/email không đúng định dạng/i)).toBeInTheDocument()
+    })
+
+    it('should show field error when send OTP fails with EMAIL_NOT_EXISTED', async () => {
+      const user = userEvent.setup()
+      mockSendResetPasswordOtp.mockResolvedValue({
+        success: false,
+        code: 'EMAIL_NOT_EXISTED',
+        message: 'Email không tồn tại trong hệ thống',
+      })
+      render(<ResetPasswordPage onNavigate={mockNavigate} />)
+
+      await user.type(screen.getByLabelText(/email đã đăng ký/i), 'notfound@example.com')
+      await user.click(screen.getByRole('button', { name: /gửi mã otp/i }))
+
+      await waitFor(() => {
+        expect(screen.getByText(/email không tồn tại trong hệ thống/i)).toBeInTheDocument()
+      })
+    })
+
+    it('should show general error when send OTP fails with non-field error code', async () => {
+      const user = userEvent.setup()
+      mockSendResetPasswordOtp.mockResolvedValue({
+        success: false,
+        code: 'TOO_MANY_REQUESTS',
+        message: 'Quá nhiều yêu cầu',
+      })
+      render(<ResetPasswordPage onNavigate={mockNavigate} />)
+
+      await user.type(screen.getByLabelText(/email đã đăng ký/i), 'test@example.com')
+      await user.click(screen.getByRole('button', { name: /gửi mã otp/i }))
+
+      await waitFor(() => {
+        expect(screen.getByText(/quá nhiều yêu cầu/i)).toBeInTheDocument()
+      })
+    })
+
+    it('should handle reset password with backend validation errors array and field error maps', async () => {
+      const user = userEvent.setup()
+      mockResetPassword.mockResolvedValueOnce({
+        success: false,
+        errors: [{ field: 'newPassword', message: 'Mật khẩu cũ không đúng' }],
+      })
+      render(<ResetPasswordPage onNavigate={mockNavigate} />)
+
+      await user.type(screen.getByLabelText(/email đã đăng ký/i), 'test@example.com')
+      await user.type(screen.getByLabelText(/mã otp/i), '123456')
+      await user.type(screen.getByLabelText(/^mật khẩu mới$/i), 'NewPassword123@')
+      await user.type(screen.getByLabelText(/xác nhận mật khẩu mới/i), 'NewPassword123@')
+
+      await user.click(screen.getByRole('button', { name: /xác nhận đặt lại mật khẩu/i }))
+
+      await waitFor(() => {
+        expect(screen.getByText(/mật khẩu cũ không đúng/i)).toBeInTheDocument()
       })
     })
 

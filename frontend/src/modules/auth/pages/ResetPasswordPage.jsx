@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import Input from '../../../components/Input/Input'
 import { useAuth } from '../../../context/AuthContext'
 import './AuthPages.css'
@@ -10,16 +11,10 @@ const initialForm = {
   confirmPassword: '',
 }
 
-const PASSWORD_REQUIREMENTS = [
-  { key: 'length', label: 'Ít nhất 8 ký tự', isMet: (password) => password.length >= 8 },
-  { key: 'case', label: 'Ít nhất có một chữ hoa và một chữ thường', isMet: (password) => /[A-Z]/.test(password) && /[a-z]/.test(password) },
-  { key: 'number', label: 'Ít nhất có một số', isMet: (password) => /\d/.test(password) },
-  { key: 'special', label: 'Ít nhất có một ký tự đặc biệt', isMet: (password) => /[^A-Za-z0-9]/.test(password) },
-]
-
-const OTP_RESEND_COOLDOWN = 60
+const OTP_RESEND_COOLDOWN = Number(import.meta.env.VITE_OTP_RESEND_COOLDOWN) || 60
 
 function ResetPasswordPage({ onNavigate }) {
+  const { t } = useTranslation('auth')
   const { sendResetPasswordOtp, resetPassword } = useAuth()
 
   const [form, setForm] = useState(initialForm)
@@ -52,11 +47,11 @@ function ResetPasswordPage({ onNavigate }) {
 
   const validateEmail = () => {
     if (!form.email.trim()) {
-      setErrors((prev) => ({ ...prev, email: 'Email là bắt buộc.' }))
+      setErrors((prev) => ({ ...prev, email: t('emailRequired') }))
       return false
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      setErrors((prev) => ({ ...prev, email: 'Email không đúng định dạng.' }))
+      setErrors((prev) => ({ ...prev, email: t('emailInvalid') }))
       return false
     }
     return true
@@ -65,7 +60,6 @@ function ResetPasswordPage({ onNavigate }) {
   const handleSendOtp = async () => {
     setGeneralError('')
     setSuccessMsg('')
-
     if (!validateEmail()) return
 
     setIsSendingOtp(true)
@@ -74,9 +68,10 @@ function ResetPasswordPage({ onNavigate }) {
 
     if (result.success) {
       setIsOtpSent(true)
-      setSuccessMsg('Đã gửi mã OTP. Vui lòng kiểm tra email của bạn.')
+      setSuccessMsg(result.message)
       setResendCooldown(OTP_RESEND_COOLDOWN)
     } else {
+      // Xử lý lỗi field-specific
       if (result.code === 'EMAIL_NOT_EXISTED' || result.code === 'USER_NOT_FOUND') {
         setErrors((prev) => ({ ...prev, email: result.message }))
       } else {
@@ -89,23 +84,23 @@ function ResetPasswordPage({ onNavigate }) {
     const newErrors = {}
 
     if (!form.email.trim()) {
-      newErrors.email = 'Email là bắt buộc.'
+      newErrors.email = t('emailRequired')
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      newErrors.email = 'Email không đúng định dạng.'
+      newErrors.email = t('emailInvalid')
     }
 
     if (!form.otp.trim()) {
-      newErrors.otp = 'Mã OTP là bắt buộc.'
+      newErrors.otp = t('resetOtpRequired')
     }
 
     if (!form.newPassword) {
-      newErrors.newPassword = 'Mật khẩu mới là bắt buộc.'
-    } else if (!PASSWORD_REQUIREMENTS.every((requirement) => requirement.isMet(form.newPassword))) {
-      newErrors.newPassword = 'Mật khẩu phải có ít nhất 8 ký tự và bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.'
+      newErrors.newPassword = t('resetNewPasswordRequired')
+    } else if (!getPasswordRequirements(form.newPassword).every((r) => r.isMet)) {
+      newErrors.newPassword = t('passwordSignupInvalid')
     }
 
     if (form.newPassword !== form.confirmPassword) {
-      newErrors.confirmPassword = 'Mật khẩu xác nhận không khớp.'
+      newErrors.confirmPassword = t('resetConfirmPasswordMismatch')
     }
 
     setErrors(newErrors)
@@ -116,7 +111,6 @@ function ResetPasswordPage({ onNavigate }) {
     e.preventDefault()
     setGeneralError('')
     setSuccessMsg('')
-
     if (!validate()) return
 
     setIsSubmitting(true)
@@ -124,15 +118,37 @@ function ResetPasswordPage({ onNavigate }) {
     setIsSubmitting(false)
 
     if (result.success) {
-      setSuccessMsg('Đặt lại mật khẩu thành công.')
+      setSuccessMsg(result.message)
       redirectTimerRef.current = setTimeout(() => {
         if (onNavigate) onNavigate('/login')
       }, 1200)
     } else {
-      if (result.code === 'OTP_INVALID') {
-        setErrors((prev) => ({ ...prev, otp: result.message }))
-      } else if (result.code === 'EMAIL_NOT_EXISTED' || result.code === 'USER_NOT_FOUND') {
-        setErrors((prev) => ({ ...prev, email: result.message }))
+      // Xử lý validation errors từ backend
+      if (result.errors && Array.isArray(result.errors)) {
+        const newErrors = {}
+        result.errors.forEach((err) => {
+          if (err.field && err.message) {
+            newErrors[err.field] = err.message
+          }
+        })
+        if (Object.keys(newErrors).length > 0) {
+          setErrors((prev) => ({ ...prev, ...newErrors }))
+          return
+        }
+      }
+
+      // Map code-specific errors vào field tương ứng
+      const fieldErrorMap = {
+        OTP_INVALID: 'otp',
+        EMAIL_NOT_EXISTED: 'email',
+        USER_NOT_FOUND: 'email',
+        PASSWORD_INCORRECT: 'newPassword',
+        NEW_PASSWORD_SAME_AS_OLD: 'newPassword',
+      }
+
+      const field = fieldErrorMap[result.code]
+      if (field) {
+        setErrors((prev) => ({ ...prev, [field]: result.message }))
       } else {
         setGeneralError(result.message)
       }
@@ -155,11 +171,11 @@ function ResetPasswordPage({ onNavigate }) {
       <section className="auth-card glass-card">
         <span className="badge badge--soft-blue auth-card__badge">
           <span className="material-symbols-outlined">lock_reset</span>
-          Khôi phục tài khoản
+          {t('resetBadge')}
         </span>
         <div className="auth-card__header">
-          <h1>Đặt lại mật khẩu</h1>
-          <p>Nhập email đã đăng ký để nhận mã OTP và tạo mật khẩu mới.</p>
+          <h1>{t('resetTitle')}</h1>
+          <p>{t('resetSubtitle')}</p>
         </div>
 
         {generalError && <div className="auth-alert auth-alert--error">{generalError}</div>}
@@ -168,7 +184,7 @@ function ResetPasswordPage({ onNavigate }) {
         <form className="auth-form" onSubmit={handleSubmit} noValidate>
           <Input
             id="reset-email"
-            label="Email đã đăng ký"
+            label={t('resetEmailLabel')}
             type="email"
             placeholder="you@example.com"
             value={form.email}
@@ -186,12 +202,12 @@ function ResetPasswordPage({ onNavigate }) {
                 <span className="material-symbols-outlined">send</span>
                 <span>
                   {isSendingOtp
-                    ? 'Đang gửi...'
+                    ? t('sendingOtp')
                     : resendCooldown > 0
-                      ? `Gửi lại (${formatCooldown()})`
+                      ? t('resendOtpTimer', { time: formatCooldown() })
                       : isOtpSent
-                        ? 'Gửi lại mã OTP'
-                        : 'Gửi mã OTP'}
+                        ? t('resendOtp')
+                        : t('sendOtp')}
                 </span>
               </button>
             }
@@ -199,9 +215,9 @@ function ResetPasswordPage({ onNavigate }) {
 
           <Input
             id="reset-otp"
-            label="Mã OTP"
+            label={t('resetOtpLabel')}
             type="text"
-            placeholder="Nhập mã OTP 6 chữ số"
+            placeholder={t('resetOtpPlaceholder')}
             value={form.otp}
             onChange={(e) => handleChange('otp', e.target.value)}
             error={errors.otp}
@@ -213,22 +229,22 @@ function ResetPasswordPage({ onNavigate }) {
           <div className="auth-password-field">
             <Input
               id="reset-new-password"
-              label="Mật khẩu mới"
+              label={t('resetNewPasswordLabel')}
               type="password"
-              placeholder="Nhập mật khẩu mới"
+              placeholder={t('resetNewPasswordPlaceholder')}
               value={form.newPassword}
               onChange={(e) => handleChange('newPassword', e.target.value)}
               error={errors.newPassword}
               disabled={isSubmitting}
             />
-            <PasswordRequirements password={form.newPassword} />
+            <PasswordRequirements password={form.newPassword} t={t} />
           </div>
 
           <Input
             id="reset-confirm-password"
-            label="Xác nhận mật khẩu mới"
+            label={t('resetConfirmPasswordLabel')}
             type="password"
-            placeholder="Nhập lại mật khẩu mới"
+            placeholder={t('resetConfirmPasswordPlaceholder')}
             value={form.confirmPassword}
             onChange={(e) => handleChange('confirmPassword', e.target.value)}
             error={errors.confirmPassword}
@@ -236,15 +252,15 @@ function ResetPasswordPage({ onNavigate }) {
           />
 
           <button type="submit" className="btn-primary auth-submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Đang xử lý...' : 'Xác nhận đặt lại mật khẩu'}
+            {isSubmitting ? t('submittingReset') : t('submitReset')}
             {!isSubmitting && <span className="material-symbols-outlined">arrow_forward</span>}
           </button>
         </form>
 
         <p className="auth-card__footer">
-          Quay lại{' '}
+          {t('backToLogin')}{' '}
           <a href="/login" onClick={handleLoginClick}>
-            Đăng nhập
+            {t('loginLinkText')}
           </a>
         </p>
       </section>
@@ -252,22 +268,31 @@ function ResetPasswordPage({ onNavigate }) {
   )
 }
 
-function PasswordRequirements({ password }) {
+function getPasswordRequirements(password) {
+  return [
+    { key: 'length', isMet: password.length >= 8 },
+    { key: 'case', isMet: /[A-Z]/.test(password) && /[a-z]/.test(password) },
+    { key: 'number', isMet: /\d/.test(password) },
+    { key: 'special', isMet: /[^A-Za-z0-9]/.test(password) },
+  ]
+}
+
+function PasswordRequirements({ password, t }) {
   const hasPasswordInput = password.length > 0
+  const requirements = getPasswordRequirements(password)
 
   return (
-    <ul className="auth-password-requirements" aria-label="Yêu cầu mật khẩu">
-      {PASSWORD_REQUIREMENTS.map((requirement) => {
-        const isMet = requirement.isMet(password)
+    <ul className="auth-password-requirements" aria-label={t('passwordRequirements.title')}>
+      {requirements.map((req) => {
         const statusClass = !hasPasswordInput
           ? 'auth-password-requirements__item--neutral'
-          : isMet
+          : req.isMet
             ? 'auth-password-requirements__item--met'
             : 'auth-password-requirements__item--unmet'
         return (
-          <li className={statusClass} key={requirement.key}>
-            <span className="material-symbols-outlined">{isMet ? 'check_circle' : 'cancel'}</span>
-            {requirement.label}
+          <li className={statusClass} key={req.key}>
+            <span className="material-symbols-outlined">{req.isMet ? 'check_circle' : 'cancel'}</span>
+            {t(`passwordRequirements.${req.key}`)}
           </li>
         )
       })}

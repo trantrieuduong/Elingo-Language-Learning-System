@@ -1,0 +1,62 @@
+{
+  "common": {
+    "UNKNOWN_ERROR": "An unknown error occurred. Please try again later.",
+    "fallback": "An error occurred. Please try again."
+  },
+  "error": {
+    "INVALID_CREDENTIALS": "Email/Username or password is incorrect.",
+    "AUTH_UNAUTHORIZED": "You need to log in to perform this action.",
+    "ACCOUNT_NOT_VERIFIED": "Account email has not been verified.",
+    "USER_NOT_VERIFIED": "Email has not been verified.",
+    "EMAIL_NOT_EXISTED": "Email does not exist.",
+    "USER_NOT_FOUND": "Account or information not found.",
+    "USERNAME_EXISTED": "Username already exists.",
+    "EMAIL_EXISTED": "Email already exists.",
+    "OTP_INVALID": "OTP code is incorrect or has expired.",
+    "TOO_MANY_REQUESTS": "Too many requests, please try again later.",
+    "RATE_LIMIT_EXCEEDED": "Too many requests, please try again later.",
+    "EMAIL_SEND_FAILED": "Failed to send email. Please try again later.",
+    "UNAUTHENTICATED": "Session has expired. Please log in again.",
+    "UNAUTHORIZED": "You do not have permission to perform this action.",
+    "USER_INACTIVE": "Account is currently disabled.",
+    "USER_BANNED": "Account has been banned.",
+    "REFRESH_TOKEN_INVALID": "Session expired, please log in again.",
+    "PASSWORD_INCORRECT": "Password is incorrect.",
+    "OLD_PASSWORD_INCORRECT": "Old password is incorrect.",
+    "NEW_PASSWORD_SAME_AS_OLD": "New password must not be the same as the old one.",
+    "GOOGLE_TOKEN_INVALID": "Google credentials are invalid or expired.",
+    "GOOGLE_TOKEN_VERIFICATION_FAILED": "Unable to verify Google account. Please try again.",
+    "USERNAME_COOLDOWN": "You can change your username in {{days}} more days.",
+    "INTERNAL_SERVER_ERROR": "System error. Please try again later.",
+    "UNCATEGORIZED_EXCEPTION": "Unknown error. Please try again."
+  },
+  "validation": {
+    "username": {
+      "REQUIRED": "Username is required.",
+      "INVALID_FORMAT": "Username must be 3-15 letters or digits with no spaces or special characters."
+    },
+    "email": {
+      "REQUIRED": "Email is required.",
+      "INVALID_FORMAT": "Email format is invalid."
+    },
+    "password": {
+      "REQUIRED": "Password is required.",
+      "MIN_LENGTH": "Password must be at least {{min}} characters.",
+      "INVALID_FORMAT": "Password must have at least 8 characters including uppercase, lowercase, number, and special character."
+    },
+    "otp": {
+      "REQUIRED": "OTP code is required."
+    }
+  },
+  "success": {
+    "LOGIN_SUCCESS": "Logged in successfully!",
+    "SIGNUP_SUCCESS": "Account created successfully! Please check your email for verification.",
+    "PROFILE_UPDATED": "Profile updated successfully.",
+    "PASSWORD_RESET": "Password reset successfully.",
+    "OTP_SENT": "OTP sent successfully. Please check your email.",
+    "ACCOUNT_VERIFIED": "Account verified successfully. You can now log in.",
+    "OTP_RESENT": "A new verification code has been sent to your email.",
+    "LOGOUT_SUCCESS": "Logged out successfully.",
+    "REFRESH_TOKEN_SUCCESS": "Session refreshed successfully."
+  }
+}

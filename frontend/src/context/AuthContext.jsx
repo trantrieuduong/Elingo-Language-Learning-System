@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   getMeApi,
   loginApi,
@@ -11,7 +12,6 @@ import {
   signupApi,
   verifyAccountApi,
 } from '../modules/auth/authApi'
-import { translateError } from '../utils/errorMessages'
 
 const AuthContext = createContext(null)
 let initialRefreshPromise = null
@@ -26,7 +26,26 @@ const refreshInitialSession = () => {
   return initialRefreshPromise
 }
 
+const extractApiError = (error, fallbackMessage) => {
+  const responseData = error?.response?.data
+
+  // Backend trả errors array, lấy code/message từ error đầu tiên hoặc root level
+  const code = responseData?.code || null
+  const message = responseData?.message || error?.message || fallbackMessage
+  const notVerified = code === 'ACCOUNT_NOT_VERIFIED' || code === 'USER_NOT_VERIFIED'
+  const errors = responseData?.errors || null
+
+  return {
+    success: false,
+    message,
+    code,
+    errors,
+    notVerified,
+  }
+}
+
 export const AuthProvider = ({ children }) => {
+  const { t } = useTranslation('api')
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem('user')
     return savedUser ? JSON.parse(savedUser) : null
@@ -91,10 +110,10 @@ export const AuthProvider = ({ children }) => {
         const userData = await loadCurrentUser()
         return { success: true, user: userData }
       }
-      return { success: false, message: response.message || 'Đăng nhập không thành công' }
+      return { success: false, message: response.message || t('common.UNKNOWN_ERROR') }
     } catch (error) {
       clearAuthState()
-      return translateError(error, 'Đăng nhập thất bại. Vui lòng thử lại.')
+      return extractApiError(error, t('common.UNKNOWN_ERROR'))
     }
   }
 
@@ -108,10 +127,10 @@ export const AuthProvider = ({ children }) => {
         const userData = await loadCurrentUser()
         return { success: true, user: userData }
       }
-      return { success: false, message: response.message || 'Đăng nhập Google không thành công.' }
+      return { success: false, message: response.message || t('common.UNKNOWN_ERROR') }
     } catch (error) {
       clearAuthState()
-      return translateError(error, 'Không thể xác thực tài khoản Google. Vui lòng thử lại.')
+      return extractApiError(error, t('common.UNKNOWN_ERROR'))
     }
   }
 
@@ -119,11 +138,11 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await signupApi(form)
       if (response.success) {
-        return { success: true, message: response.message || 'Đăng ký thành công' }
+        return { success: true, message: response.message || t('success.SIGNUP_SUCCESS') }
       }
-      return { success: false, message: response.message || 'Đăng ký thất bại' }
+      return { success: false, message: response.message || t('common.UNKNOWN_ERROR') }
     } catch (error) {
-      return translateError(error, 'Đăng ký thất bại. Vui lòng thử lại sau.')
+      return extractApiError(error, t('common.UNKNOWN_ERROR'))
     }
   }
 
@@ -131,11 +150,11 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await verifyAccountApi(email, otp)
       if (response.success) {
-        return { success: true, message: response.message || 'Xác thực tài khoản thành công' }
+        return { success: true, message: response.message || t('success.ACCOUNT_VERIFIED') }
       }
-      return { success: false, message: response.message || 'Mã xác thực không hợp lệ' }
+      return { success: false, message: response.message || t('common.UNKNOWN_ERROR') }
     } catch (error) {
-      return translateError(error, 'Mã xác thực không hợp lệ hoặc đã hết hạn.')
+      return extractApiError(error, t('common.UNKNOWN_ERROR'))
     }
   }
 
@@ -143,11 +162,11 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await resendVerificationOtpApi(email)
       if (response.success) {
-        return { success: true, message: response.message || 'Đã gửi lại mã xác thực' }
+        return { success: true, message: response.message || t('success.OTP_RESENT') }
       }
-      return { success: false, message: response.message || 'Gửi lại mã thất bại' }
+      return { success: false, message: response.message || t('common.UNKNOWN_ERROR') }
     } catch (error) {
-      return translateError(error, 'Gửi lại mã thất bại. Vui lòng thử lại sau.')
+      return extractApiError(error, t('common.UNKNOWN_ERROR'))
     }
   }
 
@@ -155,11 +174,11 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await sendResetPasswordOtpApi(email)
       if (response.success) {
-        return { success: true, message: response.message || 'Đã gửi mã OTP đặt lại mật khẩu thành công.' }
+        return { success: true, message: response.message || t('success.OTP_SENT') }
       }
-      return { success: false, message: response.message || 'Không thể gửi mã OTP.' }
+      return { success: false, message: response.message || t('common.UNKNOWN_ERROR') }
     } catch (error) {
-      return translateError(error, 'Không thể gửi mã OTP. Vui lòng thử lại sau.')
+      return extractApiError(error, t('common.UNKNOWN_ERROR'))
     }
   }
 
@@ -167,11 +186,11 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await resetPasswordApi(email, otp, newPassword)
       if (response.success) {
-        return { success: true, message: response.message || 'Đặt lại mật khẩu thành công.' }
+        return { success: true, message: response.message || t('success.PASSWORD_RESET') }
       }
-      return { success: false, message: response.message || 'Đặt lại mật khẩu thất bại.' }
+      return { success: false, message: response.message || t('common.UNKNOWN_ERROR') }
     } catch (error) {
-      return translateError(error, 'Đặt lại mật khẩu thất bại. Vui lòng thử lại.')
+      return extractApiError(error, t('common.UNKNOWN_ERROR'))
     }
   }
 

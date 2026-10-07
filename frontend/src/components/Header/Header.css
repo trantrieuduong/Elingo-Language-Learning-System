@@ -105,6 +105,18 @@
   margin-left: auto;
 }
 
+.header__lang-btn {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.5px;
+  color: var(--color-on-surface-variant);
+}
+
+.header__lang-btn:hover {
+  color: var(--color-on-surface);
+}
+
 .header__auth-btns {
   display: flex;
   align-items: center;
