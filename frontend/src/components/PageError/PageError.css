@@ -1,0 +1,15 @@
+.page-error-container {
+  max-width: 600px;
+  width: 100%;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.page-error-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.page-error-btn {
+  margin-top: 24px;
+}

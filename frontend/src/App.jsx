@@ -7,14 +7,17 @@ import LandingPage from './modules/home/pages/LandingPage'
 import LoginPage from './modules/auth/pages/LoginPage'
 import ResetPasswordPage from './modules/auth/pages/ResetPasswordPage'
 import SignupPage from './modules/auth/pages/SignupPage'
+import DeckListPage from './modules/vocabulary/pages/DeckListPage/DeckListPage'
+import FlashcardStudyPage from './modules/learning/flashcard/pages/FlashcardStudyPage'
+import FlashcardReviewPage from './modules/learning/flashcard/pages/FlashcardReviewPage'
 import './App.css'
 
-const PUBLIC_PATHS = ['/', '/login', '/signup', '/account-verification', '/reset-password']
+const PUBLIC_PATHS = ['/login', '/signup', '/account-verification', '/reset-password']
 
 const PRIVATE_USER_PATHS = [
   '/dashboard',
   '/learning',
-  '/flashcard',
+  '/review',
   '/battle',
   '/speaking',
   '/community',
@@ -22,7 +25,6 @@ const PRIVATE_USER_PATHS = [
   '/gamification',
   '/premium',
   '/profile',
-  '/vocabulary',
   '/notification',
 ]
 
@@ -48,14 +50,14 @@ function App() {
     const isAdminPath = currentPath.startsWith('/admin')
     const isPrivateUserPath = PRIVATE_USER_PATHS.some((path) => {
       return currentPath === path || currentPath.startsWith(`${path}/`)
-    })
+    }) || !!flashcardStudyMatch // Trang học flashcard (/decks/:id) bắt buộc đăng nhập
 
     if (!user && (isAdminPath || isPrivateUserPath)) {
       navigate('/login')
       return
     }
 
-    if (user && isPublic && currentPath !== '/') {
+    if (user && isPublic) {
       navigate(isAdmin ? '/admin' : '/dashboard')
       return
     }
@@ -89,6 +91,9 @@ function App() {
     )
   }
 
+  const flashcardStudyMatch = currentPath.match(/^\/decks\/([^/]+)$/)
+  const isFlashcardPage =  !!flashcardStudyMatch || currentPath === '/review'
+
   const renderAdminContent = () => {
     return (
       <main className="placeholder-page">
@@ -102,6 +107,10 @@ function App() {
   }
 
   const renderContent = () => {
+    if (flashcardStudyMatch) {
+      return <FlashcardStudyPage deckId={flashcardStudyMatch[1]} onNavigate={navigate} />
+    }
+
     switch (currentPath) {
       case '/':
         return <LandingPage onNavigate={navigate} />
@@ -117,8 +126,8 @@ function App() {
         return <PlaceholderPage title="Dashboard" path={currentPath} />
       case '/learning':
         return <PlaceholderPage title="Learning" path={currentPath} />
-      case '/flashcard':
-        return <PlaceholderPage title="Flashcard" path={currentPath} />
+      case '/review':
+        return <FlashcardReviewPage onNavigate={navigate} />
       case '/battle':
         return <PlaceholderPage title="Battle" path={currentPath} />
       case '/speaking':
@@ -133,8 +142,8 @@ function App() {
         return <PlaceholderPage title="Premium" path={currentPath} />
       case '/profile':
         return <PlaceholderPage title="Profile" path={currentPath} />
-      case '/vocabulary':
-        return <PlaceholderPage title="Vocabulary" path={currentPath} />
+      case '/decks':
+        return <DeckListPage onNavigate={navigate} />
       case '/notification':
         return <PlaceholderPage title="Notifications" path={currentPath} />
       default:
@@ -155,9 +164,9 @@ function App() {
         <div className="ambient-bg__orb ambient-bg__orb--pink" />
         <div className="ambient-bg__orb ambient-bg__orb--ambient" />
       </div>
-      <Header onNavigate={navigate} currentPath={currentPath} />
+      {!isFlashcardPage && <Header onNavigate={navigate} currentPath={currentPath} />}
       <div className="app-main">{renderContent()}</div>
-      <Footer onNavigate={navigate} />
+      {!isFlashcardPage && <Footer onNavigate={navigate} />}
     </>
   )
 }
