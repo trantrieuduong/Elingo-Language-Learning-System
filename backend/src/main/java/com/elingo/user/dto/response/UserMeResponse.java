@@ -1,5 +1,6 @@
 package com.elingo.user.dto.response;
 
+import com.elingo.common.annotation.BuildMediaUrl;
 import com.elingo.user.entity.Role;
 
 import java.time.LocalDateTime;
@@ -9,7 +10,7 @@ public record UserMeResponse(
         String username,
         String email,
         String fullName,
-        String avatarUrl,
+        @BuildMediaUrl String avatarUrl,
         Role role,
         Boolean isVerified,
         Boolean isActive,
