@@ -1,6 +1,8 @@
 package com.elingo.file.util;
 
 import com.elingo.common.enums.MediaKind;
+import com.elingo.common.exception.AppError;
+import com.elingo.common.exception.AppException;
 
 /**
  * <p>Bucket chia làm ba vùng, mỗi vùng một ý nghĩa khác nhau:
@@ -33,12 +35,11 @@ public final class FileKey {
      * <p>Module sở hữu dữ liệu gọi hàm này để biết trước đường dẫn sẽ ghi vào CSDL, rồi
      * truyền cả hai key lên {@code FileAttachedEvent}
      *
-     * @throws IllegalArgumentException nếu {@code verifiedKey} không thuộc vùng verified
+     * @throws AppException nếu {@code verifiedKey} không thuộc vùng verified
      */
     public static String toUploads(String verifiedKey) {
         if (!isInZone(verifiedKey, VERIFIED_PREFIX)) {
-            throw new IllegalArgumentException(
-                    "Key must start with '" + VERIFIED_PREFIX + "/' but was: " + verifiedKey);
+            throw new AppException(AppError.INVALID_REQUEST);
         }
 
         return UPLOADS_PREFIX + verifiedKey.substring(VERIFIED_PREFIX.length());
@@ -104,5 +105,28 @@ public final class FileKey {
                 ? publicUrl.substring(0, publicUrl.length() - 1)
                 : publicUrl;
         return base + "/" + fileKey;
+    }
+
+    /**
+     * Key của một object
+     */
+    public static String toKey(String publicUrl, String value) {
+        if (value == null || value.isBlank()) return null;
+
+        String v = value.trim();
+        String base = publicUrl.endsWith("/")
+                ? publicUrl.substring(0, publicUrl.length() - 1)
+                : publicUrl;
+
+        if (v.startsWith(base)) {
+            v = v.substring(base.length());
+        } else if (v.startsWith("http://") || v.startsWith("https://")) {
+            // URL của domain khác thì không chấp nhận
+            throw new AppException(AppError.INVALID_REQUEST);
+        }
+
+        v = v.replaceAll("[?#].*$", "").replaceAll("^/+", "");
+
+        return v.isEmpty() ? null : v;
     }
 }

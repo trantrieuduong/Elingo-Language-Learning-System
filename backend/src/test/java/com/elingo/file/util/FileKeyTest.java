@@ -1,6 +1,7 @@
 package com.elingo.file.util;
 
 import com.elingo.common.enums.MediaKind;
+import com.elingo.common.exception.AppException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -23,12 +24,12 @@ class FileKeyTest {
         }
 
         @Test
-        @DisplayName("non-verified key -> IllegalArgumentException")
+        @DisplayName("non-verified key -> AppException")
         void rejectsNonVerified() {
             assertThatThrownBy(() -> FileKey.toUploads("staging/12/abc.png"))
-                    .isInstanceOf(IllegalArgumentException.class);
+                    .isInstanceOf(AppException.class);
             assertThatThrownBy(() -> FileKey.toUploads("uploads/12/abc.png"))
-                    .isInstanceOf(IllegalArgumentException.class);
+                    .isInstanceOf(AppException.class);
         }
     }
 
@@ -164,6 +165,94 @@ class FileKeyTest {
         void trailingSlash() {
             assertThat(FileKey.toPublicUrl("https://cdn.elingo.com/", "uploads/12/a.png"))
                     .isEqualTo("https://cdn.elingo.com/uploads/12/a.png");
+        }
+    }
+
+    @Nested
+    @DisplayName("toKey - public URL -> object key")
+    class ToKey {
+
+        @Test
+        @DisplayName("null value -> null")
+        void nullValue() {
+            assertThat(FileKey.toKey("https://cdn.elingo.com", null)).isNull();
+        }
+
+        @Test
+        @DisplayName("blank value -> null")
+        void blankValue() {
+            assertThat(FileKey.toKey("https://cdn.elingo.com", "   ")).isNull();
+        }
+
+        @Test
+        @DisplayName("value already a bare key -> returned as-is")
+        void bareKey() {
+            assertThat(FileKey.toKey("https://cdn.elingo.com", "uploads/12/a.png"))
+                    .isEqualTo("uploads/12/a.png");
+        }
+
+        @Test
+        @DisplayName("value is full URL with matching domain -> key extracted")
+        void fullUrlMatchingDomain() {
+            assertThat(FileKey.toKey("https://cdn.elingo.com",
+                    "https://cdn.elingo.com/uploads/12/a.png"))
+                    .isEqualTo("uploads/12/a.png");
+        }
+
+        @Test
+        @DisplayName("publicUrl has trailing slash, value matches -> key extracted")
+        void publicUrlTrailingSlash() {
+            assertThat(FileKey.toKey("https://cdn.elingo.com/",
+                    "https://cdn.elingo.com/uploads/12/a.png"))
+                    .isEqualTo("uploads/12/a.png");
+        }
+
+        @Test
+        @DisplayName("query string stripped")
+        void stripsQueryString() {
+            assertThat(FileKey.toKey("https://cdn.elingo.com",
+                    "https://cdn.elingo.com/uploads/12/a.png?version=1"))
+                    .isEqualTo("uploads/12/a.png");
+        }
+
+        @Test
+        @DisplayName("fragment stripped")
+        void stripsFragment() {
+            assertThat(FileKey.toKey("https://cdn.elingo.com",
+                    "https://cdn.elingo.com/uploads/12/a.png#section"))
+                    .isEqualTo("uploads/12/a.png");
+        }
+
+        @Test
+        @DisplayName("leading double slashes collapsed")
+        void leadingSlashes() {
+            assertThat(FileKey.toKey("https://cdn.elingo.com",
+                    "https://cdn.elingo.com//uploads/12/a.png"))
+                    .isEqualTo("uploads/12/a.png");
+        }
+
+        @Test
+        @DisplayName("value is full URL of different domain -> AppException")
+        void differentDomain() {
+            assertThatThrownBy(() -> FileKey.toKey("https://cdn.elingo.com",
+                    "https://evil.com/uploads/12/a.png"))
+                    .isInstanceOf(AppException.class);
+        }
+
+        @Test
+        @DisplayName("value reduces to empty after stripping -> null")
+        void reducesToEmpty() {
+            assertThat(FileKey.toKey("https://cdn.elingo.com",
+                    "https://cdn.elingo.com?query"))
+                    .isNull();
+        }
+
+        @Test
+        @DisplayName("bare key with leading slash -> slash stripped")
+        void bareKeyWithLeadingSlash() {
+            assertThat(FileKey.toKey("https://cdn.elingo.com",
+                    "/uploads/12/a.png"))
+                    .isEqualTo("uploads/12/a.png");
         }
     }
 }
