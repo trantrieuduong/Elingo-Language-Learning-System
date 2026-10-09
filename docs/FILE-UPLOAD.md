@@ -1,93 +1,105 @@
 # Dùng module `file` từ module khác
 
-> Tài liệu này chỉ nói **cách một module sử dụng module `file`**: gọi API upload và thao tác
-> với ba event. Thiết kế ba vùng trên bucket (`staging/` → `verified/` → `uploads/`), cơ
-> chế magic bytes và quy tắc vòng đời đã nêu ở
-> [`docs/project-architecture/backend-architecture.md` §16](../docs/project-architecture/backend-architecture.md).
-> Luồng tổng quát: [`File_Upload_Sequence.puml`](../docs/diagrams/sequence-diagram/File_Upload_Sequence.puml).
+## Nguyên tắc
 
----
-
-## 1. Nguyên tắc
-
-Module sở hữu dữ liệu **không gọi `R2Service`**, cũng không phụ thuộc ngược vào `file`.
-Nó làm đúng ba việc:
-
-1. Nhận `verifiedFileKey` từ client.
-2. Tính key `uploads/` bằng `FileKey.toUploads(...)`, ghi key đó vào CSDL.
-3. Phát event để module `file` lo phần còn lại.
+- Không gọi `R2Service`, không phụ thuộc ngược vào `file`.
+- Client gửi `verifiedFileKey` (key ở `verified/`).
+- Module sở hữu dữ liệu: kiểm tra nhóm định dạng → đổi sang key `uploads/` → lưu CSDL → phát event.
+- CSDL **luôn** lưu key `uploads/`. Lưu `verified/` là sai: file ở vùng chờ sẽ tự xoá, ảnh hỏng vĩnh viễn.
 
 ```java
-String uploadsKey = FileKey.toUploads(request.verifiedFileKey());
+String uploadsKey = FileKey.toUploads(verifiedKey); // không dùng replace("verified/", "uploads/")
 ```
-
-Đây là hàm thuần trong `com.elingo.file.util` — không phải bean, không I/O. Dùng nó thay vì
-`key.replace("verified/", "uploads/")`.
-
-> **Sai lầm chết người:** lưu `verifiedFileKey` vào CSDL. File đó nằm ở vùng chờ, tự xoá
-> sau 7 ngày ⇒ ảnh hỏng vĩnh viễn. CSDL **luôn** lưu key `uploads/`.
 
 ---
 
-## 2. Gắn file mới vào bản ghi — `FileAttachedEvent`
+## 1. Kiểm tra nhóm định dạng
 
-Phát **bên trong** transaction, ngay sau khi đã ghi entity. `@TransactionalEventListener`
-lo phần chờ commit.
+Đuôi file trong key chính là mime type đã được xác thực nên đọc nhóm từ key không tốn request R2.
+
+### Ở DTO: `@AllowedMediaKind`
+
+Chặn sớm, trả 400. Cần `@Valid` trên `@RequestBody`.
+
+```java
+public record UpdateAvatarRequest(
+        @NotBlank @AllowedMediaKind(MediaKind.IMAGE) String avatarKey
+) {}
+
+public record CreatePostRequest(
+        @NotBlank String content,
+        List<@NotBlank @AllowedMediaKind({MediaKind.IMAGE, MediaKind.VIDEO}) String> mediaKeys
+) {}
+```
+
+### Ở service: chốt chặn cuối
+
+Annotation không thay thế bước này. Luôn kiểm tra lại trong transaction, **trước `save()`**.
+
+```java
+private String requireMediaKind(String verifiedKey, MediaKind... allowed) {
+    MediaKind actual = FileKey.mediaKindOf(verifiedKey);
+    if (actual == null || !List.of(allowed).contains(actual)) {
+        throw new AppException(AppError.INVALID_FILE_TYPE);
+    }
+    return FileKey.toUploads(verifiedKey);
+}
+```
+
+Ném lỗi ở đây thì chưa ghi gì, file vẫn ở `verified/` và tự xoá sau.
+
+Trần dung lượng nằm trong `MediaKind.maxBytes()`: `IMAGE` 5 MB, `VIDEO` 100 MB, `AUDIO` 25 MB.
+
+---
+
+## 2. `FileAttachedEvent` — gắn file mới
+
+Phát **một event cho mỗi file**, ngay sau khi ghi entity. Listener copy `verified/` → `uploads/` sau commit; rollback thì không copy gì.
 
 ```java
 @Transactional
 public Long createPost(CreatePostRequest request, Long userId) {
-    Post post = new Post(request.content(), userId);
-    postRepository.save(post);
+    List<String> verifiedKeys = request.mediaKeys();
+    List<String> uploadsKeys = verifiedKeys.stream()
+            .map(k -> requireMediaKind(k, MediaKind.IMAGE, MediaKind.VIDEO))
+            .toList();
 
-    if (request.verifiedFileKey() != null && !request.verifiedFileKey().isBlank()) {
-        String uploadsKey = FileKey.toUploads(request.verifiedFileKey());
-        post.getMedia().add(new PostMedia(post, uploadsKey));
+    Post post = postRepository.save(new Post(request.content(), userId));
 
-        publisher.publishEvent(
-                new FileAttachedEvent(request.verifiedFileKey(), uploadsKey));
+    for (int i = 0; i < uploadsKeys.size(); i++) {
+        post.getMedia().add(new PostMedia(post, uploadsKeys.get(i)));
+        publisher.publishEvent(new FileAttachedEvent(verifiedKeys.get(i), uploadsKeys.get(i)));
     }
     return post.getId();
 }
 ```
 
-Listener sẽ copy `verified/` → `uploads/` **sau khi commit**. Nếu transaction rollback thì
-không copy gì, file vẫn nằm ở `verified/` và tự xoá sau 7 ngày.
-
-Một lần commit có nhiều file thì phát nhiều event — mỗi `FileAttachedEvent` mang đúng một
-cặp key.
-
 ---
 
-## 3. Thay file — `FileReplacedEvent`
+## 3. `FileDeletedEvent` — xoá file cũ
 
-Lấy key cũ **trước khi** ghi đè, rồi phát event sau khi entity đã cập nhật.
+Gom key rồi phát **một event** cho cả danh sách. Event tự chuẩn hoá `null` thành list rỗng và copy list. Chỉ phát sau khi đã cập nhật hoặc xoá entity.
+
+**Thay file** (lấy `oldKey` trước khi ghi đè, `FileReplacedEvent` đã bị xoá):
 
 ```java
 @Transactional
-public void updateAvatar(Long userId, String verifiedFileKey) {
+public void updateAvatar(Long userId, String verifiedKey) {
+    String newKey = requireMediaKind(verifiedKey, MediaKind.IMAGE);
     User user = userRepository.findById(userId).orElseThrow();
-
-    String oldKey = user.getAvatarKey();               // lấy trước
-    String newKey = FileKey.toUploads(verifiedFileKey);
+    String oldKey = user.getAvatarKey();
 
     user.setAvatarKey(newKey);
     userRepository.save(user);
 
-    publisher.publishEvent(new FileReplacedEvent(oldKey, newKey));
+    publisher.publishEvent(new FileAttachedEvent(verifiedKey, newKey));
+    if (oldKey != null && !oldKey.isBlank()) {
+        publisher.publishEvent(new FileDeletedEvent(List.of(oldKey)));
+    }
 }
 ```
 
-Lần đầu gán ảnh thì `oldKey` là `null` hoặc rỗng — listener tự bỏ qua, không cần if.
-
-Bản ghi có nhiều ảnh mà chỉ thay một ảnh: phát một `FileReplacedEvent` cho ảnh đó.
-
----
-
-## 4. Xoá bản ghi — `FileDeletedEvent`
-
-Event mang **danh sách** key. Gom key từ các dòng con rồi phát **một** event, đừng phát N
-event.
+**Xoá bản ghi:**
 
 ```java
 @Transactional
@@ -95,49 +107,9 @@ public void deletePost(Long postId, Long currentUserId) {
     Post post = postRepository.findById(postId).orElseThrow();
     // ...kiểm tra quyền...
 
-    List<String> keys = postMediaRepository.findByPostId(postId).stream()
-            .map(PostMedia::getFileKey)
-            .toList();
-
+    List<String> keys = post.getMedia().stream().map(PostMedia::getFileKey).toList();
     postRepository.delete(post);
 
     publisher.publishEvent(new FileDeletedEvent(keys));
 }
 ```
-
-`FileDeletedEvent` tự chuẩn hoá `null` thành danh sách rỗng và sao chép danh sách, nên sau khi
-phát, module khác không sửa được danh sách đó nữa.
-
-Do key phẳng (`uploads/{userId}/{uuid}.{ext}`), xoá bài nhiều ảnh nghĩa là gom key từ
-`post_media` chứ không phải dò cả thư mục — chính xác hơn và không sợ xoá nhầm.
-
----
-
-## 5. Quy tắc cần nhớ
-
-| Nên | Không nên |
-|---|---|
-| Ghi key `uploads/` vào CSDL | Ghi key `verified/` — file bị quy tắc vòng đời xoá sau 7 ngày |
-| `FileKey.toUploads(verifiedKey)` | `key.replace("verified/", "uploads/")` |
-| Phát event trong transaction, sau khi ghi entity | Phát trước khi ghi entity |
-| Gom key rồi phát một `FileDeletedEvent` | Phát N event cho N key |
-| Lấy `oldKey` trước khi ghi đè | Đọc `oldKey` sau khi đã ghi — luôn ra `null` |
-| Phụ thuộc `FileKey` (utility thuần) | Inject `R2Service` — phụ thuộc ngược vào `file` |
-
-**Giả định: mỗi file chỉ được một bản ghi tham chiếu.** Tham chiếu lần hai sẽ tìm key ở
-`verified/` mà nó đã sang `uploads/` ⇒ hỏng. Hiện tại mỗi lần verify sinh UUID mới nên
-chắc chắn không xảy ra.
-
-**Lỗi R2 không làm hỏng request.** Cả hai listener đều `@TransactionalEventListener` +
-`AFTER_COMMIT` và nuốt lỗi. Bắt lỗi quanh *từng key* để một key hỏng không chặn các key còn
-lại. Đừng bọc lại phần phát event trong try/catch — không cần.
-
----
-
-## 6. Chưa làm
-
-- Chưa module nào (`user`, `community`, `report`…) phát event — cần endpoint cập nhật/xoá file.
-- Chưa giới hạn tần suất xin URL, chưa giới hạn số file của một bản ghi.
-- Chưa kiểm duyệt nội dung ảnh.
-- Chưa có job sửa file mồ côi: quét vùng `verified/`, copy lại key đang được CSDL tham chiếu
-  mà `uploads/` còn thiếu.

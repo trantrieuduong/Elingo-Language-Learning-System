@@ -27,6 +27,5 @@ r2:
   secret-key: test-secret
   bucket: test-bucket
   public-url: https://cdn.test.elingo.com
-  max-file-size-bytes: 104857600
   multipart-min-part-size: 5242880
   presign-duration-minutes: 30

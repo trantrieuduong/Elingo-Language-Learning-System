@@ -75,9 +75,13 @@ public enum AppError {
     CARD_PHONETIC_NOT_FOUND("CARD_PHONETIC_NOT_FOUND", "Card phonetic not found", HttpStatus.NOT_FOUND),
     TAG_NOT_FOUND("TAG_NOT_FOUND", "Tag not found", HttpStatus.NOT_FOUND),
     TAG_CODE_EXISTED("TAG_CODE_EXISTED", "Tag code already exists", HttpStatus.BAD_REQUEST),
+    TAG_CODE_INVALID("TAG_CODE_INVALID", "Tag code must not exceed 100 characters", HttpStatus.BAD_REQUEST),
     CEFR_LEVEL_NOT_FOUND("CEFR_LEVEL_NOT_FOUND", "CEFR level not found", HttpStatus.NOT_FOUND),
     CEFR_LEVEL_CODE_EXISTED("CEFR_LEVEL_CODE_EXISTED", "CEFR level code already exists", HttpStatus.BAD_REQUEST),
+    CEFR_LEVEL_CODE_INVALID("CEFR_LEVEL_CODE_INVALID", "CEFR level code must not exceed 10 characters", HttpStatus.BAD_REQUEST),
     IMPORT_VOCABULARY_FAILED("IMPORT_VOCABULARY_FAILED", "Failed to import vocabulary from file", HttpStatus.BAD_REQUEST),
+    KEYWORD_INVALID("KEYWORD_INVALID", "Keyword must not exceed 255 characters", HttpStatus.BAD_REQUEST),
+    PAGE_INDEX_INVALID("PAGE_INDEX_INVALID", "Page index must be 0 or greater", HttpStatus.BAD_REQUEST),
 
     // ==========================================
     // 4. Learning - Flashcard (Học thẻ SRS SM-2)
@@ -85,6 +89,9 @@ public enum AppError {
     USER_CARD_STATE_NOT_FOUND("USER_CARD_STATE_NOT_FOUND", "User card study state not found", HttpStatus.NOT_FOUND),
     INVALID_SRS_GRADE("INVALID_SRS_GRADE", "Review grade must be between 0 (Again) and 3 (Easy)", HttpStatus.BAD_REQUEST),
     NO_CARDS_DUE("NO_CARDS_DUE", "No flashcards are due for review", HttpStatus.BAD_REQUEST),
+    QUIZ_NOT_ENOUGH_CARDS("QUIZ_NOT_ENOUGH_CARDS", "Not enough cards in deck to generate 4 quiz options", HttpStatus.UNPROCESSABLE_CONTENT),
+    MAX_REVIEW_CARD_LIMIT_INVALID("MAX_REVIEW_CARD_LIMIT_INVALID", "Maximum review card limit must not exceed 200", HttpStatus.BAD_REQUEST),
+    MIN_REVIEW_CARD_LIMIT_INVALID("MIN_REVIEW_CARD_LIMIT_INVALID", "Minimum review card limit must be at least 1", HttpStatus.BAD_REQUEST),
 
     // ==========================================
     // 5. Learning - Lesson (Bài học, Dictation, Shadowing)
@@ -97,6 +104,8 @@ public enum AppError {
     USER_LESSON_PROGRESS_NOT_FOUND("USER_LESSON_PROGRESS_NOT_FOUND", "User lesson progress not found", HttpStatus.NOT_FOUND),
     USER_SEGMENT_PROGRESS_NOT_FOUND("USER_SEGMENT_PROGRESS_NOT_FOUND", "User segment progress not found", HttpStatus.NOT_FOUND),
     AUDIO_RECORDING_REQUIRED("AUDIO_RECORDING_REQUIRED", "Shadowing requires an audio recording file", HttpStatus.BAD_REQUEST),
+    SOURCE_URL_INVALID("SOURCE_URL_INVALID", "Source url must be a valid YouTube link", HttpStatus.BAD_REQUEST),
+    LESSON_PUBLISHED_FAILED("LESSON_PUBLISHED_FAILED", "Cannot publish a lesson without segments", HttpStatus.BAD_REQUEST),
 
     // ==========================================
     // 6. Battle (Đấu trường từ vựng 1vs1)
