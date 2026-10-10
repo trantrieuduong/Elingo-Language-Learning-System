@@ -10,6 +10,7 @@ import com.elingo.common.util.EmailTemplateName;
 import com.elingo.common.util.OtpType;
 import com.elingo.user.dto.request.SendOTPUpdateEmailRequest;
 import com.elingo.user.dto.request.UpdateEmailRequest;
+import com.elingo.user.dto.request.UpdateProfileRequest;
 import com.elingo.user.entity.User;
 import com.elingo.user.repository.UserRepository;
 import com.elingo.user.service.UserService;
@@ -92,8 +93,7 @@ public class UserServiceImpl implements UserService {
                 user.getUsername(),
                 EmailTemplateName.SEND_OTP,
                 newEmailOtp,
-                OtpType.CHANGE_EMAIL.getTitle()
-        );
+                OtpType.CHANGE_EMAIL.getTitle());
         log.info("Update email OTP sent email={} userId={}", newEmail, userId);
     }
 
@@ -135,7 +135,37 @@ public class UserServiceImpl implements UserService {
 
         if (Objects.equals(targetUserId, currentUserId))
             return userMapper.toUserMeResponse(user);
-        
+
         return userMapper.toUserPublicResponse(user);
+    }
+
+    @Override
+    @Transactional
+    public UserMeResponse updateProfile(Long userId, UpdateProfileRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
+
+        // verify avt
+
+        boolean isUsernameChanged = !request.username().equals(user.getUsername());
+
+        if (isUsernameChanged) {
+            if (!user.canChangeUsername()) {
+                log.warn("Username change rejected due to cooldown userId={} lastChangedAt={}",
+                        userId, user.getUsernameChangedAt());
+                throw new AppException(AppError.CANNOT_CHANGE_USERNAME_YET);
+            }
+            if (userRepository.existsByUsername(request.username())) {
+                log.warn("Username change rejected, already exists userId={}", userId);
+                throw new AppException(AppError.USERNAME_EXISTED);
+            }
+        }
+
+        userMapper.updateUser(user, request);
+        if (isUsernameChanged) {
+            user.setUsernameChangedAt(LocalDateTime.now());
+        }
+
+        return userMapper.toUserMeResponse(user);
     }
 }

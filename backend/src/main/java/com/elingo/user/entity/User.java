@@ -89,4 +89,8 @@ public class User extends BaseEntity implements UserDetails  {
     public @Nullable String getPassword() {
         return passwordHash;
     }
+
+    public boolean canChangeUsername() {
+        return usernameChangedAt == null || !usernameChangedAt.isAfter(LocalDateTime.now().minusDays(30));
+    }
 }

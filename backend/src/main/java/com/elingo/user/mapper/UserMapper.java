@@ -1,11 +1,13 @@
 package com.elingo.user.mapper;
 
 import com.elingo.auth.dto.request.RegisterRequest;
+import com.elingo.user.dto.request.UpdateProfileRequest;
 import com.elingo.user.dto.response.UserMeResponse;
 import com.elingo.user.dto.response.UserPublicResponse;
 import com.elingo.user.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
@@ -14,5 +16,8 @@ public interface UserMapper {
     UserMeResponse toUserMeResponse(User user);
 
     UserPublicResponse toUserPublicResponse(User user);
+
     User toUser(RegisterRequest request);
+
+    void updateUser(@MappingTarget User user, UpdateProfileRequest request);
 }
