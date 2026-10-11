@@ -21,9 +21,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.elingo.common.event.FileAttachedEvent;
+import com.elingo.common.event.FileDeletedEvent;
+import com.elingo.file.util.FileKey;
+import org.springframework.util.StringUtils;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -34,7 +40,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-
+    private final ApplicationEventPublisher publisher;
     @Override
     @Transactional
     public void changePassword(Long userId, ChangePasswordRequest request) {
@@ -145,10 +151,22 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
 
-        // verify avt
+        // 1. Avatar: chỉ kiểm tra, chưa ghi 
+        // null/rỗng = xoá; trùng key hiện tại = giữ; còn lại = ảnh mới.
+        String newKey = StringUtils.hasText(request.avatarUrl()) ? request.avatarUrl() : null;
+        String oldKey = user.getAvatarUrl();
+        boolean avatarChanged = !Objects.equals(newKey, oldKey);
+        String newUploadsKey = null;
+        if (avatarChanged && newKey != null) {
+            requireOwned(newKey, userId);                 // key phải thuộc chính user này
+            newUploadsKey = FileKey.toUploads(newKey);    // sai vùng -> AppException(INVALID_REQUEST)
+            if (newUploadsKey.equals(oldKey)) {           // gửi lại verified key đã dùng: bỏ qua hết
+                avatarChanged = false;
+            }
+        }
 
+        // 2. Username
         boolean isUsernameChanged = !request.username().equals(user.getUsername());
-
         if (isUsernameChanged) {
             if (!user.canChangeUsername()) {
                 log.warn("Username change rejected due to cooldown userId={} lastChangedAt={}",
@@ -161,11 +179,29 @@ public class UserServiceImpl implements UserService {
             }
         }
 
+        // 3. Ghi các field thường
         userMapper.updateUser(user, request);
         if (isUsernameChanged) {
             user.setUsernameChangedAt(LocalDateTime.now());
         }
 
+        // 4. Avatar: ghi key uploads/ (hoặc null) rồi phát event
+        if (avatarChanged) {
+            user.setAvatarUrl(newUploadsKey);
+            if (newUploadsKey != null) {
+                publisher.publishEvent(new FileAttachedEvent(newKey, newUploadsKey));
+            }
+            if (FileKey.isInZone(oldKey, FileKey.UPLOADS_PREFIX)) { // false khi oldKey null hoặc không phải file hệ thống
+                publisher.publishEvent(new FileDeletedEvent(List.of(oldKey)));
+            }
+        }
         return userMapper.toUserMeResponse(user);
+    }
+
+    // Key phải thuộc chính user này
+    private void requireOwned(String key, Long userId) {
+        if (!FileKey.isOwnedBy(key, userId)) {
+            throw new AppException(AppError.FILE_ACCESS_DENIED);
+        }
     }
 }

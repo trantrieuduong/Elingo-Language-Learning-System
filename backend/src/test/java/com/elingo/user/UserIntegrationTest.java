@@ -1,6 +1,8 @@
 package com.elingo.user;
 
 import com.elingo.BaseIntegrationTest;
+import com.elingo.common.event.FileAttachedEvent;
+import com.elingo.common.event.FileDeletedEvent;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.common.service.EmailService;
@@ -13,6 +15,7 @@ import com.elingo.user.dto.request.UpdateEmailRequest;
 import com.elingo.user.dto.request.UpdateProfileRequest;
 import com.elingo.user.entity.User;
 import com.elingo.user.repository.UserRepository;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -21,6 +24,8 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.event.ApplicationEvents;
+import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.elingo.auth.service.JwtService;
@@ -33,12 +38,14 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@RecordApplicationEvents
 public class UserIntegrationTest extends BaseIntegrationTest {
         @Autowired
         private MockMvc mockMvc;
@@ -63,6 +70,9 @@ public class UserIntegrationTest extends BaseIntegrationTest {
 
         @Autowired
         private PasswordEncoder passwordEncoder;
+
+        @Autowired
+        private ApplicationEvents applicationEvents;
 
         private User testUser;
         private String authToken;
@@ -323,6 +333,281 @@ public class UserIntegrationTest extends BaseIntegrationTest {
                                         .andExpect(status().isBadRequest())
                                         .andExpect(jsonPath("$.success").value(false))
                                         .andExpect(jsonPath("$.errors[0].code").value("USERNAME_EXISTED"));
+                }
+
+                @Test
+                @DisplayName("Update profile: Success — set new avatar")
+                void testUpdateProfile_Success_SetNewAvatar() throws Exception {
+                        String verifiedKey = "verified/" + testUser.getId() + "/new.png";
+                        String uploadsKey = "uploads/" + testUser.getId() + "/new.png";
+
+                        UpdateProfileRequest request = new UpdateProfileRequest(verifiedKey, "Test User", "testuser");
+                        mockMvc.perform(put("/users/me")
+                                        .header("Authorization", "Bearer " + authToken)
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(objectMapper.writeValueAsString(request)))
+                                        .andExpect(status().isOk())
+                                        .andExpect(jsonPath("$.success").value(true))
+                                        .andExpect(jsonPath("$.data.avatarUrl").value(Matchers.endsWith(uploadsKey)));
+
+                        User updatedUser = userRepository.findById(testUser.getId()).orElseThrow();
+                        assertThat(updatedUser.getAvatarUrl()).isEqualTo(uploadsKey);
+                        assertThat(applicationEvents.stream(FileAttachedEvent.class).count()).isEqualTo(1);
+                        assertThat(applicationEvents.stream(FileDeletedEvent.class).count()).isEqualTo(0);
+                }
+
+                @Test
+                @DisplayName("Update profile: Success — replace avatar")
+                void testUpdateProfile_Success_ReplaceAvatar() throws Exception {
+                        String oldUploadsKey = "uploads/" + testUser.getId() + "/old.png";
+                        testUser.setAvatarUrl(oldUploadsKey);
+                        userRepository.save(testUser);
+
+                        String verifiedKey = "verified/" + testUser.getId() + "/new.png";
+                        String newUploadsKey = "uploads/" + testUser.getId() + "/new.png";
+
+                        UpdateProfileRequest request = new UpdateProfileRequest(verifiedKey, "Test User", "testuser");
+                        mockMvc.perform(put("/users/me")
+                                        .header("Authorization", "Bearer " + authToken)
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(objectMapper.writeValueAsString(request)))
+                                        .andExpect(status().isOk())
+                                        .andExpect(jsonPath("$.success").value(true));
+
+                        User updatedUser = userRepository.findById(testUser.getId()).orElseThrow();
+                        assertThat(updatedUser.getAvatarUrl()).isEqualTo(newUploadsKey);
+                        assertThat(applicationEvents.stream(FileAttachedEvent.class).count()).isEqualTo(1);
+                        assertThat(applicationEvents.stream(FileDeletedEvent.class).count()).isEqualTo(1);
+                        assertThat(applicationEvents.stream(FileDeletedEvent.class).findFirst().get().fileKeys())
+                                        .contains(oldUploadsKey);
+                }
+
+                @Test
+                @DisplayName("Update profile: Success — unchanged avatar from GET")
+                void testUpdateProfile_Success_UnchangedAvatarFromGet() throws Exception {
+                        String uploadsKey = "uploads/" + testUser.getId() + "/old.png";
+                        testUser.setAvatarUrl(uploadsKey);
+                        userRepository.save(testUser);
+
+                        // Get current profile
+                        String getResponse = mockMvc.perform(get("/users/me")
+                                        .header("Authorization", "Bearer " + authToken))
+                                        .andExpect(status().isOk())
+                                        .andReturn().getResponse().getContentAsString();
+
+                        String avatarUrl = objectMapper.readTree(getResponse)
+                                        .path("data").path("avatarUrl").asText();
+
+                        // PUT back with same avatarUrl
+                        UpdateProfileRequest request = new UpdateProfileRequest(avatarUrl, "New Full Name", "testuser");
+                        mockMvc.perform(put("/users/me")
+                                        .header("Authorization", "Bearer " + authToken)
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(objectMapper.writeValueAsString(request)))
+                                        .andExpect(status().isOk())
+                                        .andExpect(jsonPath("$.success").value(true));
+
+                        User updatedUser = userRepository.findById(testUser.getId()).orElseThrow();
+                        assertThat(updatedUser.getAvatarUrl()).isEqualTo(uploadsKey);
+                        assertThat(applicationEvents.stream(FileAttachedEvent.class).count()).isEqualTo(0);
+                        assertThat(applicationEvents.stream(FileDeletedEvent.class).count()).isEqualTo(0);
+                }
+
+                @Test
+                @DisplayName("Update profile: Success — delete avatar")
+                void testUpdateProfile_Success_DeleteAvatar() throws Exception {
+                        String oldUploadsKey = "uploads/" + testUser.getId() + "/old.png";
+                        testUser.setAvatarUrl(oldUploadsKey);
+                        userRepository.save(testUser);
+
+                        UpdateProfileRequest request = new UpdateProfileRequest(null, "Test User", "testuser");
+                        mockMvc.perform(put("/users/me")
+                                        .header("Authorization", "Bearer " + authToken)
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(objectMapper.writeValueAsString(request)))
+                                        .andExpect(status().isOk())
+                                        .andExpect(jsonPath("$.success").value(true))
+                                        .andExpect(jsonPath("$.data.avatarUrl").isEmpty());
+
+                        User updatedUser = userRepository.findById(testUser.getId()).orElseThrow();
+                        assertThat(updatedUser.getAvatarUrl()).isNull();
+                        assertThat(applicationEvents.stream(FileDeletedEvent.class).count()).isEqualTo(1);
+                        assertThat(applicationEvents.stream(FileDeletedEvent.class).findFirst().get().fileKeys())
+                                        .contains(oldUploadsKey);
+                        assertThat(applicationEvents.stream(FileAttachedEvent.class).count()).isEqualTo(0);
+                }
+
+                @Test
+                @DisplayName("Update profile: Success — missing avatarUrl field deletes avatar")
+                void testUpdateProfile_Success_MissingAvatarFieldDeletesAvatar() throws Exception {
+                        String oldUploadsKey = "uploads/" + testUser.getId() + "/old.png";
+                        testUser.setAvatarUrl(oldUploadsKey);
+                        userRepository.save(testUser);
+
+                        String jsonBody = "{\"fullName\":\"Test User\",\"username\":\"testuser\"}";
+                        mockMvc.perform(put("/users/me")
+                                        .header("Authorization", "Bearer " + authToken)
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(jsonBody))
+                                        .andExpect(status().isOk())
+                                        .andExpect(jsonPath("$.success").value(true))
+                                        .andExpect(jsonPath("$.data.avatarUrl").isEmpty());
+
+                        User updatedUser = userRepository.findById(testUser.getId()).orElseThrow();
+                        assertThat(updatedUser.getAvatarUrl()).isNull();
+                        assertThat(applicationEvents.stream(FileDeletedEvent.class).count()).isEqualTo(1);
+                }
+
+                @Test
+                @DisplayName("Update profile: Success — retry same verified key")
+                void testUpdateProfile_Success_RetrySameVerifiedKey() throws Exception {
+                        String verifiedKey = "verified/" + testUser.getId() + "/new.png";
+                        String uploadsKey = "uploads/" + testUser.getId() + "/new.png";
+
+                        UpdateProfileRequest request = new UpdateProfileRequest(verifiedKey, "Test User", "testuser");
+
+                        // First submission
+                        mockMvc.perform(put("/users/me")
+                                        .header("Authorization", "Bearer " + authToken)
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(objectMapper.writeValueAsString(request)))
+                                        .andExpect(status().isOk());
+
+                        // Second submission
+                        mockMvc.perform(put("/users/me")
+                                        .header("Authorization", "Bearer " + authToken)
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(objectMapper.writeValueAsString(request)))
+                                        .andExpect(status().isOk());
+
+                        // Third submission
+                        mockMvc.perform(put("/users/me")
+                                        .header("Authorization", "Bearer " + authToken)
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(objectMapper.writeValueAsString(request)))
+                                        .andExpect(status().isOk());
+
+                        User updatedUser = userRepository.findById(testUser.getId()).orElseThrow();
+                        assertThat(updatedUser.getAvatarUrl()).isEqualTo(uploadsKey);
+                        assertThat(applicationEvents.stream(FileAttachedEvent.class).count()).isEqualTo(1);
+                        assertThat(applicationEvents.stream(FileDeletedEvent.class).count()).isEqualTo(0);
+                }
+
+                @Test
+                @DisplayName("Update profile: Fail — other user key")
+                void testUpdateProfile_Fail_OtherUserKey() throws Exception {
+                        String oldUploadsKey = "uploads/" + testUser.getId() + "/old.png";
+                        testUser.setAvatarUrl(oldUploadsKey);
+                        userRepository.save(testUser);
+
+                        Long otherUserId = testUser.getId() + 1000;
+                        String otherVerifiedKey = "verified/" + otherUserId + "/x.png";
+
+                        UpdateProfileRequest request = new UpdateProfileRequest(otherVerifiedKey, "Test User", "testuser");
+                        mockMvc.perform(put("/users/me")
+                                        .header("Authorization", "Bearer " + authToken)
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(objectMapper.writeValueAsString(request)))
+                                        .andExpect(status().isForbidden())
+                                        .andExpect(jsonPath("$.success").value(false))
+                                        .andExpect(jsonPath("$.errors[0].code").value("FILE_ACCESS_DENIED"));
+
+                        User updatedUser = userRepository.findById(testUser.getId()).orElseThrow();
+                        assertThat(updatedUser.getAvatarUrl()).isEqualTo(oldUploadsKey);
+                        assertThat(applicationEvents.stream(FileAttachedEvent.class).count()).isEqualTo(0);
+                        assertThat(applicationEvents.stream(FileDeletedEvent.class).count()).isEqualTo(0);
+                }
+
+                @Test
+                @DisplayName("Update profile: Fail — not image key")
+                void testUpdateProfile_Fail_NotImageKey() throws Exception {
+                        String oldUploadsKey = "uploads/" + testUser.getId() + "/old.png";
+                        testUser.setAvatarUrl(oldUploadsKey);
+                        userRepository.save(testUser);
+
+                        String pdfKey = "verified/" + testUser.getId() + "/doc.pdf";
+
+                        UpdateProfileRequest request = new UpdateProfileRequest(pdfKey, "Test User", "testuser");
+                        mockMvc.perform(put("/users/me")
+                                        .header("Authorization", "Bearer " + authToken)
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(objectMapper.writeValueAsString(request)))
+                                        .andExpect(status().isBadRequest())
+                                        .andExpect(jsonPath("$.success").value(false))
+                                        .andExpect(jsonPath("$.errors[0].code").value("INVALID_FILE_TYPE"));
+
+                        User updatedUser = userRepository.findById(testUser.getId()).orElseThrow();
+                        assertThat(updatedUser.getAvatarUrl()).isEqualTo(oldUploadsKey);
+                        assertThat(applicationEvents.stream(FileAttachedEvent.class).count()).isEqualTo(0);
+                        assertThat(applicationEvents.stream(FileDeletedEvent.class).count()).isEqualTo(0);
+                }
+
+                @Test
+                @DisplayName("Update profile: Fail — foreign domain URL")
+                void testUpdateProfile_Fail_ForeignDomainUrl() throws Exception {
+                        UpdateProfileRequest request = new UpdateProfileRequest(
+                                        "https://evil.example.com/a.png", "Test User", "testuser");
+                        mockMvc.perform(put("/users/me")
+                                        .header("Authorization", "Bearer " + authToken)
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(objectMapper.writeValueAsString(request)))
+                                        .andExpect(status().isBadRequest())
+                                        .andExpect(jsonPath("$.success").value(false));
+
+                        assertThat(applicationEvents.stream(FileAttachedEvent.class).count()).isEqualTo(0);
+                        assertThat(applicationEvents.stream(FileDeletedEvent.class).count()).isEqualTo(0);
+                }
+
+                @Test
+                @DisplayName("Update profile: Fail — avatar too long")
+                void testUpdateProfile_Fail_AvatarTooLong() throws Exception {
+                        String tooLongKey = "a".repeat(300) + ".png";
+
+                        UpdateProfileRequest request = new UpdateProfileRequest(tooLongKey, "Test User", "testuser");
+                        mockMvc.perform(put("/users/me")
+                                        .header("Authorization", "Bearer " + authToken)
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(objectMapper.writeValueAsString(request)))
+                                        .andExpect(status().isBadRequest())
+                                        .andExpect(jsonPath("$.success").value(false))
+                                        .andExpect(jsonPath("$.errors[0].code").value("INVALID_REQUEST"));
+
+                        assertThat(applicationEvents.stream(FileAttachedEvent.class).count()).isEqualTo(0);
+                        assertThat(applicationEvents.stream(FileDeletedEvent.class).count()).isEqualTo(0);
+                }
+
+                @Test
+                @DisplayName("Update profile: Fail — username existed with new avatar")
+                void testUpdateProfile_Fail_UsernameExistedWithNewAvatar() throws Exception {
+                        User anotherUser = User.builder()
+                                        .username("takenuser")
+                                        .email("another@gmail.com")
+                                        .passwordHash(passwordEncoder.encode(PASSWORD))
+                                        .fullName("Another User")
+                                        .isActive(true)
+                                        .isVerified(true)
+                                        .build();
+                        userRepository.save(anotherUser);
+
+                        String oldUploadsKey = "uploads/" + testUser.getId() + "/old.png";
+                        testUser.setAvatarUrl(oldUploadsKey);
+                        userRepository.save(testUser);
+
+                        String verifiedKey = "verified/" + testUser.getId() + "/new.png";
+
+                        UpdateProfileRequest request = new UpdateProfileRequest(verifiedKey, "Test User", "takenuser");
+                        mockMvc.perform(put("/users/me")
+                                        .header("Authorization", "Bearer " + authToken)
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(objectMapper.writeValueAsString(request)))
+                                        .andExpect(status().isBadRequest())
+                                        .andExpect(jsonPath("$.success").value(false))
+                                        .andExpect(jsonPath("$.errors[0].code").value("USERNAME_EXISTED"));
+
+                        User updatedUser = userRepository.findById(testUser.getId()).orElseThrow();
+                        assertThat(updatedUser.getAvatarUrl()).isEqualTo(oldUploadsKey);
+                        assertThat(applicationEvents.stream(FileAttachedEvent.class).count()).isEqualTo(0);
+                        assertThat(applicationEvents.stream(FileDeletedEvent.class).count()).isEqualTo(0);
                 }
         }
 }
