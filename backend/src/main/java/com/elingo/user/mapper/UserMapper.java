@@ -19,5 +19,6 @@ public interface UserMapper {
 
     User toUser(RegisterRequest request);
 
+    @Mapping(target = "avatarUrl", ignore = true)
     void updateUser(@MappingTarget User user, UpdateProfileRequest request);
 }
