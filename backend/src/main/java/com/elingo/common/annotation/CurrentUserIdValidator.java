@@ -1,6 +1,5 @@
 package com.elingo.common.annotation;
 
-import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import org.jspecify.annotations.Nullable;
 import org.springframework.core.MethodParameter;
@@ -31,13 +30,13 @@ public class CurrentUserIdValidator implements HandlerMethodArgumentResolver {
         if (authentication == null
                 || !authentication.isAuthenticated()
                 || authentication.getPrincipal().equals("anonymousUser")) {
-            throw new AppException(AppError.UNAUTHORIZED);
+            return null;
         }
 
         Object principal = authentication.getPrincipal();
         if (principal instanceof Long userId)
             return userId;
 
-        throw new AppException(AppError.UNAUTHORIZED);
+        return null;
     }
 }

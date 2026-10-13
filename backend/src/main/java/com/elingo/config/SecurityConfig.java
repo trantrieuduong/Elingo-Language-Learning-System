@@ -43,7 +43,10 @@ public class SecurityConfig {
             "/swagger-ui.html",
             "/v3/api-docs/**",
             "/v3/api-docs*/**",
-            "/ws/**"
+            "/ws/**",
+            "/decks",
+            "/tags",
+            "/cefr-levels"
     };
 
     public SecurityConfig(CustomUserDetailsService customUserDetailsService,

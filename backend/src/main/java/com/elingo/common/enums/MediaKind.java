@@ -1,19 +1,15 @@
 package com.elingo.common.enums;
 
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Nhóm định dạng của một file, đồng thời là <b>nguồn duy nhất</b> cho danh sách mime type,
  * đuôi file và trần dung lượng được phép upload.
  *
  * <p>Thêm một định dạng mới chỉ cần sửa bảng mime → đuôi file của nhóm tương ứng ở đây;
- * {@code FileSignatureVerifier} và {@code FileKey} đều suy ra từ bảng này. (Riêng chữ ký
- * nhị phân của định dạng mới vẫn phải khai báo trong {@code FileSignatureVerifier.detect}.)
+ * Riêng chữ ký nhị phân của định dạng mới vẫn phải khai báo trong {@code FileSignatureVerifier.detect}.
  *
  * <p>Module sở hữu dữ liệu dùng enum này để chặn file sai chỗ trước khi ghi entity: ảnh
  * đại diện chỉ nhận {@link #IMAGE}, bài viết chỉ nhận {@link #IMAGE} và {@link #VIDEO},
@@ -70,8 +66,6 @@ public enum MediaKind {
 
     private final Map<String, String> mimeToExtension;
 
-    private final List<String> extensions;
-
     private final long maxBytes;
 
     /**
@@ -83,26 +77,7 @@ public enum MediaKind {
     MediaKind(String mimePrefix, Map<String, String> mimeToExtension, long maxBytes) {
         this.mimePrefix = mimePrefix;
         this.mimeToExtension = mimeToExtension;
-        this.extensions = List.copyOf(mimeToExtension.values());
         this.maxBytes = maxBytes;
-    }
-
-    /**
-     * Phần loại chính của mime type thuộc nhóm này, ví dụ {@code image}, {@code video},
-     * {@code audio}.
-     */
-    public String mimePrefix() {
-        return mimePrefix;
-    }
-
-    /** Các mime type chuẩn mà nhóm này cho phép upload. */
-    public Set<String> mimeTypes() {
-        return mimeToExtension.keySet();
-    }
-
-    /** Đuôi file mà nhóm này cho phép. */
-    public List<String> extensions() {
-        return extensions;
     }
 
     /**
@@ -154,10 +129,6 @@ public enum MediaKind {
      * Suy ra nhóm từ mime type, chỉ dựa vào phần loại chính trước dấu {@code /}
      * ({@code image/jpg}, {@code image/png} đều ra {@link #IMAGE}).
      *
-     * <p>Đây là phép <b>phân nhóm lỏng</b>: {@code image/svg+xml} hay {@code image/bmp}
-     * cũng ra {@link #IMAGE}. Muốn biết mime type có được phép upload không, gọi thêm
-     * {@link #supports}.
-     *
      * @return nhóm tương ứng, hoặc {@code null} nếu mime type rỗng, sai định dạng
      *         hoặc loại chính không thuộc nhóm nào
      */
@@ -187,10 +158,5 @@ public enum MediaKind {
     public static String extensionOf(String mimeType) {
         String normalized = normalizeMimeType(mimeType);
         return normalized == null ? null : EXTENSION_BY_MIME_TYPE.get(normalized);
-    }
-
-    /** Toàn bộ mime type được phép của mọi nhóm. */
-    public static Collection<String> allMimeTypes() {
-        return EXTENSION_BY_MIME_TYPE.keySet();
     }
 }

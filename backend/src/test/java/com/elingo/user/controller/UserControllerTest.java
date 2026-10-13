@@ -5,6 +5,7 @@ import com.elingo.user.dto.request.ChangePasswordRequest;
 import com.elingo.user.dto.request.SendOTPUpdateEmailRequest;
 import com.elingo.user.dto.request.SetPasswordRequest;
 import com.elingo.user.dto.request.UpdateEmailRequest;
+import com.elingo.user.dto.request.UpdateProfileRequest;
 import com.elingo.user.dto.response.UserMeResponse;
 import com.elingo.user.entity.Role;
 import com.elingo.user.service.UserService;
@@ -61,7 +62,8 @@ class UserControllerTest {
                     }
 
                     @Override
-                    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
+                    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
+                            NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
                         return USER_ID;
                     }
                 })
@@ -74,7 +76,8 @@ class UserControllerTest {
         @Test
         @DisplayName("Get my info successfully")
         void getMyInfo_Success() throws Exception {
-            UserMeResponse responseMock = new UserMeResponse(USER_ID, "testuser", "test@gmail.com", "Test User", null, Role.USER, true, false, null, null, true, false);
+            UserMeResponse responseMock = new UserMeResponse(USER_ID, "testuser", "test@gmail.com", "Test User", null,
+                    Role.USER, true, false, null, null, true, false);
             when(userService.getMyInfo(USER_ID)).thenReturn(responseMock);
 
             mockMvc.perform(get("/users/me"))
@@ -90,7 +93,8 @@ class UserControllerTest {
         @Test
         @DisplayName("Get user by id successfully")
         void getUserById_Success() throws Exception {
-            UserMeResponse responseMock = new UserMeResponse(USER_ID, "testuser", "test@gmail.com", "Test User", null, Role.USER, true, false, null, null, true, false);
+            UserMeResponse responseMock = new UserMeResponse(USER_ID, "testuser", "test@gmail.com", "Test User", null,
+                    Role.USER, true, false, null, null, true, false);
             when(userService.getUserById(USER_ID, USER_ID)).thenReturn(responseMock);
 
             mockMvc.perform(get("/users/{id}", USER_ID))
@@ -109,8 +113,8 @@ class UserControllerTest {
             ChangePasswordRequest request = new ChangePasswordRequest("OldPassword123@", "NewPassword123@");
 
             mockMvc.perform(patch("/users/me/password")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true));
 
@@ -127,8 +131,8 @@ class UserControllerTest {
             SetPasswordRequest request = new SetPasswordRequest("NewPassword123@");
 
             mockMvc.perform(post("/users/me/password")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true));
 
@@ -145,8 +149,8 @@ class UserControllerTest {
             SendOTPUpdateEmailRequest request = new SendOTPUpdateEmailRequest("new@gmail.com");
 
             mockMvc.perform(post("/users/me/email/otp")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true));
 
@@ -163,12 +167,35 @@ class UserControllerTest {
             UpdateEmailRequest request = new UpdateEmailRequest("new@gmail.com", "123456", "Password123@");
 
             mockMvc.perform(patch("/users/me/email")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true));
 
             verify(userService).updateEmail(eq(USER_ID), any(UpdateEmailRequest.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("updateProfile")
+    class UpdateProfileTests {
+        @Test
+        @DisplayName("Update profile successfully")
+        void updateProfile_Success() throws Exception {
+            UpdateProfileRequest request = new UpdateProfileRequest(null, "New Name", "newuser");
+            UserMeResponse responseMock = new UserMeResponse(USER_ID, "newuser", "test@gmail.com", "New Name", null,
+                    Role.USER, true, false, null, null, true, false);
+            when(userService.updateProfile(USER_ID, request)).thenReturn(responseMock);
+
+            mockMvc.perform(put("/users/me")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.username").value("newuser"))
+                    .andExpect(jsonPath("$.data.fullName").value("New Name"));
+
+            verify(userService).updateProfile(eq(USER_ID), any(UpdateProfileRequest.class));
         }
     }
 }

@@ -1,0 +1,69 @@
+package com.elingo.learning.flashcard.controller;
+
+import com.elingo.common.annotation.CurrentUserId;
+import com.elingo.common.dto.ApiResponse;
+import com.elingo.learning.flashcard.dto.request.SrsReviewRequest;
+import com.elingo.learning.flashcard.dto.response.ReviewCardResponse;
+
+import com.elingo.learning.flashcard.service.FlashcardService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/flashcards")
+@RequiredArgsConstructor
+@Tag(name = "Flashcard Controller")
+public class FlashcardController {
+    private final FlashcardService flashcardService;
+
+    @PatchMapping("/{cardId}/srs")
+    @Operation(summary = "Submit SM-2 review grade for a card (0=Again, 1=Hard, 2=Good, 3=Easy)")
+    public ApiResponse<Void> submitSrsReview(
+            @PathVariable Long cardId,
+            @Valid @RequestBody SrsReviewRequest request,
+            @CurrentUserId Long currentUserId) {
+        flashcardService.submitSrsReview(currentUserId, cardId, request);
+        return ApiResponse.<Void>builder()
+                .success(true)
+                .build();
+    }
+
+    @PatchMapping("/{cardId}/stars")
+    @Operation(summary = "Toggle star state for user flashcard")
+    public ApiResponse<Void> toggleStar(
+            @PathVariable Long cardId,
+            @CurrentUserId Long currentUserId) {
+        flashcardService.toggleStar(currentUserId, cardId);
+        return ApiResponse.<Void>builder()
+                .success(true)
+                .build();
+    }
+
+    @PatchMapping("/{cardId}/hidden")
+    @Operation(summary = "Toggle hidden state for user flashcard")
+    public ApiResponse<Void> toggleHidden(
+            @PathVariable Long cardId,
+            @CurrentUserId Long currentUserId) {
+        flashcardService.toggleHide(currentUserId, cardId);
+        return ApiResponse.<Void>builder()
+                .success(true)
+                .build();
+    }
+
+    @GetMapping("/reviews")
+    @Operation(summary = "Get list of flashcards due for review")
+    public ApiResponse<List<ReviewCardResponse>> getCardsForReview(
+            @RequestParam(required = false, defaultValue = "100") Integer limit,
+            @CurrentUserId Long currentUserId) {
+        List<ReviewCardResponse> response = flashcardService.getCardsForReview(currentUserId, limit);
+        return ApiResponse.<List<ReviewCardResponse>>builder()
+                .success(true)
+                .data(response)
+                .build();
+    }
+}

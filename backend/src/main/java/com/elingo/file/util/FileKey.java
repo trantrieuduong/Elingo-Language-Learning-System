@@ -1,6 +1,8 @@
 package com.elingo.file.util;
 
 import com.elingo.common.enums.MediaKind;
+import com.elingo.common.exception.AppError;
+import com.elingo.common.exception.AppException;
 
 /**
  * <p>Bucket chia làm ba vùng, mỗi vùng một ý nghĩa khác nhau:
@@ -13,7 +15,7 @@ import com.elingo.common.enums.MediaKind;
  *
  * <p><b>Tên file không đổi khi promote từ verified sang uploads.</b>
  * {@code verified/12/a.png} và {@code uploads/12/a.png} là cùng một file ở hai nơi, nên
- * việc sửa chữa hậu kỳ chỉ cần biết tên file là dò lại được. (Bước staging → verified thì
+ * việc sửa chữa hậu kỳ chỉ cần biết tên file là dò lại được. (Bước staging -> verified thì
  * sinh tên mới, vì lúc đó mới biết đuôi file thật.)
  */
 public final class FileKey {
@@ -33,12 +35,11 @@ public final class FileKey {
      * <p>Module sở hữu dữ liệu gọi hàm này để biết trước đường dẫn sẽ ghi vào CSDL, rồi
      * truyền cả hai key lên {@code FileAttachedEvent}
      *
-     * @throws IllegalArgumentException nếu {@code verifiedKey} không thuộc vùng verified
+     * @throws AppException nếu {@code verifiedKey} không thuộc vùng verified
      */
     public static String toUploads(String verifiedKey) {
         if (!isInZone(verifiedKey, VERIFIED_PREFIX)) {
-            throw new IllegalArgumentException(
-                    "Key must start with '" + VERIFIED_PREFIX + "/' but was: " + verifiedKey);
+            throw new AppException(AppError.INVALID_REQUEST);
         }
 
         return UPLOADS_PREFIX + verifiedKey.substring(VERIFIED_PREFIX.length());
@@ -77,15 +78,20 @@ public final class FileKey {
     }
 
     /**
-     * Key có nằm trong thư mục của user trong vùng đó không, tức là bắt đầu bằng
+     * Key có nằm trong thư mục của user trong vùng đó không
      * {@code {zone}/{userId}/}.
      *
      * <p>Đây là toàn bộ cơ chế chống IDOR của module: userId lấy từ token, không cần tra
      * CSDL.
      */
-    public static boolean isOwnedBy(String fileKey, String zone, Long userId) {
-        return userId != null && fileKey != null
-                && fileKey.startsWith(zone + "/" + userId + "/");
+    public static boolean isOwnedBy(String fileKey, Long userId) {
+        if (userId == null || fileKey == null || fileKey.contains("..")) {
+            return false;
+        }
+        String[] parts = fileKey.split("/", 3);
+        return parts.length == 3
+                && !parts[0].isEmpty()
+                && parts[1].equals(String.valueOf(userId));
     }
 
     /**
@@ -99,5 +105,28 @@ public final class FileKey {
                 ? publicUrl.substring(0, publicUrl.length() - 1)
                 : publicUrl;
         return base + "/" + fileKey;
+    }
+
+    /**
+     * Key của một object
+     */
+    public static String toKey(String publicUrl, String value) {
+        if (value == null || value.isBlank()) return null;
+
+        String v = value.trim();
+        String base = publicUrl.endsWith("/")
+                ? publicUrl.substring(0, publicUrl.length() - 1)
+                : publicUrl;
+
+        if (v.startsWith(base)) {
+            v = v.substring(base.length());
+        } else if (v.startsWith("http://") || v.startsWith("https://")) {
+            // URL của domain khác thì không chấp nhận
+            throw new AppException(AppError.INVALID_REQUEST);
+        }
+
+        v = v.replaceAll("[?#].*$", "").replaceAll("^/+", "");
+
+        return v.isEmpty() ? null : v;
     }
 }

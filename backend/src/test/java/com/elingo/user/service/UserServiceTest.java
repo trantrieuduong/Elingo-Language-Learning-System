@@ -7,6 +7,7 @@ import com.elingo.common.service.OtpService;
 import com.elingo.common.util.EmailTemplateName;
 import com.elingo.common.util.OtpType;
 import com.elingo.user.dto.request.ChangePasswordRequest;
+import com.elingo.user.dto.request.UpdateProfileRequest;
 import com.elingo.user.dto.request.SendOTPUpdateEmailRequest;
 import com.elingo.user.dto.request.SetPasswordRequest;
 import com.elingo.user.dto.request.UpdateEmailRequest;
@@ -28,6 +29,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,10 +37,18 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+
+import com.elingo.common.event.FileAttachedEvent;
+import com.elingo.common.event.FileDeletedEvent;
+import org.springframework.context.ApplicationEventPublisher;
+
+import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")
@@ -59,6 +69,9 @@ class UserServiceTest {
     @Mock
     private UserMapper userMapper;
 
+    @Mock
+    private ApplicationEventPublisher publisher;
+
     @InjectMocks
     private UserServiceImpl userService;
 
@@ -74,6 +87,9 @@ class UserServiceTest {
     private static final String NEW_PASSWORD_HASH = "$2a$10$hashedNewPassword";
     private static final String OTP = "123456";
     private static final String FULL_NAME = "Test User";
+    private static final String OLD_UPLOADS_KEY = "uploads/1/old.png";
+    private static final String NEW_VERIFIED_KEY = "verified/1/new.png";
+    private static final String NEW_UPLOADS_KEY = "uploads/1/new.png";
 
     @BeforeEach
     void setUp() {
@@ -225,8 +241,7 @@ class UserServiceTest {
                     eq(USERNAME),
                     eq(EmailTemplateName.SEND_OTP),
                     eq(OTP),
-                    anyString()
-            );
+                    anyString());
         }
 
         @Test
@@ -372,8 +387,7 @@ class UserServiceTest {
         void getMyInfo_Success() {
             UserMeResponse expectedResponse = new UserMeResponse(
                     USER_ID, USERNAME, EMAIL, FULL_NAME, null,
-                    Role.USER, true, true, null, null, true, false
-            );
+                    Role.USER, true, true, null, null, true, false);
             when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
             when(userMapper.toUserMeResponse(testUser)).thenReturn(expectedResponse);
 
@@ -409,8 +423,7 @@ class UserServiceTest {
         void getUserById_Self_ReturnsUserMeResponse() {
             UserMeResponse expectedResponse = new UserMeResponse(
                     USER_ID, USERNAME, EMAIL, FULL_NAME, null,
-                    Role.USER, true, true, null, null, true, false
-            );
+                    Role.USER, true, true, null, null, true, false);
             when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
             when(userMapper.toUserMeResponse(testUser)).thenReturn(expectedResponse);
 
@@ -426,8 +439,7 @@ class UserServiceTest {
         void getUserById_OtherUser_ReturnsUserPublicResponse() {
             Long otherUserId = 2L;
             UserPublicResponse expectedResponse = new UserPublicResponse(
-                    USER_ID, USERNAME, FULL_NAME, null, Role.USER
-            );
+                    USER_ID, USERNAME, FULL_NAME, null, Role.USER);
             when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
             when(userMapper.toUserPublicResponse(testUser)).thenReturn(expectedResponse);
 
@@ -448,6 +460,374 @@ class UserServiceTest {
                     .isInstanceOf(AppException.class)
                     .satisfies(ex -> assertThat(((AppException) ex).getAppError())
                             .isEqualTo(AppError.USER_NOT_FOUND));
+        }
+    }
+
+    // ========================================================================
+    // updateProfile
+    // ========================================================================
+    @Nested
+    @DisplayName("updateProfile")
+    class UpdateProfileTests {
+
+        @Test
+        @DisplayName("Update profile successfully: only fullName changed")
+        void updateProfile_Success_UpdateFullNameOnly() {
+            when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+            UserMeResponse expectedResponse = new UserMeResponse(
+                    USER_ID, USERNAME, EMAIL, "New Name", null, Role.USER, true, true, null, null, true, false);
+            when(userMapper.toUserMeResponse(testUser)).thenReturn(expectedResponse);
+            doAnswer(invocation -> {
+                User u = invocation.getArgument(0);
+                UpdateProfileRequest req = invocation.getArgument(1);
+                if (req.fullName() != null)
+                    u.setFullName(req.fullName());
+                return null;
+            }).when(userMapper).updateUser(eq(testUser), any(UpdateProfileRequest.class));
+
+            UpdateProfileRequest request = new UpdateProfileRequest(null, "New Name", USERNAME);
+            UserMeResponse result = userService.updateProfile(USER_ID, request);
+
+            assertThat(testUser.getUsernameChangedAt()).isNull(); // username not touched
+            assertThat(result).isEqualTo(expectedResponse);
+            verify(userMapper).updateUser(eq(testUser), eq(request));
+        }
+
+        @Test
+        @DisplayName("Update profile successfully: both fullName and username changed")
+        void updateProfile_Success_UpdateBothFields() {
+            // usernameChangedAt = null → canChangeUsername = true
+            when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+            UserMeResponse expectedResponse = new UserMeResponse(
+                    USER_ID, "newuser", EMAIL, "New Name", null, Role.USER, true, true, null, null, true, false);
+            when(userMapper.toUserMeResponse(testUser)).thenReturn(expectedResponse);
+            doAnswer(invocation -> {
+                User u = invocation.getArgument(0);
+                UpdateProfileRequest req = invocation.getArgument(1);
+                if (req.fullName() != null)
+                    u.setFullName(req.fullName());
+                if (req.username() != null)
+                    u.setUsername(req.username());
+                return null;
+            }).when(userMapper).updateUser(eq(testUser), any(UpdateProfileRequest.class));
+
+            UpdateProfileRequest request = new UpdateProfileRequest(null, "New Name", "newuser");
+            UserMeResponse result = userService.updateProfile(USER_ID, request);
+
+            assertThat(testUser.getUsernameChangedAt()).isNotNull();
+            assertThat(result).isEqualTo(expectedResponse);
+            verify(userMapper).updateUser(eq(testUser), eq(request));
+        }
+
+        @Test
+        @DisplayName("Update profile successfully: same username passed → no change, no cooldown trigger")
+        void updateProfile_Success_SameUsernamePassed() {
+            when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+            UserMeResponse expectedResponse = new UserMeResponse(
+                    USER_ID, USERNAME, EMAIL, FULL_NAME, null, Role.USER, true, true, null, null, true, false);
+            when(userMapper.toUserMeResponse(testUser)).thenReturn(expectedResponse);
+
+            UpdateProfileRequest request = new UpdateProfileRequest(null, FULL_NAME, USERNAME); // same username
+            userService.updateProfile(USER_ID, request);
+
+            assertThat(testUser.getUsernameChangedAt()).isNull();
+            verify(userMapper).updateUser(eq(testUser), eq(request));
+        }
+
+        @Test
+        @DisplayName("Update profile failed: username cooldown active")
+        void updateProfile_Failure_UsernameCooldown() {
+            testUser.setUsernameChangedAt(LocalDateTime.now().minusDays(5)); // within 30-day cooldown
+            when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+
+            UpdateProfileRequest request = new UpdateProfileRequest(null, FULL_NAME, "newuser");
+
+            assertThatThrownBy(() -> userService.updateProfile(USER_ID, request))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.CANNOT_CHANGE_USERNAME_YET));
+        }
+
+        @Test
+        @DisplayName("Update profile failed: username already exists")
+        void updateProfile_Failure_UsernameAlreadyExists() {
+            when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+            when(userRepository.existsByUsername("takenuser")).thenReturn(true);
+
+            UpdateProfileRequest request = new UpdateProfileRequest(null, FULL_NAME, "takenuser");
+
+            assertThatThrownBy(() -> userService.updateProfile(USER_ID, request))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.USERNAME_EXISTED));
+        }
+
+        @Test
+        @DisplayName("Update profile failed: user not found")
+        void updateProfile_Failure_UserNotFound() {
+            when(userRepository.findById(USER_ID)).thenReturn(Optional.empty());
+
+            UpdateProfileRequest request = new UpdateProfileRequest(null, "New Name", "newuser");
+
+            assertThatThrownBy(() -> userService.updateProfile(USER_ID, request))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.USER_NOT_FOUND));
+        }
+    }
+
+    // ========================================================================
+    // updateProfile - avatar
+    // ========================================================================
+    @Nested
+    @DisplayName("updateProfile - avatar")
+    class UpdateProfileAvatarTests {
+
+        @Test
+        @DisplayName("Update profile successfully: set first avatar")
+        void updateProfile_Success_SetFirstAvatar() {
+            testUser.setAvatarUrl(null);
+            when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+            UserMeResponse expectedResponse = new UserMeResponse(
+                    USER_ID, USERNAME, EMAIL, FULL_NAME, NEW_UPLOADS_KEY,
+                    Role.USER, true, true, null, null, true, false);
+            when(userMapper.toUserMeResponse(testUser)).thenReturn(expectedResponse);
+
+            UpdateProfileRequest request = new UpdateProfileRequest(NEW_VERIFIED_KEY, FULL_NAME, USERNAME);
+            userService.updateProfile(USER_ID, request);
+
+            assertThat(testUser.getAvatarUrl()).isEqualTo(NEW_UPLOADS_KEY);
+            verify(publisher).publishEvent(eq(new FileAttachedEvent(NEW_VERIFIED_KEY, NEW_UPLOADS_KEY)));
+            verify(publisher, never()).publishEvent(any(FileDeletedEvent.class));
+        }
+
+        @Test
+        @DisplayName("Update profile successfully: replace avatar")
+        void updateProfile_Success_ReplaceAvatar() {
+            testUser.setAvatarUrl(OLD_UPLOADS_KEY);
+            when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+            UserMeResponse expectedResponse = new UserMeResponse(
+                    USER_ID, USERNAME, EMAIL, FULL_NAME, NEW_UPLOADS_KEY,
+                    Role.USER, true, true, null, null, true, false);
+            when(userMapper.toUserMeResponse(testUser)).thenReturn(expectedResponse);
+
+            UpdateProfileRequest request = new UpdateProfileRequest(NEW_VERIFIED_KEY, FULL_NAME, USERNAME);
+            userService.updateProfile(USER_ID, request);
+
+            assertThat(testUser.getAvatarUrl()).isEqualTo(NEW_UPLOADS_KEY);
+            verify(publisher).publishEvent(eq(new FileAttachedEvent(NEW_VERIFIED_KEY, NEW_UPLOADS_KEY)));
+            verify(publisher).publishEvent(eq(new FileDeletedEvent(List.of(OLD_UPLOADS_KEY))));
+        }
+
+        @Test
+        @DisplayName("Update profile successfully: keep avatar when unchanged")
+        void updateProfile_Success_KeepAvatarWhenUnchanged() {
+            testUser.setAvatarUrl(OLD_UPLOADS_KEY);
+            when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+            UserMeResponse expectedResponse = new UserMeResponse(
+                    USER_ID, USERNAME, EMAIL, FULL_NAME, OLD_UPLOADS_KEY,
+                    Role.USER, true, true, null, null, true, false);
+            when(userMapper.toUserMeResponse(testUser)).thenReturn(expectedResponse);
+
+            UpdateProfileRequest request = new UpdateProfileRequest(OLD_UPLOADS_KEY, FULL_NAME, USERNAME);
+            userService.updateProfile(USER_ID, request);
+
+            assertThat(testUser.getAvatarUrl()).isEqualTo(OLD_UPLOADS_KEY);
+            verifyNoInteractions(publisher);
+        }
+
+        @Test
+        @DisplayName("Update profile successfully: delete avatar")
+        void updateProfile_Success_DeleteAvatar() {
+            testUser.setAvatarUrl(OLD_UPLOADS_KEY);
+            when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+            UserMeResponse expectedResponse = new UserMeResponse(
+                    USER_ID, USERNAME, EMAIL, FULL_NAME, null,
+                    Role.USER, true, true, null, null, true, false);
+            when(userMapper.toUserMeResponse(testUser)).thenReturn(expectedResponse);
+
+            UpdateProfileRequest request = new UpdateProfileRequest(null, FULL_NAME, USERNAME);
+            userService.updateProfile(USER_ID, request);
+
+            assertThat(testUser.getAvatarUrl()).isNull();
+            verify(publisher).publishEvent(eq(new FileDeletedEvent(List.of(OLD_UPLOADS_KEY))));
+            verify(publisher, never()).publishEvent(any(FileAttachedEvent.class));
+        }
+
+        @Test
+        @DisplayName("Update profile successfully: delete avatar when blank")
+        void updateProfile_Success_DeleteAvatarWhenBlank() {
+            testUser.setAvatarUrl(OLD_UPLOADS_KEY);
+            when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+            UserMeResponse expectedResponse = new UserMeResponse(
+                    USER_ID, USERNAME, EMAIL, FULL_NAME, null,
+                    Role.USER, true, true, null, null, true, false);
+            when(userMapper.toUserMeResponse(testUser)).thenReturn(expectedResponse);
+
+            UpdateProfileRequest request = new UpdateProfileRequest("   ", FULL_NAME, USERNAME);
+            userService.updateProfile(USER_ID, request);
+
+            assertThat(testUser.getAvatarUrl()).isNull();
+            verify(publisher).publishEvent(eq(new FileDeletedEvent(List.of(OLD_UPLOADS_KEY))));
+            verify(publisher, never()).publishEvent(any(FileAttachedEvent.class));
+        }
+
+        @Test
+        @DisplayName("Update profile successfully: null when no avatar")
+        void updateProfile_Success_NullWhenNoAvatar() {
+            testUser.setAvatarUrl(null);
+            when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+            UserMeResponse expectedResponse = new UserMeResponse(
+                    USER_ID, USERNAME, EMAIL, FULL_NAME, null,
+                    Role.USER, true, true, null, null, true, false);
+            when(userMapper.toUserMeResponse(testUser)).thenReturn(expectedResponse);
+
+            UpdateProfileRequest request = new UpdateProfileRequest(null, FULL_NAME, USERNAME);
+            userService.updateProfile(USER_ID, request);
+
+            assertThat(testUser.getAvatarUrl()).isNull();
+            verifyNoInteractions(publisher);
+        }
+
+        @Test
+        @DisplayName("Update profile successfully: retry same verified key")
+        void updateProfile_Success_RetrySameVerifiedKey() {
+            testUser.setAvatarUrl(NEW_UPLOADS_KEY);
+            when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+            UserMeResponse expectedResponse = new UserMeResponse(
+                    USER_ID, USERNAME, EMAIL, FULL_NAME, NEW_UPLOADS_KEY,
+                    Role.USER, true, true, null, null, true, false);
+            when(userMapper.toUserMeResponse(testUser)).thenReturn(expectedResponse);
+
+            UpdateProfileRequest request = new UpdateProfileRequest(NEW_VERIFIED_KEY, FULL_NAME, USERNAME);
+            userService.updateProfile(USER_ID, request);
+
+            assertThat(testUser.getAvatarUrl()).isEqualTo(NEW_UPLOADS_KEY);
+            verifyNoInteractions(publisher);
+        }
+
+        @Test
+        @DisplayName("Update profile successfully: replace legacy non-uploads avatar")
+        void updateProfile_Success_ReplaceLegacyNonUploadsAvatar() {
+            String legacyUrl = "https://legacy.example.com/a.png";
+            testUser.setAvatarUrl(legacyUrl);
+            when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+            UserMeResponse expectedResponse = new UserMeResponse(
+                    USER_ID, USERNAME, EMAIL, FULL_NAME, NEW_UPLOADS_KEY,
+                    Role.USER, true, true, null, null, true, false);
+            when(userMapper.toUserMeResponse(testUser)).thenReturn(expectedResponse);
+
+            UpdateProfileRequest request = new UpdateProfileRequest(NEW_VERIFIED_KEY, FULL_NAME, USERNAME);
+            userService.updateProfile(USER_ID, request);
+
+            assertThat(testUser.getAvatarUrl()).isEqualTo(NEW_UPLOADS_KEY);
+            verify(publisher).publishEvent(eq(new FileAttachedEvent(NEW_VERIFIED_KEY, NEW_UPLOADS_KEY)));
+            verify(publisher, never()).publishEvent(any(FileDeletedEvent.class));
+        }
+
+        @Test
+        @DisplayName("Update profile successfully: delete legacy non-uploads avatar")
+        void updateProfile_Success_DeleteLegacyNonUploadsAvatar() {
+            String legacyUrl = "https://legacy.example.com/a.png";
+            testUser.setAvatarUrl(legacyUrl);
+            when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+            UserMeResponse expectedResponse = new UserMeResponse(
+                    USER_ID, USERNAME, EMAIL, FULL_NAME, null,
+                    Role.USER, true, true, null, null, true, false);
+            when(userMapper.toUserMeResponse(testUser)).thenReturn(expectedResponse);
+
+            UpdateProfileRequest request = new UpdateProfileRequest(null, FULL_NAME, USERNAME);
+            userService.updateProfile(USER_ID, request);
+
+            assertThat(testUser.getAvatarUrl()).isNull();
+            verify(publisher, never()).publishEvent(any(FileDeletedEvent.class));
+        }
+
+        @Test
+        @DisplayName("Update profile failed: other user verified key")
+        void updateProfile_Failure_OtherUserVerifiedKey() {
+            testUser.setAvatarUrl(OLD_UPLOADS_KEY);
+            when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+
+            UpdateProfileRequest request = new UpdateProfileRequest("verified/2/x.png", FULL_NAME, USERNAME);
+
+            assertThatThrownBy(() -> userService.updateProfile(USER_ID, request))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.FILE_ACCESS_DENIED));
+
+            assertThat(testUser.getAvatarUrl()).isEqualTo(OLD_UPLOADS_KEY);
+            verifyNoInteractions(publisher);
+        }
+
+        @Test
+        @DisplayName("Update profile failed: other user uploads key")
+        void updateProfile_Failure_OtherUserUploadsKey() {
+            testUser.setAvatarUrl(OLD_UPLOADS_KEY);
+            when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+
+            UpdateProfileRequest request = new UpdateProfileRequest("uploads/2/x.png", FULL_NAME, USERNAME);
+
+            assertThatThrownBy(() -> userService.updateProfile(USER_ID, request))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.FILE_ACCESS_DENIED));
+
+            assertThat(testUser.getAvatarUrl()).isEqualTo(OLD_UPLOADS_KEY);
+            verifyNoInteractions(publisher);
+        }
+
+        @Test
+        @DisplayName("Update profile failed: own uploads key different from current")
+        void updateProfile_Failure_OwnUploadsKeyDifferentFromCurrent() {
+            testUser.setAvatarUrl(OLD_UPLOADS_KEY);
+            when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+
+            UpdateProfileRequest request = new UpdateProfileRequest("uploads/1/other.png", FULL_NAME, USERNAME);
+
+            assertThatThrownBy(() -> userService.updateProfile(USER_ID, request))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.INVALID_REQUEST));
+
+            assertThat(testUser.getAvatarUrl()).isEqualTo(OLD_UPLOADS_KEY);
+            verifyNoInteractions(publisher);
+        }
+
+        @Test
+        @DisplayName("Update profile failed: own staging key")
+        void updateProfile_Failure_OwnStagingKey() {
+            testUser.setAvatarUrl(OLD_UPLOADS_KEY);
+            when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+
+            UpdateProfileRequest request = new UpdateProfileRequest("staging/1/x.png", FULL_NAME, USERNAME);
+
+            assertThatThrownBy(() -> userService.updateProfile(USER_ID, request))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.INVALID_REQUEST));
+
+            assertThat(testUser.getAvatarUrl()).isEqualTo(OLD_UPLOADS_KEY);
+            verifyNoInteractions(publisher);
+        }
+
+        @Test
+        @DisplayName("Update profile failed: username taken with new avatar")
+        void updateProfile_Failure_UsernameTakenWithNewAvatar() {
+            testUser.setAvatarUrl(OLD_UPLOADS_KEY);
+            when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+            when(userRepository.existsByUsername("takenuser")).thenReturn(true);
+
+            UpdateProfileRequest request = new UpdateProfileRequest(NEW_VERIFIED_KEY, FULL_NAME, "takenuser");
+
+            assertThatThrownBy(() -> userService.updateProfile(USER_ID, request))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.USERNAME_EXISTED));
+
+            assertThat(testUser.getAvatarUrl()).isEqualTo(OLD_UPLOADS_KEY);
+            verifyNoInteractions(publisher);
+            verify(userMapper, never()).updateUser(any(), any());
         }
     }
 }

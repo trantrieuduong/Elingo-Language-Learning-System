@@ -1,4 +1,4 @@
-package com.elingo.file.service;
+package com.elingo.file.service.impl;
 
 import com.elingo.common.enums.MediaKind;
 import com.elingo.common.exception.AppError;
@@ -198,13 +198,13 @@ public class R2ServiceImpl implements R2Service, InitializingBean {
         requireOwnedStagingKey(stagingKey, userId);
 
         // 2. Loại file khai và kích thước thật phải hợp lệ
-        String declaredType = FileSignatureVerifier.normalizeDeclaredType(request.fileType());
+        String declaredType;
         HeadObjectResponse head = readMetadata(stagingKey)
                 .orElseThrow(() -> new AppException(AppError.FILE_NOT_FOUND));
         long actualSize = Objects.requireNonNullElse(head.contentLength(), 0L);
 
         try {
-            validateRequest(declaredType, actualSize);
+            declaredType = validateRequest(request.fileType(), actualSize);
         } catch (AppException e) {
             deleteFile(stagingKey);
             throw e;
@@ -283,10 +283,6 @@ public class R2ServiceImpl implements R2Service, InitializingBean {
 
         if (deleteFile(verifiedKey)) {
             log.info("File promoted verifiedKey={} uploadsKey={}", verifiedKey, uploadsKey);
-        } else {
-            // Bản trong uploads/ đã có rồi; bản verified/ sẽ tự xóa.
-            log.warn("Verified copy kept, it will expire on its own verifiedKey={} uploadsKey={}",
-                    verifiedKey, uploadsKey);
         }
     }
 
@@ -356,7 +352,10 @@ public class R2ServiceImpl implements R2Service, InitializingBean {
      * toàn bộ cơ chế chống IDOR của module — không cần tra CSDL, userId lấy từ token.
      */
     private void requireOwnedStagingKey(String key, Long userId) {
-        if (!FileKey.isOwnedBy(key, FileKey.STAGING_PREFIX, userId)) {
+        if (!FileKey.isInZone(key, FileKey.STAGING_PREFIX)) {
+            throw new AppException(AppError.INVALID_REQUEST);
+        }
+        if (!FileKey.isOwnedBy(key, userId)) {
             throw new AppException(AppError.FILE_ACCESS_DENIED);
         }
     }
@@ -367,7 +366,7 @@ public class R2ServiceImpl implements R2Service, InitializingBean {
      *                      vượt trần của nhóm
      */
     private String validateRequest(String fileType, long fileSize) {
-        String declaredType = FileSignatureVerifier.normalizeDeclaredType(fileType);
+        String declaredType = MediaKind.normalizeMimeType(fileType);
 
         MediaKind mediaKind = MediaKind.fromMimeType(declaredType);
         if (mediaKind == null || !mediaKind.supports(declaredType)) {

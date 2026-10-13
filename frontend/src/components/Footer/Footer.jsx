@@ -27,7 +27,7 @@ function Footer({ onNavigate }) {
             <span className="footer__nav-heading text-label-md">{t('footer.learningGroup')}</span>
             <a href="/learning" className="footer__nav-link" onClick={(e) => { e.preventDefault(); handleNav('/learning') }}>{t('footer.lessons')}</a>
             <a href="/flashcard" className="footer__nav-link" onClick={(e) => { e.preventDefault(); handleNav('/flashcard') }}>Flashcard</a>
-            <a href="/vocabulary" className="footer__nav-link" onClick={(e) => { e.preventDefault(); handleNav('/vocabulary') }}>{t('footer.vocabulary')}</a>
+            <a href="/decks" className="footer__nav-link" onClick={(e) => { e.preventDefault(); handleNav('/decks') }}>{t('footer.vocabulary')}</a>
           </div>
 
           <div className="footer__nav-group">
