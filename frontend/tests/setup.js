@@ -1,7 +1,25 @@
 import '@testing-library/jest-dom'
 import { cleanup } from '@testing-library/react'
-import { afterEach, beforeAll, afterAll, vi } from 'vitest'
+import { afterEach, beforeAll, afterAll, beforeEach, vi } from 'vitest'
 import { server } from './mocks/server'
+import i18n from '../src/i18n'
+
+const setupGoogleMock = () => {
+  global.window.google = {
+    accounts: {
+      id: {
+        initialize: vi.fn(),
+        renderButton: vi.fn(),
+        prompt: vi.fn(),
+      },
+    },
+  }
+}
+
+beforeEach(async () => {
+  setupGoogleMock()
+  await i18n.changeLanguage('vi')
+})
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'warn' }))
 
@@ -11,6 +29,8 @@ afterEach(() => {
   localStorage.clear()
   sessionStorage.clear()
   vi.clearAllMocks()
+  document.getElementById('google-gsi-script')?.remove()
+  setupGoogleMock()
 })
 
 afterAll(() => server.close())
@@ -42,14 +62,4 @@ global.ResizeObserver = class ResizeObserver {
   disconnect() {}
   observe() {}
   unobserve() {}
-}
-
-global.window.google = {
-  accounts: {
-    id: {
-      initialize: vi.fn(),
-      renderButton: vi.fn(),
-      prompt: vi.fn(),
-    },
-  },
 }

@@ -36,8 +36,13 @@ export default defineConfig({
       exclude: [
         'node_modules/',
         'tests/',
+        'tests/mocks/',
+        'tests/utils/',
         '**/*.config.js',
         '**/*.config.jsx',
+        '**/*.css',
+        '**/*.json',
+        'src/i18n.js',
       ],
 
       thresholds: {

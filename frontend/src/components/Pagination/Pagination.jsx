@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import './Pagination.css'
 
 /**
@@ -10,6 +11,8 @@ import './Pagination.css'
  * @param {Function} onPageChange - Callback (page: number) => void
  */
 function Pagination({ currentPage, totalPages, onPageChange }) {
+  const { t } = useTranslation()
+
   // Không render nếu chỉ có 1 trang
   if (!totalPages || totalPages <= 1) return null
 
@@ -43,14 +46,14 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
   }
 
   return (
-    <nav className="pagination" aria-label="Phân trang">
+    <nav className="pagination" aria-label={t('pagination.goTo')}>
       {/* Nút Previous */}
       <button
         type="button"
         className="pagination__btn btn-icon"
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage <= 1}
-        aria-label="Trang trước"
+        aria-label={t('pagination.prev')}
       >
         <span className="material-symbols-outlined">chevron_left</span>
       </button>
@@ -68,7 +71,7 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
               type="button"
               className={`pagination__page ${page === currentPage ? 'pagination__page--active' : ''}`}
               onClick={() => onPageChange(page)}
-              aria-label={`Trang ${page}`}
+              aria-label={t('pagination.page', { page })}
               aria-current={page === currentPage ? 'page' : undefined}
             >
               {page}
@@ -83,7 +86,7 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
         className="pagination__btn btn-icon"
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage >= totalPages}
-        aria-label="Trang tiếp"
+        aria-label={t('pagination.next')}
       >
         <span className="material-symbols-outlined">chevron_right</span>
       </button>
@@ -96,9 +99,9 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
             className="pagination__jump-input"
             min={1}
             max={totalPages}
-            placeholder="Đi đến"
+            placeholder={t('pagination.goTo')}
             onKeyDown={handleJump}
-            aria-label="Nhảy đến trang"
+            aria-label={t('pagination.goTo')}
           />
         </div>
       )}

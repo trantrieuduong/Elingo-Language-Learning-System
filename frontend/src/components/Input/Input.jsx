@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import './Input.css'
 
 /**
@@ -31,6 +32,7 @@ function Input({
   className = '',
   ...props
 }) {
+  const { t } = useTranslation()
   const [showPassword, setShowPassword] = useState(false)
 
   const isPassword = type === 'password'
@@ -65,7 +67,7 @@ function Input({
             type="button"
             className="input-toggle-password"
             onClick={() => setShowPassword((prev) => !prev)}
-            aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+            aria-label={showPassword ? t('hidePassword') : t('showPassword')}
             tabIndex={-1}
           >
             <span className="material-symbols-outlined">

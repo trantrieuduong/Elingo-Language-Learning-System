@@ -1,0 +1,181 @@
+{
+  "hero": {
+    "eyebrow": "Learn English every day",
+    "title": "Learn English naturally, retain deeply & speak confidently with <brand>ELINGO</brand>",
+    "description": "A platform combining scientific Spaced Repetition, Shadowing practice, and a lively 1vs1 vocabulary arena.",
+    "cta": "Start learning",
+    "ctaSecondary": "Explore features",
+    "stats": {
+      "learners": "Active learners",
+      "rating": "Satisfaction rating",
+      "reflex": "Faster reflex in 30 days"
+    },
+    "preview": {
+      "chip": "Today's lesson",
+      "saveLesson": "Save lesson",
+      "wordDesc": "Able to recover quickly from difficulties; tough and adaptable.",
+      "listenBtn": "Listen",
+      "exampleBtn": "Example sentence",
+      "streakLabel": "Study streak",
+      "streakVal": "14 days",
+      "vocabLabel": "Words learned",
+      "vocabVal": "320 words",
+      "arenaLabel": "Arena 1vs1",
+      "arenaVal": "Top 5%"
+    }
+  },
+  "modes": {
+    "vocabulary": "Vocabulary",
+    "dictation": "Dictation",
+    "shadowing": "Shadowing",
+    "ariaLabel": "Learning mode"
+  },
+  "overview": {
+    "badge": "About ELINGO",
+    "title": "Everything you need to master English",
+    "description": "ELINGO accompanies you throughout your learning journey: vocabulary, listening practice, and pronunciation improvement.",
+    "items": {
+      "vocabulary": { "title": "Vocabulary vault", "description": "Smart flashcards with personalised review schedules." },
+      "dictation": { "title": "Dictation", "description": "Context-based listening exercises from everyday life." },
+      "shadowing": { "title": "Shadowing AI", "description": "Syllable-level pronunciation feedback." },
+      "arena": { "title": "Arena 1vs1", "description": "Real-time vocabulary battle arena." },
+      "community": { "title": "Community", "description": "Learn together, share, and stay motivated." }
+    }
+  },
+  "features": {
+    "badge": "Methodology advantage",
+    "title": "Core features designed for lasting progress",
+    "description": "Each tool is fine-tuned to overcome speaking fear, fast forgetting, and lack of persistence.",
+    "items": {
+      "vocabulary": {
+        "title": "Vocabulary Spaced Repetition",
+        "description": "Smart flashcards with IPA, illustrations, and spaced repetition algorithm for long-term retention.",
+        "action": "Learn the algorithm"
+      },
+      "dictation": {
+        "title": "Dictation Listening Practice",
+        "description": "Practise listening through dictation exercises from real-life dialogues, short news, and documentaries at adjustable speed.",
+        "action": "Explore audio library"
+      },
+      "shadowing": {
+        "title": "Shadowing & AI Pronunciation",
+        "description": "Speak like a native speaker, analyse intonation, and detect vowel/consonant pronunciation errors.",
+        "action": "Try speaking"
+      },
+      "arena": {
+        "title": "Vocabulary Arena 1vs1",
+        "description": "Real-time vocabulary battles to climb the weekly leaderboard.",
+        "action": "Enter arena"
+      },
+      "community": {
+        "title": "Interactive Learning Community",
+        "description": "A space to exchange real learning tips, get grammar help, and find daily reflex-training partners.",
+        "action": "Join discussion"
+      },
+      "premium": {
+        "title": "Roadmap & In-depth Analytics",
+        "description": "Unlock unlimited resources.",
+        "action": "View Pro benefits"
+      }
+    }
+  },
+  "learning": {
+    "badge": "Intuitive experience",
+    "title": "4-step streamlined learning path",
+    "description": "Learn → Practise → Review → Progress: A simple roadmap to build consistent study habits and improve every day.",
+    "steps": {
+      "flashcard": {
+        "step": "Step 1: Learn",
+        "title": "Learn via Flashcards",
+        "description": "Learn vocabulary and grammar more easily with clear definitions and correct pronunciation.",
+        "listenBtn": "Listen to pronunciation"
+      },
+      "dictation": {
+        "step": "Step 2: Practise",
+        "title": "Listen & Dictate",
+        "description": "Train listening through real-life scenarios, helping you hear and understand English better.",
+        "playBtn": "Play example sentence (1.0x)"
+      },
+      "review": {
+        "step": "Step 3: Review",
+        "title": "Spaced Repetition",
+        "description": "Review at the right time to retain vocabulary much longer.",
+        "memoryLabel": "Memory retention",
+        "reminderLabel": "Review in 3 days"
+      },
+      "progress": {
+        "step": "Step 4: Progress",
+        "title": "Track Results",
+        "description": "Monitor your progress and see improvement day by day.",
+        "monthGoal": "Monthly goal achieved"
+      }
+    }
+  },
+  "community": {
+    "badge": "Arena & Community",
+    "title": "Learn together — Connect & Compete",
+    "description": "Battle thousands of same-level learners in 1vs1 and lively group discussions.",
+    "arena": {
+      "chip": "ARENA 1VS1",
+      "title": "Vocabulary Arena 1vs1",
+      "description": "Challenge your vocabulary reflexes head-to-head with a thrilling countdown.",
+      "question": "Synonym for \"Persistent\"?",
+      "avgTime": "Avg. response time: 3.2s • Win +30 XP"
+    },
+    "feed": {
+      "chip": "LEARNER COMMUNITY",
+      "online": "1.4k members online",
+      "title": "Share & Discuss",
+      "description": "Exchange real experiences, get grammar help, and find speaking partners.",
+      "comments": "comments",
+      "post1": {
+        "time": "15 min ago • #IELTS_Shadowing",
+        "text": "Finished 15 Dictation exercises on Environment today. Anyone want to do paired Shadowing tonight at 8 PM?"
+      },
+      "post2": {
+        "time": "1 hour ago • #Vocabulary_Tips",
+        "text": "Tip for long-term retention: combine Spaced Repetition + write your own example sentences from daily life. Learned 180 words naturally in 2 weeks!"
+      }
+    }
+  },
+  "pricing": {
+    "badge": "Transparent pricing",
+    "title": "Choose the plan that fits your goal",
+    "description": "Start free or upgrade to access all premium features without limits.",
+    "popularFree": "Free",
+    "popularPro": "Most popular",
+    "basic": {
+      "name": "Basic Plan",
+      "price": "Free",
+      "period": "/ Forever",
+      "description": "Perfect for beginners getting started with natural reflex learning.",
+      "btn": "Use for free",
+      "features": [
+        "Basic vocabulary vault",
+        "Basic Dictation exercises",
+        "3 Arena 1vs1 battles per day",
+        "Community discussion access"
+      ]
+    },
+    "pro": {
+      "name": "ELINGO Pro Plan",
+      "price": "$3.99",
+      "period": "/ month",
+      "description": "Or save more at $34.99 / year (only ~$2.92 / month).",
+      "btn": "Upgrade to Premium",
+      "features": [
+        "Unlimited vocabulary sets",
+        "Full advanced Dictation library",
+        "Unlimited Arena 1vs1 battles"
+      ]
+    }
+  },
+  "cta": {
+    "title": "Ready to start your English learning journey?",
+    "description": "Learn a little every day and progress step by step with ELINGO's methodology.",
+    "btn": "Start learning for free",
+    "benefit1": "Free to experience",
+    "benefit2": "No credit card required",
+    "benefit3": "Cancel anytime"
+  }
+}

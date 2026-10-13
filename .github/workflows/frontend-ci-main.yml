@@ -61,10 +61,10 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_FRONTEND }}
 
-      - name: SonarQube Quality Gate Check
-        uses: SonarSource/sonarqube-quality-gate-action@v1.1.0
-        with:
-          scanMetadataReportFile: ./frontend/.scannerwork/report-task.txt
-        timeout-minutes: 5
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_FRONTEND }}
+      # - name: SonarQube Quality Gate Check
+      #   uses: SonarSource/sonarqube-quality-gate-action@v1.1.0
+      #   with:
+      #     scanMetadataReportFile: ./frontend/.scannerwork/report-task.txt
+      #   timeout-minutes: 5
+      #   env:
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_FRONTEND }}

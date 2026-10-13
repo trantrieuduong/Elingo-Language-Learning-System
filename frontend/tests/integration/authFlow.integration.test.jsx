@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { AuthProvider } from '@/context/AuthContext'
 import LoginPage from '@/modules/auth/pages/LoginPage'
+import { tr, trRx } from '../utils/i18n'
 
 describe('Auth flow (integration)', () => {
   it('should complete full login flow and persist token', async () => {
@@ -13,9 +14,9 @@ describe('Auth flow (integration)', () => {
       </AuthProvider>
     )
 
-    await user.type(screen.getByLabelText(/email hoặc username/i), 'testuser')
-    await user.type(screen.getByLabelText(/^mật khẩu$/i), 'Password123@')
-    await user.click(screen.getByRole('button', { name: /đăng nhập/i }))
+    await user.type(screen.getByLabelText(tr('auth:usernameLabel')), 'testuser')
+    await user.type(screen.getByLabelText(tr('auth:passwordLabel')), 'Password123@')
+    await user.click(screen.getByRole('button', { name: trRx('auth:submit') }))
 
     await waitFor(() => {
       expect(localStorage.getItem('accessToken')).toBe('mock-access-token-12345')

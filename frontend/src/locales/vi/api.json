@@ -1,0 +1,62 @@
+{
+  "common": {
+    "UNKNOWN_ERROR": "Đã xảy ra lỗi không xác định. Vui lòng thử lại sau.",
+    "fallback": "Đã có lỗi xảy ra. Vui lòng thử lại."
+  },
+  "error": {
+    "INVALID_CREDENTIALS": "Email/Username hoặc mật khẩu không chính xác.",
+    "AUTH_UNAUTHORIZED": "Bạn cần đăng nhập để thực hiện chức năng này.",
+    "ACCOUNT_NOT_VERIFIED": "Tài khoản chưa được xác thực email.",
+    "USER_NOT_VERIFIED": "Email chưa được xác thực.",
+    "EMAIL_NOT_EXISTED": "Email không tồn tại.",
+    "USER_NOT_FOUND": "Tài khoản hoặc thông tin không tồn tại.",
+    "USERNAME_EXISTED": "Username đã tồn tại.",
+    "EMAIL_EXISTED": "Email đã tồn tại.",
+    "OTP_INVALID": "Mã OTP không chính xác hoặc đã hết hạn.",
+    "TOO_MANY_REQUESTS": "Quá nhiều yêu cầu, vui lòng thử lại sau.",
+    "RATE_LIMIT_EXCEEDED": "Quá nhiều yêu cầu, vui lòng thử lại sau.",
+    "EMAIL_SEND_FAILED": "Gửi email thất bại. Vui lòng thử lại sau.",
+    "UNAUTHENTICATED": "Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.",
+    "UNAUTHORIZED": "Bạn không có quyền thực hiện thao tác này.",
+    "USER_INACTIVE": "Tài khoản hiện đang bị vô hiệu hóa.",
+    "USER_BANNED": "Tài khoản đã bị khóa.",
+    "REFRESH_TOKEN_INVALID": "Phiên đăng nhập hết hạn, vui lòng đăng nhập lại.",
+    "PASSWORD_INCORRECT": "Mật khẩu không chính xác.",
+    "OLD_PASSWORD_INCORRECT": "Mật khẩu cũ không chính xác.",
+    "NEW_PASSWORD_SAME_AS_OLD": "Mật khẩu mới không được trùng với mật khẩu cũ.",
+    "GOOGLE_TOKEN_INVALID": "Thông tin xác thực Google không hợp lệ hoặc đã hết hạn.",
+    "GOOGLE_TOKEN_VERIFICATION_FAILED": "Không thể xác thực tài khoản Google. Vui lòng thử lại.",
+    "USERNAME_COOLDOWN": "Bạn có thể đổi tên người dùng sau {{days}} ngày nữa.",
+    "INTERNAL_SERVER_ERROR": "Lỗi hệ thống. Vui lòng thử lại sau.",
+    "UNCATEGORIZED_EXCEPTION": "Lỗi không xác định. Vui lòng thử lại."
+  },
+  "validation": {
+    "username": {
+      "REQUIRED": "Username là bắt buộc.",
+      "INVALID_FORMAT": "Username gồm 3-15 chữ cái hoặc chữ số, không có khoảng trắng hay ký tự đặc biệt."
+    },
+    "email": {
+      "REQUIRED": "Email là bắt buộc.",
+      "INVALID_FORMAT": "Email không đúng định dạng."
+    },
+    "password": {
+      "REQUIRED": "Mật khẩu là bắt buộc.",
+      "MIN_LENGTH": "Mật khẩu phải có ít nhất {{min}} ký tự.",
+      "INVALID_FORMAT": "Mật khẩu phải có ít nhất 8 ký tự và bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt."
+    },
+    "otp": {
+      "REQUIRED": "Mã OTP là bắt buộc."
+    }
+  },
+  "success": {
+    "LOGIN_SUCCESS": "Đăng nhập thành công!",
+    "SIGNUP_SUCCESS": "Tạo tài khoản thành công! Vui lòng kiểm tra email để xác thực.",
+    "PROFILE_UPDATED": "Cập nhật thông tin thành công.",
+    "PASSWORD_RESET": "Đặt lại mật khẩu thành công.",
+    "OTP_SENT": "Đã gửi mã OTP thành công. Vui lòng kiểm tra email của bạn.",
+    "ACCOUNT_VERIFIED": "Tài khoản đã được xác thực thành công. Bạn có thể đăng nhập ngay.",
+    "OTP_RESENT": "Mã xác thực mới đã được gửi đến email của bạn.",
+    "LOGOUT_SUCCESS": "Đăng xuất thành công.",
+    "REFRESH_TOKEN_SUCCESS": "Làm mới phiên làm việc thành công."
+  }
+}

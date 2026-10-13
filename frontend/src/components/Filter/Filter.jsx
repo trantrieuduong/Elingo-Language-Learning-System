@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import './Filter.css'
 
 /**
@@ -19,19 +20,21 @@ function Filter({
   onCefrChange,
   onTagChange,
 }) {
+  const { t } = useTranslation()
+
   return (
     <div className="filter-bar">
       {/* CEFR Level filter */}
       {cefrLevels.length > 0 && (
         <div className="filter-group">
-          <span className="filter-group__label text-label-md">Cấp độ</span>
+          <span className="filter-group__label text-label-md">{t('filter.level')}</span>
           <div className="filter-group__pills">
             <button
               type="button"
               className={`filter-pill ${!selectedCefrLevelId ? 'filter-pill--active' : ''}`}
               onClick={() => onCefrChange(null)}
             >
-              Tất cả
+              {t('all')}
             </button>
             {cefrLevels.map((level) => (
               <button
@@ -50,14 +53,14 @@ function Filter({
       {/* Tag / Topic filter */}
       {tags.length > 0 && (
         <div className="filter-group">
-          <span className="filter-group__label text-label-md">Chủ đề</span>
+          <span className="filter-group__label text-label-md">{t('filter.topic')}</span>
           <div className="filter-group__pills">
             <button
               type="button"
               className={`filter-pill ${!selectedTagId ? 'filter-pill--active' : ''}`}
               onClick={() => onTagChange(null)}
             >
-              Tất cả
+              {t('all')}
             </button>
             {tags.map((tag) => (
               <button
