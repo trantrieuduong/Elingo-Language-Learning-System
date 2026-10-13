@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { http, HttpResponse } from 'msw'
 import { server } from '../../mocks/server'
 import apiClient from '@/services/apiClient'
+import { LANGS, tr, useLang } from '../../utils/i18n'
 
 describe('apiClient', () => {
   beforeEach(() => {
@@ -134,28 +135,58 @@ describe('apiClient', () => {
     apiClient.interceptors.request.eject(errorInterceptor)
   })
 
-  it('should map API response errors with validation array and code translation via mapApiResponse', async () => {
-    server.use(
-      http.post('*/test-error-map', () => {
-        return HttpResponse.json(
-          {
-            code: 'INVALID_CREDENTIALS',
-            errors: [
-              { code: 'REQUIRED', field: 'email' },
-              { code: 'USER_NOT_FOUND' },
-            ],
-          },
-          { status: 400 }
-        )
-      })
-    )
-
-    try {
-      await apiClient.post('/test-error-map')
-    } catch (err) {
-      expect(err.response.data.message).toBeDefined()
-      expect(err.response.data.errors).toHaveLength(2)
+  describe.each(LANGS)('error message translation [%s]', (lng) => {
+    const failWith = async (body, status = 400) => {
+      server.use(http.get('*/test-i18n-error', () => HttpResponse.json(body, { status })))
+      try {
+        await apiClient.get('/test-i18n-error')
+      } catch (err) {
+        return err.response.data
+      }
+      throw new Error('request should have failed')
     }
+
+    beforeEach(() => useLang(lng))
+
+    it('translates root-level error code', async () => {
+      const data = await failWith({ code: 'INVALID_CREDENTIALS', message: 'raw backend text' })
+      expect(data.message).toBe(tr('api:error.INVALID_CREDENTIALS'))
+    })
+
+    it('translates each item of errors[]: field validation and business error', async () => {
+      const data = await failWith({
+        code: 'INVALID_CREDENTIALS',
+        errors: [
+          { code: 'REQUIRED', field: 'email' },
+          { code: 'USER_NOT_FOUND' },
+        ],
+      })
+      expect(data.errors).toHaveLength(2)
+      expect(data.errors[0].message).toBe(tr('api:validation.email.REQUIRED'))
+      expect(data.errors[1].message).toBe(tr('api:error.USER_NOT_FOUND'))
+    })
+
+    it('interpolates params into translated messages', async () => {
+      const data = await failWith({
+        errors: [
+          { field: 'password', code: 'MIN_LENGTH', params: { min: 8 } },
+          { code: 'USERNAME_COOLDOWN', params: { days: 5 } },
+        ],
+        params: { days: 5 },
+      })
+      expect(data.errors[0].message).toBe(tr('api:validation.password.MIN_LENGTH', { min: 8 }))
+      expect(data.errors[1].message).toBe(tr('api:error.USERNAME_COOLDOWN', { days: 5 }))
+    })
+
+    it('keeps backend message when code has no translation', async () => {
+      const data = await failWith({ code: 'SOME_NEW_CODE', message: 'raw backend text' })
+      expect(data.message).toBe('raw backend text')
+    })
+
+    it('falls back to UNKNOWN_ERROR when there is neither code nor message', async () => {
+      const data = await failWith({})
+      expect(data.message).toBe(tr('api:common.UNKNOWN_ERROR'))
+    })
   })
 
   it('should fallback to UNKNOWN_ERROR when error response is HTML or unknown format', async () => {

@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import AccountVerificationPage from '@/modules/auth/pages/AccountVerificationPage'
 import { useAuth } from '@/context/AuthContext'
 import { MOCK_AUTH_CONTEXT_DEFAULT } from '../../../utils/mockData'
+import { LANGS, tr, trRx, useLang } from '../../../utils/i18n'
 
 vi.mock('@/context/AuthContext')
 
@@ -20,38 +21,44 @@ describe('AccountVerificationPage', () => {
     })
   })
 
-  describe('Rendering', () => {
+  describe.each(LANGS)('Rendering [%s]', (lng) => {
+    beforeEach(() => useLang(lng))
+
     it('should render OTP input and buttons', () => {
       render(<AccountVerificationPage email="test@example.com" onNavigate={mockNavigate} />)
 
-      expect(screen.getByLabelText(/mã xác thực/i)).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: /xác thực tài khoản/i })).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: /gửi lại mã xác thực/i })).toBeInTheDocument()
+      expect(screen.getByLabelText(tr('auth:otpLabel'))).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: trRx('auth:submitVerify') })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: trRx('auth:resendCode') })).toBeInTheDocument()
     })
   })
 
-  describe('Form submission', () => {
+  describe.each(LANGS)('Form validation [%s]', (lng) => {
+    beforeEach(() => useLang(lng))
+
     it('should show error if OTP is empty', async () => {
       const user = userEvent.setup()
       render(<AccountVerificationPage email="test@example.com" onNavigate={mockNavigate} />)
 
-      await user.click(screen.getByRole('button', { name: /xác thực tài khoản/i }))
-      expect(screen.getByText(/mã otp là bắt buộc/i)).toBeInTheDocument()
+      await user.click(screen.getByRole('button', { name: trRx('auth:submitVerify') }))
+      expect(screen.getByText(tr('auth:otpRequired'))).toBeInTheDocument()
     })
+  })
 
+  describe('Form submission', () => {
     it('should submit OTP successfully and redirect to login', async () => {
       vi.useFakeTimers({ shouldAdvanceTime: true })
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
 
-      mockVerifyAccount.mockResolvedValue({ success: true, message: 'Tài khoản đã được xác thực thành công. Bạn có thể đăng nhập ngay.' })
+      mockVerifyAccount.mockResolvedValue({ success: true, message: 'Account verified successfully' })
       render(<AccountVerificationPage email="test@example.com" onNavigate={mockNavigate} />)
 
-      await user.type(screen.getByLabelText(/mã xác thực/i), '123456')
-      await user.click(screen.getByRole('button', { name: /xác thực tài khoản/i }))
+      await user.type(screen.getByLabelText(tr('auth:otpLabel')), '123456')
+      await user.click(screen.getByRole('button', { name: trRx('auth:submitVerify') }))
 
       await waitFor(() => {
         expect(mockVerifyAccount).toHaveBeenCalledWith('test@example.com', '123456')
-        expect(screen.getByText(/tài khoản đã được xác thực/i)).toBeInTheDocument()
+        expect(screen.getByText('Account verified successfully')).toBeInTheDocument()
       })
 
       vi.advanceTimersByTime(1000)
@@ -62,57 +69,57 @@ describe('AccountVerificationPage', () => {
 
     it('should show error message when OTP is invalid', async () => {
       const user = userEvent.setup()
-      mockVerifyAccount.mockResolvedValue({ success: false, message: 'Mã OTP không đúng' })
+      mockVerifyAccount.mockResolvedValue({ success: false, message: 'Invalid OTP' })
       render(<AccountVerificationPage email="test@example.com" onNavigate={mockNavigate} />)
 
-      await user.type(screen.getByLabelText(/mã xác thực/i), '000000')
-      await user.click(screen.getByRole('button', { name: /xác thực tài khoản/i }))
+      await user.type(screen.getByLabelText(tr('auth:otpLabel')), '000000')
+      await user.click(screen.getByRole('button', { name: trRx('auth:submitVerify') }))
 
       await waitFor(() => {
-        expect(screen.getByText(/mã otp không đúng/i)).toBeInTheDocument()
+        expect(screen.getByText('Invalid OTP')).toBeInTheDocument()
       })
     })
 
     it('should disable submit button if initialEmail is missing', () => {
       render(<AccountVerificationPage email="" onNavigate={mockNavigate} />)
-      expect(screen.getByRole('button', { name: /xác thực tài khoản/i })).toBeDisabled()
+      expect(screen.getByRole('button', { name: trRx('auth:submitVerify') })).toBeDisabled()
     })
 
     it('should show general error when OTP verify fails with non-OTP_INVALID code', async () => {
       const user = userEvent.setup()
-      mockVerifyAccount.mockResolvedValue({ success: false, code: 'SERVER_ERROR', message: 'Lỗi máy chủ' })
+      mockVerifyAccount.mockResolvedValue({ success: false, code: 'SERVER_ERROR', message: 'Server error' })
       render(<AccountVerificationPage email="test@example.com" onNavigate={mockNavigate} />)
 
-      await user.type(screen.getByLabelText(/mã xác thực/i), '123456')
-      await user.click(screen.getByRole('button', { name: /xác thực tài khoản/i }))
+      await user.type(screen.getByLabelText(tr('auth:otpLabel')), '123456')
+      await user.click(screen.getByRole('button', { name: trRx('auth:submitVerify') }))
 
       await waitFor(() => {
-        expect(screen.getByText(/lỗi máy chủ/i)).toBeInTheDocument()
+        expect(screen.getByText('Server error')).toBeInTheDocument()
       })
     })
 
     it('should call resendVerificationOtp successfully', async () => {
       const user = userEvent.setup()
-      mockResendVerificationOtp.mockResolvedValue({ success: true, message: 'Mã xác thực mới đã được gửi đến email của bạn.' })
+      mockResendVerificationOtp.mockResolvedValue({ success: true, message: 'OTP resent successfully' })
       render(<AccountVerificationPage email="test@example.com" onNavigate={mockNavigate} />)
 
-      await user.click(screen.getByRole('button', { name: /gửi lại mã xác thực/i }))
+      await user.click(screen.getByRole('button', { name: trRx('auth:resendCode') }))
 
       await waitFor(() => {
         expect(mockResendVerificationOtp).toHaveBeenCalledWith('test@example.com')
-        expect(screen.getByText(/mã xác thực mới đã được gửi/i)).toBeInTheDocument()
+        expect(screen.getByText('OTP resent successfully')).toBeInTheDocument()
       })
     })
 
     it('should show error when resend OTP fails', async () => {
       const user = userEvent.setup()
-      mockResendVerificationOtp.mockResolvedValue({ success: false, message: 'Gửi thất bại' })
+      mockResendVerificationOtp.mockResolvedValue({ success: false, message: 'Resend failed' })
       render(<AccountVerificationPage email="test@example.com" onNavigate={mockNavigate} />)
 
-      await user.click(screen.getByRole('button', { name: /gửi lại mã xác thực/i }))
+      await user.click(screen.getByRole('button', { name: trRx('auth:resendCode') }))
 
       await waitFor(() => {
-        expect(screen.getByText(/gửi thất bại/i)).toBeInTheDocument()
+        expect(screen.getByText('Resend failed')).toBeInTheDocument()
       })
     })
   })

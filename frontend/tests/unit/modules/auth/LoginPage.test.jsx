@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import LoginPage from '@/modules/auth/pages/LoginPage'
 import { useAuth } from '@/context/AuthContext'
 import { MOCK_AUTH_CONTEXT_DEFAULT } from '../../../utils/mockData'
+import { LANGS, tr, trRx, useLang } from '../../../utils/i18n'
 
 vi.mock('@/context/AuthContext')
 
@@ -20,25 +21,29 @@ describe('LoginPage', () => {
     })
   })
 
-  describe('Rendering', () => {
+  describe.each(LANGS)('Rendering [%s]', (lng) => {
+    beforeEach(() => useLang(lng))
+
     it('should render login form with username and password fields', () => {
       render(<LoginPage onNavigate={mockNavigate} />)
 
-      expect(screen.getByLabelText(/email hoặc username/i)).toBeInTheDocument()
-      expect(screen.getByLabelText(/^mật khẩu$/i)).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: /đăng nhập/i })).toBeInTheDocument()
+      expect(screen.getByLabelText(tr('auth:usernameLabel'))).toBeInTheDocument()
+      expect(screen.getByLabelText(tr('auth:passwordLabel'))).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: trRx('auth:submit') })).toBeInTheDocument()
     })
   })
 
-  describe('Form validation', () => {
+  describe.each(LANGS)('Form validation [%s]', (lng) => {
+    beforeEach(() => useLang(lng))
+
     it('should show error when username or password is empty', async () => {
       const user = userEvent.setup()
       render(<LoginPage onNavigate={mockNavigate} />)
 
-      await user.click(screen.getByRole('button', { name: /đăng nhập/i }))
+      await user.click(screen.getByRole('button', { name: trRx('auth:submit') }))
 
-      expect(screen.getByText(/email hoặc username là bắt buộc/i)).toBeInTheDocument()
-      expect(screen.getByText(/mật khẩu là bắt buộc/i)).toBeInTheDocument()
+      expect(screen.getByText(tr('auth:usernameRequired'))).toBeInTheDocument()
+      expect(screen.getByText(tr('auth:passwordRequired'))).toBeInTheDocument()
     })
   })
 
@@ -48,9 +53,9 @@ describe('LoginPage', () => {
       mockLogin.mockResolvedValue({ success: true, user: { role: 'USER' } })
       render(<LoginPage onNavigate={mockNavigate} />)
 
-      await user.type(screen.getByLabelText(/email hoặc username/i), 'testuser')
-      await user.type(screen.getByLabelText(/^mật khẩu$/i), 'Password123@')
-      await user.click(screen.getByRole('button', { name: /đăng nhập/i }))
+      await user.type(screen.getByLabelText(tr('auth:usernameLabel')), 'testuser')
+      await user.type(screen.getByLabelText(tr('auth:passwordLabel')), 'Password123@')
+      await user.click(screen.getByRole('button', { name: trRx('auth:submit') }))
 
       await waitFor(() => {
         expect(mockLogin).toHaveBeenCalledWith('testuser', 'Password123@')
@@ -63,9 +68,9 @@ describe('LoginPage', () => {
       mockLogin.mockResolvedValue({ success: false, notVerified: true })
       render(<LoginPage onNavigate={mockNavigate} />)
 
-      await user.type(screen.getByLabelText(/email hoặc username/i), 'unverified@example.com')
-      await user.type(screen.getByLabelText(/^mật khẩu$/i), 'Password123@')
-      await user.click(screen.getByRole('button', { name: /đăng nhập/i }))
+      await user.type(screen.getByLabelText(tr('auth:usernameLabel')), 'unverified@example.com')
+      await user.type(screen.getByLabelText(tr('auth:passwordLabel')), 'Password123@')
+      await user.click(screen.getByRole('button', { name: trRx('auth:submit') }))
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith('/account-verification', { email: 'unverified@example.com' })
@@ -74,15 +79,15 @@ describe('LoginPage', () => {
 
     it('should show error message when login fails', async () => {
       const user = userEvent.setup()
-      mockLogin.mockResolvedValue({ success: false, message: 'Sai tài khoản hoặc mật khẩu' })
+      mockLogin.mockResolvedValue({ success: false, message: 'Invalid credentials' })
       render(<LoginPage onNavigate={mockNavigate} />)
 
-      await user.type(screen.getByLabelText(/email hoặc username/i), 'testuser')
-      await user.type(screen.getByLabelText(/^mật khẩu$/i), 'wrong')
-      await user.click(screen.getByRole('button', { name: /đăng nhập/i }))
+      await user.type(screen.getByLabelText(tr('auth:usernameLabel')), 'testuser')
+      await user.type(screen.getByLabelText(tr('auth:passwordLabel')), 'wrong')
+      await user.click(screen.getByRole('button', { name: trRx('auth:submit') }))
 
       await waitFor(() => {
-        expect(screen.getByText(/sai tài khoản hoặc mật khẩu/i)).toBeInTheDocument()
+        expect(screen.getByText('Invalid credentials')).toBeInTheDocument()
       })
     })
   })
@@ -92,7 +97,7 @@ describe('LoginPage', () => {
       const user = userEvent.setup()
       render(<LoginPage onNavigate={mockNavigate} />)
 
-      await user.click(screen.getByText(/đăng ký ngay/i))
+      await user.click(screen.getByText(tr('auth:signupNow')))
       expect(mockNavigate).toHaveBeenCalledWith('/signup')
     })
 
@@ -101,9 +106,9 @@ describe('LoginPage', () => {
       mockLogin.mockResolvedValue({ success: true, user: { role: 'ADMIN' } })
       render(<LoginPage onNavigate={mockNavigate} />)
 
-      await user.type(screen.getByLabelText(/email hoặc username/i), 'adminuser')
-      await user.type(screen.getByLabelText(/^mật khẩu$/i), 'Admin123@')
-      await user.click(screen.getByRole('button', { name: /đăng nhập/i }))
+      await user.type(screen.getByLabelText(tr('auth:usernameLabel')), 'adminuser')
+      await user.type(screen.getByLabelText(tr('auth:passwordLabel')), 'Admin123@')
+      await user.click(screen.getByRole('button', { name: trRx('auth:submit') }))
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith('/admin')
@@ -114,7 +119,7 @@ describe('LoginPage', () => {
       const user = userEvent.setup()
       render(<LoginPage onNavigate={mockNavigate} />)
 
-      await user.click(screen.getByText(/quên mật khẩu\?/i))
+      await user.click(screen.getByText(tr('auth:forgotPassword')))
       expect(mockNavigate).toHaveBeenCalledWith('/reset-password')
     })
 
@@ -148,7 +153,7 @@ describe('LoginPage', () => {
       const callback = window.google.accounts.id.initialize.mock.calls[0]?.[0]?.callback
       if (callback) {
         await callback({})
-        expect(screen.getByText(/không nhận được thông tin đăng nhập từ google/i)).toBeInTheDocument()
+        expect(screen.getByText(tr('auth:googleCredentialError'))).toBeInTheDocument()
 
         await callback({ credential: 'admin-credential' })
         expect(mockNavigate).toHaveBeenCalledWith('/admin')
@@ -160,17 +165,17 @@ describe('LoginPage', () => {
       mockLogin.mockResolvedValueOnce({
         success: false,
         code: 'USER_NOT_FOUND',
-        message: 'Không tìm thấy người dùng',
+        message: 'User not found in system',
       })
 
       render(<LoginPage onNavigate={mockNavigate} />)
 
-      await user.type(screen.getByLabelText(/email hoặc username/i), 'notfound')
-      await user.type(screen.getByLabelText(/^mật khẩu$/i), 'Password123@')
-      await user.click(screen.getByRole('button', { name: /đăng nhập/i }))
+      await user.type(screen.getByLabelText(tr('auth:usernameLabel')), 'notfound')
+      await user.type(screen.getByLabelText(tr('auth:passwordLabel')), 'Password123@')
+      await user.click(screen.getByRole('button', { name: trRx('auth:submit') }))
 
       await waitFor(() => {
-        expect(screen.getByText(/không tìm thấy người dùng/i)).toBeInTheDocument()
+        expect(screen.getByText('User not found in system')).toBeInTheDocument()
       })
     })
 
@@ -178,33 +183,33 @@ describe('LoginPage', () => {
       const user = userEvent.setup()
       mockLogin.mockResolvedValueOnce({
         success: false,
-        errors: [{ field: 'username', message: 'Username không tồn tại' }],
+        errors: [{ field: 'username', message: 'Username does not exist' }],
       })
 
       render(<LoginPage onNavigate={mockNavigate} />)
 
-      await user.type(screen.getByLabelText(/email hoặc username/i), 'baduser')
-      await user.type(screen.getByLabelText(/^mật khẩu$/i), 'Password123@')
-      await user.click(screen.getByRole('button', { name: /đăng nhập/i }))
+      await user.type(screen.getByLabelText(tr('auth:usernameLabel')), 'baduser')
+      await user.type(screen.getByLabelText(tr('auth:passwordLabel')), 'Password123@')
+      await user.click(screen.getByRole('button', { name: trRx('auth:submit') }))
 
       await waitFor(() => {
-        expect(screen.getByText(/username không tồn tại/i)).toBeInTheDocument()
+        expect(screen.getByText('Username does not exist')).toBeInTheDocument()
       })
     })
 
     it('should clear errors when typing in username and password inputs', async () => {
       const user = userEvent.setup()
-      mockLogin.mockResolvedValue({ success: false, message: 'Lỗi chung' })
+      mockLogin.mockResolvedValue({ success: false, message: 'General error' })
       render(<LoginPage onNavigate={mockNavigate} />)
 
-      await user.click(screen.getByRole('button', { name: /đăng nhập/i }))
-      expect(screen.getByText(/email hoặc username là bắt buộc/i)).toBeInTheDocument()
+      await user.click(screen.getByRole('button', { name: trRx('auth:submit') }))
+      expect(screen.getByText(tr('auth:usernameRequired'))).toBeInTheDocument()
 
-      await user.type(screen.getByLabelText(/email hoặc username/i), 'a')
-      expect(screen.queryByText(/email hoặc username là bắt buộc/i)).not.toBeInTheDocument()
+      await user.type(screen.getByLabelText(tr('auth:usernameLabel')), 'a')
+      expect(screen.queryByText(tr('auth:usernameRequired'))).not.toBeInTheDocument()
 
-      await user.type(screen.getByLabelText(/^mật khẩu$/i), 'b')
-      expect(screen.queryByText(/mật khẩu là bắt buộc/i)).not.toBeInTheDocument()
+      await user.type(screen.getByLabelText(tr('auth:passwordLabel')), 'b')
+      expect(screen.queryByText(tr('auth:passwordRequired'))).not.toBeInTheDocument()
     })
   })
 })

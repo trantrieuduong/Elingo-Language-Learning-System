@@ -4,6 +4,8 @@
   "cancel": "Cancel",
   "confirm": "Confirm",
   "close": "Close",
+  "showPassword": "Show password",
+  "hidePassword": "Hide password",
   "delete": "Delete",
   "edit": "Edit",
   "search": "Search...",
