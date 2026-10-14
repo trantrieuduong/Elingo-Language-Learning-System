@@ -40,5 +40,13 @@ app:
       hard-interval-factor: 1.2
       easy-interval-factor: 1.3
       again-review-minutes: 10
-  battle:
-    distractor-options: 3
+  gamification:
+    rules:
+      FLASHCARD_REVIEW:   { xp: 2,  daily-limit: 100 }
+      LESSON_DICTATION:   { xp: 20, daily-limit: 10 }
+      SEGMENT_DICTATION:  { xp: 3,  daily-limit: 50 }
+      LESSON_SHADOWING:   { xp: 20, daily-limit: 10 }
+      SEGMENT_SHADOWING:  { xp: 3,  daily-limit: 50 }
+      BATTLE_WIN:         { xp: 30, daily-limit: 10 }
+      BATTLE_LOSE:        { xp: 10, daily-limit: 10 }
+      DAILY_CHECKIN:      { xp: 5,  daily-limit: 1 }
