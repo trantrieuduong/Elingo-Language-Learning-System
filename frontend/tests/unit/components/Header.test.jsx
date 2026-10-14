@@ -296,78 +296,63 @@ describe('Header', () => {
       mockAuth({ user: MOCK_USER })
     })
 
-    it('hiển thị nav chính (3 link + dropdown Học tập), chuông thông báo, user menu; ẩn login/signup', () => {
+    it('hiển thị 5 mục nav chính, chuông thông báo, user menu; ẩn login/signup', () => {
       render(<Header onNavigate={mockNavigate} currentPath="/learning" />)
 
       const nav = screen.getByRole('navigation', { name: 'Main navigation' })
-      expect(within(nav).getAllByRole('link')).toHaveLength(3)
-      expect(within(nav).getByRole('button', { name: tr('nav:learning') })).toBeInTheDocument()
+      expect(within(nav).getByRole('link', { name: tr('nav:home') })).toBeInTheDocument()
+      expect(within(nav).getByRole('button', { name: new RegExp(tr('nav:features')) })).toBeInTheDocument()
+      expect(within(nav).getByRole('button', { name: new RegExp(tr('nav:learning')) })).toBeInTheDocument()
+      expect(within(nav).getByRole('button', { name: new RegExp(tr('nav:community')) })).toBeInTheDocument()
+      expect(within(nav).getByRole('button', { name: new RegExp(tr('nav:pricing')) })).toBeInTheDocument()
       expect(screen.getByRole('button', { name: tr('nav:notifications') })).toBeInTheDocument()
       expect(screen.getByRole('button', { name: tr('nav:userMenu') })).toBeInTheDocument()
       expect(screen.queryByRole('button', { name: tr('nav:login') })).not.toBeInTheDocument()
       expect(screen.queryByRole('button', { name: tr('nav:signup') })).not.toBeInTheDocument()
     })
 
-    it('click nav link gọi onNavigate với path tương ứng', async () => {
+    it('hover hoặc click dropdown nav item mở menu và click sub-item gọi onNavigate với path tương ứng', async () => {
       const user = userEvent.setup()
-      render(<Header onNavigate={mockNavigate} currentPath="/learning" />)
+      render(<Header onNavigate={mockNavigate} currentPath="/dashboard" />)
 
       const nav = screen.getByRole('navigation', { name: 'Main navigation' })
-      await user.click(within(nav).getByRole('link', { name: tr('nav:battle') }))
+      const featuresBtn = within(nav).getByRole('button', { name: new RegExp(tr('nav:features')) })
+      const navItem = featuresBtn.closest('.header__nav-item')
+      fireEvent.mouseEnter(navItem)
 
-      expect(mockNavigate).toHaveBeenCalledWith('/battle')
+      const speakingLink = await screen.findByRole('link', { name: new RegExp(tr('nav:speakingRoom')) })
+      expect(speakingLink).toBeInTheDocument()
+      await user.click(speakingLink)
+
+      expect(mockNavigate).toHaveBeenCalledWith('/speaking')
     })
 
-    it('mở dropdown học tập khi click, click option điều hướng đúng path', async () => {
-      const user = userEvent.setup()
-      render(<Header onNavigate={mockNavigate} currentPath="/battle" />)
-
-      const nav = screen.getByRole('navigation', { name: 'Main navigation' })
-      const learningBtn = within(nav).getByRole('button', { name: tr('nav:learning') })
-
-      expect(learningBtn).toHaveAttribute('aria-expanded', 'false')
-      expect(screen.queryByRole('link', { name: tr('nav:vocabulary') })).not.toBeInTheDocument()
-      expect(screen.queryByRole('link', { name: tr('nav:lessons') })).not.toBeInTheDocument()
-
-      // Click mở dropdown
-      await user.click(learningBtn)
-      expect(learningBtn).toHaveAttribute('aria-expanded', 'true')
-      const vocabLink = screen.getByRole('link', { name: tr('nav:vocabulary') })
-      const lessonsLink = screen.getByRole('link', { name: tr('nav:lessons') })
-      expect(vocabLink).toBeInTheDocument()
-      expect(lessonsLink).toBeInTheDocument()
-
-      // Click "Từ vựng" điều hướng /decks và đóng menu
-      await user.click(vocabLink)
-      expect(mockNavigate).toHaveBeenCalledWith('/decks')
-      expect(screen.queryByRole('link', { name: tr('nav:vocabulary') })).not.toBeInTheDocument()
-
-      // Mở lại và click "Bài học"
-      await user.click(learningBtn)
-      await user.click(screen.getByRole('link', { name: tr('nav:lessons') }))
-      expect(mockNavigate).toHaveBeenCalledWith('/learning')
-    })
-
-    it('active dropdown button khớp đúng path học tập và các sub-path', () => {
+    it('active link khớp đúng path của dropdown sub-item và kích hoạt active trên parent button', () => {
       const { rerender } = render(<Header onNavigate={mockNavigate} currentPath="/learning" />)
       const nav = screen.getByRole('navigation', { name: 'Main navigation' })
       const getLearningBtn = () => within(nav).getByRole('button', { name: tr('nav:learning') })
 
-      expect(getLearningBtn()).toHaveClass(ACTIVE_NAV)
-      expect(within(nav).getByRole('link', { name: tr('nav:battle') })).not.toHaveClass(ACTIVE_NAV)
-
-      rerender(<Header onNavigate={mockNavigate} currentPath="/learning/lesson-1" />)
-      expect(getLearningBtn()).toHaveClass(ACTIVE_NAV)
+      expect(within(nav).getByRole('button', { name: new RegExp(tr('nav:learning')) })).toHaveClass(ACTIVE_NAV)
+      expect(within(nav).getByRole('button', { name: new RegExp(tr('nav:features')) })).not.toHaveClass(ACTIVE_NAV)
 
       rerender(<Header onNavigate={mockNavigate} currentPath="/decks" />)
-      expect(getLearningBtn()).toHaveClass(ACTIVE_NAV)
+      expect(within(nav).getByRole('button', { name: new RegExp(tr('nav:learning')) })).toHaveClass(ACTIVE_NAV)
 
-      rerender(<Header onNavigate={mockNavigate} currentPath="/decks/oxford-3000" />)
-      expect(getLearningBtn()).toHaveClass(ACTIVE_NAV)
+      rerender(<Header onNavigate={mockNavigate} currentPath="/dashboard" />)
+      expect(within(nav).getByRole('link', { name: tr('nav:home') })).toHaveClass(ACTIVE_NAV)
+      expect(within(nav).getByRole('button', { name: new RegExp(tr('nav:learning')) })).not.toHaveClass(ACTIVE_NAV)
 
-      // "/learning-extra" KHÔNG được coi là sub-path của "/learning"
-      rerender(<Header onNavigate={mockNavigate} currentPath="/learning-extra" />)
-      expect(getLearningBtn()).not.toHaveClass(ACTIVE_NAV)
+      // Kiểm tra route lồng nhau: /community/my-posts chỉ active mục "Bài viết của tôi", không active nhầm mục "Bảng tin" (/community)
+      rerender(<Header onNavigate={mockNavigate} currentPath="/community/my-posts" />)
+      expect(within(nav).getByRole('button', { name: new RegExp(tr('nav:community')) })).toHaveClass(ACTIVE_NAV)
+      const communityBtn = within(nav).getByRole('button', { name: new RegExp(tr('nav:community')) })
+      const communityNavItem = communityBtn.closest('.header__nav-item')
+      fireEvent.mouseEnter(communityNavItem)
+
+      const myPostsLink = screen.getByRole('link', { name: new RegExp(tr('nav:myPosts')) })
+      const feedLink = screen.getByRole('link', { name: new RegExp(tr('nav:feed')) })
+      expect(myPostsLink).toHaveClass('header__dropdown-item--active')
+      expect(feedLink).not.toHaveClass('header__dropdown-item--active')
     })
 
     it('click chuông thông báo điều hướng tới /notification', async () => {
@@ -506,23 +491,20 @@ describe('Header', () => {
         expect(screen.queryByRole('navigation', { name: 'Mobile navigation' })).not.toBeInTheDocument()
       })
 
-      it('mobile nav có các link chính và dropdown Học tập mở rộng submenu, click thì điều hướng + đóng menu', async () => {
+      it('mobile nav có các mục và nhóm dropdown, đánh dấu active và click thì điều hướng + đóng menu', async () => {
         const user = userEvent.setup()
         render(<Header onNavigate={mockNavigate} currentPath="/learning" />)
 
         await user.click(screen.getByRole('button', { name: tr('nav:openMenu') }))
         const mobileNav = screen.getByRole('navigation', { name: 'Mobile navigation' })
 
-        // Vì currentPath là /learning nên group Học tập tự mở, hiển thị 2 submenu link + 3 link chính = 5 link
-        expect(within(mobileNav).getAllByRole('link')).toHaveLength(5)
-        const learningBtn = within(mobileNav).getByRole('button', { name: tr('nav:learning') })
-        expect(learningBtn).toHaveClass('header__mobile-nav-link--active')
-        expect(within(mobileNav).getByRole('link', { name: tr('nav:lessons') })).toHaveClass('header__mobile-submenu-link--active')
-        expect(within(mobileNav).getByRole('link', { name: tr('nav:battle') })).not.toHaveClass('header__mobile-nav-link--active')
+        expect(within(mobileNav).getByRole('link', { name: tr('nav:home') })).toBeInTheDocument()
+        expect(within(mobileNav).getByRole('button', { name: new RegExp(tr('nav:learning')) })).toHaveClass('header__mobile-nav-link--active')
 
-        // Click submenu link "Từ vựng" điều hướng và đóng menu
-        await user.click(within(mobileNav).getByRole('link', { name: tr('nav:vocabulary') }))
-        expect(mockNavigate).toHaveBeenCalledWith('/decks')
+        // Click home link -> navigates to /dashboard and closes menu
+        await user.click(within(mobileNav).getByRole('link', { name: tr('nav:home') }))
+
+        expect(mockNavigate).toHaveBeenCalledWith('/dashboard')
         expect(screen.queryByRole('navigation', { name: 'Mobile navigation' })).not.toBeInTheDocument()
       })
 
