@@ -5,7 +5,7 @@ app:
 
 spring:
   datasource:
-    url: ${DEV_MYSQL_CONNECTION_URL:jdbc:mysql://localhost:3306/elingo}
+    url: ${DEV_MYSQL_CONNECTION_URL:jdbc:mysql://localhost:3306/elingo} #?connectionTimeZone=Asia/Ho_Chi_Minh&forceConnectionTimeZoneToSession=true
     username: ${DEV_MYSQL_USERNAME}
     password: ${DEV_MYSQL_PASSWORD}
   jpa:
