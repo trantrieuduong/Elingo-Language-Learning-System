@@ -15,6 +15,9 @@ import './App.css'
 
 const PUBLIC_PATHS = ['/login', '/signup', '/account-verification', '/reset-password']
 
+// Các public route có thể xem cả khi chưa đăng nhập và khi đã đăng nhập (không redirect về /dashboard nếu đã đăng nhập)
+const SHARED_PUBLIC_PATHS = ['/', '/decks']
+
 const PRIVATE_USER_PATHS = [
   '/dashboard',
   '/learning',
@@ -22,9 +25,12 @@ const PRIVATE_USER_PATHS = [
   '/battle',
   '/speaking',
   '/community',
+  '/community/topics',
+  '/community/my-posts',
   '/progress',
   '/gamification',
   '/premium',
+  '/premium/my-subscription',
   '/profile',
   '/notification',
 ]
@@ -46,7 +52,7 @@ function App() {
   useEffect(() => {
     if (loading) return
 
-    const isPublic = PUBLIC_PATHS.includes(currentPath)
+    const isAuthOnlyPath = PUBLIC_PATHS.includes(currentPath)
     const isAdmin = user?.role === 'ADMIN'
     const isAdminPath = currentPath.startsWith('/admin')
     const isPrivateUserPath = PRIVATE_USER_PATHS.some((path) => {
@@ -58,7 +64,7 @@ function App() {
       return
     }
 
-    if (user && isPublic) {
+    if (user && isAuthOnlyPath) {
       navigate(isAdmin ? '/admin' : '/dashboard')
       return
     }
@@ -134,13 +140,19 @@ function App() {
       case '/speaking':
         return <PlaceholderPage title="Speaking" path={currentPath} />
       case '/community':
-        return <PlaceholderPage title="Community" path={currentPath} />
+        return <PlaceholderPage title="Community Feed" path={currentPath} />
+      case '/community/topics':
+        return <PlaceholderPage title="Community Topics" path={currentPath} />
+      case '/community/my-posts':
+        return <PlaceholderPage title="My Posts" path={currentPath} />
       case '/progress':
         return <PlaceholderPage title="Progress" path={currentPath} />
       case '/gamification':
         return <PlaceholderPage title="Gamification" path={currentPath} />
       case '/premium':
         return <PlaceholderPage title="Premium" path={currentPath} />
+      case '/premium/my-subscription':
+        return <PlaceholderPage title="My Subscription" path={currentPath} />
       case '/profile':
         return <PlaceholderPage title="Profile" path={currentPath} />
       case '/decks':

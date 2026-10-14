@@ -21,6 +21,11 @@ function Header({ onNavigate, currentPath }) {
   const dropdownRef = useRef(null)
   const activeLandingSectionRef = useRef('hero')
 
+  const [openDropdownKey, setOpenDropdownKey] = useState(null)
+  const [mobileExpandedKeys, setMobileExpandedKeys] = useState({})
+  const navContainerRef = useRef(null)
+  const closeTimeoutRef = useRef(null)
+
   const LANDING_NAV_ITEMS = [
     { key: 'home', label: t('home'), path: '#hero', sectionId: 'hero' },
     { key: 'features', label: t('features'), path: '#features', sectionId: 'features' },
@@ -29,28 +34,84 @@ function Header({ onNavigate, currentPath }) {
     { key: 'pricing', label: t('pricing'), path: '#pricing', sectionId: 'pricing' },
   ]
 
-  const NAV_ITEMS = [
-    { key: 'learning', label: t('learning'), path: '/learning' },
-    { key: 'battle', label: t('battle'), path: '/battle' },
-    { key: 'community', label: t('community'), path: '/community' },
-    { key: 'gamification', label: t('gamification'), path: '/gamification' },
+  const USER_NAV_ITEMS = [
+    {
+      key: 'home',
+      label: t('home'),
+      path: '/dashboard',
+    },
+    {
+      key: 'features',
+      label: t('features'),
+      children: [
+        { key: 'speakingRoom', label: t('speakingRoom'), path: '/speaking', icon: 'record_voice_over' },
+        { key: 'arena', label: t('arena'), path: '/battle', icon: 'swords' },
+      ],
+    },
+    {
+      key: 'learning',
+      label: t('learning'),
+      children: [
+        { key: 'lessons', label: t('lessons'), path: '/learning', icon: 'menu_book' },
+        { key: 'vocabulary', label: t('vocabulary'), path: '/decks', icon: 'style' },
+        { key: 'review', label: t('review'), path: '/review', icon: 'replay' },
+      ],
+    },
+    {
+      key: 'community',
+      label: t('community'),
+      children: [
+        { key: 'feed', label: t('feed'), path: '/community', icon: 'feed' },
+        { key: 'topics', label: t('topics'), path: '/community/topics', icon: 'forum' },
+        { key: 'myPosts', label: t('myPosts'), path: '/community/my-posts', icon: 'article' },
+      ],
+    },
+    {
+      key: 'pricing',
+      label: t('pricing'),
+      children: [
+        { key: 'premiumPackages', label: t('premiumPackages'), path: '/premium', icon: 'workspace_premium' },
+        { key: 'mySubscription', label: t('mySubscription'), path: '/premium/my-subscription', icon: 'credit_card' },
+      ],
+    },
   ]
 
-  // ── Đóng dropdown khi click outside ──
+  // ── Đóng dropdown khi click outside hoặc nhấn Esc ──
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsUserDropdownOpen(false)
       }
+      if (navContainerRef.current && !navContainerRef.current.contains(event.target)) {
+        setOpenDropdownKey(null)
+      }
+    }
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setIsUserDropdownOpen(false)
+        setOpenDropdownKey(null)
+      }
     }
     document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
   }, [])
 
-  // ── Đóng mobile menu khi navigate ──
+  // ── Đóng mobile menu & dropdown khi navigate ──
   useEffect(() => {
     setIsMenuOpen(false)
+    if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
+    setOpenDropdownKey(null)
   }, [currentPath])
+
+  useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
+    }
+  }, [])
 
   useEffect(() => {
     if (user || currentPath !== '/') return undefined
@@ -89,12 +150,14 @@ function Header({ onNavigate, currentPath }) {
 
   const handleLogout = async () => {
     setIsUserDropdownOpen(false)
+    setOpenDropdownKey(null)
     await logout()
     if (onNavigate) onNavigate('/login')
   }
 
   const handleNav = (path) => {
     setIsMenuOpen(false)
+    setOpenDropdownKey(null)
     if (onNavigate) onNavigate(path)
   }
 
@@ -107,7 +170,59 @@ function Header({ onNavigate, currentPath }) {
     document.getElementById(item.sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
-  const isActive = (path) => currentPath === path || currentPath.startsWith(path + '/')
+  const isSubItemActive = (subPath, allSiblingPaths = []) => {
+    if (currentPath === subPath) return true
+    // Nếu có sibling path dài hơn khớp với currentPath (ví dụ /community/my-posts), thì /community không active
+    const hasLongerSiblingMatch = allSiblingPaths.some(
+      (otherPath) => otherPath !== subPath && otherPath.length > subPath.length && (currentPath === otherPath || currentPath.startsWith(otherPath + '/'))
+    )
+    if (hasLongerSiblingMatch) return false
+    return currentPath.startsWith(subPath + '/')
+  }
+
+  const isItemActive = (item) => {
+    if (item.path) {
+      return currentPath === item.path || currentPath.startsWith(item.path + '/')
+    }
+    if (item.children) {
+      const siblingPaths = item.children.map((child) => child.path)
+      return item.children.some((child) => isSubItemActive(child.path, siblingPaths))
+    }
+    return false
+  }
+
+  const handleItemMouseEnter = (key) => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current)
+      closeTimeoutRef.current = null
+    }
+    setOpenDropdownKey(key)
+  }
+
+  const handleItemMouseLeave = () => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current)
+    }
+    closeTimeoutRef.current = setTimeout(() => {
+      setOpenDropdownKey(null)
+      closeTimeoutRef.current = null
+    }, 200)
+  }
+
+  const toggleDropdown = (key) => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current)
+      closeTimeoutRef.current = null
+    }
+    setOpenDropdownKey((prev) => (prev === key ? null : key))
+  }
+
+  const toggleMobileSubmenu = (key) => {
+    setMobileExpandedKeys((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }))
+  }
 
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng)
@@ -116,7 +231,7 @@ function Header({ onNavigate, currentPath }) {
   const currentLanguage = i18n.language || 'vi'
 
   return (
-    <header className={`header ${currentPath !== '/' ? 'header--auth' : ''} glass-capsule glass-sheen`}>
+    <header className={`header ${currentPath !== '/' ? 'header--auth' : ''} ${isMenuOpen ? 'header--open' : ''} glass-capsule glass-sheen`}>
       <div className="header__inner container">
         {/* Brand */}
         <a
@@ -128,17 +243,84 @@ function Header({ onNavigate, currentPath }) {
         </a>
 
         {/* Desktop Navigation */}
-        <nav className="header__nav" aria-label="Main navigation">
-          {(user ? NAV_ITEMS : currentPath === '/' ? LANDING_NAV_ITEMS : []).map((item) => (
-              <a
-                key={item.key}
-                href={item.path}
-                className={`header__nav-link ${(user && isActive(item.path)) || (!user && item.sectionId === activeLandingSection) ? 'header__nav-link--active' : ''}`}
-                onClick={user ? (e) => { e.preventDefault(); handleNav(item.path) } : (e) => handleLandingNav(e, item)}
-              >
-                {item.label}
-              </a>
-            ))}
+        <nav className="header__nav" aria-label="Main navigation" ref={navContainerRef}>
+          {user
+            ? USER_NAV_ITEMS.map((item) => {
+                const itemIsActive = isItemActive(item)
+                if (item.children) {
+                  const isOpen = openDropdownKey === item.key
+                  return (
+                    <div
+                      key={item.key}
+                      className="header__nav-item"
+                      onMouseEnter={() => handleItemMouseEnter(item.key)}
+                      onMouseLeave={handleItemMouseLeave}
+                    >
+                      <button
+                        type="button"
+                        className={`header__nav-link header__nav-btn ${itemIsActive ? 'header__nav-link--active' : ''}`}
+                        onClick={() => toggleDropdown(item.key)}
+                        aria-expanded={isOpen}
+                        aria-haspopup="true"
+                      >
+                        <span>{item.label}</span>
+                        <span className={`material-symbols-outlined header__nav-arrow ${isOpen ? 'header__nav-arrow--open' : ''}`}>
+                          keyboard_arrow_down
+                        </span>
+                      </button>
+
+                      {isOpen && (
+                        <div className="header__nav-dropdown-menu glass-card">
+                          {item.children.map((sub) => {
+                            const siblingPaths = item.children.map((c) => c.path)
+                            const subIsActive = isSubItemActive(sub.path, siblingPaths)
+                            return (
+                              <a
+                                key={sub.key}
+                                href={sub.path}
+                                className={`header__dropdown-item ${subIsActive ? 'header__dropdown-item--active' : ''}`}
+                                onClick={(e) => {
+                                  e.preventDefault()
+                                  handleNav(sub.path)
+                                }}
+                              >
+                                {sub.icon && <span className="material-symbols-outlined">{sub.icon}</span>}
+                                <span>{sub.label}</span>
+                              </a>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )
+                }
+
+                return (
+                  <a
+                    key={item.key}
+                    href={item.path}
+                    className={`header__nav-link ${itemIsActive ? 'header__nav-link--active' : ''}`}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      handleNav(item.path)
+                    }}
+                  >
+                    {item.label}
+                  </a>
+                )
+              })
+            : currentPath === '/'
+              ? LANDING_NAV_ITEMS.map((item) => (
+                  <a
+                    key={item.key}
+                    href={item.path}
+                    className={`header__nav-link ${item.sectionId === activeLandingSection ? 'header__nav-link--active' : ''}`}
+                    onClick={(e) => handleLandingNav(e, item)}
+                  >
+                    {item.label}
+                  </a>
+                ))
+              : null}
         </nav>
 
         {/* Right side */}
@@ -288,16 +470,64 @@ function Header({ onNavigate, currentPath }) {
       {/* Mobile Navigation */}
       {user && isMenuOpen && (
         <nav className="header__mobile-nav glass-capsule" aria-label="Mobile navigation">
-          {NAV_ITEMS.map((item) => (
-            <a
-              key={item.key}
-              href={item.path}
-              className={`header__mobile-nav-link ${isActive(item.path) ? 'header__mobile-nav-link--active' : ''}`}
-              onClick={(e) => { e.preventDefault(); handleNav(item.path) }}
-            >
-              {item.label}
-            </a>
-          ))}
+          {USER_NAV_ITEMS.map((item) => {
+            const itemIsActive = isItemActive(item)
+            if (item.children) {
+              const isExpanded = mobileExpandedKeys[item.key] ?? itemIsActive
+              return (
+                <div key={item.key} className="header__mobile-group">
+                  <button
+                    type="button"
+                    className={`header__mobile-nav-link header__mobile-group-toggle ${itemIsActive ? 'header__mobile-nav-link--active' : ''}`}
+                    onClick={() => toggleMobileSubmenu(item.key)}
+                    aria-expanded={isExpanded}
+                  >
+                    <span>{item.label}</span>
+                    <span className={`material-symbols-outlined header__nav-arrow ${isExpanded ? 'header__nav-arrow--open' : ''}`}>
+                      keyboard_arrow_down
+                    </span>
+                  </button>
+
+                  {isExpanded && (
+                    <div className="header__mobile-subnav">
+                      {item.children.map((sub) => {
+                        const siblingPaths = item.children.map((c) => c.path)
+                        const subIsActive = isSubItemActive(sub.path, siblingPaths)
+                        return (
+                          <a
+                            key={sub.key}
+                            href={sub.path}
+                            className={`header__mobile-subnav-link ${subIsActive ? 'header__mobile-subnav-link--active' : ''}`}
+                            onClick={(e) => {
+                              e.preventDefault()
+                              handleNav(sub.path)
+                            }}
+                          >
+                            {sub.icon && <span className="material-symbols-outlined">{sub.icon}</span>}
+                            <span>{sub.label}</span>
+                          </a>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )
+            }
+
+            return (
+              <a
+                key={item.key}
+                href={item.path}
+                className={`header__mobile-nav-link ${itemIsActive ? 'header__mobile-nav-link--active' : ''}`}
+                onClick={(e) => {
+                  e.preventDefault()
+                  handleNav(item.path)
+                }}
+              >
+                {item.label}
+              </a>
+            )
+          })}
         </nav>
       )}
     </header>

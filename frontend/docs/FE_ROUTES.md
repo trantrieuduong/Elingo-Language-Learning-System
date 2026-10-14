@@ -20,6 +20,7 @@
 | `/login` | `LoginPage` | `auth/pages/` | Đăng nhập |
 | `/signup` | `SignupPage` | `auth/pages/` | Đăng ký |
 | `/account-verification` | `AccountVerificationPage` | `auth/pages/` | Xác thực email bằng OTP; nhận email qua history state |
+| `/decks` | `DeckListPage` | `vocabulary/pages/` | Danh sách bộ từ vựng công khai (cho phép xem cả khi chưa đăng nhập) |
 
 **Planned, chưa tạo route/page:** `/forgot-password`, `/reset-password`.
 
@@ -32,19 +33,21 @@
 | `/learning/lesson/:lessonId` | `LessonDetailPage` | `learning/lesson/pages/` | Chi tiết bài học |
 | `/learning/dictation/:lessonId` | `DictationPage` | `learning/dictation/pages/` | Nghe chép chính tả |
 | `/learning/shadowing/:lessonId` | `ShadowingPage` | `learning/shadowing/pages/` | Luyện nói đuổi |
-| `/decks/:deckId` | `FlashcardStudyPage` | `learning/flashcard/pages/` | Học flashcard của một bộ từ |
+| `/decks/:deckId` | `FlashcardStudyPage` | `learning/flashcard/pages/` | Học flashcard của một bộ từ (bắt buộc đăng nhập) |
 | `/review` | `FlashcardReviewPage` | `learning/flashcard/pages/` | Ôn tập flashcard đến hạn (giới hạn 100 flashcard/1 ngày) |
-| `/decks` | `DeckListPage` | `vocabulary/pages/` | Danh sách bộ từ vựng |
 | `/decks/:deckId` | `DeckDetailPage` | `vocabulary/pages/` | Chi tiết bộ từ vựng |
 | `/battle` | `BattleLobbyPage` | `battle/pages/` | Sảnh chờ thi đấu |
 | `/battle/play` | `BattlePlayPage` | `battle/pages/` | Màn hình thi đấu (WebSocket) |
 | `/speaking` | `SpeakingLobbyPage` | `speaking/pages/` | Danh sách phòng luyện nói |
 | `/speaking/:roomId` | `SpeakingRoomPage` | `speaking/pages/` | Phòng luyện nói (WebRTC) |
-| `/community` | `CommunityFeedPage` | `community/pages/` | Feed cộng đồng |
+| `/community` | `CommunityFeedPage` | `community/pages/` | Feed cộng đồng (Bảng tin) |
+| `/community/topics` | `CommunityTopicPage` | `community/pages/` | Chủ đề cộng đồng |
+| `/community/my-posts` | `CommunityMyPostsPage` | `community/pages/` | Bài viết của tôi |
 | `/community/post/:postId` | `PostDetailPage` | `community/pages/` | Chi tiết bài viết |
 | `/gamification` | `LeaderboardPage` | `gamification/pages/` | Bảng xếp hạng + XP |
 | `/progress` | `ProgressPage` | `progress/pages/` | Tiến độ học tập cá nhân |
 | `/premium` | `PremiumPage` | `premium/pages/` | Gói Premium + thanh toán |
+| `/premium/my-subscription` | `MySubscriptionPage` | `premium/pages/` | Gói Premium của tôi |
 | `/notification` | `NotificationPage` | _(chưa có module)_ | Xem ghi chú bên dưới |
 | `/profile` | `ProfilePage` | `user/pages/` | Trang cá nhân (own) |
 | `/profile/:userId` | `UserProfilePage` | `user/pages/` | Trang cá nhân người dùng khác |
@@ -113,8 +116,14 @@ User role USER + /admin/* → navigate('/dashboard')
 ### 3.1 Public Paths (không redirect khi chưa đăng nhập)
 
 ```js
+// Auth-only: Chưa đăng nhập truy cập được; nếu đã đăng nhập thì tự chuyển hướng sang /dashboard (hoặc /admin)
 const PUBLIC_PATHS = [
-  '/', '/login', '/signup', '/account-verification'
+  '/login', '/signup', '/account-verification', '/reset-password'
+]
+
+// Shared public: Xem được cả khi chưa đăng nhập và đã đăng nhập (không redirect đi đâu khi đã đăng nhập)
+const SHARED_PUBLIC_PATHS = [
+  '/', '/decks'
 ]
 ```
 
