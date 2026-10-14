@@ -23,4 +23,18 @@ public class AsyncConfig {
         executor.setAwaitTerminationSeconds(30);
         return executor;
     }
+
+    @Bean(name = "gamificationExecutor")
+    public Executor gamificationExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(2);
+        executor.setMaxPoolSize(4);
+        executor.setQueueCapacity(500);
+        executor.setThreadNamePrefix("gamification-");
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        executor.setTaskDecorator(new MdcTaskDecorator());
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(30);
+        return executor;
+    }
 }
