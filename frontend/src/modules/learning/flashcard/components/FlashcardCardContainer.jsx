@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import Flashcard from './FlashCard/FlashCard'
 
 /**
@@ -17,6 +18,8 @@ export default function FlashcardCardContainer({
   onToggleStar,
   onToggleHide
 }) {
+  const { t } = useTranslation('learning')
+
   if (!card) return null
 
   return (
@@ -29,11 +32,13 @@ export default function FlashcardCardContainer({
           }`}
           onClick={(e) => {
             e.stopPropagation()
+            e.preventDefault()
             if (onToggleStar) onToggleStar()
           }}
+          onPointerDown={(e) => e.stopPropagation()}
           disabled={isProcessing}
-          title={isStarred ? 'Bỏ đánh dấu sao (Unstar)' : 'Đánh dấu sao (Star)'}
-          aria-label="Đánh / bỏ dấu sao"
+          title={isStarred ? t('flashcard.actions.unstar') : t('flashcard.actions.star')}
+          aria-label={isStarred ? t('flashcard.actions.unstar') : t('flashcard.actions.star')}
         >
           <span
             className="material-symbols-outlined"
@@ -48,11 +53,13 @@ export default function FlashcardCardContainer({
           className="btn-icon flashcard-card-btn flashcard-card-btn-hidden"
           onClick={(e) => {
             e.stopPropagation()
+            e.preventDefault()
             if (onToggleHide) onToggleHide()
           }}
+          onPointerDown={(e) => e.stopPropagation()}
           disabled={isProcessing}
-          title="Ẩn thẻ này (Hidden)"
-          aria-label="Ẩn thẻ này"
+          title={t('flashcard.actions.hide')}
+          aria-label={t('flashcard.actions.hide')}
         >
           <span className="material-symbols-outlined">visibility_off</span>
         </button>

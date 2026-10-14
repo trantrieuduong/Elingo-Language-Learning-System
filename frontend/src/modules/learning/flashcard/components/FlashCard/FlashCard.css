@@ -9,6 +9,18 @@
   cursor: pointer;
   margin: 0 auto;
   outline: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.flashcard-wrapper:focus {
+  outline: none;
+}
+
+.flashcard-wrapper:focus:not(:focus-visible) .flashcard-front,
+.flashcard-wrapper:focus:not(:focus-visible) .flashcard-back {
+  box-shadow: var(--shadow-card);
 }
 
 .flashcard-wrapper:focus-visible .flashcard-front,
@@ -41,6 +53,7 @@
   padding: var(--spacing-xl);
   overflow-y: auto;
   border-radius: var(--radius-apple, 26px);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .flashcard-front {
@@ -171,6 +184,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+.flashcard-audio-btn:focus {
+  outline: none;
 }
 
 .flashcard-audio-btn:hover {
@@ -213,14 +232,30 @@
   font-family: var(--font-body);
   font-size: var(--font-size-body-sm, 12px);
   color: var(--color-text-disabled, #94a3b8);
-  position: absolute;
-  bottom: var(--spacing-md);
   margin: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 4px;
   user-select: none;
+}
+
+.flashcard-front .flashcard-hint {
+  position: absolute;
+  bottom: var(--spacing-md);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+}
+
+.flashcard-back .flashcard-hint {
+  position: relative;
+  bottom: auto;
+  margin-top: auto;
+  padding-top: var(--spacing-md);
+  padding-bottom: var(--spacing-xs);
+  flex-shrink: 0;
+  width: 100%;
 }
 
 .flashcard-hint-icon {
@@ -288,4 +323,36 @@
   color: var(--color-text-body);
   font-size: var(--font-size-body-lg);
   line-height: 1.4;
+}
+
+/* ── Responsive Mobile (<= 640px) ── */
+@media (max-width: 640px) {
+  .flashcard-wrapper {
+    height: 68vh;
+    min-height: 480px;
+  }
+
+  .flashcard-front,
+  .flashcard-back {
+    padding: 50px var(--spacing-md) var(--spacing-md);
+  }
+
+  .flashcard-term {
+    font-size: 1.5rem;
+  }
+
+  .flashcard-details {
+    margin-top: var(--spacing-sm);
+    gap: var(--spacing-sm);
+  }
+
+  .flashcard-section {
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+
+  .flashcard-explanation-text,
+  .flashcard-example-en,
+  .flashcard-example-vi {
+    font-size: var(--font-size-body-md);
+  }
 }

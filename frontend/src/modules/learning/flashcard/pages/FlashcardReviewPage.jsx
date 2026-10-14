@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   getCardsForReviewApi,
   submitSrsReviewApi,
@@ -17,39 +18,72 @@ import './FlashcardReviewPage.css'
  * @param {Function} onNavigate - Hàm điều hướng custom router từ App.jsx
  */
 function FlashcardReviewPage({ onNavigate }) {
+  const { t } = useTranslation(['learning', 'api'])
   const [reviewCards, setReviewCards] = useState([])
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isProcessing, setIsProcessing] = useState(false)
 
-  const fetchDueReviewCards = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const res = await getCardsForReviewApi(100)
-      if (res && res.success) {
-        const formattedCards = res.data
-          .filter((item) => item?.card)
-          .map((item) => ({
-            ...item.card,
-            flagsStarred: item.flagsStarred
-          }))
-        setReviewCards(formattedCards)
-      } else {
-        setError('Không thể tải danh sách thẻ đến hạn ôn tập.')
-      }
-    } catch (err) {
-      console.error('Lỗi khi tải flashcard đến hạn ôn tập:', err)
-      setError('Đã có lỗi mạng xảy ra khi tải dữ liệu ôn tập.')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
   useEffect(() => {
+    const fetchDueReviewCards = async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        const res = await getCardsForReviewApi(100)
+        if (res && res.success) {
+          const formattedCards = res.data
+            .filter((item) => item?.card)
+            .map((item) => ({
+              ...item.card,
+              flagsStarred: item.flagsStarred
+            }))
+          setReviewCards(formattedCards)
+        } else {
+          setError({
+            message: t('flashcard.loadReviewError'),
+            actionLabel: t('flashcard.backToDecks'),
+            actionPath: '/decks'
+          })
+        }
+      } catch (err) {
+        console.error('Lỗi khi tải flashcard đến hạn ôn tập:', err)
+        const errorMessage = err.response?.data?.message || t('api:common.UNKNOWN_ERROR')
+
+        setError({
+          message: errorMessage,
+          actionLabel: t('flashcard.backToDecks'),
+          actionPath: '/decks'
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+
     fetchDueReviewCards()
-  }, [fetchDueReviewCards])
+  }, [t])
+
+  /**
+   * Xử lý lỗi chung khi tương tác với flashcard (Review, Star, Hide).
+   */
+  const handleCardActionError = (err) => {
+    const errorCode = err.response?.data?.code
+    const errorMessage = err.response?.data?.message || t('api:common.UNKNOWN_ERROR')
+
+    if (errorCode === 'DECK_PREMIUM_REQUIRED') {
+      setError({
+        message: errorMessage,
+        actionLabel: t('flashcard.upgradePremium'),
+        actionPath: '/premium'
+      })
+    } else if (errorCode === 'DECK_NOT_FOUND') {
+      setError({
+        message: errorMessage,
+        actionLabel: t('flashcard.backToDecks'),
+        actionPath: '/decks'
+      })
+    }
+  }
 
   /**
    * Đánh giá mức độ ghi nhớ SM-2 (0: Học lại, 1: Khó, 2: Dễ, 3: Quá dễ)
@@ -71,6 +105,7 @@ function FlashcardReviewPage({ onNavigate }) {
       }
     } catch (err) {
       console.error(`Lỗi khi gửi đánh giá SRS thẻ ID ${cardId} (${gradeLabel}):`, err)
+      handleCardActionError(err)
     } finally {
       setIsProcessing(false)
     }
@@ -106,6 +141,7 @@ function FlashcardReviewPage({ onNavigate }) {
       }
     } catch (err) {
       console.error(`Lỗi khi đổi trạng thái gắn sao thẻ ID ${cardId}:`, err)
+      handleCardActionError(err)
     } finally {
       setIsProcessing(false)
     }
@@ -131,6 +167,7 @@ function FlashcardReviewPage({ onNavigate }) {
       }
     } catch (err) {
       console.error(`Lỗi khi ẩn thẻ ID ${cardId}:`, err)
+      handleCardActionError(err)
     } finally {
       setIsProcessing(false)
     }
@@ -147,9 +184,10 @@ function FlashcardReviewPage({ onNavigate }) {
   if (error) {
     return (
       <PageError 
-        error={error} 
+        error={error.message} 
+        actionLabel={error.actionLabel}
         onAction={() => {
-          if (onNavigate) onNavigate('/')
+          if (onNavigate) onNavigate(error.actionPath)
         }} 
       />
     )
@@ -170,7 +208,7 @@ function FlashcardReviewPage({ onNavigate }) {
             }}
           >
             <span className="material-symbols-outlined">arrow_back</span>
-            Quay lại
+            {t('flashcard.back')}
           </button>
         </div>
         
@@ -194,7 +232,7 @@ function FlashcardReviewPage({ onNavigate }) {
             />
           ) : (
             <FlashcardCompletePlaceholder
-              message="Bạn đã hoàn thành toàn bộ thẻ flashcard đến hạn ôn tập hôm nay."
+              message={t('flashcard.reviewCompleted')}
             />
           )}
         </main>

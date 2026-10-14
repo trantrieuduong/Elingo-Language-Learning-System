@@ -2,6 +2,7 @@ package com.elingo.vocabulary;
 
 import com.elingo.BaseIntegrationTest;
 import com.elingo.auth.service.JwtService;
+import com.elingo.user.entity.Role;
 import com.elingo.user.entity.User;
 import com.elingo.user.repository.UserRepository;
 import com.elingo.vocabulary.entity.CefrLevel;
@@ -9,22 +10,26 @@ import com.elingo.vocabulary.entity.Deck;
 import com.elingo.vocabulary.entity.DeckStatus;
 import com.elingo.vocabulary.entity.OwnerType;
 import com.elingo.vocabulary.entity.Tag;
+import com.elingo.learning.flashcard.entity.UserCardState;
+import com.elingo.learning.flashcard.repository.UserCardStateRepository;
+import com.elingo.vocabulary.entity.Card;
+import com.elingo.vocabulary.entity.Topic;
+import com.elingo.vocabulary.repository.CardRepository;
 import com.elingo.vocabulary.repository.CefrLevelRepository;
 import com.elingo.vocabulary.repository.DeckRepository;
 import com.elingo.vocabulary.repository.TagRepository;
+import com.elingo.vocabulary.repository.TopicRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.time.LocalDateTime;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -48,28 +53,35 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
     private CefrLevelRepository cefrLevelRepository;
 
     @Autowired
+    private TopicRepository topicRepository;
+
+    @Autowired
+    private CardRepository cardRepository;
+
+    @Autowired
+    private UserCardStateRepository userCardStateRepository;
+
+    @Autowired
     private JwtService jwtService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    private User testUser;
     private String authToken;
 
     @BeforeEach
     void setUp() {
-        User testUser = userRepository.save(User.builder()
+        testUser = userRepository.save(User.builder()
                 .username("deck_tester")
                 .email("deck_tester@elingo.test")
                 .passwordHash(passwordEncoder.encode("Password123@"))
                 .fullName("Deck Tester")
                 .isActive(true)
                 .isVerified(true)
+                .role(Role.USER)
                 .build());
-
-        String authorities = testUser.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(","));
-        authToken = jwtService.generateAccessToken(testUser.getId().toString(), authorities);
+        authToken = jwtService.generateAccessToken(testUser.getId().toString(), testUser.getRole().name());
     }
 
     // ─────────────────────── helpers ───────────────────────
@@ -130,11 +142,53 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.content").isArray())
                     .andExpect(jsonPath("$.data.content.length()").value(2))
+                    .andExpect(jsonPath("$.data.content[0].learnedCardCount").value(0))
+                    .andExpect(jsonPath("$.data.content[1].learnedCardCount").value(0))
                     .andExpect(jsonPath("$.data.size").value(9))
                     .andExpect(jsonPath("$.data.page").value(1))
                     .andExpect(jsonPath("$.data.totalElements").value(2))
                     .andExpect(jsonPath("$.data.totalPages").value(1))
                     .andExpect(jsonPath("$.data.isLast").value(true));
+        }
+
+        @Test
+        @DisplayName("Get published decks: Success - returns learnedCardCount for user")
+        void testGetPublishedDecks_ReturnsLearnedCardCount() throws Exception {
+            Deck deck = deckRepository.save(Deck.builder()
+                    .title("Animals")
+                    .slug("animals")
+                    .status(DeckStatus.PUBLISHED)
+                    .ownerType(OwnerType.SYSTEM)
+                    .publishedAt(LocalDateTime.now())
+                    .build());
+
+            Topic topic = topicRepository.save(Topic.builder()
+                    .name("Mammals")
+                    .slug("mammals")
+                    .order(1)
+                    .deck(deck)
+                    .build());
+
+            Card card1 = cardRepository.save(Card.builder()
+                    .term("cat")
+                    .translation("con meo")
+                    .order(1)
+                    .deck(deck)
+                    .topic(topic)
+                    .build());
+
+            // User has learned card1
+            userCardStateRepository.save(UserCardState.builder()
+                    .user(testUser)
+                    .card(card1)
+                    .deck(deck)
+                    .topic(topic)
+                    .srsNextReviewAt(LocalDateTime.now().plusDays(1))
+                    .build());
+
+            performGetDecks("")
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.content[0].learnedCardCount").value(1));
         }
 
         @Test

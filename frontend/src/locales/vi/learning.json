@@ -1,1 +1,53 @@
-{}
+{
+  "deckList": {
+    "searchPlaceholder": "Tìm kiếm theo tên bộ từ vựng...",
+    "clearFilters": "Xóa bộ lọc",
+    "loadError": "Không thể tải danh sách bộ từ vựng.",
+    "networkError": "Đã có lỗi mạng hoặc hệ thống. Vui lòng thử lại.",
+    "retry": "Thử lại",
+    "empty": "Không tìm thấy bộ từ vựng nào phù hợp.",
+    "cardStats": "{{topicCount}} chủ đề - {{cardCount}} từ",
+    "noDescription": "Chưa có mô tả cho bộ từ vựng này.",
+    "premium": "Premium",
+    "free": "Miễn phí",
+    "progress": "Tiến độ"
+  },
+  "flashcard": {
+    "back": "Quay lại",
+    "upgradePremium": "Nâng cấp Premium",
+    "backToDecks": "Quay lại danh sách bộ từ",
+    "loadTopicsError": "Không thể tải danh sách chủ đề. Vui lòng thử lại.",
+    "loadReviewError": "Không thể tải danh sách thẻ đến hạn ôn tập.",
+    "studyCompleted": "Bạn đã học xong toàn bộ thẻ trong chủ đề này.",
+    "reviewCompleted": "Bạn đã hoàn thành toàn bộ thẻ flashcard đến hạn ôn tập hôm nay.",
+    "loadCardsNetworkError": "Không thể tải dữ liệu flashcard. Vui lòng kiểm tra mạng và thử lại.",
+    "retry": "Thử lại",
+    "loadingCards": "Đang tải thẻ học...",
+    "connectionError": "Lỗi kết nối",
+    "noCardsToStudy": "Không có flashcard để học.",
+    "noTopicsInDeck": "Bộ từ này chưa có chủ đề nào.",
+    "overallProgress": "Tiến độ tổng quan",
+    "ratings": {
+      "again": "Học lại",
+      "hard": "Khó",
+      "good": "Dễ",
+      "easy": "Quá dễ"
+    },
+    "actions": {
+      "star": "Đánh dấu sao",
+      "unstar": "Bỏ đánh dấu sao",
+      "hide": "Ẩn thẻ"
+    },
+    "card": {
+      "ariaLabel": "Thẻ từ vựng: {{term}}. Nhấn phím cách hoặc click để lật thẻ.",
+      "imageAlt": "Minh họa từ vựng",
+      "playAudioAria": "Phát âm {{locale}} của \"{{term}}\"",
+      "playAudioTitle": "Nghe phát âm {{locale}} của \"{{term}}\"",
+      "hintFront": "Chạm để xem nghĩa & ví dụ",
+      "definitionVi": "Định nghĩa (VI):",
+      "definitionEn": "Định nghĩa (EN):",
+      "examples": "Ví dụ:",
+      "hintBack": "Chạm để lật lại mặt trước"
+    }
+  }
+}

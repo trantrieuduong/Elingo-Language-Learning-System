@@ -52,4 +52,8 @@ public class Topic extends BaseEntity {
     @Column(name = "card_count", nullable = false)
     @Builder.Default
     Integer cardCount = 0;
+
+    @Column(name = "is_deleted", nullable = false)
+    @Builder.Default
+    Boolean isDeleted = false;
 }

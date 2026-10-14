@@ -1,15 +1,20 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { getTopicsByDeckIdApi, getUnlearnedCardsByTopicIdApi, submitSrsReviewApi, toggleStarApi, toggleHideApi } from '../flashcardApi'
 import FlashcardStudyArea from '../components/FlashcardStudyArea'
 import FlashcardCompletePlaceholder from '../components/FlashcardCompletePlaceholder'
 import PageError from '../../../../components/PageError/PageError'
+import ProgressBar from '../../../../components/ProgressBar/ProgressBar'
 import './FlashcardStudyPage.css'
 
 /**
- * @param {string} deckId - ID của deck lấy từ URL param
+ * @param {string} [deckSlug] - Slug của deck lấy từ URL param
+ * @param {string} [deckId] - ID của deck (fallback nếu có)
  * @param {Function} onNavigate - navigate function từ App.jsx
  */
-function FlashcardStudyPage({ deckId, onNavigate }) {
+function FlashcardStudyPage({ deckSlug, deckId, onNavigate }) {
+  const currentDeck = deckSlug || deckId
+  const { t } = useTranslation(['learning', 'api'])
   const [topics, setTopics] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -28,7 +33,7 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
       setLoading(true)
       setError(null)
       try {
-        const res = await getTopicsByDeckIdApi(deckId)
+        const res = await getTopicsByDeckIdApi(currentDeck)
         if (res.success && res.data) {
           setTopics(res.data)
           
@@ -46,21 +51,39 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
             setSelectedTopicId(res.data[0].id)
           }
         } else {
-          setError('Không thể tải danh sách topic. Vui lòng thử lại sau.')
+          setError({
+            message: t('flashcard.loadTopicsError'),
+            actionLabel: t('flashcard.backToDecks'),
+            actionPath: '/decks'
+          })
         }
       } catch (err) {
         console.error('Lỗi khi tải topics:', err)
-        const errorMsg = 'Đã có lỗi mạng xảy ra khi tải topics.'
-        setError(errorMsg)
+        const errorCode = err.response?.data?.code
+        const errorMessage = err.response?.data?.message || t('api:common.UNKNOWN_ERROR')
+
+        if (errorCode === 'DECK_PREMIUM_REQUIRED') {
+          setError({
+            message: errorMessage,
+            actionLabel: t('flashcard.upgradePremium'),
+            actionPath: '/premium'
+          })
+        } else {
+          setError({
+            message: errorMessage,
+            actionLabel: t('flashcard.backToDecks'),
+            actionPath: '/decks'
+          })
+        }
       } finally {
         setLoading(false)
       }
     }
 
-    if (deckId) {
+    if (currentDeck) {
       fetchTopics()
     }
-  }, [deckId])
+  }, [currentDeck, t])
 
   useEffect(() => {
     if (!selectedTopicId) return
@@ -82,12 +105,29 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
         }
       } catch (err) {
         console.error('Lỗi khi tải danh sách thẻ cho topic:', err)
-        setTopicCardsError(prev => ({ ...prev, [selectedTopicId]: true }))
+        const errorCode = err.response?.data?.code
+        const errorMessage = err.response?.data?.message || t('api:common.UNKNOWN_ERROR')
+
+        if (errorCode === 'DECK_PREMIUM_REQUIRED') {
+          setError({
+            message: errorMessage,
+            actionLabel: t('flashcard.upgradePremium'),
+            actionPath: '/premium'
+          })
+        } else if (errorCode === 'DECK_NOT_FOUND') {
+          setError({
+            message: errorMessage,
+            actionLabel: t('flashcard.backToDecks'),
+            actionPath: '/decks'
+          })
+        } else {
+          setTopicCardsError(prev => ({ ...prev, [selectedTopicId]: true }))
+        }
       }
     }
 
     fetchCards()
-  }, [selectedTopicId, unlearnedCardsByTopic])
+  }, [selectedTopicId, unlearnedCardsByTopic, t])
 
   const removeCurrentCardAndUpdateProgress = () => {
     setUnlearnedCardsByTopic((prev) => {
@@ -109,6 +149,28 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
         }
       }
     })
+  }
+
+  /**
+   * Xử lý lỗi chung khi tương tác với flashcard (Review, Star, Hide).
+   */
+  const handleCardActionError = (err) => {
+    const errorCode = err.response?.data?.code
+    const errorMessage = err.response?.data?.message || t('api:common.UNKNOWN_ERROR')
+
+    if (errorCode === 'DECK_PREMIUM_REQUIRED') {
+      setError({
+        message: errorMessage,
+        actionLabel: t('flashcard.upgradePremium'),
+        actionPath: '/premium'
+      })
+    } else if (errorCode === 'DECK_NOT_FOUND') {
+      setError({
+        message: errorMessage,
+        actionLabel: t('flashcard.backToDecks'),
+        actionPath: '/decks'
+      })
+    }
   }
 
   /**
@@ -139,6 +201,7 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
       }
     } catch (err) {
       console.error(`Lỗi khi gửi đánh giá SRS thẻ ID ${currentCard.id} (${gradeLabel}):`, err)
+      handleCardActionError(err)
     } finally {
       setIsProcessing(false)
     }
@@ -182,6 +245,7 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
       }
     } catch (err) {
       console.error(`Lỗi khi đổi trạng thái gắn sao thẻ ID ${currentCard.id}:`, err)
+      handleCardActionError(err)
     } finally {
       setIsProcessing(false)
     }
@@ -206,6 +270,7 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
       }
     } catch (err) {
       console.error(`Lỗi khi ẩn thẻ ID ${currentCard.id}:`, err)
+      handleCardActionError(err)
     } finally {
       setIsProcessing(false)
     }
@@ -222,10 +287,11 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
   if (error) {
     return (
       <PageError 
-        error={error} 
+        error={error.message} 
+        actionLabel={error.actionLabel}
         onAction={() => {
-          if (onNavigate) onNavigate('/')
-        }} 
+          if (onNavigate) onNavigate(error.actionPath)
+        }}
       />
     )
   }
@@ -245,7 +311,7 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
             onClick={() => { if (onNavigate) onNavigate('/decks') }}
           >
             <span className="material-symbols-outlined">arrow_back</span>
-            Quay lại
+            {t('flashcard.back')}
           </button>
         </div>
 
@@ -258,22 +324,13 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
             if (globalTotal === 0) return null
             const globalUnlearned = progressValues.reduce((acc, curr) => acc + curr.unlearned, 0)
             const globalLearned = globalTotal - globalUnlearned
-            const globalProgressPercent = Math.round((globalLearned / globalTotal) * 100)
-
             return (
               <div className="glass-card flashcard-global-progress">
-                <div className="flashcard-progress-header">
-                  <span className="text-title-sm flashcard-progress-title">Tiến độ tổng quan</span>
-                  <span className="flashcard-progress-stats">
-                    {globalLearned} / {globalTotal}
-                  </span>
-                </div>
-                <div className="flashcard-progress-track">
-                  <div 
-                    className="flashcard-progress-bar"
-                    style={{ width: `${globalProgressPercent}%` }} 
-                  />
-                </div>
+                <ProgressBar
+                  title={t('flashcard.overallProgress')}
+                  current={globalLearned}
+                  total={globalTotal}
+                />
               </div>
             )
           })()}
@@ -284,7 +341,7 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
           {topics.length === 0 && !loading && (
             <div className="empty-state glass-card flashcard-empty-topic">
               <span className="material-symbols-outlined">inbox</span>
-              <p>Bộ từ này chưa có chủ để nào.</p>
+              <p>{t('flashcard.noTopicsInDeck')}</p>
             </div>
           )}
 
@@ -328,7 +385,7 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
                 style
               </span>
               <p className="text-body-md flashcard-placeholder-text">
-                Không có flashcard để học.
+                {t('flashcard.noCardsToStudy')}
               </p>
             </div>
           ) : topicCardsError[selectedTopicId] ? (
@@ -336,9 +393,9 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
               <span className="material-symbols-outlined flashcard-empty-placeholder-icon flashcard-placeholder-icon--error">
                 wifi_off
               </span>
-              <h2 className="text-title-md">Lỗi kết nối</h2>
+              <h2 className="text-title-md">{t('flashcard.connectionError')}</h2>
               <p className="text-body-md flashcard-placeholder-text">
-                Không thể tải dữ liệu flashcard. Vui lòng kiểm tra mạng và thử lại.
+                {t('flashcard.loadCardsNetworkError')}
               </p>
               <button 
                 className="btn-primary flashcard-placeholder-btn"
@@ -347,14 +404,14 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
                   setUnlearnedCardsByTopic(prev => ({ ...prev, [selectedTopicId]: undefined }))
                 }}
               >
-                Thử lại
+                {t('flashcard.retry')}
               </button>
             </div>
           ) : unlearnedCardsByTopic[selectedTopicId] === undefined ? (
             <div className="flashcard-empty-placeholder">
               <div className="app-loading-spinner" />
               <p className="text-body-md">
-                Đang tải thẻ học...
+                {t('flashcard.loadingCards')}
               </p>
             </div>
           ) : currentCard ? (
@@ -369,7 +426,7 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
             />
           ) : (
             <FlashcardCompletePlaceholder
-              message="Bạn đã học xong toàn bộ thẻ trong chủ đề này."
+              message={t('flashcard.studyCompleted')}
             />
           )}
         </main>

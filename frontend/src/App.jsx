@@ -43,6 +43,8 @@ function App() {
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
+  const flashcardStudyMatch = currentPath.match(/^\/decks\/([^/]+)$/)
+
   useEffect(() => {
     if (loading) return
 
@@ -51,7 +53,7 @@ function App() {
     const isAdminPath = currentPath.startsWith('/admin')
     const isPrivateUserPath = PRIVATE_USER_PATHS.some((path) => {
       return currentPath === path || currentPath.startsWith(`${path}/`)
-    }) || !!flashcardStudyMatch // Trang học flashcard (/decks/:id) bắt buộc đăng nhập
+    }) || !!flashcardStudyMatch // Trang học flashcard (/decks/:slug) bắt buộc đăng nhập
 
     if (!user && (isAdminPath || isPrivateUserPath)) {
       navigate('/login')
@@ -92,7 +94,6 @@ function App() {
     )
   }
 
-  const flashcardStudyMatch = currentPath.match(/^\/decks\/([^/]+)$/)
   const isFlashcardPage =  !!flashcardStudyMatch || currentPath === '/review'
 
   const renderAdminContent = () => {
@@ -109,7 +110,7 @@ function App() {
 
   const renderContent = () => {
     if (flashcardStudyMatch) {
-      return <FlashcardStudyPage deckId={flashcardStudyMatch[1]} onNavigate={navigate} />
+      return <FlashcardStudyPage deckSlug={flashcardStudyMatch[1]} onNavigate={navigate} />
     }
 
     switch (currentPath) {

@@ -1,8 +1,7 @@
 .deck-list-page {
   min-height: calc(100vh - 140px); /* Bù chiều cao header/footer để vừa màn hình */
-  padding-top: calc(var(--spacing-3xl) + var(--spacing-xl));
+  padding-top: calc(72px + var(--spacing-2xl));
 }
-
 
 .deck-list-container {
   display: flex;
@@ -20,14 +19,14 @@
 }
 
 .deck-list-filters__top {
-  display: flex;/*Kích hoạt mô hình hộp linh hoạt (Flexbox)*/
-  align-items: center;/*Căn giữa các thành phần con theo chiều dọc*/
+  display: flex; /*Kích hoạt mô hình hộp linh hoạt (Flexbox)*/
+  align-items: center; /*Căn giữa các thành phần con theo chiều dọc*/
   gap: var(--spacing-md);
-  width: 100%;/*giãn rộng ra hết 100% chiều rộng*/
+  width: 100%; /*giãn rộng ra hết 100% chiều rộng*/
 }
 
 .deck-list-filters__search {
-  flex: 1;/*ô tìm kiếm tự động giãn ra để lấp đầy toàn bộ khoảng trống còn lại trong hàng đó*/
+  flex: 1; /*ô tìm kiếm tự động giãn ra để lấp đầy toàn bộ khoảng trống còn lại trong hàng đó*/
 }
 
 .btn-clear-filter {
@@ -68,6 +67,66 @@
   overflow: hidden;
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
+}
+
+.vocabulary-card--premium {
+  border: 1px solid rgba(155, 183, 232, 0.45);
+}
+
+[data-theme='dark'] .vocabulary-card--premium {
+  border-color: rgba(155, 183, 232, 0.28);
+}
+
+.vocabulary-card__badge {
+  position: absolute;
+  top: var(--spacing-md);
+  left: var(--spacing-md);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  z-index: 2;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  max-width: calc(50% - var(--spacing-sm));
+  white-space: nowrap;
+}
+
+.vocabulary-card__badge--premium {
+  background: linear-gradient(135deg, rgba(58, 86, 128, 0.9) 0%, rgba(35, 59, 94, 0.95) 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.vocabulary-card__badge--premium .material-symbols-outlined {
+  font-size: 14px;
+  color: #fbd38d;
+  line-height: 1;
+}
+
+.vocabulary-card__badge--free {
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--color-on-surface);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+[data-theme='dark'] .vocabulary-card__badge--premium {
+  background: linear-gradient(135deg, rgba(77, 109, 158, 0.92) 0%, rgba(43, 72, 114, 0.96) 100%);
+  border-color: rgba(192, 211, 238, 0.4);
+  color: #ffffff;
+}
+
+[data-theme='dark'] .vocabulary-card__badge--free {
+  background: rgba(30, 48, 72, 0.85);
+  color: var(--color-on-surface);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .vocabulary-card__word-count {
@@ -145,6 +204,23 @@
   overflow: hidden;
 }
 
+.vocabulary-card__progress {
+  width: 100%;
+}
+
+.vocabulary-card__progress .progress-bar-title {
+  font-size: var(--font-size-label-sm, 11px);
+  color: var(--color-on-surface-variant);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide, 0.02em);
+  text-transform: uppercase;
+}
+
+.vocabulary-card__progress .progress-bar-stats {
+  font-size: var(--font-size-label-sm, 11px);
+  font-weight: 700;
+}
+
 .vocabulary-card__footer {
   display: flex;
   align-items: center;
@@ -176,15 +252,12 @@
   font-size: 48px;
 }
 
-/* Pagination */
-.vocabulary-pagination-wrapper {
-  margin-top: var(--spacing-2xl);
-  display: flex;
-  justify-content: center;
-}
-
 /* Responsive Breakpoints */
 @media (max-width: 1024px) {
+  .deck-list-page {
+    padding-top: calc(68px + var(--spacing-xl));
+  }
+
   .vocabulary-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -192,13 +265,9 @@
 
 @media (max-width: 600px) {
   .deck-list-page {
-    padding-top: calc(var(--spacing-3xl) + var(--spacing-xl));
+    padding-top: calc(60px + var(--spacing-lg));
   }
 
-  .deck-list-header {
-    padding: var(--spacing-xl);
-  }
-  
   .deck-list-filters {
     padding: var(--spacing-md);
   }
@@ -207,8 +276,14 @@
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .vocabulary-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 360px) {
+  .deck-list-page {
+    padding-top: calc(60px + var(--spacing-md));
   }
 }

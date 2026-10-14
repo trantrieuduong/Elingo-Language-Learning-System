@@ -8,6 +8,7 @@ import com.elingo.premium.repository.UserSubscriptionRepository;
 import com.elingo.vocabulary.dto.request.GetPublishedDecksRequest;
 import com.elingo.vocabulary.dto.response.DeckResponse;
 import com.elingo.vocabulary.dto.response.TopicResponse;
+import com.elingo.vocabulary.entity.Deck;
 import com.elingo.vocabulary.entity.DeckStatus;
 import com.elingo.vocabulary.mapper.DeckMapper;
 import com.elingo.vocabulary.mapper.TopicMapper;
@@ -27,6 +28,7 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -51,9 +53,29 @@ public class DeckServiceImpl implements DeckService {
 
         Pageable pageable = PageRequest.of(request.page() - 1, PAGE_SIZE);
 
-        Page<DeckResponse> resultPage = deckRepository
-                .findPublishedWithFilters(cefrCode, tagCode, keyword, pageable)
-                .map(deckMapper::toDeckResponse);
+        Page<Deck> deckPage = deckRepository
+                .findPublishedWithFilters(cefrCode, tagCode, keyword, pageable);
+
+        List<Long> deckIds = deckPage.getContent().stream()
+                .map(Deck::getId)
+                .toList();
+
+        Map<Long, Integer> learnedMap;
+        if (userId != null && !deckIds.isEmpty()) {
+            learnedMap = cardRepository.countLearnedCardsByDeckIds(deckIds, userId)
+                    .stream()
+                    .collect(Collectors.toMap(
+                            CardRepository.DeckLearnedCardCount::getDeckId,
+                            CardRepository.DeckLearnedCardCount::getLearnedCardCount
+                    ));
+        } else {
+            learnedMap = Map.of();
+        }
+
+        Page<DeckResponse> resultPage = deckPage.map(deck -> {
+            DeckResponse response = deckMapper.toDeckResponse(deck);
+            return response.withLearnedCardCount(learnedMap.getOrDefault(deck.getId(), 0));
+        });
 
         log.info("Published decks fetched count={} total={} page={} totalPages={}",
                 resultPage.getNumberOfElements(), resultPage.getTotalElements(),
@@ -64,9 +86,11 @@ public class DeckServiceImpl implements DeckService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<TopicResponse> getTopicsByDeck(Long userId, Long deckId) {
-        validateDeckAccess(userId, deckId);
+    public List<TopicResponse> getTopicsByDeck(Long userId, String identifier) {
+        Deck deck = findDeckByIdentifier(identifier);
+        validateDeckAccess(userId, deck);
 
+        Long deckId = deck.getId();
         List<CardRepository.TopicUnlearnedCardCount> unlearnedCounts =
                 cardRepository.countUnlearnedCardsByDeckIdGroupByTopic(deckId, userId);
         Map<Long, Integer> unlearnedMap = unlearnedCounts.stream()
@@ -91,16 +115,24 @@ public class DeckServiceImpl implements DeckService {
                 })
                 .toList();
 
-        log.info("Topics fetched count={} deckId={}", topics.size(), deckId);
+        log.info("Topics fetched count={} deckId={} identifier={}", topics.size(), deckId, identifier);
         return topics;
     }
 
-    private void validateDeckAccess(Long userId, Long deckId) {
-        var deck = deckRepository.findById(deckId)
-                .orElseThrow(() -> {
-                    return new AppException(AppError.DECK_NOT_FOUND);
-                });
+    private Deck findDeckByIdentifier(String identifier) {
+        return deckRepository.findBySlug(identifier)
+                .or(() -> {
+                    try {
+                        Long id = Long.parseLong(identifier);
+                        return deckRepository.findById(id);
+                    } catch (NumberFormatException e) {
+                        return Optional.empty();
+                    }
+                })
+                .orElseThrow(() -> new AppException(AppError.DECK_NOT_FOUND));
+    }
 
+    private void validateDeckAccess(Long userId, Deck deck) {
         if (deck.getStatus() != DeckStatus.PUBLISHED) {
             throw new AppException(AppError.DECK_NOT_FOUND);
         }
@@ -112,6 +144,6 @@ public class DeckServiceImpl implements DeckService {
                 throw new AppException(AppError.DECK_PREMIUM_REQUIRED);
             }
         }
-        log.info("Deck access granted deckId={}", deckId);
+        log.info("Deck access granted deckId={}", deck.getId());
     }
 }

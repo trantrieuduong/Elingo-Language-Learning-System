@@ -6,6 +6,7 @@ import com.elingo.vocabulary.dto.response.DeckResponse;
 import com.elingo.vocabulary.entity.DeckStatus;
 import com.elingo.vocabulary.entity.OwnerType;
 import com.elingo.vocabulary.mapper.DeckMapper;
+import com.elingo.vocabulary.repository.CardRepository;
 import com.elingo.vocabulary.repository.DeckRepository;
 import com.elingo.vocabulary.service.impl.DeckServiceImpl;
 import org.junit.jupiter.api.DisplayName;
@@ -37,6 +38,9 @@ class DeckServiceTest {
 
     @Mock
     private DeckRepository deckRepository;
+
+    @Mock
+    private CardRepository cardRepository;
 
     @Mock
     private DeckMapper deckMapper;

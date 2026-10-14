@@ -1,11 +1,11 @@
 import apiClient from '../../../services/apiClient'
 
 /**
- * Lấy danh sách topics của một deck công khai.
- * @param {string} deckId - ID của deck
+ * Lấy danh sách topics của một deck công khai (qua slug hoặc ID).
+ * @param {string|number} identifier - Slug hoặc ID của deck
  */
-export const getTopicsByDeckIdApi = async (deckId) => {
-  const response = await apiClient.get(`/decks/${deckId}/topics`)
+export const getTopicsByDeckIdApi = async (identifier) => {
+  const response = await apiClient.get(`/decks/${identifier}/topics`)
   return response.data
 }
 
