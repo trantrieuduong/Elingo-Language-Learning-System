@@ -76,4 +76,8 @@ public class Card extends BaseEntity {
     @EqualsAndHashCode.Exclude
     @Builder.Default
     List<CardPhonetic> phonetics = new ArrayList<>();
+
+    @Column(name = "is_deleted", nullable = false)
+    @Builder.Default
+    Boolean isDeleted = false;
 }

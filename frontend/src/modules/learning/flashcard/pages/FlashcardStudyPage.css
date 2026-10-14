@@ -12,19 +12,69 @@
   gap: var(--spacing-xl);
 }
 
-@media (min-width: 1024px) {
-  .flashcard-page-container {
-    padding: 2rem var(--spacing-xl) var(--spacing-2xl);
-  }
-  .flashcard-layout {
-    grid-template-columns: 320px 1fr;
-  }
-}
-
 .flashcard-sidebar {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
+  max-height: 280px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 4px 6px 8px 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(155, 183, 232, 0.5) transparent;
+}
+
+.flashcard-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.flashcard-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.flashcard-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(155, 183, 232, 0.45);
+  border-radius: var(--radius-pill);
+  transition: background 0.2s ease;
+}
+
+.flashcard-sidebar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
+
+[data-theme='dark'] .flashcard-sidebar {
+  scrollbar-color: rgba(155, 183, 232, 0.3) transparent;
+}
+
+[data-theme='dark'] .flashcard-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(155, 183, 232, 0.25);
+}
+
+[data-theme='dark'] .flashcard-sidebar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary-container);
+}
+
+@media (max-width: 600px) {
+  .flashcard-sidebar {
+    max-height: 250px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .flashcard-page-container {
+    padding: 2rem var(--spacing-xl) var(--spacing-2xl);
+  }
+
+  .flashcard-layout {
+    grid-template-columns: 320px 1fr;
+    align-items: start;
+  }
+
+  .flashcard-sidebar {
+    max-height: 516px;
+    position: sticky;
+    top: 2rem;
+  }
 }
 
 .flashcard-main-content {
@@ -45,6 +95,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs);
+  flex-shrink: 0;
 }
 
 .flashcard-topic-card:hover {
@@ -66,16 +117,24 @@
 .flashcard-topic-title {
   font-family: var(--font-display);
   font-size: var(--font-size-title-md);
+  line-height: var(--line-height-title-md);
   font-weight: 600;
   color: var(--color-text-high);
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .flashcard-topic-desc {
   font-family: var(--font-body);
   font-size: var(--font-size-body-sm);
+  line-height: var(--line-height-body-sm);
   color: var(--color-text-body);
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .flashcard-empty-placeholder {
@@ -97,6 +156,8 @@
 .flashcard-card-container {
   position: relative;
   width: 100%;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
 }
 
 .flashcard-card-actions {
@@ -125,6 +186,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+.flashcard-card-btn:focus {
+  outline: none;
 }
 
 .flashcard-card-btn:hover:not(:disabled) {
@@ -170,7 +237,6 @@
 [data-theme='dark'] .flashcard-card-btn-star.active-star .material-symbols-outlined {
   color: #fbbf24;
 }
-
 
 /* ── 4 Nút đánh giá SM-2 (Học lại, Khó, Dễ, Quá dễ) ── */
 .flashcard-actions {

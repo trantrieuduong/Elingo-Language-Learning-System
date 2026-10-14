@@ -64,14 +64,17 @@ public enum AppError {
     // ==========================================
     // 3. Vocabulary (Bộ từ vựng, Chủ đề, Thẻ từ)
     // ==========================================
-    DECK_NOT_FOUND("DECK_NOT_FOUND", "Vocabulary deck not found", HttpStatus.NOT_FOUND),
+    DECK_NOT_FOUND("DECK_NOT_FOUND", "Vocabulary deck not found or has not been published", HttpStatus.NOT_FOUND),
     DECK_SLUG_EXISTED("DECK_SLUG_EXISTED", "Deck slug already exists", HttpStatus.BAD_REQUEST),
-    DECK_ACCESS_DENIED("DECK_ACCESS_DENIED", "You do not have permission to modify this deck", HttpStatus.FORBIDDEN),
-    DECK_PREMIUM_REQUIRED("DECK_PREMIUM_REQUIRED", "This deck requires a premium subscription", HttpStatus.FORBIDDEN),
+    DECK_ACCESS_DENIED("DECK_ACCESS_DENIED", "You do not have permission to access this deck", HttpStatus.FORBIDDEN),
+    DECK_PREMIUM_REQUIRED("DECK_PREMIUM_REQUIRED", "This deck requires a premium subscription. Please upgrade your subscription to continue learning", HttpStatus.FORBIDDEN),
     DECK_EMPTY("DECK_EMPTY", "Deck contains no cards", HttpStatus.BAD_REQUEST),
     TOPIC_NOT_FOUND("TOPIC_NOT_FOUND", "Topic not found", HttpStatus.NOT_FOUND),
     TOPIC_SLUG_EXISTED("TOPIC_SLUG_EXISTED", "Topic slug already exists in this deck", HttpStatus.BAD_REQUEST),
+    TOPIC_ACCESS_DENIED("TOPIC_ACCESS_DENIED", "You do not have permission to access this topic", HttpStatus.FORBIDDEN),
+    TOPIC_NOT_IN_DECK("TOPIC_NOT_IN_DECK", "Topic does not belong to this deck", HttpStatus.BAD_REQUEST),
     CARD_NOT_FOUND("CARD_NOT_FOUND", "Vocabulary card not found", HttpStatus.NOT_FOUND),
+    CARD_ACCESS_DENIED("CARD_ACCESS_DENIED", "You do not have permission to modify this card", HttpStatus.FORBIDDEN),
     CARD_PHONETIC_NOT_FOUND("CARD_PHONETIC_NOT_FOUND", "Card phonetic not found", HttpStatus.NOT_FOUND),
     TAG_NOT_FOUND("TAG_NOT_FOUND", "Tag not found", HttpStatus.NOT_FOUND),
     TAG_CODE_EXISTED("TAG_CODE_EXISTED", "Tag code already exists", HttpStatus.BAD_REQUEST),
@@ -81,7 +84,7 @@ public enum AppError {
     CEFR_LEVEL_CODE_INVALID("CEFR_LEVEL_CODE_INVALID", "CEFR level code must not exceed 10 characters", HttpStatus.BAD_REQUEST),
     IMPORT_VOCABULARY_FAILED("IMPORT_VOCABULARY_FAILED", "Failed to import vocabulary from file", HttpStatus.BAD_REQUEST),
     KEYWORD_INVALID("KEYWORD_INVALID", "Keyword must not exceed 255 characters", HttpStatus.BAD_REQUEST),
-    PAGE_INDEX_INVALID("PAGE_INDEX_INVALID", "Page index must be 0 or greater", HttpStatus.BAD_REQUEST),
+    PAGE_INDEX_INVALID("PAGE_INDEX_INVALID", "Page index must be 1 or greater", HttpStatus.BAD_REQUEST),
 
     // ==========================================
     // 4. Learning - Flashcard (Học thẻ SRS SM-2)

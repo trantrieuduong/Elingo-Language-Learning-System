@@ -28,7 +28,14 @@
     "GOOGLE_TOKEN_VERIFICATION_FAILED": "Không thể xác thực tài khoản Google. Vui lòng thử lại.",
     "USERNAME_COOLDOWN": "Bạn có thể đổi tên người dùng sau {{days}} ngày nữa.",
     "INTERNAL_SERVER_ERROR": "Lỗi hệ thống. Vui lòng thử lại sau.",
-    "UNCATEGORIZED_EXCEPTION": "Lỗi không xác định. Vui lòng thử lại."
+    "UNCATEGORIZED_EXCEPTION": "Lỗi không xác định. Vui lòng thử lại.",
+    "DECK_NOT_FOUND": "Bộ từ vựng không tồn tại hoặc chưa được công khai.",
+    "DECK_ACCESS_DENIED": "Bạn không có quyền truy cập bộ từ vựng này.",
+    "DECK_PREMIUM_REQUIRED": "Bộ từ vựng này yêu cầu tài khoản Premium. Vui lòng nâng cấp gói để tiếp tục học.",
+    "TOPIC_NOT_FOUND": "Chủ đề không tồn tại.",
+    "TOPIC_ACCESS_DENIED": "Bạn không có quyền truy cập chủ đề này.",
+    "CARD_NOT_FOUND": "Thẻ từ vựng không tồn tại.",
+    "NO_CARDS_DUE": "Hiện không có thẻ nào đến hạn ôn tập."
   },
   "validation": {
     "username": {

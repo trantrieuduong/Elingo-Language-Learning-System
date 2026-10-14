@@ -36,9 +36,7 @@ public class TopicServiceImpl implements TopicService {
     @Transactional(readOnly = true)
     public List<CardResponse> getUnlearnedCardsByTopic(Long userId, Long topicId) {
         Topic topic = topicRepository.findByIdWithDeck(topicId)
-                .orElseThrow(() -> {
-                    return new AppException(AppError.TOPIC_NOT_FOUND);
-                });
+                .orElseThrow(() -> new AppException(AppError.TOPIC_NOT_FOUND));
 
         if (topic.getDeck().getIsPremium()) {
             boolean hasActiveSubscription = userSubscriptionRepository

@@ -13,9 +13,9 @@ public interface TopicRepository extends JpaRepository<Topic, Long> {
     List<Topic> findAllByDeckIdOrderByOrderAsc(Long deckId);
 
     @Query("""
-            SELECT t FROM Topic t
-            JOIN FETCH t.deck d
-            WHERE t.id = :topicId
-            """)
+        SELECT t FROM Topic t
+        JOIN FETCH t.deck d
+        WHERE t.id = :topicId
+    """)
     Optional<Topic> findByIdWithDeck(Long topicId);
 }

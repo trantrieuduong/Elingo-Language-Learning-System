@@ -39,12 +39,12 @@ public class DeckController {
                 .build();
     }
 
-    @GetMapping("/{deckId}/topics")
-    @Operation(summary = "Get all topics belonging to a deck")
+    @GetMapping("/{identifier}/topics")
+    @Operation(summary = "Get all topics belonging to a deck (by slug or ID)")
     public ApiResponse<List<TopicResponse>> getTopicsByDeck(
-            @PathVariable Long deckId,
+            @PathVariable String identifier,
             @CurrentUserId Long currentUserId) {
-        List<TopicResponse> topics = deckService.getTopicsByDeck(currentUserId, deckId);
+        List<TopicResponse> topics = deckService.getTopicsByDeck(currentUserId, identifier);
         return ApiResponse.<List<TopicResponse>>builder()
                 .success(true)
                 .data(topics)

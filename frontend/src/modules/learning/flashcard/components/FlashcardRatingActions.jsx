@@ -1,25 +1,27 @@
-const RATING_BUTTONS = [
+import { useTranslation } from 'react-i18next'
+
+const RATING_CONFIGS = [
   {
     grade: 0,
-    label: 'Học lại',
+    key: 'again',
     icon: 'replay',
     btnClass: 'btn-secondary flashcard-btn-rating flashcard-btn-rating--again'
   },
   {
     grade: 1,
-    label: 'Khó',
+    key: 'hard',
     icon: 'psychology',
     btnClass: 'btn-secondary flashcard-btn-rating flashcard-btn-rating--hard'
   },
   {
     grade: 2,
-    label: 'Dễ',
+    key: 'good',
     icon: 'sentiment_satisfied',
     btnClass: 'btn-secondary flashcard-btn-rating flashcard-btn-rating--good'
   },
   {
     grade: 3,
-    label: 'Quá dễ',
+    key: 'easy',
     icon: 'sentiment_very_satisfied',
     btnClass: 'btn-primary flashcard-btn-rating flashcard-btn-rating--easy'
   }
@@ -32,20 +34,25 @@ const RATING_BUTTONS = [
  * @param {boolean} isProcessing - Trạng thái đang gửi API đánh giá (disable nút)
  */
 export default function FlashcardRatingActions({ onReviewCard, isProcessing = false }) {
+  const { t } = useTranslation('learning')
+
   return (
     <div className="flashcard-actions">
-      {RATING_BUTTONS.map((btn) => (
-        <button
-          key={btn.grade}
-          type="button"
-          className={btn.btnClass}
-          onClick={() => onReviewCard && onReviewCard(btn.grade, btn.label)}
-          disabled={isProcessing}
-        >
-          <span className="material-symbols-outlined">{btn.icon}</span>
-          <span>{btn.label}</span>
-        </button>
-      ))}
+      {RATING_CONFIGS.map((btn) => {
+        const label = t(`flashcard.ratings.${btn.key}`)
+        return (
+          <button
+            key={btn.grade}
+            type="button"
+            className={btn.btnClass}
+            onClick={() => onReviewCard && onReviewCard(btn.grade, label)}
+            disabled={isProcessing}
+          >
+            <span className="material-symbols-outlined">{btn.icon}</span>
+            <span>{label}</span>
+          </button>
+        )
+      })}
     </div>
   )
 }

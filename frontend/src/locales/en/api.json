@@ -28,7 +28,14 @@
     "GOOGLE_TOKEN_VERIFICATION_FAILED": "Unable to verify Google account. Please try again.",
     "USERNAME_COOLDOWN": "You can change your username in {{days}} more days.",
     "INTERNAL_SERVER_ERROR": "System error. Please try again later.",
-    "UNCATEGORIZED_EXCEPTION": "Unknown error. Please try again."
+    "UNCATEGORIZED_EXCEPTION": "Unknown error. Please try again.",
+    "DECK_NOT_FOUND": "Vocabulary deck not found or has not been published.",
+    "DECK_ACCESS_DENIED": "You do not have permission to access this deck.",
+    "DECK_PREMIUM_REQUIRED": "This deck requires a premium subscription. Please upgrade to continue learning.",
+    "TOPIC_NOT_FOUND": "Topic not found.",
+    "TOPIC_ACCESS_DENIED": "You do not have permission to access this topic.",
+    "CARD_NOT_FOUND": "Vocabulary card not found.",
+    "NO_CARDS_DUE": "No flashcards are due for review."
   },
   "validation": {
     "username": {

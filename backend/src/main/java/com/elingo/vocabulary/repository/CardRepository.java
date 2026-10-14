@@ -32,6 +32,22 @@ public interface CardRepository extends JpaRepository<Card, Long> {
             List<Long> ids
     );
 
+    interface DeckLearnedCardCount {
+        Long getDeckId();
+        Integer getLearnedCardCount();
+    }
+
+    @Query("""
+        SELECT c.deck.id AS deckId, COUNT(c.id) AS learnedCardCount
+        FROM Card c
+        JOIN UserCardState ucs ON ucs.card.id = c.id AND ucs.user.id = :userId
+        WHERE c.deck.id IN :deckIds
+        AND c.isDeleted = false
+        AND (ucs.srsNextReviewAt IS NOT NULL OR ucs.flagsHidden = true)
+        GROUP BY c.deck.id
+    """)
+    List<DeckLearnedCardCount> countLearnedCardsByDeckIds(List<Long> deckIds, Long userId);
+
     interface TopicUnlearnedCardCount {
         Long getTopicId();
         Integer getUnlearnedCardCount();

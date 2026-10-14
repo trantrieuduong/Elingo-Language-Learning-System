@@ -89,10 +89,12 @@ CREATE TABLE topics (
   slug VARCHAR(255) NOT NULL,
   `order` INT UNSIGNED NOT NULL DEFAULT 0,
   card_count INT UNSIGNED NOT NULL DEFAULT 0,
+  is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (deck_id) REFERENCES decks(id) ON DELETE CASCADE,
-  UNIQUE KEY uq_topic_slug_per_deck (deck_id, slug)
+  UNIQUE KEY uq_topic_slug_per_deck (deck_id, slug),
+  INDEX idx_topic_deleted (deck_id, is_deleted)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE cards (
@@ -108,12 +110,13 @@ CREATE TABLE cards (
   examples_vi TEXT,
   examples_en TEXT,
   image_url VARCHAR(500),
+  is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (deck_id) REFERENCES decks(id) ON DELETE CASCADE,
-  FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE SET NULL,
-  INDEX idx_card_deck (deck_id),
-  INDEX idx_card_topic (topic_id)
+  FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE CASCADE,
+  INDEX idx_card_deck_deleted (deck_id, is_deleted),
+  INDEX idx_card_topic_deleted (topic_id, is_deleted)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Tách mảng nhúng phonetics[] thành bảng con
@@ -130,7 +133,7 @@ CREATE TABLE user_card_states (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   card_id BIGINT UNSIGNED NOT NULL,
   deck_id BIGINT UNSIGNED NOT NULL,
-  topic_id BIGINT UNSIGNED NULL,
+  topic_id BIGINT UNSIGNED NOT NULL,
   user_id BIGINT UNSIGNED NOT NULL,
   srs_ease_factor DECIMAL(4,2) NOT NULL DEFAULT 2.50,
   srs_interval INT UNSIGNED NOT NULL DEFAULT 0,
@@ -142,7 +145,7 @@ CREATE TABLE user_card_states (
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (card_id) REFERENCES cards(id) ON DELETE CASCADE,
   FOREIGN KEY (deck_id) REFERENCES decks(id) ON DELETE CASCADE,
-  FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE SET NULL,
+  FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE CASCADE,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   UNIQUE KEY uq_user_card (user_id, card_id),
   INDEX idx_due_review (user_id, srs_next_review_at)
