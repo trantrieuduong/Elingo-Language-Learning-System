@@ -330,6 +330,7 @@ describe('Header', () => {
     it('active link khớp đúng path của dropdown sub-item và kích hoạt active trên parent button', () => {
       const { rerender } = render(<Header onNavigate={mockNavigate} currentPath="/learning" />)
       const nav = screen.getByRole('navigation', { name: 'Main navigation' })
+      const getLearningBtn = () => within(nav).getByRole('button', { name: tr('nav:learning') })
 
       expect(within(nav).getByRole('button', { name: new RegExp(tr('nav:learning')) })).toHaveClass(ACTIVE_NAV)
       expect(within(nav).getByRole('button', { name: new RegExp(tr('nav:features')) })).not.toHaveClass(ACTIVE_NAV)

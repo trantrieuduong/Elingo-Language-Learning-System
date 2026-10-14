@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import './FlashCard.css'
 
 /**
@@ -55,6 +56,7 @@ const extractPhonetics = (cardData) => {
  * @param {Object} card - Dữ liệu thẻ từ vựng (CardResponse)
  */
 export default function FlashCard({ card }) {
+  const { t } = useTranslation('learning')
   const [isFlipped, setIsFlipped] = useState(false)
   const [imgError, setImgError] = useState(false)
   const [playingAudioKey, setPlayingAudioKey] = useState(null)
@@ -95,6 +97,9 @@ export default function FlashCard({ card }) {
   const handlePlayAudio = (e, audioUrl, key = 'default') => {
     if (e && typeof e.stopPropagation === 'function') {
       e.stopPropagation()
+    }
+    if (e && typeof e.preventDefault === 'function') {
+      e.preventDefault() // Ngăn chặn trình duyệt chuyển focus lên khung thẻ cha
     }
 
     if (!audioUrl || typeof audioUrl !== 'string' || audioUrl.trim().length === 0) {
@@ -153,7 +158,7 @@ export default function FlashCard({ card }) {
       onClick={handleFlip}
       role="button"
       tabIndex={0}//có thể tab đến thẻ này
-      aria-label={`Thẻ từ vựng: ${term}. Nhấn phím cách hoặc click để lật thẻ.`}
+      aria-label={t('flashcard.card.ariaLabel', { term })}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {//enter or spacebar
           e.preventDefault()
@@ -169,7 +174,7 @@ export default function FlashCard({ card }) {
             <div className="flashcard-image-wrapper">
               <img
                 src={imageUrl}
-                alt={term || 'Minh họa từ vựng'}
+                alt={term || t('flashcard.card.imageAlt')}
                 className="flashcard-image"
                 onError={() => setImgError(true)}//Ko có, lỗi ảnh -> hiện ảnh broken, xấu giao diện
               />
@@ -204,8 +209,15 @@ export default function FlashCard({ card }) {
                         type="button"
                         className={`btn-icon flashcard-audio-btn ${isPlaying ? 'playing' : ''}`}
                         onClick={(e) => handlePlayAudio(e, item.audioUrl, key)}
-                        title={`Nghe phát âm ${localeLabel ? `(${localeLabel})` : ''} của "${term}"`}
-                        aria-label={`Phát âm ${localeLabel ? `(${localeLabel})` : ''} của "${term}"`}
+                        onPointerDown={(e) => e.stopPropagation()} /*Chặn sự kiện chạm cảm ứng kích hoạt highlight vùng cha*/
+                        title={t('flashcard.card.playAudioTitle', {
+                          locale: localeLabel ? `(${localeLabel})` : '',
+                          term,
+                        })}
+                        aria-label={t('flashcard.card.playAudioAria', {
+                          locale: localeLabel ? `(${localeLabel})` : '',
+                          term,
+                        })}
                       >
                         <span className={`material-symbols-outlined ${isPlaying ? 'pulse-icon' : ''}`}>
                           volume_up
@@ -220,7 +232,7 @@ export default function FlashCard({ card }) {
 
           <p className="flashcard-hint">
             <span className="material-symbols-outlined flashcard-hint-icon">touch_app</span>
-            Chạm để xem nghĩa & ví dụ
+            {t('flashcard.card.hintFront')}
           </p>
         </div>
 
@@ -233,7 +245,7 @@ export default function FlashCard({ card }) {
               <div className="flashcard-section">
                 <span className="material-symbols-outlined">menu_book</span>
                 <div>
-                  <p className="flashcard-section-label">Định nghĩa (VI):</p>
+                  <p className="flashcard-section-label">{t('flashcard.card.definitionVi')}</p>
                   <p className="flashcard-explanation-text">{explanationVi}</p>
                 </div>
               </div>
@@ -243,7 +255,7 @@ export default function FlashCard({ card }) {
               <div className="flashcard-section">
                 <span className="material-symbols-outlined">menu_book</span>
                 <div>
-                  <p className="flashcard-section-label">Định nghĩa (EN):</p>
+                  <p className="flashcard-section-label">{t('flashcard.card.definitionEn')}</p>
                   <p className="flashcard-explanation-text">{explanationEn}</p>
                 </div>
               </div>
@@ -253,7 +265,7 @@ export default function FlashCard({ card }) {
               <div className="flashcard-section">
                 <span className="material-symbols-outlined">format_quote</span>
                 <div>
-                  <p className="flashcard-section-label">Ví dụ:</p>
+                  <p className="flashcard-section-label">{t('flashcard.card.examples')}</p>
                   {examplesEn && <p className="flashcard-example-en">"{examplesEn}"</p>}
                   {examplesVi && <p className="flashcard-example-vi">{examplesVi}</p>}
                 </div>
@@ -263,7 +275,7 @@ export default function FlashCard({ card }) {
 
           <p className="flashcard-hint">
             <span className="material-symbols-outlined flashcard-hint-icon">touch_app</span>
-            Chạm để lật lại mặt trước
+            {t('flashcard.card.hintBack')}
           </p>
         </div>
       </div>

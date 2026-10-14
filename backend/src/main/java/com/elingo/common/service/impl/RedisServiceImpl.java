@@ -7,6 +7,7 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -51,5 +52,20 @@ public class RedisServiceImpl implements RedisService {
     public long getTtlSeconds(String key) {
         Long ttl = stringRedisTemplate.getExpire(key, TimeUnit.SECONDS);
         return ttl == null || ttl < 0 ? 1 : ttl;
+    }
+
+    @Override
+    public boolean getBit(String key, long offset) {
+        return Boolean.TRUE.equals(stringRedisTemplate.opsForValue().getBit(key, offset));
+    }
+
+    @Override
+    public boolean setBit(String key, long offset, boolean value) {
+        return Boolean.TRUE.equals(stringRedisTemplate.opsForValue().setBit(key, offset, value));
+    }
+
+    @Override
+    public void expireAt(String key, Instant at) {
+        stringRedisTemplate.expireAt(key, at);
     }
 }

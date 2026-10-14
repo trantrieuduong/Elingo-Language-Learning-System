@@ -1,1 +1,53 @@
-{}
+{
+  "deckList": {
+    "searchPlaceholder": "Search by deck name...",
+    "clearFilters": "Clear filters",
+    "loadError": "Unable to load deck list",
+    "networkError": "A network or system error occurred. Please try again.",
+    "retry": "Try again",
+    "empty": "No matching vocabulary decks found.",
+    "cardStats": "{{topicCount}} topics - {{cardCount}} words",
+    "noDescription": "No description available for this deck.",
+    "premium": "Premium",
+    "free": "Free",
+    "progress": "Progress"
+  },
+  "flashcard": {
+    "back": "Back",
+    "upgradePremium": "Upgrade to Premium",
+    "backToDecks": "Back to Deck List",
+    "loadTopicsError": "Failed to load topics. Please try again.",
+    "loadReviewError": "Failed to load review flashcards.",
+    "studyCompleted": "You have completed all flashcards in this topic.",
+    "reviewCompleted": "You have completed all flashcards due for review today.",
+    "loadCardsNetworkError": "Unable to load flashcard data. Please check your connection and try again.",
+    "retry": "Try again",
+    "loadingCards": "Loading study cards...",
+    "connectionError": "Connection Error",
+    "noCardsToStudy": "No flashcards available to study.",
+    "noTopicsInDeck": "This deck has no topics yet.",
+    "overallProgress": "Overall Progress",
+    "ratings": {
+      "again": "Again",
+      "hard": "Hard",
+      "good": "Good",
+      "easy": "Easy"
+    },
+    "actions": {
+      "star": "Star",
+      "unstar": "Unstar",
+      "hide": "Hide this card"
+    },
+    "card": {
+      "ariaLabel": "Vocabulary card: {{term}}. Press space or click to flip.",
+      "imageAlt": "Vocabulary illustration",
+      "playAudioAria": "Pronunciation {{locale}} of \"{{term}}\"",
+      "playAudioTitle": "Listen to {{locale}} pronunciation of \"{{term}}\"",
+      "hintFront": "Tap to see definition & examples",
+      "definitionVi": "Definition (VI):",
+      "definitionEn": "Definition (EN):",
+      "examples": "Examples:",
+      "hintBack": "Tap to flip back"
+    }
+  }
+}

@@ -8,7 +8,7 @@ import com.elingo.vocabulary.dto.response.TopicResponse;
 import java.util.List;
 
 public interface DeckService {
-    List<TopicResponse> getTopicsByDeck(Long userId, Long deckId);
+    List<TopicResponse> getTopicsByDeck(Long userId, String identifier);
 
     /**
      * Returns a paginated + filtered page of published decks.

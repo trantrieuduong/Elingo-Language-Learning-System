@@ -318,6 +318,17 @@
   background: rgba(56, 78, 107, 0.7);
 }
 
+.header__dropdown-item--active {
+  color: var(--color-primary);
+  background: var(--color-secondary-container);
+  font-weight: var(--font-weight-semibold);
+}
+
+[data-theme='dark'] .header__dropdown-item--active {
+  background: rgba(67, 95, 139, 0.35);
+  color: var(--color-primary-container);
+}
+
 /* ── Mobile hamburger ── */
 .header__hamburger {
   display: none;
@@ -336,6 +347,76 @@
   border-radius: var(--radius-md);
   padding: var(--spacing-sm);
   gap: 2px;
+}
+
+.header__mobile-group {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.header__mobile-dropdown-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.header__mobile-chevron {
+  font-size: 20px;
+  line-height: 1;
+  transition: transform var(--transition-fast, 0.2s ease);
+}
+
+.header__mobile-chevron--open {
+  transform: rotate(180deg);
+}
+
+.header__mobile-submenu {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: var(--spacing-md);
+  margin-top: 2px;
+  margin-bottom: 4px;
+}
+
+.header__mobile-submenu-link {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 0.5rem 0.875rem;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-display);
+  font-size: var(--font-size-label-md);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-on-surface-variant);
+  text-decoration: none;
+  transition: var(--transition-fast);
+}
+
+.header__mobile-submenu-link .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.header__mobile-submenu-link:hover {
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--color-on-surface);
+}
+
+.header__mobile-submenu-link--active {
+  color: var(--color-primary);
+  background: var(--color-secondary-container);
+  font-weight: var(--font-weight-semibold);
+}
+
+[data-theme='dark'] .header__mobile-submenu-link--active {
+  background: rgba(67, 95, 139, 0.35);
+  color: var(--color-primary-container);
 }
 
 .header__mobile-nav-link {

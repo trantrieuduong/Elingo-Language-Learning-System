@@ -6,6 +6,7 @@ import com.elingo.vocabulary.dto.request.GetPublishedDecksRequest;
 import com.elingo.vocabulary.dto.response.DeckResponse;
 import com.elingo.vocabulary.entity.DeckStatus;
 import com.elingo.vocabulary.entity.OwnerType;
+import com.elingo.vocabulary.dto.response.TopicResponse;
 import com.elingo.vocabulary.service.DeckService;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -164,6 +165,43 @@ class DeckControllerTest {
                     .andExpect(jsonPath("$.data.content.length()").value(1));
 
             verify(deckService).getAllPublishedDecks(eq(USER_ID), any(GetPublishedDecksRequest.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("getTopicsByDeck")
+    class GetTopicsByDeckTests {
+
+        @Test
+        @DisplayName("Get topics by deck slug successfully")
+        void getTopicsByDeck_WithSlug_Success() throws Exception {
+            TopicResponse topic = new TopicResponse(1L, "Animals", "animals", 1, 10, 5);
+            when(deckService.getTopicsByDeck(USER_ID, "oxford-3000"))
+                    .thenReturn(List.of(topic));
+
+            mockMvc.perform(get("/decks/oxford-3000/topics"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data[0].id").value(1))
+                    .andExpect(jsonPath("$.data[0].name").value("Animals"))
+                    .andExpect(jsonPath("$.data[0].slug").value("animals"));
+
+            verify(deckService).getTopicsByDeck(USER_ID, "oxford-3000");
+        }
+
+        @Test
+        @DisplayName("Get topics by deck numeric ID successfully")
+        void getTopicsByDeck_WithNumericId_Success() throws Exception {
+            TopicResponse topic = new TopicResponse(1L, "Animals", "animals", 1, 10, 5);
+            when(deckService.getTopicsByDeck(USER_ID, "123"))
+                    .thenReturn(List.of(topic));
+
+            mockMvc.perform(get("/decks/123/topics"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data[0].id").value(1));
+
+            verify(deckService).getTopicsByDeck(USER_ID, "123");
         }
     }
 }

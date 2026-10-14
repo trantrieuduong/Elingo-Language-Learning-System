@@ -1,7 +1,9 @@
 package com.elingo.vocabulary.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)//chỉ trả về các field non null
 public record CardResponse(
     Long id,
     Integer order,

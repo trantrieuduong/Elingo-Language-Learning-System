@@ -92,6 +92,7 @@ function Header({ onNavigate, currentPath }) {
         setOpenDropdownKey(null)
       }
     }
+
     document.addEventListener('mousedown', handleClickOutside)
     document.addEventListener('keydown', handleKeyDown)
     return () => {
