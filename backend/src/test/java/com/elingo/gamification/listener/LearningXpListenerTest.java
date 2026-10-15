@@ -1,6 +1,6 @@
 package com.elingo.gamification.listener;
 
-import com.elingo.common.event.XpEvent;
+import com.elingo.common.event.XpGainedEvent;
 import com.elingo.gamification.config.GamificationProperties;
 import com.elingo.gamification.entity.XpSource;
 import com.elingo.gamification.service.CheckInService;
@@ -53,7 +53,7 @@ class LearningXpListenerTest {
         @DisplayName("Process experience points event successfully with allowed policy")
         void on_Success_AllowedPolicy() {
             GamificationProperties.Rule rule = new GamificationProperties.Rule(30, 5);
-            XpEvent event = new XpEvent(USER_ID, REF_ID, XpSource.LESSON_DICTATION, OCCURRED_AT);
+            XpGainedEvent event = new XpGainedEvent(USER_ID, REF_ID, XpSource.LESSON_DICTATION, OCCURRED_AT);
 
             when(props.rule(XpSource.LESSON_DICTATION)).thenReturn(rule);
             when(xpPolicy.allow(USER_ID, XpSource.LESSON_DICTATION, OCCURRED_AT.toLocalDate())).thenReturn(true);
@@ -68,7 +68,7 @@ class LearningXpListenerTest {
         @Test
         @DisplayName("Skip processing when rule is null")
         void on_Skip_RuleIsNull() {
-            XpEvent event = new XpEvent(USER_ID, REF_ID, XpSource.BATTLE_WIN, OCCURRED_AT);
+            XpGainedEvent event = new XpGainedEvent(USER_ID, REF_ID, XpSource.BATTLE_WIN, OCCURRED_AT);
 
             when(props.rule(XpSource.BATTLE_WIN)).thenReturn(null);
 
@@ -82,7 +82,7 @@ class LearningXpListenerTest {
         @DisplayName("Skip processing when source is daily check in")
         void on_Skip_DailyCheckIn() {
             GamificationProperties.Rule rule = new GamificationProperties.Rule(10, 5);
-            XpEvent event = new XpEvent(USER_ID, REF_ID, XpSource.DAILY_CHECKIN, OCCURRED_AT);
+            XpGainedEvent event = new XpGainedEvent(USER_ID, REF_ID, XpSource.DAILY_CHECKIN, OCCURRED_AT);
 
             when(props.rule(XpSource.DAILY_CHECKIN)).thenReturn(rule);
 
@@ -97,7 +97,7 @@ class LearningXpListenerTest {
         @DisplayName("Skip adding experience when policy denies")
         void on_Skip_PolicyDenied() {
             GamificationProperties.Rule rule = new GamificationProperties.Rule(25, 5);
-            XpEvent event = new XpEvent(USER_ID, REF_ID, XpSource.FLASHCARD_REVIEW, OCCURRED_AT);
+            XpGainedEvent event = new XpGainedEvent(USER_ID, REF_ID, XpSource.FLASHCARD_REVIEW, OCCURRED_AT);
 
             when(props.rule(XpSource.FLASHCARD_REVIEW)).thenReturn(rule);
             when(xpPolicy.allow(USER_ID, XpSource.FLASHCARD_REVIEW, OCCURRED_AT.toLocalDate())).thenReturn(false);
@@ -113,7 +113,7 @@ class LearningXpListenerTest {
         @DisplayName("Process successfully when check in service throws exception then recovers")
         void on_Success_CheckInExceptionRecovered() {
             GamificationProperties.Rule rule = new GamificationProperties.Rule(40, 5);
-            XpEvent event = new XpEvent(USER_ID, REF_ID, XpSource.LESSON_SHADOWING, OCCURRED_AT);
+            XpGainedEvent event = new XpGainedEvent(USER_ID, REF_ID, XpSource.LESSON_SHADOWING, OCCURRED_AT);
 
             when(props.rule(XpSource.LESSON_SHADOWING)).thenReturn(rule);
             doThrow(new RuntimeException("Redis down")).when(checkInService).ensureCheckedIn(USER_ID, OCCURRED_AT);

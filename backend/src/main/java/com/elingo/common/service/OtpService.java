@@ -1,6 +1,6 @@
 package com.elingo.common.service;
 
-import com.elingo.common.util.OtpType;
+import com.elingo.common.enums.OtpType;
 
 public interface OtpService {
     String generateAndSaveOtp(OtpType type, String identifier);

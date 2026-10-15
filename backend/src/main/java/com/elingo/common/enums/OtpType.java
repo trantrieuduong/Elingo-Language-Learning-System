@@ -1,4 +1,4 @@
-package com.elingo.common.util;
+package com.elingo.common.enums;
 
 import lombok.Getter;
 

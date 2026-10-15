@@ -12,11 +12,10 @@ import java.util.Optional;
 
 public interface LearningStreakRepository extends JpaRepository<LearningStreak, Long> {
 
-    @Modifying
-    @Query(value = """
-            INSERT IGNORE INTO learning_streaks (user_id) VALUES (:userId)
-    """, nativeQuery = true)
     /** insert ignore: chưa có -> tạo dòng mới, đã có -> không làm gì, không raise lỗi */
+    @Modifying
+    @Query(value = "INSERT IGNORE INTO learning_streaks(user_id, current_streak, longest_streak, updated_at) VALUES (:userId, 0, 0, NOW())",
+            nativeQuery = true)
     void insertIgnore(@Param("userId") long userId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
