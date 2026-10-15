@@ -4,7 +4,7 @@ import com.elingo.gamification.entity.XpSource;
 
 import java.time.LocalDateTime;
 
-public record XpEvent(
+public record XpGainedEvent(
         long userId,
         long refId,
         XpSource xpSource,

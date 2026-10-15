@@ -10,9 +10,9 @@ public interface UserXpRepository extends JpaRepository<UserXp, Long> {
 
     @Modifying
     @Query(value = """
-            INSERT INTO user_xp (user_id, total_xp, level_no, last_xp_at)
-            VALUES (:userId, :amount, 1, NOW())
-            ON DUPLICATE KEY UPDATE total_xp = total_xp + :amount, last_xp_at = NOW()
+            INSERT INTO user_xp (user_id, total_xp, level_no, last_xp_at, updated_at)
+            VALUES (:userId, :amount, 1, NOW(), NOW())
+            ON DUPLICATE KEY UPDATE total_xp = total_xp + :amount, last_xp_at = NOW(), updated_at = NOW()
     """, nativeQuery = true)
     void upsertAddXp(@Param("userId") long userId, @Param("amount") int amount);
 

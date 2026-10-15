@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -30,6 +31,7 @@ public class XpServiceImpl implements XpService {
     private final LevelCatalog levelCatalog;
 
     @Override
+    @Transactional
     public void addXp(long userId, int amount, XpSource source, Long refId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
