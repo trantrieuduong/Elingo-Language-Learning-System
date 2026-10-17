@@ -3,7 +3,9 @@ package com.elingo.vocabulary.controller;
 import com.elingo.common.annotation.CurrentUserId;
 import com.elingo.common.dto.ApiResponse;
 import com.elingo.common.dto.PageResponse;
+import com.elingo.vocabulary.dto.request.CreateDeckRequest;
 import com.elingo.vocabulary.dto.request.GetPublishedDecksRequest;
+import com.elingo.vocabulary.dto.request.UpdateDeckRequest;
 import com.elingo.vocabulary.dto.response.DeckResponse;
 import com.elingo.vocabulary.service.DeckService;
 import com.elingo.vocabulary.dto.response.TopicResponse;
@@ -11,11 +13,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.elingo.common.annotation.IsAdmin;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -39,15 +39,79 @@ public class DeckController {
                 .build();
     }
 
-    @GetMapping("/{identifier}/topics")
-    @Operation(summary = "Get all topics belonging to a deck (by slug or ID)")
+    @GetMapping("/{deckId}/topics")
+    @Operation(summary = "Get all topics belonging to a deck")
     public ApiResponse<List<TopicResponse>> getTopicsByDeck(
-            @PathVariable String identifier,
+            @PathVariable Long deckId,
             @CurrentUserId Long currentUserId) {
-        List<TopicResponse> topics = deckService.getTopicsByDeck(currentUserId, identifier);
+        List<TopicResponse> topics = deckService.getTopicsByDeck(currentUserId, deckId);
         return ApiResponse.<List<TopicResponse>>builder()
                 .success(true)
                 .data(topics)
+                .build();
+    }
+
+    @PostMapping
+    @PreAuthorize("hasRole('USER')")
+    @Operation(summary = "Create a new user deck (User only)")
+    public ApiResponse<DeckResponse> createUserDeck(
+            @RequestBody @Valid CreateDeckRequest request,
+            @CurrentUserId Long currentUserId) {
+        DeckResponse deck = deckService.createUserDeck(request, currentUserId);
+        return ApiResponse.<DeckResponse>builder()
+                .success(true)
+                .data(deck)
+                .build();
+    }
+
+    @PostMapping("/system")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Create a new system deck (Admin only)")
+    public ApiResponse<DeckResponse> createSystemDeck(
+            @RequestBody @Valid CreateDeckRequest request) {
+        DeckResponse deck = deckService.createSystemDeck(request);
+        return ApiResponse.<DeckResponse>builder()
+                .success(true)
+                .data(deck)
+                .build();
+    }
+
+    @PutMapping("/{deckId}")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(summary = "Update a user deck (User only)")
+    public ApiResponse<DeckResponse> updateUserDeck(
+            @PathVariable Long deckId,
+            @RequestBody @Valid UpdateDeckRequest request,
+            @CurrentUserId Long currentUserId) {
+        DeckResponse deck = deckService.updateUserDeck(deckId, request, currentUserId);
+        return ApiResponse.<DeckResponse>builder()
+                .success(true)
+                .data(deck)
+                .build();
+    }
+
+    @PutMapping("/{deckId}/system")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Update a system deck (Admin only)")
+    public ApiResponse<DeckResponse> updateSystemDeck(
+            @PathVariable Long deckId,
+            @RequestBody @Valid UpdateDeckRequest request) {
+        DeckResponse deck = deckService.updateSystemDeck(deckId, request);
+        return ApiResponse.<DeckResponse>builder()
+                .success(true)
+                .data(deck)
+                .build();
+    }
+
+    @DeleteMapping("/{deckId}")
+    @Operation(summary = "Delete a deck (Soft delete if published, Hard delete if draft)")
+    public ApiResponse<Void> deleteDeck(
+            @PathVariable Long deckId,
+            @CurrentUserId Long currentUserId,
+            @IsAdmin boolean isAdmin) {
+        deckService.deleteDeck(deckId, currentUserId, isAdmin);
+        return ApiResponse.<Void>builder()
+                .success(true)
                 .build();
     }
 }

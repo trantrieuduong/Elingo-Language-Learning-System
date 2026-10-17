@@ -45,6 +45,7 @@ public class SecurityConfig {
             "/v3/api-docs*/**",
             "/ws/**",
             "/decks",
+            "/slugs/**",
             "/tags",
             "/cefr-levels"
     };

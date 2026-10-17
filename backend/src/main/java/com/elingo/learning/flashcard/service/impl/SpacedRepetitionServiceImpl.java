@@ -1,6 +1,6 @@
 package com.elingo.learning.flashcard.service.impl;
 
-import com.elingo.config.FlashcardProperties;
+import com.elingo.learning.flashcard.config.FlashcardProperties;
 import com.elingo.learning.flashcard.entity.UserCardState;
 import com.elingo.learning.flashcard.service.SpacedRepetitionService;
 import lombok.RequiredArgsConstructor;
@@ -22,31 +22,31 @@ public class SpacedRepetitionServiceImpl implements SpacedRepetitionService {
     // Tham khảo: https://super-memory.com/english/ol/sm2.htm
     @Override
     public void calculateNextSRS(UserCardState state, int grade) {
-        FlashcardProperties.Srs srs = flashcardProperties.getSrs();
+        FlashcardProperties.Srs srs = flashcardProperties.srs();
         BigDecimal ef = state.getSrsEaseFactor();
         int prevInterval = state.getSrsInterval();
 
         BigDecimal newEf = switch (grade) {
-            case 0 -> ef.subtract(srs.getAgainEfPenalty()).max(srs.getEfMin());
-            case 1 -> ef.subtract(srs.getHardEfPenalty()).max(srs.getEfMin());
+            case 0 -> ef.subtract(srs.againEfPenalty()).max(srs.efMin());
+            case 1 -> ef.subtract(srs.hardEfPenalty()).max(srs.efMin());
             case 2 -> ef;
-            default -> ef.add(srs.getEasyEfBonus());
+            default -> ef.add(srs.easyEfBonus());
         };
         newEf = newEf.setScale(2, RoundingMode.HALF_UP);
 
         int newInterval = switch (grade) {
             case 0 -> 0;
             case 1 -> (prevInterval == 0) ? 1
-                    : BigDecimal.valueOf(prevInterval).multiply(srs.getHardIntervalFactor()).setScale(0, RoundingMode.HALF_UP).intValue();
+                    : BigDecimal.valueOf(prevInterval).multiply(srs.hardIntervalFactor()).setScale(0, RoundingMode.HALF_UP).intValue();
             case 2 -> (prevInterval == 0) ? 3
                     : BigDecimal.valueOf(prevInterval).multiply(ef).setScale(0, RoundingMode.HALF_UP).intValue();
             default -> (prevInterval == 0) ? 5
-                    : BigDecimal.valueOf(prevInterval).multiply(newEf).multiply(srs.getEasyIntervalFactor()).setScale(0, RoundingMode.HALF_UP).intValue();
+                    : BigDecimal.valueOf(prevInterval).multiply(newEf).multiply(srs.easyIntervalFactor()).setScale(0, RoundingMode.HALF_UP).intValue();
         };
 
         LocalDateTime nextReviewAt;
         if (newInterval == 0) {
-            nextReviewAt = LocalDateTime.now().plusMinutes(srs.getAgainReviewMinutes());
+            nextReviewAt = LocalDateTime.now().plusMinutes(srs.againReviewMinutes());
         } else {
             nextReviewAt = LocalDateTime.now().plusDays(newInterval);
         }

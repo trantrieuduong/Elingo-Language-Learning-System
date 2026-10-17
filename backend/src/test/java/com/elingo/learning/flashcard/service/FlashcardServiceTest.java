@@ -4,6 +4,7 @@ import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.learning.flashcard.dto.request.SrsReviewRequest;
 import com.elingo.learning.flashcard.dto.response.ReviewCardResponse;
+import com.elingo.learning.flashcard.mapper.FlashcardMapper;
 import com.elingo.learning.flashcard.entity.UserCardState;
 import com.elingo.learning.flashcard.repository.UserCardStateRepository;
 import com.elingo.learning.flashcard.service.impl.FlashcardServiceImpl;
@@ -16,7 +17,6 @@ import com.elingo.vocabulary.entity.Deck;
 import com.elingo.vocabulary.entity.DeckStatus;
 import com.elingo.vocabulary.entity.Topic;
 import com.elingo.vocabulary.dto.response.CardResponse;
-import com.elingo.vocabulary.mapper.CardMapper;
 import com.elingo.vocabulary.repository.CardRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -59,7 +59,7 @@ class FlashcardServiceTest {
     private SpacedRepetitionService spacedRepetitionService;
 
     @Mock
-    private CardMapper cardMapper;
+    private FlashcardMapper flashcardMapper;
 
     @Mock
     private UserSubscriptionRepository userSubscriptionRepository;
@@ -515,17 +515,19 @@ class FlashcardServiceTest {
                     .thenReturn(List.of(testState));
             when(cardRepository.findAllWithPhoneticsByIdIn(List.of(CARD_ID))).thenReturn(List.of(testCard));
 
-            CardResponse mockCardResponse = mock(CardResponse.class);
-            when(cardMapper.toCardResponse(testCard)).thenReturn(mockCardResponse);
+            ReviewCardResponse mockReviewResponse = new ReviewCardResponse(
+                    mock(CardResponse.class),
+                    testState.getSrsNextReviewAt(),
+                    testState.getFlagsStarred(),
+                    testState.getFlagsHidden()
+            );
+            when(flashcardMapper.toReviewCardResponse(testCard, testState)).thenReturn(mockReviewResponse);
 
             List<ReviewCardResponse> result = flashcardService.getCardsForReview(USER_ID, 100);
 
             assertThat(result).hasSize(1);
             ReviewCardResponse reviewResponse = result.getFirst();
-            assertThat(reviewResponse.card()).isEqualTo(mockCardResponse);
-            assertThat(reviewResponse.srsNextReviewAt()).isEqualTo(testState.getSrsNextReviewAt());
-            assertThat(reviewResponse.flagsStarred()).isEqualTo(testState.getFlagsStarred());
-            assertThat(reviewResponse.flagsHidden()).isEqualTo(testState.getFlagsHidden());
+            assertThat(reviewResponse).isEqualTo(mockReviewResponse);
         }
 
         @Test
@@ -538,7 +540,7 @@ class FlashcardServiceTest {
 
             assertThat(result).isEmpty();
             verifyNoInteractions(cardRepository);
-            verifyNoInteractions(cardMapper);
+            verifyNoInteractions(flashcardMapper);
         }
 
         @Test
