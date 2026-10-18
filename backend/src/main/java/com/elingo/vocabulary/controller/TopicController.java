@@ -20,10 +20,10 @@ public class TopicController {
 
     @GetMapping("/{topicId}/cards")
     @Operation(summary = "Get all unlearned cards belonging to a topic of current user")
-    public ApiResponse<List<CardResponse>> getUnlearnedCardsByTopic(
+    public ApiResponse<List<CardResponse>> getCardsByTopic(
             @PathVariable Long topicId,
             @CurrentUserId Long currentUserId) {
-        List<CardResponse> cards = topicService.getUnlearnedCardsByTopic(currentUserId, topicId);
+        List<CardResponse> cards = topicService.getCardsByTopic(topicId, currentUserId);
         return ApiResponse.<List<CardResponse>>builder()
                 .success(true)
                 .data(cards)

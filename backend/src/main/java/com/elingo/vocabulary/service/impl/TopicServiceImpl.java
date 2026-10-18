@@ -2,73 +2,51 @@ package com.elingo.vocabulary.service.impl;
 
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
-import com.elingo.learning.flashcard.repository.UserCardStateRepository;
-import com.elingo.premium.entity.SubscriptionStatus;
-import com.elingo.premium.repository.UserSubscriptionRepository;
+import com.elingo.learning.flashcard.dto.response.CardLearningState;
+import com.elingo.learning.flashcard.service.CardStateService;
 import com.elingo.vocabulary.dto.response.CardResponse;
 import com.elingo.vocabulary.entity.Card;
-import com.elingo.vocabulary.entity.Topic;
 import com.elingo.vocabulary.mapper.CardMapper;
 import com.elingo.vocabulary.repository.CardRepository;
-import com.elingo.vocabulary.repository.TopicRepository;
+import com.elingo.vocabulary.repository.DeckRepository;
+import com.elingo.vocabulary.service.DeckAccessPolicy;
 import com.elingo.vocabulary.service.TopicService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "TOPIC-SERVICE")
 public class TopicServiceImpl implements TopicService {
+
+    private final DeckRepository deckRepository;
+    private final DeckAccessPolicy accessPolicy;
     private final CardRepository cardRepository;
-    private final TopicRepository topicRepository;
+    private final CardStateService cardStateService;
     private final CardMapper cardMapper;
-    private final UserSubscriptionRepository userSubscriptionRepository;
-    private final UserCardStateRepository userCardStateRepository;
 
     @Override
     @Transactional(readOnly = true)
-    public List<CardResponse> getUnlearnedCardsByTopic(Long userId, Long topicId) {
-        Topic topic = topicRepository.findByIdWithDeck(topicId)
+    public List<CardResponse> getCardsByTopic(Long userId, Long topicId) {
+        DeckRepository.DeckAccessView deck = deckRepository.findAccessViewByTopicId(topicId)
                 .orElseThrow(() -> new AppException(AppError.TOPIC_NOT_FOUND));
 
-        if (topic.getDeck().getIsPremium()) {
-            boolean hasActiveSubscription = userSubscriptionRepository
-                    .existsByUserIdAndStatusAndEndAtAfter(userId, SubscriptionStatus.ACTIVE, LocalDateTime.now());
-            if (!hasActiveSubscription) {
-                throw new AppException(AppError.DECK_PREMIUM_REQUIRED);
-            }
-        }
+        accessPolicy.assertCanLearn(deck, userId);
 
-        List<Card> unlearnedCards = cardRepository
-                .findAllUnlearnedCardsByTopicIdWithPhonetics(topicId, userId);
+        List<Card> cards = cardRepository.findByTopicId(topicId);
 
-        if (unlearnedCards.isEmpty()) {
-            log.info("Cards fetched count=0 topicId={}", topicId);
-            return List.of();
-        }
+        Map<Long, CardLearningState> states = (userId == null || cards.isEmpty())
+                ? Map.of()
+                : cardStateService.getStates(userId, cards.stream().map(Card::getId).toList());
 
-        List<Long> cardIds = unlearnedCards.stream().map(Card::getId).toList();
-        Map<Long, Boolean> starredMap = userCardStateRepository
-                .findByUserIdAndCardIdIn(userId, cardIds)
-                .stream()
-                .collect(Collectors.toMap(
-                        ucs -> ucs.getCard().getId(),
-                        ucs -> Boolean.TRUE.equals(ucs.getFlagsStarred())
-                ));
-
-        List<CardResponse> cards = unlearnedCards.stream()
-                .map(card -> cardMapper.toCardResponse(card)
-                        .withFlagsStarred(starredMap.getOrDefault(card.getId(), false)))
-                .toList();
-
-        log.info("Cards fetched count={} topicId={}", cards.size(), topicId);
-        return cards;
+        return cards.stream().map(card -> cardMapper.toCardResponse(card, userId == null
+                ? null
+                : states.getOrDefault(card.getId(), CardLearningState.NONE))
+        ).toList();
     }
 }

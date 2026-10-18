@@ -9,19 +9,7 @@ import java.util.List;
 
 @Repository
 public interface CardRepository extends JpaRepository<Card, Long> {
-    @Query("""
-              SELECT c FROM Card c
-              LEFT JOIN FETCH c.phonetics
-              LEFT JOIN UserCardState ucs ON ucs.card.id = c.id AND ucs.user.id = :userId
-              WHERE c.topic.id = :topicId
-              AND c.deck.status = DeckStatus.PUBLISHED
-              AND (
-                 ucs.id IS NULL
-                 OR (ucs.srsNextReviewAt IS NULL AND ucs.flagsHidden = false)
-              )
-              ORDER BY c.order ASC
-            """)
-    List<Card> findAllUnlearnedCardsByTopicIdWithPhonetics(Long topicId, Long userId);
+    List<Card> findByTopicId(Long topicId);
 
     @Query("""
                 SELECT c FROM Card c
@@ -31,39 +19,4 @@ public interface CardRepository extends JpaRepository<Card, Long> {
     List<Card> findAllWithPhoneticsByIdIn(
             List<Long> ids
     );
-
-    interface DeckLearnedCardCount {
-        Long getDeckId();
-        Integer getLearnedCardCount();
-    }
-
-    @Query("""
-        SELECT c.deck.id AS deckId, COUNT(c.id) AS learnedCardCount
-        FROM Card c
-        JOIN UserCardState ucs ON ucs.card.id = c.id AND ucs.user.id = :userId
-        WHERE c.deck.id IN :deckIds
-        AND c.isDeleted = false
-        AND (ucs.srsNextReviewAt IS NOT NULL OR ucs.flagsHidden = true)
-        GROUP BY c.deck.id
-    """)
-    List<DeckLearnedCardCount> countLearnedCardsByDeckIds(List<Long> deckIds, Long userId);
-
-    interface TopicUnlearnedCardCount {
-        Long getTopicId();
-        Integer getUnlearnedCardCount();
-    }
-
-    @Query("""
-        SELECT c.topic.id AS topicId, COUNT(c) AS unlearnedCardCount
-        FROM Card c
-        LEFT JOIN UserCardState ucs ON ucs.card.id = c.id AND ucs.user.id = :userId
-        WHERE c.deck.id = :deckId
-        AND c.deck.status = DeckStatus.PUBLISHED
-        AND (
-            ucs.id IS NULL
-            OR (ucs.srsNextReviewAt IS NULL AND ucs.flagsHidden = false)
-        )
-        GROUP BY c.topic.id
-    """)
-    List<TopicUnlearnedCardCount> countUnlearnedCardsByDeckIdGroupByTopic(Long deckId, Long userId);
 }

@@ -1,6 +1,5 @@
 package com.elingo.vocabulary.controller;
 
-import com.elingo.common.annotation.CurrentUserId;
 import com.elingo.common.dto.ApiResponse;
 import com.elingo.vocabulary.dto.response.TagResponse;
 import com.elingo.vocabulary.service.TagService;
@@ -18,15 +17,15 @@ import java.util.List;
 @RequiredArgsConstructor
 @Tag(name = "Tag Controller")
 public class TagController {
+
     private final TagService tagService;
 
     @GetMapping
     @Operation(summary = "Get all tags")
-    public ApiResponse<List<TagResponse>> getAllTags(@CurrentUserId Long currentUserId) {
-        List<TagResponse> tags = tagService.getAllTags(currentUserId);
+    public ApiResponse<List<TagResponse>> getAllTags() {
         return ApiResponse.<List<TagResponse>>builder()
                 .success(true)
-                .data(tags)
+                .data(tagService.getAllTags())
                 .build();
     }
 }

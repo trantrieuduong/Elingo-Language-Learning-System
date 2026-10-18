@@ -1,6 +1,7 @@
 package com.elingo.vocabulary.repository;
 
 import com.elingo.vocabulary.entity.Topic;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -18,4 +19,6 @@ public interface TopicRepository extends JpaRepository<Topic, Long> {
         WHERE t.id = :topicId
     """)
     Optional<Topic> findByIdWithDeck(Long topicId);
+
+    List<Topic> findByDeckId(Long deckId, Sort sort);
 }
