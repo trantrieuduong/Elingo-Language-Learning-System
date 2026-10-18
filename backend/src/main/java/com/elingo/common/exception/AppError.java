@@ -107,6 +107,11 @@ public enum AppError {
     USER_LESSON_PROGRESS_NOT_FOUND("USER_LESSON_PROGRESS_NOT_FOUND", "User lesson progress not found", HttpStatus.NOT_FOUND),
     USER_SEGMENT_PROGRESS_NOT_FOUND("USER_SEGMENT_PROGRESS_NOT_FOUND", "User segment progress not found", HttpStatus.NOT_FOUND),
     AUDIO_RECORDING_REQUIRED("AUDIO_RECORDING_REQUIRED", "Shadowing requires an audio recording file", HttpStatus.BAD_REQUEST),
+    ATTEMPT_COUNT_INVALID("ATTEMPT_COUNT_INVALID", "Attempt count must be between 1 and 1000", HttpStatus.BAD_REQUEST),
+    HINT_COUNT_INVALID("HINT_COUNT_INVALID", "Hint used count must be 0 or greater", HttpStatus.BAD_REQUEST),
+    SHADOWING_SCORE_INVALID("SHADOWING_SCORE_INVALID", "Shadowing score must be between 0 and 100", HttpStatus.BAD_REQUEST),
+    WORDS_ACCURACY_INVALID("WORDS_ACCURACY_INVALID", "Words accuracy list is invalid (size, word or accuracy out of range)", HttpStatus.BAD_REQUEST),
+    PROGRESS_UPDATE_CONFLICT("PROGRESS_UPDATE_CONFLICT", "Progress was updated concurrently, please retry", HttpStatus.CONFLICT),
     SOURCE_URL_INVALID("SOURCE_URL_INVALID", "Source url must be a valid YouTube link", HttpStatus.BAD_REQUEST),
     LESSON_PUBLISHED_FAILED("LESSON_PUBLISHED_FAILED", "Cannot publish a lesson without segments", HttpStatus.BAD_REQUEST),
 

@@ -1,0 +1,65 @@
+package com.elingo.learning.lesson.repository.specification;
+
+import com.elingo.learning.lesson.entity.Lesson;
+import com.elingo.learning.lesson.entity.LessonStatus;
+import jakarta.persistence.criteria.Subquery;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.util.StringUtils;
+
+public final class LessonSpecifications {
+
+    private LessonSpecifications() {
+    }
+
+    public static Specification<Lesson> withFilter(LessonFilter filter) {
+        return Specification.allOf(
+                isPublished(),
+                hasCefrCode(filter.cefrCode()),
+                hasTagCode(filter.tagCode()),
+                matchesKeyword(filter.keyword())
+        );
+    }
+
+    private static Specification<Lesson> isPublished() {
+        return (root, query, cb) -> cb.equal(root.get("status"), LessonStatus.PUBLISHED);
+    }
+
+    private static Specification<Lesson> hasCefrCode(String cefrCode) {
+        if (!StringUtils.hasText(cefrCode)) {
+            return (root, query, cb) -> null;
+        }
+        return (root, query, cb) -> {
+            Subquery<Long> sub = query.subquery(Long.class);
+            var subRoot = sub.correlate(root);
+            var join = subRoot.join("cefrLevels");
+            sub.select(cb.literal(1L)).where(cb.equal(join.get("code"), cefrCode));
+            return cb.exists(sub);
+        };
+    }
+
+    private static Specification<Lesson> hasTagCode(String tagCode) {
+        if (!StringUtils.hasText(tagCode)) {
+            return (root, query, cb) -> null;
+        }
+        return (root, query, cb) -> {
+            Subquery<Long> sub = query.subquery(Long.class);
+            var subRoot = sub.correlate(root);
+            var join = subRoot.join("tags");
+            sub.select(cb.literal(1L)).where(cb.equal(join.get("code"), tagCode));
+            return cb.exists(sub);
+        };
+    }
+
+    private static Specification<Lesson> matchesKeyword(String keyword) {
+        if (!StringUtils.hasText(keyword)) {
+            return (root, query, cb) -> null;
+        }
+        return (root, query, cb) -> {
+            String pattern = "%" + keyword.toLowerCase() + "%";
+            return cb.or(
+                    cb.like(cb.lower(root.get("title")), pattern),
+                    cb.like(cb.lower(root.get("description")), pattern)
+            );
+        };
+    }
+}

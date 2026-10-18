@@ -21,6 +21,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.BatchSize;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -72,6 +73,7 @@ public class Lesson extends BaseEntity {
     String thumbnailUrl;
 
     @ManyToMany(fetch = FetchType.LAZY)
+    @BatchSize(size = 20)
     @JoinTable(
             name = "lesson_tags",
             joinColumns = @JoinColumn(name = "lesson_id"),
@@ -83,6 +85,7 @@ public class Lesson extends BaseEntity {
     Set<Tag> tags = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.LAZY)
+    @BatchSize(size = 20)
     @JoinTable(
             name = "lesson_cefr_levels",
             joinColumns = @JoinColumn(name = "lesson_id"),

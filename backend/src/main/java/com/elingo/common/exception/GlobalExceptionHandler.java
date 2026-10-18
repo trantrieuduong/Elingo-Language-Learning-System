@@ -113,6 +113,8 @@ public class GlobalExceptionHandler {
                     appError = AppError.BADGE_CODE_EXISTED;
                 } else if (constraint.contains("uk_user_checkin_date")) {
                     appError = AppError.ALREADY_CHECKED_IN_TODAY;
+                } else if (constraint.contains("uk_user_segment") || constraint.contains("uk_user_lesson")) {
+                    appError = AppError.PROGRESS_UPDATE_CONFLICT;
                 }
             }
         }
