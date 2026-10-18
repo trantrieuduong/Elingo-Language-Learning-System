@@ -1,17 +1,7 @@
 package com.elingo.vocabulary.entity;
 
 import com.elingo.user.entity.User;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -32,6 +22,9 @@ import com.elingo.common.entity.BaseEntity;
         name = "decks",
         uniqueConstraints = {
                 @UniqueConstraint(name = "uk_deck_slug", columnNames = "slug")
+        },
+        indexes = {
+                @Index(name = "idx_deck_owner", columnList = "owner_type, owner_id")
         }
 )
 @Data

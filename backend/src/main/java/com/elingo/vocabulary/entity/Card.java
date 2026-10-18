@@ -21,6 +21,8 @@ import lombok.experimental.FieldDefaults;
 import java.util.ArrayList;
 import java.util.List;
 import com.elingo.common.entity.BaseEntity;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(name = "cards")
@@ -32,13 +34,15 @@ import com.elingo.common.entity.BaseEntity;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Card extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "deck_id", nullable = false)
+    @JoinColumn(name = "deck_id")
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     Deck deck;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "topic_id")
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     Topic topic;
@@ -76,8 +80,4 @@ public class Card extends BaseEntity {
     @EqualsAndHashCode.Exclude
     @Builder.Default
     List<CardPhonetic> phonetics = new ArrayList<>();
-
-    @Column(name = "is_deleted", nullable = false)
-    @Builder.Default
-    Boolean isDeleted = false;
 }
