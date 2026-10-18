@@ -1,0 +1,175 @@
+/* ==========================================================================
+   TopicFormModal.css — Liquid Glass Minimalism
+   ========================================================================== */
+
+.topic-form-overlay {
+  position: fixed;
+  inset: 0;
+  box-sizing: border-box;
+  z-index: 1000;
+  background-color: rgba(15, 23, 42, 0.32);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: safe center;
+  justify-content: center;
+  padding: var(--spacing-md);
+  overflow: hidden;
+}
+
+.topic-form-modal {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 520px;
+  max-height: calc(100vh - 2 * var(--spacing-md));
+  max-height: calc(100dvh - 2 * var(--spacing-md));
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-card-lg);
+  padding: var(--spacing-xl);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* Premium glass style matching header */
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: var(--blur-2xl) saturate(190%);
+  -webkit-backdrop-filter: var(--blur-2xl) saturate(190%);
+  border: 1.5px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+  animation: topicModalEnter 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-theme='dark'] .topic-form-modal {
+  background: rgba(24, 39, 59, 0.88);
+  border: 1.5px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+}
+
+[data-theme='dark'] .topic-form-modal::after {
+  display: none;
+}
+
+@keyframes topicModalEnter {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ── Header ── */
+.topic-form-header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
+}
+
+.topic-form-header__icon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.topic-form-header__icon .material-symbols-outlined {
+  font-size: 22px;
+  color: var(--color-primary);
+}
+
+.topic-form-header__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--color-text-high);
+  margin: 0 0 2px;
+}
+
+.topic-form-header__subtitle {
+  color: var(--color-on-surface-variant);
+  font-size: var(--font-size-body-sm);
+  margin: 0;
+}
+
+.topic-form-close {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* ── Body / Form ── */
+.topic-form-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* ── Slug helpers ── */
+.topic-form-slug-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.topic-form-slug-hint {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-primary);
+  font-size: var(--font-size-body-sm);
+  font-weight: 500;
+  margin: 0;
+}
+
+.topic-form-slug-hint .material-symbols-outlined {
+  font-size: 14px;
+}
+
+.topic-form-slug-rule {
+  color: var(--color-on-surface-variant);
+  font-size: var(--font-size-body-sm);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ── Footer ── */
+.topic-form-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  margin-top: var(--spacing-xs);
+}
+
+/* ── Spinner ── */
+.topic-form-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: topicSpinnerRotate 0.65s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes topicSpinnerRotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Dark Mode ── */
+[data-theme='dark'] .topic-form-overlay {
+  background-color: rgba(5, 10, 24, 0.6);
+}
+
+[data-theme='dark'] .topic-form-footer {
+  border-color: rgba(255, 255, 255, 0.08);
+}

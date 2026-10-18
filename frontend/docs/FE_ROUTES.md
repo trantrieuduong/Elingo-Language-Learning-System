@@ -20,7 +20,7 @@
 | `/login` | `LoginPage` | `auth/pages/` | Đăng nhập |
 | `/signup` | `SignupPage` | `auth/pages/` | Đăng ký |
 | `/account-verification` | `AccountVerificationPage` | `auth/pages/` | Xác thực email bằng OTP; nhận email qua history state |
-| `/decks` | `DeckListPage` | `vocabulary/pages/` | Danh sách bộ từ vựng công khai (cho phép xem cả khi chưa đăng nhập) |
+| `/decks` | `DeckListPage` | `vocabulary/pages/` | Trang bộ từ hệ thống mặc định; tab bộ từ cộng đồng hiện tạm vô hiệu hóa |
 
 **Planned, chưa tạo route/page:** `/forgot-password`, `/reset-password`.
 
@@ -34,8 +34,9 @@
 | `/learning/dictation/:lessonId` | `DictationPage` | `learning/dictation/pages/` | Nghe chép chính tả |
 | `/learning/shadowing/:lessonId` | `ShadowingPage` | `learning/shadowing/pages/` | Luyện nói đuổi |
 | `/decks/:deckId` | `FlashcardStudyPage` | `learning/flashcard/pages/` | Học flashcard của một bộ từ (bắt buộc đăng nhập) |
+| `/decks/:deckId/topics` | `TopicListPage` | `vocabulary/pages/` | Quản lý các chủ đề thuộc bộ từ |
+| `/decks/:deckId/topics/:topicId/cards` | `UserCardManagementPage` | `vocabulary/pages/` | Quản lý thẻ thuộc một chủ đề trong bộ từ |
 | `/review` | `FlashcardReviewPage` | `learning/flashcard/pages/` | Ôn tập flashcard đến hạn (giới hạn 100 flashcard/1 ngày) |
-| `/decks/:deckId` | `DeckDetailPage` | `vocabulary/pages/` | Chi tiết bộ từ vựng |
 | `/battle` | `BattleLobbyPage` | `battle/pages/` | Sảnh chờ thi đấu |
 | `/battle/play` | `BattlePlayPage` | `battle/pages/` | Màn hình thi đấu (WebSocket) |
 | `/speaking` | `SpeakingLobbyPage` | `speaking/pages/` | Danh sách phòng luyện nói |

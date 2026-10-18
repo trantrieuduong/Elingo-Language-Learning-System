@@ -8,12 +8,10 @@ import ProgressBar from '../../../../components/ProgressBar/ProgressBar'
 import './FlashcardStudyPage.css'
 
 /**
- * @param {string} [deckSlug] - Slug của deck lấy từ URL param
  * @param {string} [deckId] - ID của deck (fallback nếu có)
  * @param {Function} onNavigate - navigate function từ App.jsx
  */
-function FlashcardStudyPage({ deckSlug, deckId, onNavigate }) {
-  const currentDeck = deckSlug || deckId
+function FlashcardStudyPage({ deckId, onNavigate }) {
   const { t } = useTranslation(['learning', 'api'])
   const [topics, setTopics] = useState([])
   const [loading, setLoading] = useState(true)
@@ -33,7 +31,7 @@ function FlashcardStudyPage({ deckSlug, deckId, onNavigate }) {
       setLoading(true)
       setError(null)
       try {
-        const res = await getTopicsByDeckIdApi(currentDeck)
+        const res = await getTopicsByDeckIdApi(deckId)
         if (res.success && res.data) {
           setTopics(res.data)
           
@@ -80,10 +78,10 @@ function FlashcardStudyPage({ deckSlug, deckId, onNavigate }) {
       }
     }
 
-    if (currentDeck) {
+    if (deckId) {
       fetchTopics()
     }
-  }, [currentDeck, t])
+  }, [deckId, t])
 
   useEffect(() => {
     if (!selectedTopicId) return
