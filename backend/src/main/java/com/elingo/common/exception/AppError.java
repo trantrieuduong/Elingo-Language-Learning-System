@@ -176,6 +176,7 @@ public enum AppError {
     // ==========================================
     // 11. Premium & Payment (Gói Premium & Thanh toán)
     // ==========================================
+    PREMIUM_REQUIRED("PREMIUM_REQUIRED", "This resource requires premium plan", HttpStatus.FORBIDDEN),
     PREMIUM_PLAN_NOT_FOUND("PREMIUM_PLAN_NOT_FOUND", "Premium plan not found", HttpStatus.NOT_FOUND),
     PREMIUM_PLAN_INACTIVE("PREMIUM_PLAN_INACTIVE", "This premium plan is currently inactive", HttpStatus.BAD_REQUEST),
     PAYMENT_PROVIDER_NOT_FOUND("PAYMENT_PROVIDER_NOT_FOUND", "Payment provider not found", HttpStatus.NOT_FOUND),
