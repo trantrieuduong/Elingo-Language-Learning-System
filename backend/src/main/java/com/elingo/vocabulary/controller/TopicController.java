@@ -47,7 +47,7 @@ public class TopicController {
     }
 
     @PutMapping("/{topicId}")
-    public ApiResponse<TopicResponse> updateTopic(
+    public ApiResponse<TopicResponse> updateUserTopic(
             @PathVariable @Positive(message = "INVALID_REQUEST") Long topicId,
             @Valid @RequestBody UpdateUserTopicRequest request,
             @CurrentUserId Long currentUserId) {
@@ -58,7 +58,7 @@ public class TopicController {
     }
 
     @DeleteMapping("/{topicId}")
-    public ApiResponse<Void> deleteTopic(
+    public ApiResponse<Void> deleteUserTopic(
             @PathVariable @Positive(message = "INVALID_REQUEST") Long topicId,
             @CurrentUserId Long currentUserId) {
         topicService.deleteUserTopic(currentUserId, topicId);

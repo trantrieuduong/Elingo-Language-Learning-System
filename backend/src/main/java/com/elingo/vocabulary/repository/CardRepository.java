@@ -8,11 +8,15 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface CardRepository extends JpaRepository<Card, Long> {
     List<Card> findByTopicId(Long topicId);
-    boolean existsByDeckId(Long deckId);
+
+    long countByTopicId(Long topicId);
+
+    Optional<Card> findFirstByTopicIdOrderByOrderDesc(Long topicId);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("update Card c set c.deck = null, c.topic = null where c.topic.id = :topicId")

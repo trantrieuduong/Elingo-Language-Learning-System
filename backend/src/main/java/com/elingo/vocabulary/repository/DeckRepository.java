@@ -22,7 +22,8 @@ public interface DeckRepository extends JpaRepository<Deck, Long>, JpaSpecificat
     }
 
     @Query("""
-    select d.id as id, d.status as status, d.ownerType as ownerType, d.owner.id as ownerId, d.isPremium as isPremium
+    select d.id as id, d.status as status, d.ownerType as ownerType,
+           d.owner.id as ownerId, d.isPremium as isPremium
     from Deck d where d.id = :deckId
     """)
     @EntityGraph(attributePaths = "owner") // @ManyToOne only
@@ -34,10 +35,18 @@ public interface DeckRepository extends JpaRepository<Deck, Long>, JpaSpecificat
     from Topic t join t.deck d where t.id = :topicId
     """)
     Optional<DeckAccessView> findAccessViewByTopicId(@Param("topicId") Long topicId);
-    Optional<Deck> findBySlug(String slug);
+
+    @Query("""
+    select d.id as id, d.status as status, d.ownerType as ownerType,
+           d.owner.id as ownerId, d.isPremium as isPremium
+    from Card c join c.deck d where c.id = :cardId
+    """)
+    Optional<DeckAccessView> findAccessViewByCardId(@Param("cardId") Long cardId);
+
     @Modifying
     @Query("update Deck d set d.cardCount = d.cardCount + :delta where d.id = :id")
     void adjustCardCount(@Param("id") Long id, @Param("delta") int delta);
+
     @Modifying
     @Query("update Deck d set d.topicCount = d.topicCount + :delta where d.id = :id")
     void adjustTopicCount(@Param("id") Long id, @Param("delta") int delta);
