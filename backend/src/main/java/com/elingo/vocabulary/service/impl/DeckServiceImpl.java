@@ -3,12 +3,18 @@ package com.elingo.vocabulary.service.impl;
 import com.elingo.common.dto.PageResponse;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
+import com.elingo.common.util.SlugUtils;
 import com.elingo.progress.service.ProgressService;
+import com.elingo.user.entity.User;
+import com.elingo.user.repository.UserRepository;
+import com.elingo.vocabulary.config.FlashcardProperties;
 import com.elingo.vocabulary.dto.request.DeckSearchRequest;
+import com.elingo.vocabulary.dto.request.UserDeckRequest;
 import com.elingo.vocabulary.dto.response.DeckResponse;
 import com.elingo.vocabulary.dto.response.TopicResponse;
 import com.elingo.vocabulary.entity.Deck;
 import com.elingo.vocabulary.entity.DeckStatus;
+import com.elingo.vocabulary.entity.OwnerType;
 import com.elingo.vocabulary.entity.Topic;
 import com.elingo.vocabulary.mapper.DeckMapper;
 import com.elingo.vocabulary.mapper.TopicMapper;
@@ -26,6 +32,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,6 +48,8 @@ public class DeckServiceImpl implements DeckService {
     private final DeckMapper deckMapper;
     private final ProgressService progressService;
     private final DeckAccessPolicy accessPolicy;
+    private final FlashcardProperties flashcardProperties;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -84,5 +93,83 @@ public class DeckServiceImpl implements DeckService {
                 .map(t -> topicMapper
                         .toTopicResponse(t, userId == null ? null : learned.getOrDefault(t.getId(), 0)))
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public DeckResponse createUserDeck(Long userId, UserDeckRequest request) {
+        User owner = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
+
+        if (deckRepository.countByOwnerId(userId) >= flashcardProperties
+                .getUserDeckLimit().getMaxDecksPerUser())
+            throw new AppException(AppError.DECK_LIMIT_EXCEEDED);
+
+        Deck deck = deckRepository.save(Deck.builder()
+                .title(request.title())
+                .slug(SlugUtils.generateSlug(request.title()))
+                .description(request.description())
+                .isPremium(false)
+                .ownerType(OwnerType.USER)
+                .owner(owner)
+                .build());
+
+        log.info("User deck created deckId={} slug={}", deck.getId(), deck.getSlug());
+        return deckMapper.toDeckResponse(deck);
+    }
+
+    @Override
+    @Transactional
+    public DeckResponse updateUserDeck(Long userId, Long deckId, UserDeckRequest request) {
+        assertCanEdit(userId, deckId);
+        Deck deck = deckRepository.findById(deckId)
+                        .orElseThrow(() -> new AppException(AppError.DECK_NOT_FOUND));
+
+        deckMapper.updateDeck(deck, request);
+
+        log.info("User deck updated deckId={}", deck.getId());
+        return deckMapper.toDeckResponse(deck);
+    }
+
+    @Override
+    @Transactional
+    public DeckResponse setUserDeckPublished(Long userId, Long deckId, boolean published) {
+        assertCanEdit(userId, deckId);
+        Deck deck = deckRepository.findById(deckId)
+                .orElseThrow(() -> new AppException(AppError.DECK_NOT_FOUND));
+
+        if (published) {
+            if (deck.getStatus() != DeckStatus.PUBLISHED) {
+                if (deck.getCardCount() == 0) {
+                    throw new AppException(AppError.DECK_EMPTY);
+                }
+                deck.setStatus(DeckStatus.PUBLISHED);
+                deck.setPublishedAt(LocalDateTime.now());
+            }
+        } else {
+            deck.setStatus(DeckStatus.DRAFT);
+            deck.setPublishedAt(null);
+        }
+
+        log.info("User deck publication changed deckId={} published={}", deckId, published);
+
+        return deckMapper.toDeckResponse(deck);
+    }
+
+    @Override
+    @Transactional
+    public void deleteUserDeck(Long userId, Long deckId) {
+        assertCanEdit(userId, deckId);
+
+        // topics are removed and cards detached by the database (@OnDelete), no cascade needed here
+        deckRepository.deleteById(deckId);
+
+        log.info("User Deck deleted deckId={}", deckId);
+    }
+
+    private void assertCanEdit(Long userId, Long deckId) {
+        DeckRepository.DeckAccessView view = deckRepository.findAccessViewById(deckId)
+                .orElseThrow(() -> new AppException(AppError.DECK_NOT_FOUND));
+        accessPolicy.assertCanEdit(view, userId);
     }
 }

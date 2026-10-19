@@ -64,6 +64,9 @@ public enum AppError {
     // ==========================================
     // 3. Vocabulary (Bộ từ vựng, Chủ đề, Thẻ từ)
     // ==========================================
+    DECK_LIMIT_EXCEEDED("DECK_LIMIT_EXCEEDED", "You have reached the maximum decks per user", HttpStatus.BAD_REQUEST),
+    TOPIC_LIMIT_EXCEEDED("TOPIC_LIMIT_EXCEEDED", "You have reached the maximum topics per deck", HttpStatus.BAD_REQUEST),
+    CARD_LIMIT_EXCEEDED("CARD_LIMIT_EXCEEDED", "You have reached the maximum cards per topic", HttpStatus.BAD_REQUEST),
     DECK_NOT_FOUND("DECK_NOT_FOUND", "Vocabulary deck not found or has not been published", HttpStatus.NOT_FOUND),
     DECK_SLUG_EXISTED("DECK_SLUG_EXISTED", "Deck slug already exists", HttpStatus.BAD_REQUEST),
     DECK_ACCESS_DENIED("DECK_ACCESS_DENIED", "You do not have permission to access this deck", HttpStatus.FORBIDDEN),

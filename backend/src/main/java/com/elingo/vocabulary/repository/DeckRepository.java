@@ -11,6 +11,8 @@ import java.util.Optional;
 
 @Repository
 public interface DeckRepository extends JpaRepository<Deck, Long>, JpaSpecificationExecutor<Deck> {
+    long countByOwnerId(Long ownerId);
+
     interface DeckAccessView {
         Long getId();
         DeckStatus getStatus();
@@ -35,9 +37,9 @@ public interface DeckRepository extends JpaRepository<Deck, Long>, JpaSpecificat
     Optional<Deck> findBySlug(String slug);
     @Modifying
     @Query("update Deck d set d.cardCount = d.cardCount + :delta where d.id = :id")
-    void addCardCount(@Param("id") Long id, @Param("delta") int delta);
+    void adjustCardCount(@Param("id") Long id, @Param("delta") int delta);
     @Modifying
     @Query("update Deck d set d.topicCount = d.topicCount + :delta where d.id = :id")
-    void addTopicCount(@Param("id") Long id, @Param("delta") int delta);
+    void adjustTopicCount(@Param("id") Long id, @Param("delta") int delta);
 }
 

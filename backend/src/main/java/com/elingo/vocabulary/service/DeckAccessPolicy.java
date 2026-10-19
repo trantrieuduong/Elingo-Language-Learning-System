@@ -29,7 +29,18 @@ public class DeckAccessPolicy {
         }
     }
 
-    /** throw AppException if the user don't have active premium plan */
+    /**
+     * Sửa/xóa deck của user: chỉ chủ deck (ownerType USER).
+     * Không xem được -> 404 (không lộ deck nháp của người khác),
+     * xem được nhưng không phải chủ -> 403.
+     */
+    public void assertCanEdit(DeckRepository.DeckAccessView deck, Long userId) {
+        assertCanView(deck, userId);
+        if (!isOwner(deck, userId)) {
+            throw new AppException(AppError.DECK_ACCESS_DENIED);
+        }
+    }
+
     public void assertCanLearn(DeckRepository.DeckAccessView deck, Long userId) {
         assertCanView(deck, userId);
         if (Boolean.TRUE.equals(deck.getIsPremium())) {

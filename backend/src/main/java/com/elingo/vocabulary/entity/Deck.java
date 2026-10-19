@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import com.elingo.common.entity.BaseEntity;
+import org.hibernate.annotations.DynamicUpdate;
 
 @Entity
 @Table(
@@ -33,6 +34,7 @@ import com.elingo.common.entity.BaseEntity;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@DynamicUpdate
 public class Deck extends BaseEntity {
     @Column(nullable = false)
     String title;
