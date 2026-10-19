@@ -74,6 +74,7 @@ public enum AppError {
     TOPIC_ACCESS_DENIED("TOPIC_ACCESS_DENIED", "You do not have permission to access this topic", HttpStatus.FORBIDDEN),
     TOPIC_NOT_IN_DECK("TOPIC_NOT_IN_DECK", "Topic does not belong to this deck", HttpStatus.BAD_REQUEST),
     CARD_NOT_FOUND("CARD_NOT_FOUND", "Vocabulary card not found", HttpStatus.NOT_FOUND),
+    CARD_NOT_AVAILABLE("CARD_NOT_AVAILABLE", "Card is no longer available", HttpStatus.GONE),
     CARD_ACCESS_DENIED("CARD_ACCESS_DENIED", "You do not have permission to modify this card", HttpStatus.FORBIDDEN),
     CARD_PHONETIC_NOT_FOUND("CARD_PHONETIC_NOT_FOUND", "Card phonetic not found", HttpStatus.NOT_FOUND),
     TAG_NOT_FOUND("TAG_NOT_FOUND", "Tag not found", HttpStatus.NOT_FOUND),
