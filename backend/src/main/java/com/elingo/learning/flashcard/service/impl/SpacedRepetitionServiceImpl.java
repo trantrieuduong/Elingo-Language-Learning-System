@@ -4,7 +4,6 @@ import com.elingo.config.FlashcardProperties;
 import com.elingo.learning.flashcard.entity.UserCardState;
 import com.elingo.learning.flashcard.service.SpacedRepetitionService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -13,8 +12,8 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j(topic = "SRS-SERVICE")
 public class SpacedRepetitionServiceImpl implements SpacedRepetitionService {
+
     private final FlashcardProperties flashcardProperties;
 
     // grade: 0=Again, 1=Hard, 2=Good, 3=Easy
@@ -55,8 +54,5 @@ public class SpacedRepetitionServiceImpl implements SpacedRepetitionService {
         state.setSrsInterval(newInterval);
         state.setSrsLastGrade((short) grade);
         state.setSrsNextReviewAt(nextReviewAt);
-
-        log.info("SRS calculation completed cardId={} grade={} oldEf={} newEf={} oldInterval={} newInterval={} nextReviewAt={}",
-                state.getCard().getId(), grade, ef, newEf, prevInterval, newInterval, nextReviewAt);
     }
 }
