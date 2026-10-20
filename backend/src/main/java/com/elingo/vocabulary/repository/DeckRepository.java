@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -20,6 +21,8 @@ public interface DeckRepository extends JpaRepository<Deck, Long>, JpaSpecificat
     }
 
     long countByOwnerTypeAndOwnerId(OwnerType ownerType, Long ownerId);
+
+    List<Deck> findAllByOwnerTypeAndOwnerId(OwnerType ownerType, Long ownerId);
 
     @Query("""
     select d.id as id, d.status as status, d.ownerType as ownerType,

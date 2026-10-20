@@ -96,6 +96,13 @@ public class DeckServiceImpl implements DeckService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<DeckResponse> getUserDecks(Long userId) {
+        return deckRepository.findAllByOwnerTypeAndOwnerId(OwnerType.USER, userId).stream()
+                .map(deckMapper::toDeckResponse).toList();
+    }
+
+    @Override
     @Transactional
     public DeckResponse createUserDeck(Long userId, UserDeckRequest request) {
         User owner = userRepository.findById(userId)

@@ -14,6 +14,7 @@ public interface DeckService {
     List<TopicResponse> getTopicsByDeck(Long deckId, Long userId);
 
     // CRUD user decks
+    List<DeckResponse> getUserDecks(Long userId);
     DeckResponse createUserDeck(Long userId, UserDeckRequest request);
     DeckResponse updateUserDeck(Long userId, Long deckId, UserDeckRequest request);
     DeckResponse setUserDeckPublished(Long userId, Long deckId, boolean published);
