@@ -11,6 +11,8 @@ import SignupPage from './modules/auth/pages/SignupPage'
 import DeckListPage from './modules/vocabulary/pages/DeckListPage/DeckListPage'
 import FlashcardStudyPage from './modules/learning/flashcard/pages/FlashcardStudyPage'
 import FlashcardReviewPage from './modules/learning/flashcard/pages/FlashcardReviewPage'
+import LessonListPage from './modules/learning/lesson/pages/LessonListPage'
+import DictationPage from './modules/learning/dictation/pages/DictationPage'
 import './App.css'
 
 const PUBLIC_PATHS = ['/login', '/signup', '/account-verification', '/reset-password']
@@ -50,6 +52,7 @@ function App() {
   }, [])
 
   const flashcardStudyMatch = currentPath.match(/^\/decks\/([^/]+)$/)
+  const dictationMatch = currentPath.match(/^\/learning\/dictation\/([^/]+)$/)
 
   useEffect(() => {
     if (loading) return
@@ -100,7 +103,7 @@ function App() {
     )
   }
 
-  const isFlashcardPage =  !!flashcardStudyMatch || currentPath === '/review'
+  const isFlashcardPage = !!flashcardStudyMatch || currentPath === '/review'
 
   const renderAdminContent = () => {
     return (
@@ -119,6 +122,10 @@ function App() {
       return <FlashcardStudyPage deckSlug={flashcardStudyMatch[1]} onNavigate={navigate} />
     }
 
+    if (dictationMatch) {
+      return <DictationPage slug={decodeURIComponent(dictationMatch[1])} onNavigate={navigate} />
+    }
+
     switch (currentPath) {
       case '/':
         return <LandingPage onNavigate={navigate} />
@@ -133,7 +140,7 @@ function App() {
       case '/dashboard':
         return <PlaceholderPage title="Dashboard" path={currentPath} />
       case '/learning':
-        return <PlaceholderPage title="Learning" path={currentPath} />
+        return <LessonListPage onNavigate={navigate} />
       case '/review':
         return <FlashcardReviewPage onNavigate={navigate} />
       case '/battle':

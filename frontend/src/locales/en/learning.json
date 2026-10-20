@@ -12,6 +12,37 @@
     "free": "Free",
     "progress": "Progress"
   },
+  "lessonList": {
+    "pageTitle": "Lesson Hub",
+    "pageSubtitle": "Practice dictation and shadowing with authentic video content",
+    "searchPlaceholder": "Search lessons...",
+    "clearSearch": "Clear search",
+    "clearFilters": "Clear filters",
+    "loading": "Loading lessons...",
+    "loadError": "Unable to load lesson list. Please try again.",
+    "retry": "Try again",
+    "emptyTitle": "No lessons found",
+    "emptyFilter": "No lessons matched your current filter criteria.",
+    "emptyDefault": "No lessons have been published yet.",
+    "noDescription": "No description available for this lesson.",
+    "premium": "Premium",
+    "dictation": "Dictation",
+    "shadowing": "Shadowing",
+    "cardAria": "Lesson: {{title}}. Click to select study mode."
+  },
+  "lessonMode": {
+    "title": "Select Study Mode",
+    "close": "Close",
+    "cancel": "Cancel",
+    "dictationDesc": "Listen and transcribe each sentence from the video to sharpen listening comprehension.",
+    "shadowingDesc": "Listen and shadow spoken sentences; get instant browser-based pronunciation feedback.",
+    "start": "Start",
+    "continue": "Continue",
+    "restart": "Restart",
+    "notStarted": "Not started",
+    "progressPct": "{{pct}}% completed",
+    "completedPct": "100% completed"
+  },
   "flashcard": {
     "back": "Back",
     "upgradePremium": "Upgrade to Premium",
@@ -49,5 +80,47 @@
       "examples": "Examples:",
       "hintBack": "Tap to flip back"
     }
+  },
+  "studyPlayer": {
+    "noVideo": "No video found for this lesson.",
+    "videoLoadError": "Unable to embed this YouTube video (it may be private or removed).",
+    "openOnYoutube": "Open on YouTube"
+  },
+  "studySidebar": {
+    "title": "Lesson Progress",
+    "dictationProgress": "Dictation Progress",
+    "shadowingProgress": "Shadowing Progress",
+    "studying": "Studying",
+    "locked": "Locked",
+    "bestScore": "Best score: {{score}}"
+  },
+  "dictation": {
+    "backToList": "Back to Lesson List",
+    "loading": "Loading dictation lesson...",
+    "errorLoad": "Unable to load lesson. Please try again later.",
+    "notFound": "Requested lesson was not found or is not published.",
+    "emptySegments": "This lesson does not have any segments for practice yet.",
+    "replaySegment": "Replay this segment",
+    "typeWhatYouHear": "Type what you hear",
+    "inputPlaceholder": "Listen to the video and transcribe the sentence here...",
+    "vocabularyHint": "Vocabulary Hints & Typing Progress:",
+    "revealWordAria": "Reveal this word",
+    "hintWarning": "Using hints will reduce your score for this segment.",
+    "showAllBtn": "Show all",
+    "completeSegmentBtn": "Complete segment",
+    "submitting": "Submitting score...",
+    "passedBadge": "Passed",
+    "failedBadge": "Not passed",
+    "currentScore": "Current score: {{score}}",
+    "bestScore": "Best score: {{score}}",
+    "bestScoreNotice": "Best score will only update when you achieve a higher result.",
+    "hintsUsedInfo": "Hints used: {{count}}",
+    "retrySegmentBtn": "Retry this segment",
+    "nextSegmentBtn": "Next segment",
+    "finishLessonBtn": "Finish lesson",
+    "completedTitle": "Congratulations! You completed this lesson!",
+    "completedSubtitle": "You have transcribed all segments in this dictation practice lesson.",
+    "passedSegmentsStats": "Passed segments: {{passed}} / {{total}}",
+    "learnShadowing": "Practice Shadowing for this lesson"
   }
 }

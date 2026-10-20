@@ -35,7 +35,25 @@
     "TOPIC_NOT_FOUND": "Chủ đề không tồn tại.",
     "TOPIC_ACCESS_DENIED": "Bạn không có quyền truy cập chủ đề này.",
     "CARD_NOT_FOUND": "Thẻ từ vựng không tồn tại.",
-    "NO_CARDS_DUE": "Hiện không có thẻ nào đến hạn ôn tập."
+    "NO_CARDS_DUE": "Hiện không có thẻ nào đến hạn ôn tập.",
+    "PAGE_INDEX_INVALID": "Số trang không hợp lệ.",
+    "KEYWORD_INVALID": "Từ khóa tìm kiếm không hợp lệ.",
+    "CEFR_LEVEL_CODE_INVALID": "Mã trình độ CEFR không hợp lệ.",
+    "TAG_CODE_INVALID": "Mã chủ đề không hợp lệ.",
+    "LESSON_NOT_FOUND": "Bài học không tồn tại hoặc chưa được công khai.",
+    "LESSON_SEGMENT_NOT_FOUND": "Đoạn bài học không tồn tại.",
+    "LESSON_PREMIUM_REQUIRED": "Bài học này yêu cầu tài khoản Premium. Vui lòng nâng cấp gói để tiếp tục học.",
+    "ATTEMPT_COUNT_INVALID": "Số lần thử không hợp lệ.",
+    "HINT_COUNT_INVALID": "Số lần gợi ý không hợp lệ.",
+    "SHADOWING_SCORE_INVALID": "Điểm luyện nói không hợp lệ.",
+    "WORDS_ACCURACY_INVALID": "Độ chính xác từng từ không hợp lệ.",
+    "AUDIO_RECORDING_REQUIRED": "Bắt buộc phải có bản ghi âm.",
+    "INVALID_REQUEST": "Yêu cầu không hợp lệ.",
+    "FILE_TOO_LARGE": "Tệp tin vượt quá dung lượng cho phép.",
+    "INVALID_FILE_TYPE": "Loại tệp tin không hợp lệ.",
+    "FILE_TYPE_MISMATCH": "Định dạng tệp không khớp.",
+    "FILE_ACCESS_DENIED": "Không có quyền truy cập tệp tin.",
+    "FILE_UPLOAD_FAILED": "Tải tệp tin lên thất bại. Vui lòng thử lại."
   },
   "validation": {
     "username": {

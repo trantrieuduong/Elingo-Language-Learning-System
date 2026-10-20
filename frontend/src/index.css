@@ -225,6 +225,7 @@ ol {
 
   /* ── Layout ── */
   --container-max: 1200px;
+  --container-wide: 1480px;
   --gutter: var(--space-8);         /* 32px desktop */
   --margin-desktop: var(--space-12); /* 48px */
   --margin-mobile: var(--space-4);   /* 16px */

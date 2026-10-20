@@ -12,6 +12,37 @@
     "free": "Miễn phí",
     "progress": "Tiến độ"
   },
+  "lessonList": {
+    "pageTitle": "Kho bài học",
+    "pageSubtitle": "Luyện nghe chép chính tả và phát âm đuổi qua video thực tế",
+    "searchPlaceholder": "Tìm kiếm bài học...",
+    "clearSearch": "Xóa tìm kiếm",
+    "clearFilters": "Xóa bộ lọc",
+    "loading": "Đang tải bài học...",
+    "loadError": "Không thể tải danh sách bài học. Vui lòng thử lại.",
+    "retry": "Thử lại",
+    "emptyTitle": "Không tìm thấy bài học",
+    "emptyFilter": "Không tìm thấy bài học nào phù hợp với bộ lọc hiện tại.",
+    "emptyDefault": "Chưa có bài học nào được đăng tải.",
+    "noDescription": "Chưa có mô tả cho bài học này.",
+    "premium": "Premium",
+    "dictation": "Dictation",
+    "shadowing": "Shadowing",
+    "cardAria": "Bài học: {{title}}. Bấm để chọn chế độ học."
+  },
+  "lessonMode": {
+    "title": "Chọn chế độ học",
+    "close": "Đóng",
+    "cancel": "Hủy",
+    "dictationDesc": "Nghe và gõ lại từng câu trong đoạn video để rèn luyện khả năng nghe chi tiết.",
+    "shadowingDesc": "Nghe câu thoại và nhại lại, hệ thống nhận diện và chấm điểm phát âm trực tiếp.",
+    "start": "Bắt đầu",
+    "continue": "Tiếp tục",
+    "restart": "Học lại",
+    "notStarted": "Chưa học",
+    "progressPct": "{{pct}}% hoàn thành",
+    "completedPct": "100% hoàn thành"
+  },
   "flashcard": {
     "back": "Quay lại",
     "upgradePremium": "Nâng cấp Premium",
@@ -49,5 +80,47 @@
       "examples": "Ví dụ:",
       "hintBack": "Chạm để lật lại mặt trước"
     }
+  },
+  "studyPlayer": {
+    "noVideo": "Không tìm thấy video cho bài học này.",
+    "videoLoadError": "Không thể nhúng video này từ YouTube (có thể do quyền riêng tư hoặc video đã bị gỡ).",
+    "openOnYoutube": "Mở trên YouTube"
+  },
+  "studySidebar": {
+    "title": "Tiến độ bài học",
+    "dictationProgress": "Tiến độ Dictation",
+    "shadowingProgress": "Tiến độ Shadowing",
+    "studying": "Đang học",
+    "locked": "Chưa mở khóa",
+    "bestScore": "Điểm cao nhất: {{score}}"
+  },
+  "dictation": {
+    "backToList": "Về danh sách bài học",
+    "loading": "Đang tải bài học chép chính tả...",
+    "errorLoad": "Không thể tải bài học. Vui lòng thử lại sau.",
+    "notFound": "Không tìm thấy bài học yêu cầu hoặc bài học chưa được đăng tải.",
+    "emptySegments": "Bài học này hiện chưa có nội dung phân đoạn để luyện tập.",
+    "replaySegment": "Nghe lại đoạn này",
+    "typeWhatYouHear": "Gõ lại những gì bạn nghe được",
+    "inputPlaceholder": "Nghe video và gõ lại câu thoại tại đây...",
+    "vocabularyHint": "Gợi ý từ vựng & Tiến độ gõ:",
+    "revealWordAria": "Gợi ý từ này",
+    "hintWarning": "Dùng gợi ý sẽ bị trừ điểm cho phân đoạn này.",
+    "showAllBtn": "Hiện tất cả",
+    "completeSegmentBtn": "Hoàn thành đoạn",
+    "submitting": "Đang chấm điểm...",
+    "passedBadge": "Đạt",
+    "failedBadge": "Chưa đạt",
+    "currentScore": "Điểm lần này: {{score}}",
+    "bestScore": "Điểm cao nhất: {{score}}",
+    "bestScoreNotice": "Điểm cao nhất chỉ được cập nhật khi bạn đạt kết quả cao hơn.",
+    "hintsUsedInfo": "Số từ dùng gợi ý: {{count}}",
+    "retrySegmentBtn": "Làm lại đoạn này",
+    "nextSegmentBtn": "Đoạn tiếp theo",
+    "finishLessonBtn": "Hoàn thành bài",
+    "completedTitle": "Chúc mừng bạn đã hoàn thành bài học!",
+    "completedSubtitle": "Bạn đã hoàn thành tất cả các đoạn trong bài luyện Dictation này.",
+    "passedSegmentsStats": "Đoạn đạt yêu cầu: {{passed}} / {{total}}",
+    "learnShadowing": "Học Shadowing bài này"
   }
 }
