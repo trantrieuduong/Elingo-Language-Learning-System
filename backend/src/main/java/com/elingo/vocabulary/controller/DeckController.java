@@ -44,7 +44,7 @@ public class DeckController {
     }
 
     @GetMapping("/{deckId}/topics")
-    @Operation(summary = "Get all topics belonging to a deck (by slug or ID)")
+    @Operation(summary = "Get all topics belonging to a deck")
     public ApiResponse<List<TopicResponse>> getTopicsByDeck(
             @PathVariable Long deckId,
             @CurrentUserId Long currentUserId) {

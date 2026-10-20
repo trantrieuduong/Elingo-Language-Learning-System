@@ -15,7 +15,7 @@ public record CreateUserCardRequest(
         @Size(max = 50, message = "INVALID_REQUEST")
         String pos,
         @NotBlank(message = "INVALID_REQUEST")
-        @Size(max = 100, message = "INVALID_REQUEST")
+        @Size(max = 500, message = "INVALID_REQUEST")
         String translation,
         @Size(max = 255, message = "INVALID_REQUEST")
         String explanationVi,

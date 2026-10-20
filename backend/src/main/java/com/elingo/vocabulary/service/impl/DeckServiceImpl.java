@@ -101,7 +101,7 @@ public class DeckServiceImpl implements DeckService {
         User owner = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
 
-        if (deckRepository.countByOwnerId(userId) >= flashcardProperties
+        if (deckRepository.countByOwnerTypeAndOwnerId(OwnerType.USER, userId) >= flashcardProperties
                 .getUserDeckLimit().getMaxDecksPerUser())
             throw new AppException(AppError.DECK_LIMIT_EXCEEDED);
 

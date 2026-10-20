@@ -25,7 +25,8 @@ import org.hibernate.annotations.DynamicUpdate;
                 @UniqueConstraint(name = "uk_deck_slug", columnNames = "slug")
         },
         indexes = {
-                @Index(name = "idx_deck_owner", columnList = "owner_type, owner_id")
+                @Index(name = "idx_deck_owner", columnList = "owner_type, owner_id"),
+                @Index(name = "idx_deck_status_published", columnList = "status, published_at")
         }
 )
 @Data

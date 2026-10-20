@@ -49,7 +49,7 @@ public class TopicServiceImpl implements TopicService {
 
         accessPolicy.assertCanLearn(deck, userId);
 
-        List<Card> cards = cardRepository.findByTopicId(topicId);
+        List<Card> cards = cardRepository.findByTopicIdWithPhonetics(topicId);
 
         Map<Long, CardLearningState> states = (userId == null || cards.isEmpty())
                 ? Map.of()

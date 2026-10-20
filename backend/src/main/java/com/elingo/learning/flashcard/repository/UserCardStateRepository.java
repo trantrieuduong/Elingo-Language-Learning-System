@@ -29,8 +29,9 @@ public interface UserCardStateRepository extends JpaRepository<UserCardState, Lo
     }
 
     @Query("""
-            select s from UserCardState s
+            select distinct s from UserCardState s
             join fetch s.card c
+            left join fetch c.phonetics
             where s.user.id = :userId
               and s.flagsHidden = false
               and s.srsNextReviewAt is not null and s.srsNextReviewAt <= :now
@@ -61,8 +62,7 @@ public interface UserCardStateRepository extends JpaRepository<UserCardState, Lo
     select c.deck.id as refId, count(s.id) as learnedCount
     from UserCardState s join s.card c
     where s.user.id = :userId
-      and s.flagsHidden = true
-      and s.srsNextReviewAt is not null
+      and (s.srsNextReviewAt is not null or s.flagsHidden = true)
       and c.deck.id in :deckIds
     group by c.deck.id
     """) // idx_due_review
@@ -73,8 +73,7 @@ public interface UserCardStateRepository extends JpaRepository<UserCardState, Lo
     select c.topic.id as refId, count(s.id) as learnedCount
     from UserCardState s join s.card c
     where s.user.id = :userId
-      and s.flagsHidden = true
-      and s.srsNextReviewAt is not null
+      and (s.srsNextReviewAt is not null or s.flagsHidden = true)
       and c.topic.id in :topicIds
     group by c.topic.id
     """)

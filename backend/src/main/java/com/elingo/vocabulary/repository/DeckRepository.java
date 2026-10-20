@@ -11,8 +11,6 @@ import java.util.Optional;
 
 @Repository
 public interface DeckRepository extends JpaRepository<Deck, Long>, JpaSpecificationExecutor<Deck> {
-    long countByOwnerId(Long ownerId);
-
     interface DeckAccessView {
         Long getId();
         DeckStatus getStatus();
@@ -20,6 +18,8 @@ public interface DeckRepository extends JpaRepository<Deck, Long>, JpaSpecificat
         Long getOwnerId();
         Boolean getIsPremium();
     }
+
+    long countByOwnerTypeAndOwnerId(OwnerType ownerType, Long ownerId);
 
     @Query("""
     select d.id as id, d.status as status, d.ownerType as ownerType,

@@ -21,7 +21,8 @@ import org.hibernate.annotations.OnDeleteAction;
 @Table(
         name = "cards",
         indexes = {
-                @Index(name = "idx_card_topic_order", columnList = "topic_id, `order`")
+                @Index(name = "idx_card_topic_order", columnList = "topic_id, `order`"),
+                @Index(name = "idx_card_deck", columnList = "deck_id")
         }
 )
 @Data

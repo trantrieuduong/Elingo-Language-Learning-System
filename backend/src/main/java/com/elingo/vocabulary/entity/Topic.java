@@ -1,12 +1,6 @@
 package com.elingo.vocabulary.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -27,6 +21,9 @@ import org.hibernate.annotations.OnDeleteAction;
         name = "topics",
         uniqueConstraints = {
                 @UniqueConstraint(name = "uk_topic_slug_per_deck", columnNames = {"deck_id", "slug"})
+        },
+        indexes = {
+                @Index(name = "idx_topic_deck_order", columnList = "deck_id, `order`")
         }
 )
 @Data
