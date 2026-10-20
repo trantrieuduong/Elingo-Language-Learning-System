@@ -27,6 +27,14 @@ public interface DeckRepository extends JpaRepository<Deck, Long>, JpaSpecificat
     @Query("""
     select d.id as id, d.status as status, d.ownerType as ownerType,
            d.owner.id as ownerId, d.isPremium as isPremium
+    from Deck d where d.slug = :slug
+    """)
+    @EntityGraph(attributePaths = "owner")
+    Optional<DeckAccessView> findAccessViewBySlug(@Param("slug") String slug);
+
+    @Query("""
+    select d.id as id, d.status as status, d.ownerType as ownerType,
+           d.owner.id as ownerId, d.isPremium as isPremium
     from Deck d where d.id = :deckId
     """)
     @EntityGraph(attributePaths = "owner") // @ManyToOne only

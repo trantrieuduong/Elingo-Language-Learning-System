@@ -73,26 +73,22 @@ public class DeckServiceImpl implements DeckService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<TopicResponse> getTopicsByDeck(Long deckId, Long userId) {
+    public List<TopicResponse> getTopicsByDeckId(Long deckId, Long userId) {
         DeckRepository.DeckAccessView deck = deckRepository.findAccessViewById(deckId)
                 .orElseThrow(() -> new AppException(AppError.DECK_NOT_FOUND));
-
         accessPolicy.assertCanLearn(deck, userId);
 
-        List<Topic> topics = topicRepository.findByDeckId(deck.getId(),
-                Sort.by("order").and(Sort.by("id")));
+        return getTopicResponseInDeck(userId, deckId);
+    }
 
-        if (topics.isEmpty()) return List.of();
+    @Override
+    @Transactional(readOnly = true)
+    public List<TopicResponse> getTopicsByDeckSlug(String slug, Long userId) {
+        DeckRepository.DeckAccessView deck = deckRepository.findAccessViewBySlug(slug)
+                .orElseThrow(() -> new AppException(AppError.DECK_NOT_FOUND));
+        accessPolicy.assertCanLearn(deck, userId);
 
-        Map<Long, Integer> learned = userId == null
-                ? Map.of()
-                : progressService.getLearnedCardCountByTopic(
-                        userId, topics.stream().map(Topic::getId).toList());
-
-        return topics.stream()
-                .map(t -> topicMapper
-                        .toTopicResponse(t, userId == null ? null : learned.getOrDefault(t.getId(), 0)))
-                .toList();
+        return getTopicResponseInDeck(userId, deck.getId());
     }
 
     @Override
@@ -172,6 +168,23 @@ public class DeckServiceImpl implements DeckService {
         deckRepository.deleteById(deckId);
 
         log.info("User Deck deleted deckId={}", deckId);
+    }
+
+    private List<TopicResponse> getTopicResponseInDeck(Long userId, Long deckId) {
+        List<Topic> topics = topicRepository.findByDeckId(deckId,
+                Sort.by("order").and(Sort.by("id")));
+
+        if (topics.isEmpty()) return List.of();
+
+        Map<Long, Integer> learned = userId == null
+                ? Map.of()
+                : progressService.getLearnedCardCountByTopic(
+                userId, topics.stream().map(Topic::getId).toList());
+
+        return topics.stream()
+                .map(t -> topicMapper.toTopicResponse(
+                        t, userId == null ? null : learned.getOrDefault(t.getId(), 0))
+                ).toList();
     }
 
     private void assertCanEdit(Long userId, Long deckId) {

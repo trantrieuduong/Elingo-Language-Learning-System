@@ -25,7 +25,7 @@ public class TopicController {
     private final TopicService topicService;
 
     @GetMapping("/{topicId}/cards")
-    @Operation(summary = "Get all unlearned cards belonging to a topic of current user")
+    @Operation(summary = "Get all cards belonging to a topic")
     public ApiResponse<List<CardResponse>> getCardsByTopic(
             @PathVariable Long topicId,
             @CurrentUserId Long currentUserId) {

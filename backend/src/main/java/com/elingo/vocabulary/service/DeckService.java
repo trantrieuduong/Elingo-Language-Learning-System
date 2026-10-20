@@ -11,7 +11,8 @@ import java.util.List;
 
 public interface DeckService {
     PageResponse<DeckResponse> getPublishedDecks(DeckSearchRequest req, Pageable pageable, Long userId);
-    List<TopicResponse> getTopicsByDeck(Long deckId, Long userId);
+    List<TopicResponse> getTopicsByDeckId(Long deckId, Long userId);
+    List<TopicResponse> getTopicsByDeckSlug(String slug, Long userId);
 
     // CRUD user decks
     List<DeckResponse> getUserDecks(Long userId);
