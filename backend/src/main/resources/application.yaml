@@ -40,6 +40,10 @@ app:
       hard-interval-factor: 1.2
       easy-interval-factor: 1.3
       again-review-minutes: 10
+    user-deck-limit:
+      max-decks-per-user: 5
+      max-topics-per-deck: 15
+      max-cards-per-topic: 50
   gamification:
     rules:
       FLASHCARD_REVIEW:   { xp: 2,  daily-limit: 100 }

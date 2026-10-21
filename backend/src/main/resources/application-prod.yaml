@@ -8,10 +8,17 @@ spring:
     url: ${PROD_MYSQL_CONNECTION_URL} #?connectionTimeZone=Asia/Ho_Chi_Minh&forceConnectionTimeZoneToSession=true
     username: ${PROD_MYSQL_USERNAME}
     password: ${PROD_MYSQL_PASSWORD}
+  data:
+    web:
+      pageable:
+        one-indexed-parameters: true
   jpa:
     hibernate:
       ddl-auto: validate
     show-sql: false
+    properties:
+      hibernate:
+        default_batch_fetch_size: 50
   mail:
     host: ${PROD_MAIL_HOST}
     port: ${PROD_MAIL_PORT}
