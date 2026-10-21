@@ -31,7 +31,7 @@
 | `/dashboard` | `DashboardPage` | `user/pages/` | Trang chính sau đăng nhập |
 | `/learning` | `LessonListPage` | `learning/lesson/pages/` | Kho bài học (đã triển khai GD1; chọn chế độ bằng modal, không có trang chi tiết riêng) |
 | `/learning/dictation/:slug` | `DictationPage` | `learning/dictation/pages/` | Nghe chép chính tả (đã triển khai GD2; định danh theo slug) |
-| `/learning/shadowing/:slug` | `ShadowingPage` | `learning/shadowing/pages/` | Luyện nói đuổi (Planned GD3; định danh theo slug) |
+| `/learning/shadowing/:slug` | `ShadowingPage` | `learning/shadowing/pages/` | Luyện nói đuổi (đã triển khai GD3; định danh theo slug) |
 | `/decks/:deckId` | `FlashcardStudyPage` | `learning/flashcard/pages/` | Học flashcard của một bộ từ (bắt buộc đăng nhập) |
 | `/review` | `FlashcardReviewPage` | `learning/flashcard/pages/` | Ôn tập flashcard đến hạn (giới hạn 100 flashcard/1 ngày) |
 | `/decks/:deckId` | `DeckDetailPage` | `vocabulary/pages/` | Chi tiết bộ từ vựng |

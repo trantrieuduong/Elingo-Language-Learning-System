@@ -1,0 +1,790 @@
+/* ============================================================
+   ShadowingPage.css — Shadowing Speaking Practice Page
+   Liquid Glass Minimalism Design System
+   ============================================================ */
+
+.shadowing-page-container {
+  max-width: var(--container-wide);
+  width: 100%;
+  margin: 0 auto;
+  padding: calc(72px + var(--spacing-xl)) var(--spacing-lg) var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  min-height: auto;
+}
+
+/* ── Top Bar ── */
+.shadowing-top-bar {
+  display: flex;
+  align-items: center;
+}
+
+.shadowing-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 8px 18px;
+  font-size: var(--font-size-label-md);
+  font-weight: 600;
+}
+
+/* ── 3-Column Layout ──
+   Player (390px) | Main Study Area (1fr) | Sidebar (350px) */
+.shadowing-layout {
+  display: grid;
+  grid-template-columns: 390px 1fr 350px;
+  gap: var(--spacing-xl);
+  align-items: start;
+}
+
+/* ── Cột 1: Player ── */
+.shadowing-col-player {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  min-width: 0;
+}
+
+.shadowing-player-actions {
+  display: flex;
+  flex-direction: column;
+}
+
+.shadowing-replay-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  width: 100%;
+  padding: 10px 16px;
+  font-weight: 600;
+}
+
+/* ── Cột 2: Main Content Area ── */
+.shadowing-col-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  min-width: 0;
+}
+
+/* ── Cột 3: Sidebar ── */
+.shadowing-col-sidebar {
+  min-width: 0;
+}
+
+/* Thẻ luyện nói chính */
+.shadowing-study-card {
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.shadowing-study-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.shadowing-study-title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-label-md);
+  font-weight: 700;
+  color: var(--color-text-mid);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  margin: 0;
+}
+
+/* Hộp thoại câu tiếng Anh cần đọc theo */
+.shadowing-dialogue-box {
+  background: var(--glass-well-bg);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-xl) var(--spacing-lg);
+  text-align: center;
+  box-shadow: var(--shadow-well);
+}
+
+.shadowing-dialogue-text {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--color-text-high);
+  line-height: 1.4;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+/* Hàng 3 nút điều khiển: Nghe lại | GHI ÂM (chính) | Tiếp tục */
+.shadowing-controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-xs) 0;
+}
+
+/* Nút ghi âm chính (giữa) */
+.shadowing-record-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: 14px 28px;
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-label-lg);
+  font-weight: 700;
+  min-width: 220px;
+  transition: all var(--transition-base);
+}
+
+.shadowing-record-btn--recording {
+  background: var(--color-error);
+  color: #ffffff;
+  border-color: var(--color-error);
+  animation: pulse-red 1.5s infinite;
+}
+
+@keyframes pulse-red {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+
+  70% {
+    box-shadow: 0 0 0 12px rgba(239, 68, 68, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+.shadowing-record-btn .material-symbols-outlined {
+  font-size: 24px;
+}
+
+/* Dòng trạng thái (Status message) */
+.shadowing-status-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-body-sm);
+  font-weight: 600;
+  text-align: center;
+}
+
+.shadowing-status-banner--recording {
+  background: var(--color-error-container);
+  color: var(--color-error);
+}
+
+.shadowing-status-banner--processing {
+  background: var(--color-secondary-container);
+  color: var(--color-primary);
+}
+
+.shadowing-status-banner--warning {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+.shadowing-status-banner--error {
+  background: var(--color-error-container);
+  color: var(--color-error);
+}
+
+/* ── KHỐI KẾT QUẢ ĐÁNH GIÁ PHÁT ÂM ── */
+.shadowing-result-card {
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.shadowing-result-top {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xl);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--color-outline-variant);
+}
+
+/* Vòng tròn điểm số SVG */
+.shadowing-score-circle-wrapper {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  flex-shrink: 0;
+}
+
+.shadowing-score-svg {
+  transform: rotate(-90deg);
+  width: 100%;
+  height: 100%;
+}
+
+.shadowing-score-circle-bg {
+  fill: none;
+  stroke: var(--glass-well-bg);
+  stroke-width: 8;
+}
+
+.shadowing-score-circle-val {
+  fill: none;
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.8s ease-in-out;
+}
+
+.shadowing-score-circle-val--pass {
+  stroke: var(--color-success);
+}
+
+.shadowing-score-circle-val--warning {
+  stroke: var(--color-warning);
+}
+
+.shadowing-score-circle-val--fail {
+  stroke: var(--color-error);
+}
+
+.shadowing-score-text-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.shadowing-score-number {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--color-text-high);
+  line-height: 1;
+}
+
+.shadowing-score-unit {
+  font-size: 11px;
+  color: var(--color-text-disabled);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* Thông tin chi tiết bên cạnh vòng tròn điểm */
+.shadowing-result-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.shadowing-result-badge-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: 4px;
+}
+
+.shadowing-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-display);
+  font-size: var(--font-size-label-sm);
+  font-weight: 700;
+}
+
+.shadowing-badge--pass {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.shadowing-badge--fail {
+  background: var(--color-error-container);
+  color: var(--color-error);
+}
+
+.shadowing-best-score {
+  font-size: var(--font-size-body-md);
+  font-weight: 700;
+  color: var(--color-text-high);
+  margin: 0;
+}
+
+.shadowing-best-score-sub {
+  font-size: var(--font-size-body-sm);
+  font-weight: 600;
+  color: var(--color-primary);
+  margin: 0;
+}
+
+.shadowing-penalty-notice {
+  font-size: var(--font-size-body-sm);
+  color: var(--color-text-body);
+  margin: 0;
+}
+
+.shadowing-attempts-info {
+  font-size: var(--font-size-body-sm);
+  color: var(--color-text-disabled);
+  margin: 0;
+}
+
+/* ── Nghe lại bản ghi của người học ── */
+.shadowing-audio-player-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: 12px 16px;
+  background: var(--glass-well-bg);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-outline-variant);
+}
+
+.shadowing-audio-label {
+  font-size: var(--font-size-label-md);
+  font-weight: 600;
+  color: var(--color-text-mid);
+}
+
+.shadowing-audio-element {
+  flex: 1;
+  height: 36px;
+  outline: none;
+}
+
+/* ── Thẻ phân tích từng từ (Tô màu & Gạch chân trợ năng) ── */
+.shadowing-words-analysis {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.shadowing-words-title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-label-md);
+  font-weight: 700;
+  color: var(--color-text-mid);
+}
+
+.shadowing-words-flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  align-items: center;
+  padding: var(--spacing-md);
+  background: var(--glass-well-bg);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-outline-variant);
+}
+
+.shadowing-word-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  border: 1px solid transparent;
+}
+
+/* Mức điểm cao: Xanh */
+.shadowing-word-chip--good {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+  border-color: rgba(31, 94, 75, 0.3);
+}
+
+/* Mức điểm trung bình: Vàng + gạch chân nét đứt */
+.shadowing-word-chip--medium {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+  border-color: rgba(245, 158, 11, 0.4);
+  text-decoration: underline wavy rgba(245, 158, 11, 0.6);
+}
+
+/* Mức điểm kém: Đỏ + gạch chân đôi */
+.shadowing-word-chip--poor {
+  background: var(--color-error-container);
+  color: var(--color-error);
+  border-color: rgba(186, 26, 26, 0.3);
+  text-decoration: underline double rgba(186, 26, 26, 0.6);
+}
+
+.shadowing-words-legend {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  font-size: var(--font-size-body-sm);
+  color: var(--color-text-disabled);
+  flex-wrap: wrap;
+}
+
+.shadowing-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.shadowing-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.shadowing-legend-dot--good {
+  background: var(--color-success);
+}
+
+.shadowing-legend-dot--medium {
+  background: var(--color-warning);
+}
+
+.shadowing-legend-dot--poor {
+  background: var(--color-error);
+}
+
+/* ── Màn hình hoàn thành bài học ── */
+.shadowing-completion-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--spacing-3xl) var(--spacing-xl);
+  border-radius: var(--radius-card);
+  gap: var(--spacing-md);
+}
+
+.shadowing-completion-icon-wrapper {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-full);
+  background: var(--color-success-bg);
+  color: var(--color-success);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shadowing-completion-icon {
+  font-size: 44px;
+}
+
+.shadowing-completion-title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-headline-md);
+  font-weight: 800;
+  color: var(--color-text-high);
+  margin: 0;
+}
+
+.shadowing-completion-desc {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-md);
+  color: var(--color-text-body);
+  max-width: 480px;
+  margin: 0;
+}
+
+.shadowing-completion-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-sm);
+}
+
+/* ── Modal hỏi tải mô hình AI (phong cách LessonModeModal) ── */
+.shadowing-model-modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-md);
+  z-index: var(--z-modal);
+}
+
+.shadowing-model-modal-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: shadowing-modal-fade-in 0.2s ease;
+}
+
+@keyframes shadowing-modal-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.shadowing-model-modal {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  max-width: 520px;
+  border-radius: var(--radius-card-lg);
+  padding: var(--spacing-2xl);
+  animation: shadowing-modal-slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+@keyframes shadowing-modal-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.shadowing-model-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
+.shadowing-model-modal-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.shadowing-model-modal-title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-headline-md);
+  font-weight: 700;
+  color: var(--color-text-high);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.shadowing-model-modal-desc {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-md);
+  color: var(--color-text-body);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.shadowing-model-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.shadowing-model-radio-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-outline-variant);
+  cursor: pointer;
+  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base), background-color var(--transition-base);
+  user-select: none;
+}
+
+.shadowing-model-radio-label:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.shadowing-model-radio-label--active {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-container), var(--shadow-card-hover);
+}
+
+.shadowing-model-radio-label input[type='radio'] {
+  accent-color: var(--color-primary);
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.shadowing-model-option-text {
+  font-family: var(--font-display);
+  font-size: var(--font-size-title-sm);
+  font-weight: 600;
+  color: var(--color-text-high);
+}
+
+.shadowing-model-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+  padding-top: var(--spacing-xs);
+}
+
+.shadowing-model-modal-actions .btn-secondary,
+.shadowing-model-modal-actions .btn-primary {
+  padding: 0.625rem 1.25rem;
+  font-size: var(--font-size-label-md);
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+}
+
+/* ============================================================
+   Dark Mode & Responsive
+   ============================================================ */
+[data-theme='dark'] .shadowing-model-modal-overlay::before {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+[data-theme='dark'] .shadowing-model-modal-title {
+  color: #f8fafc;
+}
+
+[data-theme='dark'] .shadowing-model-radio-label--active {
+  background: rgba(59, 130, 246, 0.12);
+}
+
+/* ============================================================
+   Responsive Styles
+   ============================================================ */
+
+/* ============================================================
+   Dark Mode & Responsive
+   ============================================================ */
+[data-theme='dark'] .shadowing-study-title,
+[data-theme='dark'] .shadowing-completion-title {
+  color: #f8fafc;
+}
+
+[data-theme='dark'] .shadowing-dialogue-text {
+  color: #f8fafc;
+}
+
+/* Responsive: Màn hình vừa (khoảng 1100px - 1280px) */
+@media (max-width: 1280px) {
+  .shadowing-layout {
+    grid-template-columns: 340px 1fr 310px;
+    gap: var(--spacing-lg);
+  }
+}
+
+/* Responsive: Màn hình vừa nhỏ (khoảng 900px - 1100px) */
+@media (max-width: 1100px) {
+  .shadowing-layout {
+    grid-template-columns: 290px 1fr 270px;
+    gap: var(--spacing-md);
+  }
+}
+
+/* Responsive: Màn hình hẹp (≤ 900px) xếp dọc theo thứ tự Player -> Main -> Sidebar */
+@media (max-width: 900px) {
+  .shadowing-layout {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-xl);
+  }
+
+  .shadowing-col-player,
+  .shadowing-col-main,
+  .shadowing-col-sidebar {
+    width: 100%;
+  }
+
+  .shadowing-col-sidebar .study-segment-sidebar {
+    position: static;
+    max-height: 400px;
+  }
+}
+
+@media (max-width: 600px) {
+  .shadowing-page-container {
+    padding-top: calc(72px + var(--spacing-md));
+    padding-left: var(--spacing-sm);
+    padding-right: var(--spacing-sm);
+  }
+
+  .shadowing-study-card,
+  .shadowing-result-card,
+  .shadowing-completion-card {
+    padding: var(--spacing-md);
+  }
+
+  .shadowing-dialogue-box {
+    padding: var(--spacing-md);
+  }
+
+  .shadowing-dialogue-text {
+    font-size: 20px;
+  }
+
+  .shadowing-controls-row {
+    flex-direction: column;
+    width: 100%;
+    gap: var(--spacing-sm);
+  }
+
+  .shadowing-controls-row button,
+  .shadowing-record-btn {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .shadowing-result-top {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--spacing-md);
+  }
+
+  .shadowing-result-badge-row {
+    justify-content: center;
+  }
+
+  .shadowing-audio-player-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .shadowing-completion-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .shadowing-completion-actions button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 360px) {
+  .shadowing-page-container {
+    padding-inline: var(--space-2);
+  }
+
+  .shadowing-dialogue-text {
+    font-size: 16px;
+  }
+}

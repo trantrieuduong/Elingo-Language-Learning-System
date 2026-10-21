@@ -13,6 +13,7 @@ import FlashcardStudyPage from './modules/learning/flashcard/pages/FlashcardStud
 import FlashcardReviewPage from './modules/learning/flashcard/pages/FlashcardReviewPage'
 import LessonListPage from './modules/learning/lesson/pages/LessonListPage'
 import DictationPage from './modules/learning/dictation/pages/DictationPage'
+import ShadowingPage from './modules/learning/shadowing/pages/ShadowingPage'
 import './App.css'
 
 const PUBLIC_PATHS = ['/login', '/signup', '/account-verification', '/reset-password']
@@ -53,6 +54,7 @@ function App() {
 
   const flashcardStudyMatch = currentPath.match(/^\/decks\/([^/]+)$/)
   const dictationMatch = currentPath.match(/^\/learning\/dictation\/([^/]+)$/)
+  const shadowingMatch = currentPath.match(/^\/learning\/shadowing\/([^/]+)$/)
 
   useEffect(() => {
     if (loading) return
@@ -124,6 +126,10 @@ function App() {
 
     if (dictationMatch) {
       return <DictationPage slug={decodeURIComponent(dictationMatch[1])} onNavigate={navigate} />
+    }
+
+    if (shadowingMatch) {
+      return <ShadowingPage slug={decodeURIComponent(shadowingMatch[1])} onNavigate={navigate} />
     }
 
     switch (currentPath) {
