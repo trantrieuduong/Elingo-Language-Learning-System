@@ -9,6 +9,6 @@ public record TopicResponse(
         String slug,
         Integer order,
         Integer cardCount,
-        Integer learnedCardCount
+        Integer unlearnedCardCount
 ) {
 }

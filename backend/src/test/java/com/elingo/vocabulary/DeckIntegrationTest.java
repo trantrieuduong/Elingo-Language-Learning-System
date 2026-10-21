@@ -2,33 +2,28 @@ package com.elingo.vocabulary;
 
 import com.elingo.BaseIntegrationTest;
 import com.elingo.auth.service.JwtService;
-import com.elingo.learning.flashcard.entity.UserCardState;
-import com.elingo.learning.flashcard.repository.UserCardStateRepository;
 import com.elingo.user.entity.Role;
 import com.elingo.user.entity.User;
 import com.elingo.user.repository.UserRepository;
-import com.elingo.vocabulary.dto.request.UserDeckPublicationRequest;
-import com.elingo.vocabulary.dto.request.UserDeckRequest;
-import com.elingo.vocabulary.entity.Card;
 import com.elingo.vocabulary.entity.CefrLevel;
 import com.elingo.vocabulary.entity.Deck;
 import com.elingo.vocabulary.entity.DeckStatus;
 import com.elingo.vocabulary.entity.OwnerType;
 import com.elingo.vocabulary.entity.Tag;
+import com.elingo.learning.flashcard.entity.UserCardState;
+import com.elingo.learning.flashcard.repository.UserCardStateRepository;
+import com.elingo.vocabulary.entity.Card;
 import com.elingo.vocabulary.entity.Topic;
 import com.elingo.vocabulary.repository.CardRepository;
 import com.elingo.vocabulary.repository.CefrLevelRepository;
 import com.elingo.vocabulary.repository.DeckRepository;
 import com.elingo.vocabulary.repository.TagRepository;
 import com.elingo.vocabulary.repository.TopicRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -36,11 +31,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import java.time.LocalDateTime;
 import java.util.Set;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -76,11 +67,6 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private EntityManager entityManager;
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
     private User testUser;
     private String authToken;
 
@@ -112,9 +98,9 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
         );
     }
 
-    private Deck persistPublishedDeck(String title, String slug,
+    private void persistPublishedDeck(String title, String slug,
                                       Set<Tag> tags, Set<CefrLevel> cefrLevels) {
-        return deckRepository.save(Deck.builder()
+        deckRepository.save(Deck.builder()
                 .title(title)
                 .slug(slug)
                 .status(DeckStatus.PUBLISHED)
@@ -125,8 +111,8 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
                 .build());
     }
 
-    private Deck persistDraftDeck() {
-        return deckRepository.save(Deck.builder()
+    private void persistDraftDeck() {
+        deckRepository.save(Deck.builder()
                 .title("Hidden Draft")
                 .slug("hidden-draft")
                 .status(DeckStatus.DRAFT)
@@ -134,57 +120,9 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
                 .build());
     }
 
-    private Deck persistUserDeck(User owner, String title, String slug, DeckStatus status, int cardCount) {
-        return deckRepository.save(Deck.builder()
-                .title(title)
-                .slug(slug)
-                .status(status)
-                .ownerType(OwnerType.USER)
-                .owner(owner)
-                .cardCount(cardCount)
-                .publishedAt(status == DeckStatus.PUBLISHED ? LocalDateTime.now() : null)
-                .build());
-    }
-
     private ResultActions performGetDecks(String queryString) throws Exception {
         return mockMvc.perform(get("/decks" + queryString)
                 .header("Authorization", "Bearer " + authToken));
-    }
-
-    private ResultActions performGetTopicsByDeckId(Long deckId) throws Exception {
-        return mockMvc.perform(get("/decks/{deckId}/topics", deckId)
-                .header("Authorization", "Bearer " + authToken));
-    }
-
-    private ResultActions performGetTopicsByDeckSlug(String slug) throws Exception {
-        return mockMvc.perform(get("/decks/slug/{slug}/topics", slug)
-                .header("Authorization", "Bearer " + authToken));
-    }
-
-    private ResultActions performPostDeck(Object body) throws Exception {
-        return mockMvc.perform(post("/decks")
-                .header("Authorization", "Bearer " + authToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(body)));
-    }
-
-    private ResultActions performPutDeck(Long deckId, Object body) throws Exception {
-        return mockMvc.perform(put("/decks/{deckId}", deckId)
-                .header("Authorization", "Bearer " + authToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(body)));
-    }
-
-    private ResultActions performDeleteDeck(Long deckId) throws Exception {
-        return mockMvc.perform(delete("/decks/{deckId}", deckId)
-                .header("Authorization", "Bearer " + authToken));
-    }
-
-    private ResultActions performPutDeckPublication(Long deckId, Object body) throws Exception {
-        return mockMvc.perform(put("/decks/{deckId}/publication", deckId)
-                .header("Authorization", "Bearer " + authToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(body)));
     }
 
     // ─────────────────────── test class ───────────────────────
@@ -206,7 +144,7 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
                     .andExpect(jsonPath("$.data.content.length()").value(2))
                     .andExpect(jsonPath("$.data.content[0].learnedCardCount").value(0))
                     .andExpect(jsonPath("$.data.content[1].learnedCardCount").value(0))
-                    .andExpect(jsonPath("$.data.size").value(20))
+                    .andExpect(jsonPath("$.data.size").value(9))
                     .andExpect(jsonPath("$.data.page").value(1))
                     .andExpect(jsonPath("$.data.totalElements").value(2))
                     .andExpect(jsonPath("$.data.totalPages").value(1))
@@ -239,10 +177,12 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
                     .topic(topic)
                     .build());
 
+            // User has learned card1
             userCardStateRepository.save(UserCardState.builder()
                     .user(testUser)
                     .card(card1)
-                    .srsLastGrade((short) 2)
+                    .deck(deck)
+                    .topic(topic)
                     .srsNextReviewAt(LocalDateTime.now().plusDays(1))
                     .build());
 
@@ -275,25 +215,18 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
         }
 
         @Test
-        @DisplayName("Get published decks: Success - pagination works correctly")
-        void testGetPublishedDecks_Pagination() throws Exception {
-            for (int i = 1; i <= 25; i++) {
+        @DisplayName("Get published decks: Success - second page returns correct slice")
+        void testGetPublishedDecks_Pagination_SecondPage() throws Exception {
+            // Persist 10 decks so page 1 has 1 deck
+            for (int i = 1; i <= 10; i++) {
                 persistPublishedDeck("Deck " + i, "deck-" + i, Set.of(), Set.of());
             }
 
-            performGetDecks("?page=0&size=20")
+            performGetDecks("?page=2")
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.content.length()").value(20))
-                    .andExpect(jsonPath("$.data.page").value(1))
-                    .andExpect(jsonPath("$.data.totalElements").value(25))
-                    .andExpect(jsonPath("$.data.totalPages").value(2))
-                    .andExpect(jsonPath("$.data.isLast").value(false));
-
-            performGetDecks("?page=1&size=20")
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.content.length()").value(5))
+                    .andExpect(jsonPath("$.data.content.length()").value(1))
                     .andExpect(jsonPath("$.data.page").value(2))
-                    .andExpect(jsonPath("$.data.totalElements").value(25))
+                    .andExpect(jsonPath("$.data.totalElements").value(10))
                     .andExpect(jsonPath("$.data.totalPages").value(2))
                     .andExpect(jsonPath("$.data.isLast").value(true));
         }
@@ -307,7 +240,7 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
             persistPublishedDeck("B2 Vocabulary", "b2-vocab", Set.of(), Set.of(b2));
             persistPublishedDeck("Other Deck", "other", Set.of(), Set.of());
 
-            performGetDecks("?cefr=B2")
+            performGetDecks("?cefrCode=B2")
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.content.length()").value(1))
                     .andExpect(jsonPath("$.data.content[0].title").value("B2 Vocabulary"));
@@ -319,7 +252,7 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
             CefrLevel a1 = buildCefrLevel("A1", "Beginner");
             persistPublishedDeck("A1 Vocab", "a1-vocab", Set.of(), Set.of(a1));
 
-            performGetDecks("?cefr=C2")
+            performGetDecks("?cefrCode=C2")
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.content").isArray())
                     .andExpect(jsonPath("$.data.content.length()").value(0))
@@ -335,7 +268,7 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
             persistPublishedDeck("Travel Words", "travel-words", Set.of(travel), Set.of());
             persistPublishedDeck("Other Deck", "other-2", Set.of(), Set.of());
 
-            performGetDecks("?tags=TRAVEL")
+            performGetDecks("?tagCode=TRAVEL")
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.content.length()").value(1))
                     .andExpect(jsonPath("$.data.content[0].title").value("Travel Words"));
@@ -347,7 +280,7 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
             Tag food = buildTag("FOOD", "Food");
             persistPublishedDeck("Food Deck", "food-deck", Set.of(food), Set.of());
 
-            performGetDecks("?tags=TRAVEL")
+            performGetDecks("?tagCode=TRAVEL")
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.content.length()").value(0))
                     .andExpect(jsonPath("$.data.totalElements").value(0));
@@ -362,7 +295,7 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
             persistPublishedDeck("English Colors", "english-colors", Set.of(), Set.of());
             persistPublishedDeck("French Basic", "french-basic", Set.of(), Set.of());
 
-            performGetDecks("?q=english")
+            performGetDecks("?keyword=english")
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.content.length()").value(2));
         }
@@ -372,7 +305,7 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
         void testGetPublishedDecks_FilterByKeyword_CaseInsensitive() throws Exception {
             persistPublishedDeck("Animals Deck", "animals-deck", Set.of(), Set.of());
 
-            performGetDecks("?q=ANIMALS")
+            performGetDecks("?keyword=ANIMALS")
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.content.length()").value(1))
                     .andExpect(jsonPath("$.data.content[0].title").value("Animals Deck"));
@@ -383,7 +316,7 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
         void testGetPublishedDecks_FilterByKeyword_NotFound() throws Exception {
             persistPublishedDeck("Animals Deck", "animals-deck-2", Set.of(), Set.of());
 
-            performGetDecks("?q=zzz_no_match")
+            performGetDecks("?keyword=zzz_no_match")
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.content").isArray())
                     .andExpect(jsonPath("$.data.content.length()").value(0))
@@ -402,32 +335,10 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
             persistPublishedDeck("B1 Travel", "b1-travel", Set.of(), Set.of(b1));
             persistPublishedDeck("A1 Science", "a1-science-2", Set.of(science), Set.of());
 
-            performGetDecks("?cefr=B1&tags=SCIENCE&q=science")
+            performGetDecks("?cefrCode=B1&keyword=science")
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.content.length()").value(1))
                     .andExpect(jsonPath("$.data.content[0].title").value("B1 Science"));
-        }
-
-        // ─────── premium filter ───────
-
-        @Test
-        @DisplayName("Get published decks: Success - filter by premium true")
-        void testGetPublishedDecks_FilterByPremium_True() throws Exception {
-            deckRepository.save(Deck.builder()
-                    .title("Premium Deck")
-                    .slug("premium-deck")
-                    .status(DeckStatus.PUBLISHED)
-                    .ownerType(OwnerType.SYSTEM)
-                    .isPremium(true)
-                    .publishedAt(LocalDateTime.now())
-                    .build());
-            persistPublishedDeck("Free Deck", "free-deck", Set.of(), Set.of());
-
-            performGetDecks("?premium=true")
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.content.length()").value(1))
-                    .andExpect(jsonPath("$.data.content[0].title").value("Premium Deck"))
-                    .andExpect(jsonPath("$.data.content[0].isPremium").value(true));
         }
 
         // ─────── security ───────
@@ -445,476 +356,18 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Get published decks: Fail because of invalid CEFR code")
         void testGetPublishedDecks_Fail_InvalidCefrCode() throws Exception {
-            performGetDecks("?cefr=B9999999999")
+            performGetDecks("?cefrCode=B9999999999")
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.success").value(false))
                     .andExpect(jsonPath("$.errors[0].code").value("CEFR_LEVEL_CODE_INVALID"));
         }
 
         @Test
-        @DisplayName("Get published decks: Fail because of invalid tag code")
-        void testGetPublishedDecks_Fail_InvalidTagCode() throws Exception {
-            performGetDecks("?tags=INVALID_TAG_CODE_TOO_LONG_" + "x".repeat(100))
+        @DisplayName("Get published decks: Fail because of negative page index")
+        void testGetPublishedDecks_Fail_NegativePage() throws Exception {
+            performGetDecks("?page=-1")
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.errors[0].code").value("TAG_INVALID"));
-        }
-    }
-
-    @Nested
-    @DisplayName("getTopicsByDeckId")
-    class GetTopicsByDeckIdTests {
-
-        @Test
-        @DisplayName("Get topics by deck ID: Success")
-        void testGetTopicsByDeckId_Success() throws Exception {
-            Deck deck = deckRepository.save(Deck.builder()
-                    .title("Animals Deck")
-                    .slug("animals-deck")
-                    .status(DeckStatus.PUBLISHED)
-                    .ownerType(OwnerType.SYSTEM)
-                    .publishedAt(LocalDateTime.now())
-                    .build());
-
-            topicRepository.save(Topic.builder()
-                    .deck(deck)
-                    .name("Mammals")
-                    .slug("mammals")
-                    .order(1)
-                    .build());
-
-            topicRepository.save(Topic.builder()
-                    .deck(deck)
-                    .name("Birds")
-                    .slug("birds")
-                    .order(2)
-                    .build());
-
-            performGetTopicsByDeckId(deck.getId())
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data").isArray())
-                    .andExpect(jsonPath("$.data.length()").value(2))
-                    .andExpect(jsonPath("$.data[0].name").value("Mammals"))
-                    .andExpect(jsonPath("$.data[1].name").value("Birds"))
-                    .andExpect(jsonPath("$.data[0].learnedCardCount").value(0))
-                    .andExpect(jsonPath("$.data[1].learnedCardCount").value(0));
-        }
-
-        @Test
-        @DisplayName("Get topics by deck ID: Success - owner can view topics of own draft deck")
-        void testGetTopicsByDeckId_Success_OwnerCanViewOwnDraftDeck() throws Exception {
-            Deck deck = persistUserDeck(testUser, "My Draft Deck", "my-draft-deck", DeckStatus.DRAFT, 0);
-
-            topicRepository.save(Topic.builder()
-                    .deck(deck)
-                    .name("User Topic 1")
-                    .slug("user-topic-1")
-                    .order(1)
-                    .build());
-
-            performGetTopicsByDeckId(deck.getId())
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.length()").value(1))
-                    .andExpect(jsonPath("$.data[0].name").value("User Topic 1"));
-        }
-
-        @Test
-        @DisplayName("Get topics by deck ID: Fail because deck not found")
-        void testGetTopicsByDeckId_Fail_NotFound() throws Exception {
-            performGetTopicsByDeckId(99999L)
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.errors[0].code").value("DECK_NOT_FOUND"));
-        }
-
-        @Test
-        @DisplayName("Get topics by deck ID: Fail because deck is draft of another owner")
-        void testGetTopicsByDeckId_Fail_Draft() throws Exception {
-            Deck deck = deckRepository.save(Deck.builder()
-                    .title("Draft Deck")
-                    .slug("draft-deck")
-                    .status(DeckStatus.DRAFT)
-                    .ownerType(OwnerType.SYSTEM)
-                    .build());
-
-            performGetTopicsByDeckId(deck.getId())
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.errors[0].code").value("DECK_NOT_FOUND"));
-        }
-
-        @Test
-        @DisplayName("Get topics by deck ID: Fail because premium deck without subscription")
-        void testGetTopicsByDeckId_Fail_PremiumNoSub() throws Exception {
-            Deck deck = deckRepository.save(Deck.builder()
-                    .title("Premium Deck")
-                    .slug("premium-deck")
-                    .status(DeckStatus.PUBLISHED)
-                    .ownerType(OwnerType.SYSTEM)
-                    .isPremium(true)
-                    .publishedAt(LocalDateTime.now())
-                    .build());
-
-            performGetTopicsByDeckId(deck.getId())
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.errors[0].code").value("PREMIUM_REQUIRED"));
-        }
-    }
-
-    @Nested
-    @DisplayName("getTopicsByDeckSlug")
-    class GetTopicsByDeckSlugTests {
-
-        @Test
-        @DisplayName("Get topics by deck slug: Success")
-        void testGetTopicsByDeckSlug_Success() throws Exception {
-            Deck deck = deckRepository.save(Deck.builder()
-                    .title("Animals Deck")
-                    .slug("animals-deck")
-                    .status(DeckStatus.PUBLISHED)
-                    .ownerType(OwnerType.SYSTEM)
-                    .publishedAt(LocalDateTime.now())
-                    .build());
-
-            topicRepository.save(Topic.builder()
-                    .deck(deck)
-                    .name("Mammals")
-                    .slug("mammals")
-                    .order(1)
-                    .build());
-
-            performGetTopicsByDeckSlug("animals-deck")
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data").isArray())
-                    .andExpect(jsonPath("$.data.length()").value(1))
-                    .andExpect(jsonPath("$.data[0].name").value("Mammals"));
-        }
-
-        @Test
-        @DisplayName("Get topics by deck slug: Success - owner can view topics of own draft deck")
-        void testGetTopicsByDeckSlug_Success_OwnerCanViewOwnDraftDeck() throws Exception {
-            Deck deck = persistUserDeck(testUser, "My Draft Deck", "my-draft-deck-slug", DeckStatus.DRAFT, 0);
-
-            topicRepository.save(Topic.builder()
-                    .deck(deck)
-                    .name("Draft Topic")
-                    .slug("draft-topic")
-                    .order(1)
-                    .build());
-
-            performGetTopicsByDeckSlug("my-draft-deck-slug")
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.length()").value(1))
-                    .andExpect(jsonPath("$.data[0].name").value("Draft Topic"));
-        }
-
-        @Test
-        @DisplayName("Get topics by deck slug: Fail because deck not found")
-        void testGetTopicsByDeckSlug_Fail_NotFound() throws Exception {
-            performGetTopicsByDeckSlug("non-existent-slug")
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.errors[0].code").value("DECK_NOT_FOUND"));
-        }
-
-        @Test
-        @DisplayName("Get topics by deck slug: Fail because deck is draft of another owner")
-        void testGetTopicsByDeckSlug_Fail_Draft() throws Exception {
-            deckRepository.save(Deck.builder()
-                    .title("Draft Deck")
-                    .slug("system-draft-deck")
-                    .status(DeckStatus.DRAFT)
-                    .ownerType(OwnerType.SYSTEM)
-                    .build());
-
-            performGetTopicsByDeckSlug("system-draft-deck")
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.errors[0].code").value("DECK_NOT_FOUND"));
-        }
-
-        @Test
-        @DisplayName("Get topics by deck slug: Fail because premium deck without subscription")
-        void testGetTopicsByDeckSlug_Fail_PremiumNoSub() throws Exception {
-            deckRepository.save(Deck.builder()
-                    .title("Premium Deck")
-                    .slug("slug-premium-deck")
-                    .status(DeckStatus.PUBLISHED)
-                    .ownerType(OwnerType.SYSTEM)
-                    .isPremium(true)
-                    .publishedAt(LocalDateTime.now())
-                    .build());
-
-            performGetTopicsByDeckSlug("slug-premium-deck")
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.errors[0].code").value("PREMIUM_REQUIRED"));
-        }
-    }
-
-    @Nested
-    @DisplayName("createUserDeck")
-    class CreateUserDeckTests {
-
-        @Test
-        @DisplayName("Create user deck: Success")
-        void testCreateUserDeck_Success() throws Exception {
-            UserDeckRequest req = new UserDeckRequest("My Japanese Deck", "Useful Japanese phrases");
-
-            performPostDeck(req)
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.title").value("My Japanese Deck"))
-                    .andExpect(jsonPath("$.data.description").value("Useful Japanese phrases"))
-                    .andExpect(jsonPath("$.data.status").value("DRAFT"))
-                    .andExpect(jsonPath("$.data.ownerType").value("USER"));
-
-            Deck created = deckRepository.findAllByOwnerTypeAndOwnerId(OwnerType.USER, testUser.getId())
-                    .getFirst();
-            assertThat(created.getTitle()).isEqualTo("My Japanese Deck");
-            assertThat(created.getSlug()).startsWith("my-japanese-deck-");
-            assertThat(created.getStatus()).isEqualTo(DeckStatus.DRAFT);
-        }
-
-        @Test
-        @DisplayName("Create user deck: Fail because of blank title")
-        void testCreateUserDeck_Fail_BlankTitle() throws Exception {
-            UserDeckRequest req = new UserDeckRequest("   ", "Desc");
-
-            performPostDeck(req)
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.errors[0].code").value("INVALID_REQUEST"));
-        }
-
-        @Test
-        @DisplayName("Create user deck: Fail because of title exceeding max length")
-        void testCreateUserDeck_Fail_TitleTooLong() throws Exception {
-            UserDeckRequest req = new UserDeckRequest("x".repeat(51), null);
-
-            performPostDeck(req)
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.errors[0].code").value("INVALID_REQUEST"));
-        }
-
-        @Test
-        @DisplayName("Create user deck: Fail because deck limit exceeded (max 5)")
-        void testCreateUserDeck_Fail_DeckLimitExceeded() throws Exception {
-            for (int i = 1; i <= 5; i++) {
-                persistUserDeck(testUser, "Deck " + i, "user-deck-limit-" + i, DeckStatus.DRAFT, 0);
-            }
-
-            UserDeckRequest req = new UserDeckRequest("Over Limit Deck", null);
-
-            performPostDeck(req)
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.errors[0].code").value("DECK_LIMIT_EXCEEDED"));
-        }
-
-        @Test
-        @DisplayName("Create user deck: Fail because of invalid token")
-        void testCreateUserDeck_Fail_InvalidToken() throws Exception {
-            mockMvc.perform(post("/decks")
-                            .header("Authorization", "Bearer invalid.jwt.token")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(new UserDeckRequest("Title", null))))
-                    .andExpect(status().isUnauthorized());
-        }
-    }
-
-    @Nested
-    @DisplayName("updateUserDeck")
-    class UpdateUserDeckTests {
-
-        @Test
-        @DisplayName("Update user deck: Success")
-        void testUpdateUserDeck_Success() throws Exception {
-            Deck deck = persistUserDeck(testUser, "Old Title", "old-title", DeckStatus.DRAFT, 0);
-
-            UserDeckRequest req = new UserDeckRequest("Updated Title", "Updated Description");
-
-            performPutDeck(deck.getId(), req)
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.title").value("Updated Title"))
-                    .andExpect(jsonPath("$.data.description").value("Updated Description"));
-
-            entityManager.flush();
-            entityManager.clear();
-            Deck updated = deckRepository.findById(deck.getId()).orElseThrow();
-            assertThat(updated.getTitle()).isEqualTo("Updated Title");
-        }
-
-        @Test
-        @DisplayName("Update user deck: Fail because deck not found")
-        void testUpdateUserDeck_Fail_NotFound() throws Exception {
-            UserDeckRequest req = new UserDeckRequest("Title", null);
-
-            performPutDeck(99999L, req)
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.errors[0].code").value("DECK_NOT_FOUND"));
-        }
-
-        @Test
-        @DisplayName("Update user deck: Fail because not owner")
-        void testUpdateUserDeck_Fail_NotOwner() throws Exception {
-            User otherUser = userRepository.save(User.builder()
-                    .username("other_deck_owner")
-                    .email("other_owner@elingo.test")
-                    .passwordHash(passwordEncoder.encode("Password123@"))
-                    .fullName("Other Owner")
-                    .isActive(true)
-                    .isVerified(true)
-                    .build());
-            Deck otherDeck = persistUserDeck(otherUser, "Other Deck", "other-deck", DeckStatus.PUBLISHED, 1);
-
-            UserDeckRequest req = new UserDeckRequest("Hacked Title", null);
-
-            performPutDeck(otherDeck.getId(), req)
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.errors[0].code").value("DECK_ACCESS_DENIED"));
-        }
-
-        @Test
-        @DisplayName("Update user deck: Fail because of blank title")
-        void testUpdateUserDeck_Fail_BlankTitle() throws Exception {
-            Deck deck = persistUserDeck(testUser, "Old Title", "old-title-2", DeckStatus.DRAFT, 0);
-
-            UserDeckRequest req = new UserDeckRequest("", null);
-
-            performPutDeck(deck.getId(), req)
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.errors[0].code").value("INVALID_REQUEST"));
-        }
-    }
-
-    @Nested
-    @DisplayName("deleteUserDeck")
-    class DeleteUserDeckTests {
-
-        @Test
-        @DisplayName("Delete user deck: Success")
-        void testDeleteUserDeck_Success() throws Exception {
-            Deck deck = persistUserDeck(testUser, "To Delete", "to-delete", DeckStatus.DRAFT, 0);
-
-            performDeleteDeck(deck.getId())
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true));
-
-            assertThat(deckRepository.findById(deck.getId())).isEmpty();
-        }
-
-        @Test
-        @DisplayName("Delete user deck: Fail because deck not found")
-        void testDeleteUserDeck_Fail_NotFound() throws Exception {
-            performDeleteDeck(99999L)
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.errors[0].code").value("DECK_NOT_FOUND"));
-        }
-
-        @Test
-        @DisplayName("Delete user deck: Fail because not owner")
-        void testDeleteUserDeck_Fail_NotOwner() throws Exception {
-            User otherUser = userRepository.save(User.builder()
-                    .username("other_deck_owner_2")
-                    .email("other_owner2@elingo.test")
-                    .passwordHash(passwordEncoder.encode("Password123@"))
-                    .fullName("Other Owner 2")
-                    .isActive(true)
-                    .isVerified(true)
-                    .build());
-            Deck otherDeck = persistUserDeck(otherUser, "Other Deck", "other-deck-2", DeckStatus.PUBLISHED, 1);
-
-            performDeleteDeck(otherDeck.getId())
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.errors[0].code").value("DECK_ACCESS_DENIED"));
-        }
-    }
-
-    @Nested
-    @DisplayName("setUserDeckPublication")
-    class SetUserDeckPublicationTests {
-
-        @Test
-        @DisplayName("Publish user deck: Success when deck has cards")
-        void testPublishUserDeck_Success() throws Exception {
-            Deck deck = persistUserDeck(testUser, "Publishable Deck", "pub-deck", DeckStatus.DRAFT, 2);
-
-            performPutDeckPublication(deck.getId(), new UserDeckPublicationRequest(true))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.status").value("PUBLISHED"))
-                    .andExpect(jsonPath("$.data.publishedAt").isNotEmpty());
-
-            entityManager.flush();
-            entityManager.clear();
-            Deck reloaded = deckRepository.findById(deck.getId()).orElseThrow();
-            assertThat(reloaded.getStatus()).isEqualTo(DeckStatus.PUBLISHED);
-            assertThat(reloaded.getPublishedAt()).isNotNull();
-        }
-
-        @Test
-        @DisplayName("Publish user deck: Fail when deck is empty (0 cards)")
-        void testPublishUserDeck_Fail_EmptyDeck() throws Exception {
-            Deck deck = persistUserDeck(testUser, "Empty Deck", "empty-deck", DeckStatus.DRAFT, 0);
-
-            performPutDeckPublication(deck.getId(), new UserDeckPublicationRequest(true))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.errors[0].code").value("DECK_EMPTY"));
-        }
-
-        @Test
-        @DisplayName("Unpublish user deck: Success")
-        void testUnpublishUserDeck_Success() throws Exception {
-            Deck deck = persistUserDeck(testUser, "Published Deck", "published-deck", DeckStatus.PUBLISHED, 2);
-
-            performPutDeckPublication(deck.getId(), new UserDeckPublicationRequest(false))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.status").value("DRAFT"))
-                    .andExpect(jsonPath("$.data.publishedAt").doesNotExist());
-
-            entityManager.flush();
-            entityManager.clear();
-            Deck reloaded = deckRepository.findById(deck.getId()).orElseThrow();
-            assertThat(reloaded.getStatus()).isEqualTo(DeckStatus.DRAFT);
-            assertThat(reloaded.getPublishedAt()).isNull();
-        }
-
-        @Test
-        @DisplayName("Set publication: Fail because deck not found")
-        void testSetPublication_Fail_NotFound() throws Exception {
-            performPutDeckPublication(99999L, new UserDeckPublicationRequest(true))
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.errors[0].code").value("DECK_NOT_FOUND"));
-        }
-
-        @Test
-        @DisplayName("Set publication: Fail because not owner")
-        void testSetPublication_Fail_NotOwner() throws Exception {
-            User otherUser = userRepository.save(User.builder()
-                    .username("other_deck_owner_3")
-                    .email("other_owner3@elingo.test")
-                    .passwordHash(passwordEncoder.encode("Password123@"))
-                    .fullName("Other Owner 3")
-                    .isActive(true)
-                    .isVerified(true)
-                    .build());
-            Deck otherDeck = persistUserDeck(otherUser, "Other Deck", "other-deck-3", DeckStatus.PUBLISHED, 1);
-
-            performPutDeckPublication(otherDeck.getId(), new UserDeckPublicationRequest(false))
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.errors[0].code").value("DECK_ACCESS_DENIED"));
+                    .andExpect(jsonPath("$.success").value(false));
         }
     }
 }

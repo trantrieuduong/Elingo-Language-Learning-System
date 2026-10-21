@@ -15,15 +15,16 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j(topic = "CEFR-LEVEL-SERVICE")
 public class CefrLevelServiceImpl implements CefrLevelService {
-
     private final CefrLevelRepository cefrLevelRepository;
     private final CefrLevelMapper cefrLevelMapper;
 
     @Override
     @Transactional(readOnly = true)
-    public List<CefrLevelResponse> getAllCefrLevels() {
-        return cefrLevelRepository.findAll().stream()
+    public List<CefrLevelResponse> getAllCefrLevels(Long userId) {
+        List<CefrLevelResponse> cefrLevels = cefrLevelRepository.findAll().stream()
                 .map(cefrLevelMapper::toCefrLevelResponse)
                 .toList();
+        log.info("CEFR levels fetched count={}", cefrLevels.size());
+        return cefrLevels;
     }
 }

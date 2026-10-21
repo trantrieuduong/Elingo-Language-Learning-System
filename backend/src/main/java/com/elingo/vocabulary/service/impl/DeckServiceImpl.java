@@ -3,193 +3,147 @@ package com.elingo.vocabulary.service.impl;
 import com.elingo.common.dto.PageResponse;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
-import com.elingo.common.util.SlugUtils;
-import com.elingo.progress.service.ProgressService;
-import com.elingo.user.entity.User;
-import com.elingo.user.repository.UserRepository;
-import com.elingo.vocabulary.config.FlashcardProperties;
-import com.elingo.vocabulary.dto.request.DeckSearchRequest;
-import com.elingo.vocabulary.dto.request.UserDeckRequest;
+import com.elingo.premium.entity.SubscriptionStatus;
+import com.elingo.premium.repository.UserSubscriptionRepository;
+import com.elingo.vocabulary.dto.request.GetPublishedDecksRequest;
 import com.elingo.vocabulary.dto.response.DeckResponse;
 import com.elingo.vocabulary.dto.response.TopicResponse;
 import com.elingo.vocabulary.entity.Deck;
 import com.elingo.vocabulary.entity.DeckStatus;
-import com.elingo.vocabulary.entity.OwnerType;
-import com.elingo.vocabulary.entity.Topic;
 import com.elingo.vocabulary.mapper.DeckMapper;
 import com.elingo.vocabulary.mapper.TopicMapper;
+import com.elingo.vocabulary.repository.CardRepository;
 import com.elingo.vocabulary.repository.DeckRepository;
 import com.elingo.vocabulary.repository.TopicRepository;
-import com.elingo.vocabulary.repository.specification.DeckFilter;
-import com.elingo.vocabulary.repository.specification.DeckSpecifications;
-import com.elingo.vocabulary.service.DeckAccessPolicy;
 import com.elingo.vocabulary.service.DeckService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "DECK-SERVICE")
 public class DeckServiceImpl implements DeckService {
+    private static final int PAGE_SIZE = 9;
 
     private final DeckRepository deckRepository;
     private final TopicRepository topicRepository;
+    private final CardRepository cardRepository;
+    private final UserSubscriptionRepository userSubscriptionRepository;
     private final TopicMapper topicMapper;
     private final DeckMapper deckMapper;
-    private final ProgressService progressService;
-    private final DeckAccessPolicy accessPolicy;
-    private final FlashcardProperties flashcardProperties;
-    private final UserRepository userRepository;
 
     @Override
     @Transactional(readOnly = true)
-    public PageResponse<DeckResponse> getPublishedDecks(DeckSearchRequest req,
-                                                        Pageable pageable,
-                                                        Long userId) {
-        DeckFilter f = DeckFilter.fromRequest(req)
-                .statuses(Set.of(DeckStatus.PUBLISHED))
-                .build();
-        Page<Deck> page = deckRepository.findAll(DeckSpecifications.from(f), pageable);
+    public PageResponse<DeckResponse> getAllPublishedDecks(Long userId, GetPublishedDecksRequest request) {
+        String cefrCode = StringUtils.hasText(request.cefrCode()) ? request.cefrCode().trim() : null;
+        String tagCode = StringUtils.hasText(request.tagCode()) ? request.tagCode().trim() : null;
+        String keyword = StringUtils.hasText(request.keyword()) ? request.keyword().trim() : null;
 
-        Map<Long, Integer> learned = userId == null
-                ? Map.of()
-                : progressService.getLearnedCardCountByDeck(
-                        userId, page.getContent().stream().map(Deck::getId).toList());
+        Pageable pageable = PageRequest.of(request.page() - 1, PAGE_SIZE);
 
-        return PageResponse.of(page.map(deck -> deckMapper.toDeckResponse(deck,
-                userId == null ? null : learned.getOrDefault(deck.getId(), 0)))
-        );
-    }
+        Page<Deck> deckPage = deckRepository
+                .findPublishedWithFilters(cefrCode, tagCode, keyword, pageable);
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<TopicResponse> getTopicsByDeckId(Long deckId, Long userId) {
-        DeckRepository.DeckAccessView deck = deckRepository.findAccessViewById(deckId)
-                .orElseThrow(() -> new AppException(AppError.DECK_NOT_FOUND));
-        accessPolicy.assertCanLearn(deck, userId);
+        List<Long> deckIds = deckPage.getContent().stream()
+                .map(Deck::getId)
+                .toList();
 
-        return getTopicResponseInDeck(userId, deckId);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<TopicResponse> getTopicsByDeckSlug(String slug, Long userId) {
-        DeckRepository.DeckAccessView deck = deckRepository.findAccessViewBySlug(slug)
-                .orElseThrow(() -> new AppException(AppError.DECK_NOT_FOUND));
-        accessPolicy.assertCanLearn(deck, userId);
-
-        return getTopicResponseInDeck(userId, deck.getId());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<DeckResponse> getUserDecks(Long userId) {
-        return deckRepository.findAllByOwnerTypeAndOwnerId(OwnerType.USER, userId).stream()
-                .map(deckMapper::toDeckResponse).toList();
-    }
-
-    @Override
-    @Transactional
-    public DeckResponse createUserDeck(Long userId, UserDeckRequest request) {
-        User owner = userRepository.findById(userId)
-                .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
-
-        if (deckRepository.countByOwnerTypeAndOwnerId(OwnerType.USER, userId) >= flashcardProperties
-                .getUserDeckLimit().getMaxDecksPerUser())
-            throw new AppException(AppError.DECK_LIMIT_EXCEEDED);
-
-        Deck deck = deckRepository.save(Deck.builder()
-                .title(request.title())
-                .slug(SlugUtils.generateSlug(request.title()))
-                .description(request.description())
-                .isPremium(false)
-                .ownerType(OwnerType.USER)
-                .owner(owner)
-                .build());
-
-        log.info("User deck created deckId={} slug={}", deck.getId(), deck.getSlug());
-        return deckMapper.toDeckResponse(deck);
-    }
-
-    @Override
-    @Transactional
-    public DeckResponse updateUserDeck(Long userId, Long deckId, UserDeckRequest request) {
-        assertCanEdit(userId, deckId);
-        Deck deck = deckRepository.findById(deckId)
-                        .orElseThrow(() -> new AppException(AppError.DECK_NOT_FOUND));
-
-        deckMapper.updateDeck(deck, request);
-
-        log.info("User deck updated deckId={}", deck.getId());
-        return deckMapper.toDeckResponse(deck);
-    }
-
-    @Override
-    @Transactional
-    public DeckResponse setUserDeckPublished(Long userId, Long deckId, boolean published) {
-        assertCanEdit(userId, deckId);
-        Deck deck = deckRepository.findById(deckId)
-                .orElseThrow(() -> new AppException(AppError.DECK_NOT_FOUND));
-
-        if (published) {
-            if (deck.getStatus() != DeckStatus.PUBLISHED) {
-                if (deck.getCardCount() == 0) {
-                    throw new AppException(AppError.DECK_EMPTY);
-                }
-                deck.setStatus(DeckStatus.PUBLISHED);
-                deck.setPublishedAt(LocalDateTime.now());
-            }
+        Map<Long, Integer> learnedMap;
+        if (userId != null && !deckIds.isEmpty()) {
+            learnedMap = cardRepository.countLearnedCardsByDeckIds(deckIds, userId)
+                    .stream()
+                    .collect(Collectors.toMap(
+                            CardRepository.DeckLearnedCardCount::getDeckId,
+                            CardRepository.DeckLearnedCardCount::getLearnedCardCount
+                    ));
         } else {
-            deck.setStatus(DeckStatus.DRAFT);
-            deck.setPublishedAt(null);
+            learnedMap = Map.of();
         }
 
-        log.info("User deck publication changed deckId={} published={}", deckId, published);
+        Page<DeckResponse> resultPage = deckPage.map(deck -> {
+            DeckResponse response = deckMapper.toDeckResponse(deck);
+            return response.withLearnedCardCount(learnedMap.getOrDefault(deck.getId(), 0));
+        });
 
-        return deckMapper.toDeckResponse(deck);
+        log.info("Published decks fetched count={} total={} page={} totalPages={}",
+                resultPage.getNumberOfElements(), resultPage.getTotalElements(),
+                resultPage.getNumber() + 1, resultPage.getTotalPages());
+
+        return PageResponse.of(resultPage);
     }
 
     @Override
-    @Transactional
-    public void deleteUserDeck(Long userId, Long deckId) {
-        assertCanEdit(userId, deckId);
+    @Transactional(readOnly = true)
+    public List<TopicResponse> getTopicsByDeck(Long userId, String identifier) {
+        Deck deck = findDeckByIdentifier(identifier);
+        validateDeckAccess(userId, deck);
 
-        // topics are removed and cards detached by the database (@OnDelete), no cascade needed here
-        deckRepository.deleteById(deckId);
+        Long deckId = deck.getId();
+        List<CardRepository.TopicUnlearnedCardCount> unlearnedCounts =
+                cardRepository.countUnlearnedCardsByDeckIdGroupByTopic(deckId, userId);
+        Map<Long, Integer> unlearnedMap = unlearnedCounts.stream()
+                .collect(Collectors.toMap(
+                        CardRepository.TopicUnlearnedCardCount::getTopicId,
+                        CardRepository.TopicUnlearnedCardCount::getUnlearnedCardCount
+                ));
 
-        log.info("User Deck deleted deckId={}", deckId);
+        List<TopicResponse> topics = topicRepository
+                .findAllByDeckIdOrderByOrderAsc(deckId)
+                .stream()
+                .map(topic -> {
+                    TopicResponse response = topicMapper.toTopicResponse(topic);
+                    return new TopicResponse(
+                            response.id(),
+                            response.name(),
+                            response.slug(),
+                            response.order(),
+                            response.cardCount(),
+                            unlearnedMap.getOrDefault(topic.getId(), 0)
+                    );
+                })
+                .toList();
+
+        log.info("Topics fetched count={} deckId={} identifier={}", topics.size(), deckId, identifier);
+        return topics;
     }
 
-    private List<TopicResponse> getTopicResponseInDeck(Long userId, Long deckId) {
-        List<Topic> topics = topicRepository.findByDeckId(deckId,
-                Sort.by("order").and(Sort.by("id")));
-
-        if (topics.isEmpty()) return List.of();
-
-        Map<Long, Integer> learned = userId == null
-                ? Map.of()
-                : progressService.getLearnedCardCountByTopic(
-                userId, topics.stream().map(Topic::getId).toList());
-
-        return topics.stream()
-                .map(t -> topicMapper.toTopicResponse(
-                        t, userId == null ? null : learned.getOrDefault(t.getId(), 0))
-                ).toList();
-    }
-
-    private void assertCanEdit(Long userId, Long deckId) {
-        DeckRepository.DeckAccessView view = deckRepository.findAccessViewById(deckId)
+    private Deck findDeckByIdentifier(String identifier) {
+        return deckRepository.findBySlug(identifier)
+                .or(() -> {
+                    try {
+                        Long id = Long.parseLong(identifier);
+                        return deckRepository.findById(id);
+                    } catch (NumberFormatException e) {
+                        return Optional.empty();
+                    }
+                })
                 .orElseThrow(() -> new AppException(AppError.DECK_NOT_FOUND));
-        accessPolicy.assertCanEdit(view, userId);
+    }
+
+    private void validateDeckAccess(Long userId, Deck deck) {
+        if (deck.getStatus() != DeckStatus.PUBLISHED) {
+            throw new AppException(AppError.DECK_NOT_FOUND);
+        }
+
+        if (deck.getIsPremium()) {
+            boolean hasActiveSubscription = userSubscriptionRepository
+                    .existsByUserIdAndStatusAndEndAtAfter(userId, SubscriptionStatus.ACTIVE, LocalDateTime.now());
+            if (!hasActiveSubscription) {
+                throw new AppException(AppError.DECK_PREMIUM_REQUIRED);
+            }
+        }
+        log.info("Deck access granted deckId={}", deck.getId());
     }
 }

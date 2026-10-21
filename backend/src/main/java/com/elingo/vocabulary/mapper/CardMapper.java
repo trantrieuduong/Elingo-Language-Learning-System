@@ -1,23 +1,15 @@
 package com.elingo.vocabulary.mapper;
 
-import com.elingo.learning.flashcard.dto.response.CardLearningState;
-import com.elingo.vocabulary.dto.request.CreateUserCardRequest;
-import com.elingo.vocabulary.dto.request.UpdateUserCardRequest;
+import com.elingo.vocabulary.dto.response.CardPhoneticResponse;
 import com.elingo.vocabulary.dto.response.CardResponse;
 import com.elingo.vocabulary.entity.Card;
+import com.elingo.vocabulary.entity.CardPhonetic;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
 
-@Mapper(componentModel = "spring", uses = {CardPhoneticMapper.class})
+@Mapper(componentModel = "spring")// Biến interface thành một Spring Bean
 public interface CardMapper {
-    @Mapping(target = "state", source = "state")
-    CardResponse toCardResponse(Card card, CardLearningState state);
-
+    // Ánh xạ entity Card -> CardResponse record.
     CardResponse toCardResponse(Card card);
 
-    @Mapping(target = "topic.id", ignore = true)
-    Card toCard(CreateUserCardRequest request);
-
-    void updateCard(@MappingTarget Card card, UpdateUserCardRequest request);
+    CardPhoneticResponse toCardPhoneticResponse(CardPhonetic phonetic);
 }

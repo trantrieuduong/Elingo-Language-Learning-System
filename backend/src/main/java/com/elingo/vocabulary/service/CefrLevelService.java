@@ -4,5 +4,5 @@ import com.elingo.vocabulary.dto.response.CefrLevelResponse;
 import java.util.List;
 
 public interface CefrLevelService {
-    List<CefrLevelResponse> getAllCefrLevels();
+    List<CefrLevelResponse> getAllCefrLevels(Long userId);
 }

@@ -4,7 +4,6 @@ import com.elingo.common.dto.ApiResponse;
 import com.elingo.common.dto.ErrorDetail;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
-import org.springframework.context.MessageSourceResolvable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,10 +11,8 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 import java.util.List;
-import java.util.Objects;
 
 @RestControllerAdvice
 @Slf4j(topic = "GLOBAL-EXCEPTION-HANDLER")
@@ -28,7 +25,14 @@ public class GlobalExceptionHandler {
     ResponseEntity<ApiResponse<Void>> handleRuntimeException(RuntimeException ex) {
         log.error("Unhandled runtime error errorType={}", ex.getClass().getSimpleName(), ex);
         AppError appError = AppError.UNCATEGORIZED_EXCEPTION;
-        return buildErrorResponse(appError);
+        return ResponseEntity.status(appError.getHttpStatusCode())
+                .body(ApiResponse.<Void>builder()
+                        .success(false)
+                        .errors(List.of(ErrorDetail.builder()
+                                .code(appError.getCode())
+                                .message(appError.getMessage())
+                                .build()))
+                        .build());
     }
 
     /*
@@ -38,7 +42,14 @@ public class GlobalExceptionHandler {
     ResponseEntity<ApiResponse<Void>> handleAppException(AppException ex) {
         AppError appError = ex.getAppError();
         log.warn("Business error code={}", appError.getCode());
-        return buildErrorResponse(appError);
+        return ResponseEntity.status(appError.getHttpStatusCode())
+                .body(ApiResponse.<Void>builder()
+                        .success(false)
+                        .errors(List.of(ErrorDetail.builder()
+                                .code(appError.getCode())
+                                .message(appError.getMessage())
+                                .build()))
+                        .build());
     }
 
     /*
@@ -72,19 +83,6 @@ public class GlobalExceptionHandler {
                         .errors(errors)
                         .build());
     }
-
-    @ExceptionHandler(HandlerMethodValidationException.class)
-    ResponseEntity<ApiResponse<Void>> handleHandlerMethodValidationException(HandlerMethodValidationException ex) {
-        String code = ex.getParameterValidationResults().stream()
-                .flatMap(result -> result.getResolvableErrors().stream())
-                .map(MessageSourceResolvable::getDefaultMessage)
-                .filter(Objects::nonNull)
-                .findFirst()
-                .orElse("INVALID_REQUEST");
-
-        return buildErrorResponse(AppError.valueOf(code));
-    }
-
 
     /*
      * Database unique constraint violation exception
@@ -124,10 +122,6 @@ public class GlobalExceptionHandler {
         else
             log.warn("Data integrity violation code={}", appError.getCode());
 
-        return buildErrorResponse(appError);
-    }
-
-    private ResponseEntity<ApiResponse<Void>> buildErrorResponse(AppError appError) {
         return ResponseEntity.status(appError.getHttpStatusCode())
                 .body(ApiResponse.<Void>builder()
                         .success(false)

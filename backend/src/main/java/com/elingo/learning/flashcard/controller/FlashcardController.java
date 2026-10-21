@@ -2,16 +2,13 @@ package com.elingo.learning.flashcard.controller;
 
 import com.elingo.common.annotation.CurrentUserId;
 import com.elingo.common.dto.ApiResponse;
-import com.elingo.learning.flashcard.dto.request.HiddenCardRequest;
 import com.elingo.learning.flashcard.dto.request.SrsReviewRequest;
-import com.elingo.learning.flashcard.dto.request.StarCardRequest;
+import com.elingo.learning.flashcard.dto.response.ReviewCardResponse;
 
-import com.elingo.learning.flashcard.service.CardStateService;
-import com.elingo.vocabulary.dto.response.CardResponse;
+import com.elingo.learning.flashcard.service.FlashcardService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,49 +19,51 @@ import java.util.List;
 @RequiredArgsConstructor
 @Tag(name = "Flashcard Controller")
 public class FlashcardController {
+    private final FlashcardService flashcardService;
 
-    private final CardStateService cardStateService;
-
-    @PostMapping("/{cardId}/srs")
+    @PatchMapping("/{cardId}/srs")
+    @Operation(summary = "Submit SM-2 review grade for a card (0=Again, 1=Hard, 2=Good, 3=Easy)")
     public ApiResponse<Void> submitSrsReview(
             @PathVariable Long cardId,
             @Valid @RequestBody SrsReviewRequest request,
             @CurrentUserId Long currentUserId) {
-        cardStateService.submitReview(currentUserId, cardId, request);
+        flashcardService.submitSrsReview(currentUserId, cardId, request);
         return ApiResponse.<Void>builder()
                 .success(true)
                 .build();
     }
 
-    @PutMapping("/stars")
-    public ApiResponse<Void> starCard(
-            @Valid @RequestBody StarCardRequest request,
+    @PatchMapping("/{cardId}/stars")
+    @Operation(summary = "Toggle star state for user flashcard")
+    public ApiResponse<Void> toggleStar(
+            @PathVariable Long cardId,
             @CurrentUserId Long currentUserId) {
-        cardStateService.setStarred(currentUserId, request.cardId(), request.starred());
+        flashcardService.toggleStar(currentUserId, cardId);
         return ApiResponse.<Void>builder()
                 .success(true)
                 .build();
     }
 
-    @PutMapping("/hidden")
-    public ApiResponse<Void> hideCard(
-            @Valid @RequestBody HiddenCardRequest request,
+    @PatchMapping("/{cardId}/hidden")
+    @Operation(summary = "Toggle hidden state for user flashcard")
+    public ApiResponse<Void> toggleHidden(
+            @PathVariable Long cardId,
             @CurrentUserId Long currentUserId) {
-        cardStateService.setHidden(currentUserId, request.cardId(), request.hidden());
+        flashcardService.toggleHide(currentUserId, cardId);
         return ApiResponse.<Void>builder()
                 .success(true)
                 .build();
     }
 
-    @GetMapping("/due")
-    public ApiResponse<List<CardResponse>> getDueCards(
-            @Min(value = 1, message = "INVALID_REQUEST")
-            @Max(value = 100, message = "INVALID_REQUEST")
+    @GetMapping("/reviews")
+    @Operation(summary = "Get list of flashcards due for review")
+    public ApiResponse<List<ReviewCardResponse>> getCardsForReview(
             @RequestParam(required = false, defaultValue = "100") Integer limit,
             @CurrentUserId Long currentUserId) {
-        return ApiResponse.<List<CardResponse>>builder()
+        List<ReviewCardResponse> response = flashcardService.getCardsForReview(currentUserId, limit);
+        return ApiResponse.<List<ReviewCardResponse>>builder()
                 .success(true)
-                .data(cardStateService.getDueCards(currentUserId, limit))
+                .data(response)
                 .build();
     }
 }

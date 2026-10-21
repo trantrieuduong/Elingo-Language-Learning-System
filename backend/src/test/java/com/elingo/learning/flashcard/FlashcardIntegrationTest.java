@@ -40,8 +40,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -187,17 +185,17 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
         private void persistExistingState(int interval, BigDecimal easeFactor) {
             userCardStateRepository.save(
                     UserCardState.builder()
-                            .user(testUser).card(card)
+                            .user(testUser).card(card).deck(deck).topic(topic)
                             .srsInterval(interval)
                             .srsEaseFactor(easeFactor)
                             .build());
         }
 
         /**
-         * POST /flashcards/{cardId}/srs with valid auth and a numeric grade.
+         * PATCH /flashcard/{cardId}/srs with valid auth and a numeric grade.
          */
         private ResultActions performSrsReview(int grade) throws Exception {
-            return mockMvc.perform(post("/flashcards/{cardId}/srs", card.getId())
+            return mockMvc.perform(patch("/flashcards/{cardId}/srs", card.getId())
                     .header("Authorization", "Bearer " + authToken)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("{\"grade\": " + grade + "}"));
@@ -211,7 +209,7 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
                     .andExpect(jsonPath("$.success").value(true));
 
             UserCardState state = userCardStateRepository
-                    .findForUpdate(testUser.getId(), card.getId())
+                    .findByCardIdAndUserId(card.getId(), testUser.getId())
                     .orElseThrow(() -> new AssertionError("UserCardState must be created"));
 
             assertThat(state.getSrsInterval()).isEqualTo(0);
@@ -219,6 +217,7 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
 
             // EF ban dau = 2.5, again-ef-penalty = -0.32 -> 2.18
             assertThat(state.getSrsEaseFactor()).isEqualByComparingTo(new BigDecimal("2.18"));
+            // isEqualByComparingTo: so sánh giá trị toán học 2.18 = 2.180
 
             assertThat(state.getSrsNextReviewAt())
                     .isAfter(LocalDateTime.now())
@@ -233,7 +232,7 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
                     .andExpect(jsonPath("$.success").value(true));
 
             UserCardState state = userCardStateRepository
-                    .findForUpdate(testUser.getId(), card.getId())
+                    .findByCardIdAndUserId(card.getId(), testUser.getId())
                     .orElseThrow();
 
             assertThat(state.getSrsInterval()).isEqualTo(1);
@@ -243,6 +242,7 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
             assertThat(state.getSrsEaseFactor()).isEqualByComparingTo(new BigDecimal("2.36"));
 
             assertThat(state.getSrsNextReviewAt()).isCloseTo(LocalDateTime.now().plusDays(1), within(1, ChronoUnit.SECONDS));
+            // Cho phép lệch tối đa 1 giây
         }
 
         @Test
@@ -253,7 +253,7 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
                     .andExpect(jsonPath("$.success").value(true));
 
             UserCardState state = userCardStateRepository
-                    .findForUpdate(testUser.getId(), card.getId())
+                    .findByCardIdAndUserId(card.getId(), testUser.getId())
                     .orElseThrow();
 
             assertThat(state.getSrsInterval()).isEqualTo(3);
@@ -274,7 +274,7 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
                     .andExpect(jsonPath("$.success").value(true));
 
             UserCardState state = userCardStateRepository
-                    .findForUpdate(testUser.getId(), card.getId())
+                    .findByCardIdAndUserId(card.getId(), testUser.getId())
                     .orElseThrow();
 
             assertThat(state.getSrsInterval()).isEqualTo(5);
@@ -298,7 +298,7 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
 
             assertThat(userCardStateRepository.count()).isEqualTo(1);
             UserCardState updated = userCardStateRepository
-                    .findForUpdate(testUser.getId(), card.getId()).orElseThrow();
+                    .findByCardIdAndUserId(card.getId(), testUser.getId()).orElseThrow();
             assertThat(updated.getSrsInterval()).isEqualTo(8);
         }
 
@@ -311,7 +311,7 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
                     .andExpect(status().isOk());
 
             UserCardState updated = userCardStateRepository
-                    .findForUpdate(testUser.getId(), card.getId()).orElseThrow();
+                    .findByCardIdAndUserId(card.getId(), testUser.getId()).orElseThrow();
 
             assertThat(updated.getSrsInterval()).isEqualTo(0);
 
@@ -328,7 +328,7 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
                     .andExpect(status().isOk());
 
             UserCardState updated = userCardStateRepository
-                    .findForUpdate(testUser.getId(), card.getId()).orElseThrow();
+                    .findByCardIdAndUserId(card.getId(), testUser.getId()).orElseThrow();
 
             assertThat(updated.getSrsEaseFactor()).isEqualByComparingTo(new BigDecimal("1.3"));
         }
@@ -342,9 +342,9 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
                     .andExpect(status().isOk());
 
             UserCardState updated = userCardStateRepository
-                    .findForUpdate(testUser.getId(), card.getId()).orElseThrow();
+                    .findByCardIdAndUserId(card.getId(), testUser.getId()).orElseThrow();
 
-            // round half up(5 * 1.2) = 6
+            // round hafl up(5 * 1.2) = 6
             assertThat(updated.getSrsInterval()).isEqualTo(6);
             // EF: 2.50 - 0.14 = 2.36
             assertThat(updated.getSrsEaseFactor()).isEqualByComparingTo(new BigDecimal("2.36"));
@@ -359,7 +359,7 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
                     .andExpect(status().isOk());
 
             UserCardState updated = userCardStateRepository
-                    .findForUpdate(testUser.getId(), card.getId()).orElseThrow();
+                    .findByCardIdAndUserId(card.getId(), testUser.getId()).orElseThrow();
 
             // newEF = 2.5 + 0.1 = 2.6
             assertThat(updated.getSrsEaseFactor()).isEqualByComparingTo("2.6");
@@ -370,13 +370,13 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Submit SRS review: Fail because of null grade")
         void testSubmitSrsReview_Fail_NullGrade() throws Exception {
-            mockMvc.perform(post("/flashcards/{cardId}/srs", card.getId())
+            mockMvc.perform(patch("/flashcards/{cardId}/srs", card.getId())
                             .header("Authorization", "Bearer " + authToken)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"grade\": null}"))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.errors[0].code").value("INVALID_REQUEST"));
+                    .andExpect(jsonPath("$.errors[0].code").value("INVALID_SRS_GRADE"));
         }
 
         @Test
@@ -400,13 +400,13 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Submit SRS review: Fail because of empty body")
         void testSubmitSrsReview_Fail_EmptyBody() throws Exception {
-            mockMvc.perform(post("/flashcards/{cardId}/srs", card.getId())
+            mockMvc.perform(patch("/flashcards/{cardId}/srs", card.getId())
                             .header("Authorization", "Bearer " + authToken)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{}"))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.errors[0].code").value("INVALID_REQUEST"));
+                    .andExpect(jsonPath("$.errors[0].code").value("INVALID_SRS_GRADE"));
         }
 
         @Test
@@ -416,7 +416,7 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
             Topic draftTopic = persistTopic(draftDeck);
             Card draftCard = persistCard(draftDeck, draftTopic);
 
-            mockMvc.perform(post("/flashcards/{cardId}/srs", draftCard.getId())
+            mockMvc.perform(patch("/flashcards/{cardId}/srs", draftCard.getId())
                             .header("Authorization", "Bearer " + authToken)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"grade\": 3}"))
@@ -432,7 +432,7 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
             Topic archivedTopic = persistTopic(archivedDeck);
             Card archivedCard = persistCard(archivedDeck, archivedTopic);
 
-            mockMvc.perform(post("/flashcards/{cardId}/srs", archivedCard.getId())
+            mockMvc.perform(patch("/flashcards/{cardId}/srs", archivedCard.getId())
                             .header("Authorization", "Bearer " + authToken)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"grade\": 3}"))
@@ -448,13 +448,13 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
             Topic premiumTopic = persistTopic(premiumDeck);
             Card premiumCard = persistCard(premiumDeck, premiumTopic);
 
-            mockMvc.perform(post("/flashcards/{cardId}/srs", premiumCard.getId())
+            mockMvc.perform(patch("/flashcards/{cardId}/srs", premiumCard.getId())
                             .header("Authorization", "Bearer " + authToken)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"grade\": 3}"))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.errors[0].code").value("PREMIUM_REQUIRED"));
+                    .andExpect(jsonPath("$.errors[0].code").value("DECK_PREMIUM_REQUIRED"));
         }
 
         @Test
@@ -465,13 +465,13 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
             Card premiumCard = persistCard(premiumDeck, premiumTopic);
             persistExpiredSubscription(testUser);
 
-            mockMvc.perform(post("/flashcards/{cardId}/srs", premiumCard.getId())
+            mockMvc.perform(patch("/flashcards/{cardId}/srs", premiumCard.getId())
                             .header("Authorization", "Bearer " + authToken)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"grade\": 3}"))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.errors[0].code").value("PREMIUM_REQUIRED"));
+                    .andExpect(jsonPath("$.errors[0].code").value("DECK_PREMIUM_REQUIRED"));
         }
 
         @Test
@@ -482,7 +482,7 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
             Card premiumCard = persistCard(premiumDeck, premiumTopic);
             persistActiveSubscription(testUser);
 
-            mockMvc.perform(post("/flashcards/{cardId}/srs", premiumCard.getId())
+            mockMvc.perform(patch("/flashcards/{cardId}/srs", premiumCard.getId())
                             .header("Authorization", "Bearer " + authToken)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"grade\": 3}"))
@@ -490,15 +490,15 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
                     .andExpect(jsonPath("$.success").value(true));
 
             UserCardState state = userCardStateRepository
-                    .findForUpdate(testUser.getId(), premiumCard.getId())
+                    .findByCardIdAndUserId(premiumCard.getId(), testUser.getId())
                     .orElseThrow();
             assertThat(state.getSrsInterval()).isEqualTo(5);
         }
     }
 
     @Nested
-    @DisplayName("getDueCards")
-    class GetDueCardsTests {
+    @DisplayName("getCardsForReview")
+    class GetCardsForReviewTests {
         private Deck deck;
         private Topic topic;
 
@@ -509,48 +509,48 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
         }
 
         @Test
-        @DisplayName("Get due cards: only returns due cards (srsNextReviewAt <= now) that are not hidden")
-        void testGetDueCards_FiltersDueAndNotHidden() throws Exception {
+        @DisplayName("Get cards for review: only returns due cards (srsNextReviewAt <= now) that are not hidden")
+        void testGetCardsForReview_FiltersDueAndNotHidden() throws Exception {
             Card dueCard = persistCard(deck, topic);
             Card futureCard = persistCard(deck, topic);
             Card hiddenCard = persistCard(deck, topic);
             Card unlearnedCard = persistCard(deck, topic);
 
             userCardStateRepository.save(UserCardState.builder()
-                    .user(testUser).card(dueCard)
+                    .user(testUser).card(dueCard).deck(deck).topic(topic)
                     .srsNextReviewAt(LocalDateTime.now().minusHours(1))
                     .flagsHidden(false)
                     .build());
 
             userCardStateRepository.save(UserCardState.builder()
-                    .user(testUser).card(futureCard)
+                    .user(testUser).card(futureCard).deck(deck).topic(topic)
                     .srsNextReviewAt(LocalDateTime.now().plusDays(1))
                     .flagsHidden(false)
                     .build());
 
             userCardStateRepository.save(UserCardState.builder()
-                    .user(testUser).card(hiddenCard)
+                    .user(testUser).card(hiddenCard).deck(deck).topic(topic)
                     .srsNextReviewAt(LocalDateTime.now().minusHours(1))
                     .flagsHidden(true)
                     .build());
 
             userCardStateRepository.save(UserCardState.builder()
-                    .user(testUser).card(unlearnedCard)
+                    .user(testUser).card(unlearnedCard).deck(deck).topic(topic)
                     .srsNextReviewAt(null)
                     .flagsHidden(false)
                     .build());
 
-            mockMvc.perform(get("/flashcards/due")
+            mockMvc.perform(get("/flashcards/reviews")
                             .header("Authorization", "Bearer " + authToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.length()").value(1))
-                    .andExpect(jsonPath("$.data[0].id").value(dueCard.getId()));
+                    .andExpect(jsonPath("$.data[0].card.id").value(dueCard.getId()));
         }
 
         @Test
-        @DisplayName("Get due cards: includes cards even if deck is unpublished (DRAFT / ARCHIVED)")
-        void testGetDueCards_IncludesCardsFromUnpublishedDecks() throws Exception {
+        @DisplayName("Get cards for review: excludes cards from unpublished decks (DRAFT / ARCHIVED)")
+        void testGetCardsForReview_ExcludesCardsFromUnpublishedDecks() throws Exception {
             Deck draftDeck = persistDeckWithStatusAndPremium("Draft Deck Rev", "draft-deck-rev", DeckStatus.DRAFT, false);
             Topic draftTopic = persistTopic(draftDeck);
             Card draftCard = persistCard(draftDeck, draftTopic);
@@ -560,27 +560,27 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
             Card archivedCard = persistCard(archivedDeck, archivedTopic);
 
             userCardStateRepository.save(UserCardState.builder()
-                    .user(testUser).card(draftCard)
+                    .user(testUser).card(draftCard).deck(draftDeck).topic(draftTopic)
                     .srsNextReviewAt(LocalDateTime.now().minusHours(1))
                     .flagsHidden(false)
                     .build());
 
             userCardStateRepository.save(UserCardState.builder()
-                    .user(testUser).card(archivedCard)
+                    .user(testUser).card(archivedCard).deck(archivedDeck).topic(archivedTopic)
                     .srsNextReviewAt(LocalDateTime.now().minusHours(2))
                     .flagsHidden(false)
                     .build());
 
-            mockMvc.perform(get("/flashcards/due")
+            mockMvc.perform(get("/flashcards/reviews")
                             .header("Authorization", "Bearer " + authToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.length()").value(2));
+                    .andExpect(jsonPath("$.data.length()").value(0));
         }
 
         @Test
-        @DisplayName("Get due cards: excludes cards belonging to other users")
-        void testGetDueCards_ExcludesCardsFromOtherUsers() throws Exception {
+        @DisplayName("Get cards for review: excludes cards belonging to other users")
+        void testGetCardsForReview_ExcludesCardsFromOtherUsers() throws Exception {
             Card dueCardOtherUser = persistCard(deck, topic);
             User otherUser = userRepository.save(User.builder()
                     .username("other_reviewer")
@@ -592,12 +592,12 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
                     .build());
 
             userCardStateRepository.save(UserCardState.builder()
-                    .user(otherUser).card(dueCardOtherUser)
+                    .user(otherUser).card(dueCardOtherUser).deck(deck).topic(topic)
                     .srsNextReviewAt(LocalDateTime.now().minusHours(1))
                     .flagsHidden(false)
                     .build());
 
-            mockMvc.perform(get("/flashcards/due")
+            mockMvc.perform(get("/flashcards/reviews")
                             .header("Authorization", "Bearer " + authToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
@@ -605,50 +605,30 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
         }
 
         @Test
-        @DisplayName("Get due cards: orders cards by srsNextReviewAt ascending (oldest overdue first)")
-        void testGetDueCards_OrdersBySrsNextReviewAtAscending() throws Exception {
+        @DisplayName("Get cards for review: orders cards by srsNextReviewAt ascending (oldest overdue first)")
+        void testGetCardsForReview_OrdersBySrsNextReviewAtAscending() throws Exception {
             Card cardOverdueMore = persistCard(deck, topic);
             Card cardOverdueLess = persistCard(deck, topic);
 
             userCardStateRepository.save(UserCardState.builder()
-                    .user(testUser).card(cardOverdueMore)
+                    .user(testUser).card(cardOverdueMore).deck(deck).topic(topic)
                     .srsNextReviewAt(LocalDateTime.now().minusHours(5))
                     .flagsHidden(false)
                     .build());
 
             userCardStateRepository.save(UserCardState.builder()
-                    .user(testUser).card(cardOverdueLess)
+                    .user(testUser).card(cardOverdueLess).deck(deck).topic(topic)
                     .srsNextReviewAt(LocalDateTime.now().minusHours(1))
                     .flagsHidden(false)
                     .build());
 
-            mockMvc.perform(get("/flashcards/due")
+            mockMvc.perform(get("/flashcards/reviews")
                             .header("Authorization", "Bearer " + authToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.length()").value(2))
-                    .andExpect(jsonPath("$.data[0].id").value(cardOverdueMore.getId()))
-                    .andExpect(jsonPath("$.data[1].id").value(cardOverdueLess.getId()));
-        }
-
-        @Test
-        @DisplayName("Get due cards: limit parameter works")
-        void testGetDueCards_Limit() throws Exception {
-            for (int i = 0; i < 5; i++) {
-                Card c = persistCard(deck, topic);
-                userCardStateRepository.save(UserCardState.builder()
-                        .user(testUser).card(c)
-                        .srsNextReviewAt(LocalDateTime.now().minusHours(i + 1))
-                        .flagsHidden(false)
-                        .build());
-            }
-
-            mockMvc.perform(get("/flashcards/due")
-                            .header("Authorization", "Bearer " + authToken)
-                            .param("limit", "3"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.length()").value(3));
+                    .andExpect(jsonPath("$.data[0].card.id").value(cardOverdueMore.getId()))
+                    .andExpect(jsonPath("$.data[1].card.id").value(cardOverdueLess.getId()));
         }
     }
 
@@ -667,15 +647,13 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Toggle star: Success for normal published deck")
         void testToggleStar_Success() throws Exception {
-            mockMvc.perform(put("/flashcards/stars")
-                            .header("Authorization", "Bearer " + authToken)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"cardId\": " + card.getId() + ", \"starred\": true}"))
+            mockMvc.perform(patch("/flashcards/{cardId}/stars", card.getId())
+                            .header("Authorization", "Bearer " + authToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true));
 
             UserCardState state = userCardStateRepository
-                    .findForUpdate(testUser.getId(), card.getId()).orElseThrow();
+                    .findByCardIdAndUserId(card.getId(), testUser.getId()).orElseThrow();
             assertThat(state.getFlagsStarred()).isTrue();
         }
 
@@ -686,10 +664,8 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
             Topic draftTopic = persistTopic(draftDeck);
             Card draftCard = persistCard(draftDeck, draftTopic);
 
-            mockMvc.perform(put("/flashcards/stars")
-                            .header("Authorization", "Bearer " + authToken)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"cardId\": " + draftCard.getId() + ", \"starred\": true}"))
+            mockMvc.perform(patch("/flashcards/{cardId}/stars", draftCard.getId())
+                            .header("Authorization", "Bearer " + authToken))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.success").value(false))
                     .andExpect(jsonPath("$.errors[0].code").value("DECK_NOT_FOUND"));
@@ -702,13 +678,11 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
             Topic premiumTopic = persistTopic(premiumDeck);
             Card premiumCard = persistCard(premiumDeck, premiumTopic);
 
-            mockMvc.perform(put("/flashcards/stars")
-                            .header("Authorization", "Bearer " + authToken)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"cardId\": " + premiumCard.getId() + ", \"starred\": true}"))
+            mockMvc.perform(patch("/flashcards/{cardId}/stars", premiumCard.getId())
+                            .header("Authorization", "Bearer " + authToken))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.errors[0].code").value("PREMIUM_REQUIRED"));
+                    .andExpect(jsonPath("$.errors[0].code").value("DECK_PREMIUM_REQUIRED"));
         }
 
         @Test
@@ -719,15 +693,13 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
             Card premiumCard = persistCard(premiumDeck, premiumTopic);
             persistActiveSubscription(testUser);
 
-            mockMvc.perform(put("/flashcards/stars")
-                            .header("Authorization", "Bearer " + authToken)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"cardId\": " + premiumCard.getId() + ", \"starred\": true}"))
+            mockMvc.perform(patch("/flashcards/{cardId}/stars", premiumCard.getId())
+                            .header("Authorization", "Bearer " + authToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true));
 
             UserCardState state = userCardStateRepository
-                    .findForUpdate(testUser.getId(), premiumCard.getId()).orElseThrow();
+                    .findByCardIdAndUserId(premiumCard.getId(), testUser.getId()).orElseThrow();
             assertThat(state.getFlagsStarred()).isTrue();
         }
     }
@@ -747,15 +719,13 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Toggle hide: Success for normal published deck")
         void testToggleHide_Success() throws Exception {
-            mockMvc.perform(put("/flashcards/hidden")
-                            .header("Authorization", "Bearer " + authToken)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"cardId\": " + card.getId() + ", \"hidden\": true}"))
+            mockMvc.perform(patch("/flashcards/{cardId}/hidden", card.getId())
+                            .header("Authorization", "Bearer " + authToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true));
 
             UserCardState state = userCardStateRepository
-                    .findForUpdate(testUser.getId(), card.getId()).orElseThrow();
+                    .findByCardIdAndUserId(card.getId(), testUser.getId()).orElseThrow();
             assertThat(state.getFlagsHidden()).isTrue();
         }
 
@@ -766,10 +736,8 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
             Topic draftTopic = persistTopic(draftDeck);
             Card draftCard = persistCard(draftDeck, draftTopic);
 
-            mockMvc.perform(put("/flashcards/hidden")
-                            .header("Authorization", "Bearer " + authToken)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"cardId\": " + draftCard.getId() + ", \"hidden\": true}"))
+            mockMvc.perform(patch("/flashcards/{cardId}/hidden", draftCard.getId())
+                            .header("Authorization", "Bearer " + authToken))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.success").value(false))
                     .andExpect(jsonPath("$.errors[0].code").value("DECK_NOT_FOUND"));
@@ -782,13 +750,11 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
             Topic premiumTopic = persistTopic(premiumDeck);
             Card premiumCard = persistCard(premiumDeck, premiumTopic);
 
-            mockMvc.perform(put("/flashcards/hidden")
-                            .header("Authorization", "Bearer " + authToken)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"cardId\": " + premiumCard.getId() + ", \"hidden\": true}"))
+            mockMvc.perform(patch("/flashcards/{cardId}/hidden", premiumCard.getId())
+                            .header("Authorization", "Bearer " + authToken))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.errors[0].code").value("PREMIUM_REQUIRED"));
+                    .andExpect(jsonPath("$.errors[0].code").value("DECK_PREMIUM_REQUIRED"));
         }
 
         @Test
@@ -799,15 +765,13 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
             Card premiumCard = persistCard(premiumDeck, premiumTopic);
             persistActiveSubscription(testUser);
 
-            mockMvc.perform(put("/flashcards/hidden")
-                            .header("Authorization", "Bearer " + authToken)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"cardId\": " + premiumCard.getId() + ", \"hidden\": true}"))
+            mockMvc.perform(patch("/flashcards/{cardId}/hidden", premiumCard.getId())
+                            .header("Authorization", "Bearer " + authToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true));
 
             UserCardState state = userCardStateRepository
-                    .findForUpdate(testUser.getId(), premiumCard.getId()).orElseThrow();
+                    .findByCardIdAndUserId(premiumCard.getId(), testUser.getId()).orElseThrow();
             assertThat(state.getFlagsHidden()).isTrue();
         }
     }

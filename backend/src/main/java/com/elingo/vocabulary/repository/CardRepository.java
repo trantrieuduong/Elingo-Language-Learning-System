@@ -2,31 +2,68 @@ package com.elingo.vocabulary.repository;
 
 import com.elingo.vocabulary.entity.Card;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface CardRepository extends JpaRepository<Card, Long> {
-    List<Card> findByTopicId(Long topicId);
+    @Query("""
+              SELECT c FROM Card c
+              LEFT JOIN FETCH c.phonetics
+              LEFT JOIN UserCardState ucs ON ucs.card.id = c.id AND ucs.user.id = :userId
+              WHERE c.topic.id = :topicId
+              AND c.deck.status = DeckStatus.PUBLISHED
+              AND (
+                 ucs.id IS NULL
+                 OR (ucs.srsNextReviewAt IS NULL AND ucs.flagsHidden = false)
+              )
+              ORDER BY c.order ASC
+            """)
+    List<Card> findAllUnlearnedCardsByTopicIdWithPhonetics(Long topicId, Long userId);
 
     @Query("""
-        select distinct c from Card c
-        left join fetch c.phonetics
-        where c.topic.id = :topicId
-        order by c.order asc, c.id asc
+                SELECT c FROM Card c
+                LEFT JOIN FETCH c.phonetics
+                WHERE c.id IN :ids
+            """)
+    List<Card> findAllWithPhoneticsByIdIn(
+            List<Long> ids
+    );
+
+    interface DeckLearnedCardCount {
+        Long getDeckId();
+        Integer getLearnedCardCount();
+    }
+
+    @Query("""
+        SELECT c.deck.id AS deckId, COUNT(c.id) AS learnedCardCount
+        FROM Card c
+        JOIN UserCardState ucs ON ucs.card.id = c.id AND ucs.user.id = :userId
+        WHERE c.deck.id IN :deckIds
+        AND c.isDeleted = false
+        AND (ucs.srsNextReviewAt IS NOT NULL OR ucs.flagsHidden = true)
+        GROUP BY c.deck.id
     """)
-    List<Card> findByTopicIdWithPhonetics(@Param("topicId") Long topicId);
+    List<DeckLearnedCardCount> countLearnedCardsByDeckIds(List<Long> deckIds, Long userId);
 
-    long countByTopicId(Long topicId);
+    interface TopicUnlearnedCardCount {
+        Long getTopicId();
+        Integer getUnlearnedCardCount();
+    }
 
-    Optional<Card> findFirstByTopicIdOrderByOrderDesc(Long topicId);
-
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("update Card c set c.deck = null, c.topic = null where c.topic.id = :topicId")
-    int detachByTopicId(@Param("topicId") Long topicId);
+    @Query("""
+        SELECT c.topic.id AS topicId, COUNT(c) AS unlearnedCardCount
+        FROM Card c
+        LEFT JOIN UserCardState ucs ON ucs.card.id = c.id AND ucs.user.id = :userId
+        WHERE c.deck.id = :deckId
+        AND c.deck.status = DeckStatus.PUBLISHED
+        AND (
+            ucs.id IS NULL
+            OR (ucs.srsNextReviewAt IS NULL AND ucs.flagsHidden = false)
+        )
+        GROUP BY c.topic.id
+    """)
+    List<TopicUnlearnedCardCount> countUnlearnedCardsByDeckIdGroupByTopic(Long deckId, Long userId);
 }

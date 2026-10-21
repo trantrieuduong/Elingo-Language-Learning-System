@@ -64,7 +64,6 @@ CREATE TABLE decks (
   FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE SET NULL,
   INDEX idx_deck_owner (owner_type, owner_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
--- User deck xoá cứng, card của deck đó thành mồ côi, state không bị ảnh hưởng. Card mồ côi không có state nào bị job định kỳ xoá, kèm sự kiện xoá file image_url
 
 -- Bảng junction thay cho mảng tagIds[] / cefrLevelIds[] nhúng trong deck
 CREATE TABLE deck_tags (
@@ -90,16 +89,18 @@ CREATE TABLE topics (
   slug VARCHAR(255) NOT NULL,
   `order` INT UNSIGNED NOT NULL DEFAULT 0,
   card_count INT UNSIGNED NOT NULL DEFAULT 0,
+  is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (deck_id) REFERENCES decks(id) ON DELETE CASCADE,
-  UNIQUE KEY uq_topic_slug_per_deck (deck_id, slug)
+  UNIQUE KEY uq_topic_slug_per_deck (deck_id, slug),
+  INDEX idx_topic_deleted (deck_id, is_deleted)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE cards (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  deck_id BIGINT UNSIGNED NULL, 
-  topic_id BIGINT UNSIGNED NULL, -- NULL = card mồ côi (deck/topic gốc đã bị xoá)
+  deck_id BIGINT UNSIGNED NOT NULL,
+  topic_id BIGINT UNSIGNED NOT NULL,
   `order` INT UNSIGNED NOT NULL DEFAULT 0,
   term VARCHAR(255) NOT NULL,
   pos VARCHAR(50),                       -- part of speech
@@ -109,10 +110,13 @@ CREATE TABLE cards (
   examples_vi TEXT,
   examples_en TEXT,
   image_url VARCHAR(500),
+  is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (deck_id) REFERENCES decks(id) ON DELETE SET NULL,
-  FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE SET NULL
+  FOREIGN KEY (deck_id) REFERENCES decks(id) ON DELETE CASCADE,
+  FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE CASCADE,
+  INDEX idx_card_deck_deleted (deck_id, is_deleted),
+  INDEX idx_card_topic_deleted (topic_id, is_deleted)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Tách mảng nhúng phonetics[] thành bảng con
@@ -128,6 +132,8 @@ CREATE TABLE card_phonetics (
 CREATE TABLE user_card_states (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   card_id BIGINT UNSIGNED NOT NULL,
+  deck_id BIGINT UNSIGNED NOT NULL,
+  topic_id BIGINT UNSIGNED NOT NULL,
   user_id BIGINT UNSIGNED NOT NULL,
   srs_ease_factor DECIMAL(4,2) NOT NULL DEFAULT 2.50,
   srs_interval INT UNSIGNED NOT NULL DEFAULT 0,
@@ -137,12 +143,16 @@ CREATE TABLE user_card_states (
   flags_hidden BOOLEAN NOT NULL DEFAULT FALSE,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (card_id) REFERENCES cards(id) ON DELETE CASCADE, -- chủ đích xoá cứng card là xoá state.
+  FOREIGN KEY (card_id) REFERENCES cards(id) ON DELETE CASCADE,
+  FOREIGN KEY (deck_id) REFERENCES decks(id) ON DELETE CASCADE,
+  FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE CASCADE,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   UNIQUE KEY uq_user_card (user_id, card_id),
-  INDEX idx_due_review (user_id, flags_hidden, srs_next_review_at)
+  INDEX idx_due_review (user_id, srs_next_review_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 ```
+
+**Ghi chú tối ưu:** thêm `INDEX idx_due_review (user_id, srs_next_review_at)`
 
 ---
 

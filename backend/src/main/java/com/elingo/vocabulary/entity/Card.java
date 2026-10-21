@@ -1,6 +1,13 @@
 package com.elingo.vocabulary.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -14,17 +21,9 @@ import lombok.experimental.FieldDefaults;
 import java.util.ArrayList;
 import java.util.List;
 import com.elingo.common.entity.BaseEntity;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
-@Table(
-        name = "cards",
-        indexes = {
-                @Index(name = "idx_card_topic_order", columnList = "topic_id, `order`"),
-                @Index(name = "idx_card_deck", columnList = "deck_id")
-        }
-)
+@Table(name = "cards")
 @Data
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
@@ -33,15 +32,13 @@ import org.hibernate.annotations.OnDeleteAction;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Card extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "deck_id")
-    @OnDelete(action = OnDeleteAction.SET_NULL)
+    @JoinColumn(name = "deck_id", nullable = false)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     Deck deck;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "topic_id")
-    @OnDelete(action = OnDeleteAction.SET_NULL)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     Topic topic;
@@ -79,4 +76,8 @@ public class Card extends BaseEntity {
     @EqualsAndHashCode.Exclude
     @Builder.Default
     List<CardPhonetic> phonetics = new ArrayList<>();
+
+    @Column(name = "is_deleted", nullable = false)
+    @Builder.Default
+    Boolean isDeleted = false;
 }
