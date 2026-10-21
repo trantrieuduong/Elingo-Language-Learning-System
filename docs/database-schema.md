@@ -446,7 +446,8 @@ CREATE TABLE posts (
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (group_id) REFERENCES post_groups(id) ON DELETE RESTRICT,
-  INDEX idx_post_status_time (status, created_at) -- cần tối ưu lại
+  INDEX idx_post_status_time (status, created_at),
+  INDEX idx_post_group_status_time (group_id, status, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE post_moderation_logs (
