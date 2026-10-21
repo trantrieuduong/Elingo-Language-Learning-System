@@ -45,14 +45,16 @@ public class SecurityConfig {
             "/v3/api-docs*/**",
             "/ws/**",
             "/decks",
+            "/lessons",
+            "/slugs/**",
             "/tags",
             "/cefr-levels"
     };
 
     public SecurityConfig(CustomUserDetailsService customUserDetailsService,
-                          JwtAuthenticationFilter jwtAuthenticationFilter,
-                          IpRateLimitFilter ipRateLimitFilter,
-                          @Value("#{'${app.front-end-domain}'.split(',')}") List<String> ALLOW_ORIGINS) {
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            IpRateLimitFilter ipRateLimitFilter,
+            @Value("#{'${app.front-end-domain}'.split(',')}") List<String> ALLOW_ORIGINS) {
         this.customUserDetailsService = customUserDetailsService;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.ipRateLimitFilter = ipRateLimitFilter;

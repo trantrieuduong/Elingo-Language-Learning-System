@@ -1,0 +1,555 @@
+/* ============================================================
+   DictationPage.css — Dictation Practice Page
+   Liquid Glass Minimalism Design System
+   ============================================================ */
+
+.dictation-page-container {
+  max-width: var(--container-wide);
+  width: 100%;
+  margin: 0 auto;
+  padding: calc(72px + var(--spacing-xl)) var(--spacing-lg) var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  min-height: auto;
+}
+
+/* ── Top Bar ── */
+.dictation-top-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+/* ── 3-Column Layout ──
+   Player (390px) | Main Study Area (1fr) | Sidebar (350px) */
+.dictation-layout {
+  display: grid;
+  grid-template-columns: 390px 1fr 350px;
+  gap: var(--spacing-xl);
+  align-items: start;
+}
+
+/* ── Cột 1: Player ── */
+.dictation-col-player {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  min-width: 0;
+}
+
+.dictation-player-actions {
+  display: flex;
+  flex-direction: column;
+}
+
+.dictation-replay-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  width: 100%;
+  padding: 10px 16px;
+  font-weight: 600;
+}
+
+/* ── Cột 2: Main Content Area ── */
+.dictation-col-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  min-width: 0;
+}
+
+/* ── Cột 3: Sidebar ── */
+.dictation-col-sidebar {
+  min-width: 0;
+}
+
+/* Thẻ học chính */
+.dictation-study-card {
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.dictation-study-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dictation-study-title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-title-md);
+  font-weight: 700;
+  color: var(--color-text-high);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+/* Textarea */
+.dictation-textarea-wrapper {
+  width: 100%;
+}
+
+.dictation-textarea {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-md);
+  color: var(--color-text-high);
+  background: var(--glass-well-bg);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-input);
+  padding: 12px 14px;
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 90px;
+  outline: none;
+  box-shadow: var(--shadow-well);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.dictation-textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-container), var(--shadow-well);
+}
+
+.dictation-textarea::placeholder {
+  color: var(--color-text-disabled);
+}
+
+/* Khu vực hiển thị từ vựng gợi ý & tiến độ */
+.dictation-words-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.dictation-words-title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-label-md);
+  font-weight: 600;
+  color: var(--color-text-mid);
+}
+
+.dictation-words-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.dictation-word-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Nút mắt tiết lộ từ */
+.dictation-eye-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-body);
+  border-radius: var(--radius-pill);
+  transition: color var(--transition-base), transform var(--transition-base);
+}
+
+.dictation-eye-btn:hover {
+  color: var(--color-primary);
+  transform: scale(1.1);
+}
+
+.dictation-eye-btn .material-symbols-outlined {
+  font-size: 18px;
+}
+
+/* Viên từ hiển thị */
+.dictation-word-pill {
+  font-family: monospace;
+  font-size: var(--font-size-body-md);
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  transition: background var(--transition-base), color var(--transition-base), border-color var(--transition-base);
+  letter-spacing: 0.5px;
+}
+
+.dictation-word-pill--empty {
+  background: var(--glass-well-bg);
+  color: var(--color-text-disabled);
+  border-color: var(--color-outline-variant);
+}
+
+.dictation-word-pill--incorrect {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.dictation-word-pill--correct {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+  border-color: rgba(31, 94, 75, 0.3);
+}
+
+.dictation-word-pill--revealed {
+  background: var(--color-pastel-soft-blue);
+  color: var(--color-pastel-soft-blue-text);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+/* Cảnh báo dùng gợi ý */
+.dictation-hint-warning {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 8px 14px;
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-body-sm);
+  font-weight: 500;
+}
+
+.dictation-hint-warning-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+/* Lỗi khi submit */
+.dictation-submit-error {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 8px 14px;
+  background: var(--color-error-container);
+  color: var(--color-error);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-body-sm);
+}
+
+/* Hàng nút bấm hành động */
+.dictation-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  padding-top: var(--spacing-xs);
+}
+
+.dictation-submit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 10px 22px;
+}
+
+.dictation-submit-btn--ready {
+  animation: dictation-pulse 1.8s infinite;
+}
+
+@keyframes dictation-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(65, 95, 145, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(65, 95, 145, 0);
+  }
+}
+
+/* ── Màn hình Kết quả Segment ── */
+.dictation-result-card {
+  padding: var(--spacing-2xl);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  align-items: center;
+  text-align: center;
+}
+
+.dictation-result-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.dictation-result-badge {
+  font-family: var(--font-display);
+  font-size: var(--font-size-label-md);
+  font-weight: 700;
+  padding: 4px 16px;
+  border-radius: var(--radius-pill);
+}
+
+.dictation-result-badge--pass {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.dictation-result-badge--fail {
+  background: var(--color-error-container);
+  color: var(--color-error);
+}
+
+.dictation-result-score {
+  font-family: var(--font-display);
+  font-size: var(--font-size-display-sm);
+  font-weight: 800;
+  color: var(--color-text-high);
+  letter-spacing: -0.02em;
+}
+
+.dictation-result-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dictation-result-best {
+  font-family: var(--font-display);
+  font-size: var(--font-size-title-sm);
+  font-weight: 600;
+  color: var(--color-primary);
+  margin: 0;
+}
+
+.dictation-result-notice {
+  font-size: var(--font-size-body-xs);
+  color: var(--color-text-body);
+  margin: 0;
+  font-style: italic;
+}
+
+.dictation-result-hint-count {
+  font-size: var(--font-size-body-sm);
+  color: var(--color-text-body);
+  margin: 0;
+}
+
+.dictation-result-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  width: 100%;
+  margin-top: var(--spacing-sm);
+}
+
+/* ── Màn hình Hoàn thành Bài học ── */
+.dictation-completion-card {
+  padding: var(--spacing-3xl) var(--spacing-xl);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--spacing-md);
+}
+
+.dictation-completion-icon-wrapper {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-pill);
+  background: var(--color-pastel-mint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-thumb);
+}
+
+.dictation-completion-icon {
+  font-size: 42px;
+  color: var(--color-success);
+}
+
+.dictation-completion-title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-headline-md);
+  font-weight: 700;
+  color: var(--color-text-high);
+  margin: 0;
+}
+
+.dictation-completion-desc {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-md);
+  color: var(--color-text-body);
+  max-width: 480px;
+  margin: 0;
+}
+
+.dictation-completion-stats-tag {
+  display: inline-block;
+  padding: 6px 18px;
+  border-radius: var(--radius-pill);
+  background: var(--glass-well-bg);
+  border: 1px solid var(--color-outline-variant);
+  font-weight: 600;
+  color: var(--color-text-mid);
+}
+
+.dictation-completion-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  margin-top: var(--spacing-md);
+}
+
+/* ── Trạng thái Chung (Loading, Error, Empty) ── */
+.dictation-status-card {
+  padding: var(--spacing-3xl) var(--spacing-xl);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--spacing-md);
+  margin: var(--spacing-xl) auto;
+  max-width: 500px;
+}
+
+.dictation-status-icon {
+  font-size: 48px;
+  color: var(--color-text-disabled);
+}
+
+.dictation-status-icon--error {
+  color: var(--color-error);
+}
+
+.dictation-status-text {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-lg);
+  color: var(--color-text-mid);
+  margin: 0;
+}
+
+.dictation-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--glass-well-bg);
+  border-top-color: var(--color-primary);
+  border-radius: var(--radius-pill);
+  animation: dictation-spin 0.8s linear infinite;
+}
+
+@keyframes dictation-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================================
+   Dark Mode & Responsive
+   ============================================================ */
+[data-theme='dark'] .dictation-study-title,
+[data-theme='dark'] .dictation-result-score,
+[data-theme='dark'] .dictation-completion-title {
+  color: #f8fafc;
+}
+
+[data-theme='dark'] .dictation-words-title {
+  color: #94a3b8;
+}
+
+[data-theme='dark'] .dictation-textarea {
+  background: rgba(255, 255, 255, 0.05);
+  color: #f8fafc;
+}
+
+[data-theme='dark'] .dictation-word-pill--empty {
+  background: rgba(255, 255, 255, 0.06);
+  color: #64748b;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='dark'] .dictation-word-pill--incorrect {
+  background: rgba(146, 64, 14, 0.35);
+  color: #fcd34d;
+}
+
+[data-theme='dark'] .dictation-word-pill--correct {
+  background: rgba(31, 94, 75, 0.45);
+  color: #a7e8d3;
+}
+
+[data-theme='dark'] .dictation-word-pill--revealed {
+  background: rgba(43, 72, 114, 0.45);
+  color: #bfdbfe;
+}
+
+/* Responsive: Màn hình vừa (khoảng 1100px - 1280px) */
+@media (max-width: 1280px) {
+  .dictation-layout {
+    grid-template-columns: 340px 1fr 310px;
+    gap: var(--spacing-lg);
+  }
+}
+
+/* Responsive: Màn hình vừa nhỏ (khoảng 900px - 1100px) */
+@media (max-width: 1100px) {
+  .dictation-layout {
+    grid-template-columns: 290px 1fr 270px;
+    gap: var(--spacing-md);
+  }
+}
+
+/* Responsive: Màn hình hẹp (≤ 900px) xếp dọc theo thứ tự Player -> Main -> Sidebar */
+@media (max-width: 900px) {
+  .dictation-layout {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-xl);
+  }
+
+  .dictation-col-player,
+  .dictation-col-main,
+  .dictation-col-sidebar {
+    width: 100%;
+  }
+
+  .dictation-col-sidebar .study-segment-sidebar {
+    position: static;
+    max-height: 400px;
+  }
+}
+
+@media (max-width: 600px) {
+  .dictation-page-container {
+    padding-top: calc(72px + var(--spacing-md));
+    padding-left: var(--spacing-sm);
+    padding-right: var(--spacing-sm);
+  }
+
+  .dictation-study-card,
+  .dictation-result-card,
+  .dictation-completion-card {
+    padding: var(--spacing-md);
+  }
+
+  .dictation-actions-row,
+  .dictation-result-actions,
+  .dictation-completion-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .dictation-actions-row button,
+  .dictation-result-actions button,
+  .dictation-completion-actions button {
+    width: 100%;
+  }
+}

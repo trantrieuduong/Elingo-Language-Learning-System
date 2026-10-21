@@ -54,3 +54,8 @@ app:
       BATTLE_WIN:         { xp: 30, daily-limit: 10 }
       BATTLE_LOSE:        { xp: 10, daily-limit: 10 }
       DAILY_CHECKIN:      { xp: 5,  daily-limit: 1 }
+  lesson:
+    dictation-pass-score: 60
+    shadowing-pass-score: 55
+    dictation-attempt-penalty: 5
+    shadowing-attempt-penalty: 10

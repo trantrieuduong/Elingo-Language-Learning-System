@@ -1,0 +1,342 @@
+.user-card-form-overlay {
+  align-items: center;
+  overflow: hidden;
+  padding: var(--spacing-md);
+}
+
+.user-card-form-modal {
+  box-sizing: border-box;
+  width: min(100%, 860px);
+  max-height: calc(100vh - 2 * var(--spacing-md));
+  max-height: calc(100dvh - 2 * var(--spacing-md));
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-card-lg);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: var(--blur-2xl) saturate(190%);
+  -webkit-backdrop-filter: var(--blur-2xl) saturate(190%);
+  border: 1.5px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+}
+
+.user-card-form-modal__header,
+.user-card-form-modal__heading {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.user-card-form-modal__header {
+  justify-content: space-between;
+  flex-shrink: 0;
+  margin-bottom: var(--spacing-lg);
+}
+
+.user-card-form-modal__heading {
+  min-width: 0;
+}
+
+.user-card-form-modal__heading h2 {
+  color: var(--color-text-high);
+}
+
+.user-card-form-modal__heading p,
+.user-card-form-modal__hint {
+  color: var(--color-on-surface-variant);
+}
+
+.user-card-form-modal__icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: var(--radius-pill);
+  color: var(--color-primary);
+}
+
+.user-card-form-modal__icon .material-symbols-outlined {
+  font-size: 24px;
+}
+
+.user-card-form-modal__body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  gap: var(--spacing-lg);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: var(--spacing-xs);
+}
+
+.user-card-form-modal__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: var(--spacing-md);
+}
+
+.user-card-form-modal__field {
+  display: grid;
+  min-width: 0;
+  gap: var(--spacing-sm);
+}
+
+.user-card-form-modal .input-field,
+.user-card-form-modal__select,
+.user-card-form-modal__textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-input);
+  background: var(--glass-thumb-bg);
+  backdrop-filter: var(--blur-sm);
+  -webkit-backdrop-filter: var(--blur-sm);
+  color: var(--color-text-high);
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-lg);
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.user-card-form-modal__select {
+  box-sizing: border-box;
+  min-height: 52px;
+  padding: 0 var(--spacing-md);
+}
+
+.user-card-form-modal__textarea {
+  min-height: 92px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  resize: vertical;
+}
+
+.user-card-form-modal .input-field:focus,
+.user-card-form-modal__select:focus,
+.user-card-form-modal__textarea:focus {
+  background: var(--glass-thumb-bg);
+  border-color: var(--color-primary-container);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary-container) 20%, transparent);
+}
+
+.user-card-form-modal__select:disabled {
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+
+.user-card-form-modal__hint {
+  font-size: var(--font-size-body-sm);
+}
+
+.user-card-form-modal__image-field {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: var(--spacing-sm) var(--spacing-md);
+}
+
+.user-card-form-modal__image-label {
+  grid-column: 1 / -1;
+}
+
+.user-card-form-modal__image-upload {
+  position: relative;
+  display: flex;
+  min-height: 132px;
+  box-sizing: border-box;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md);
+  border: 1px dashed var(--color-outline);
+  border-radius: var(--radius-input);
+  background: var(--glass-thumb-bg);
+  color: var(--color-on-surface-variant);
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transition-base);
+}
+
+.user-card-form-modal__image-upload:hover,
+.user-card-form-modal__image-upload:focus-within {
+  border-color: var(--color-primary);
+}
+
+.user-card-form-modal__image-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.user-card-form-modal__image-input:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.user-card-form-modal__image-upload .material-symbols-outlined,
+.user-card-form-modal__image-placeholder .material-symbols-outlined {
+  color: var(--color-primary);
+  font-size: 28px;
+}
+
+.user-card-form-modal__image-preview {
+  min-height: 132px;
+  overflow: hidden;
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-input);
+  background: var(--glass-thumb-bg);
+}
+
+.user-card-form-modal__image-preview img {
+  display: block;
+  width: 100%;
+  height: 132px;
+  object-fit: cover;
+}
+
+.user-card-form-modal__image-placeholder {
+  display: flex;
+  min-height: 132px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  color: var(--color-on-surface-variant);
+  text-align: center;
+  font-size: var(--font-size-body-sm);
+}
+
+.user-card-form-modal__image-placeholder .material-symbols-outlined {
+  font-size: 32px;
+}
+
+.user-card-form-modal__phonetics {
+  display: grid;
+  min-width: 0;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-card);
+}
+
+.user-card-form-modal__phonetic-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(140px, 0.7fr) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--spacing-md);
+}
+
+.user-card-form-modal__phonetic-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm) var(--spacing-md);
+}
+
+.user-card-form-modal__phonetic-actions .btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 0.625rem 1rem;
+}
+
+.user-card-form-modal__phonetic-actions .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.user-card-form-modal__phonetic-actions .text-body-sm {
+  color: var(--color-on-surface-variant);
+}
+
+.user-card-form-modal__actions {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-outline-variant);
+}
+
+.user-card-form-modal__actions .btn-primary,
+.user-card-form-modal__actions .btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+}
+
+.user-card-form-modal__actions .material-symbols-outlined {
+  font-size: 20px;
+}
+
+[data-theme='dark'] .user-card-form-modal {
+  background: rgba(24, 39, 59, 0.88);
+  border: 1.5px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+}
+
+[data-theme='dark'] .user-card-form-modal::after {
+  display: none;
+}
+
+[data-theme='dark'] .user-card-form-modal .input-field:focus,
+[data-theme='dark'] .user-card-form-modal__select:focus,
+[data-theme='dark'] .user-card-form-modal__textarea:focus {
+  background: var(--glass-thumb-bg);
+}
+
+[data-theme='dark'] .user-card-form-modal__phonetic-actions .btn-secondary {
+  border-color: var(--color-glass-border-faint);
+}
+
+[data-theme='dark'] .user-card-form-modal__image-preview {
+  border-color: var(--color-glass-border-faint);
+}
+
+@media (max-width: 600px) {
+  .user-card-form-overlay {
+    padding: var(--spacing-sm);
+  }
+
+  .user-card-form-modal {
+    max-height: calc(100vh - 2 * var(--spacing-sm));
+    max-height: calc(100dvh - 2 * var(--spacing-sm));
+    padding: var(--spacing-md);
+    border-radius: var(--radius-card);
+  }
+
+  .user-card-form-modal__grid,
+  .user-card-form-modal__phonetic-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .user-card-form-modal__image-field {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .user-card-form-modal__image-label {
+    grid-column: auto;
+  }
+
+  .user-card-form-modal__actions {
+    flex-direction: column-reverse;
+  }
+
+  .user-card-form-modal__actions .btn-primary,
+  .user-card-form-modal__actions .btn-secondary {
+    width: 100%;
+  }
+}

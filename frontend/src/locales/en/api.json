@@ -35,7 +35,25 @@
     "TOPIC_NOT_FOUND": "Topic not found.",
     "TOPIC_ACCESS_DENIED": "You do not have permission to access this topic.",
     "CARD_NOT_FOUND": "Vocabulary card not found.",
-    "NO_CARDS_DUE": "No flashcards are due for review."
+    "NO_CARDS_DUE": "No flashcards are due for review.",
+    "PAGE_INDEX_INVALID": "Invalid page index.",
+    "KEYWORD_INVALID": "Invalid search keyword.",
+    "CEFR_LEVEL_CODE_INVALID": "Invalid CEFR level code.",
+    "TAG_CODE_INVALID": "Invalid topic tag code.",
+    "LESSON_NOT_FOUND": "Lesson not found or has not been published.",
+    "LESSON_SEGMENT_NOT_FOUND": "Lesson segment not found.",
+    "LESSON_PREMIUM_REQUIRED": "This lesson requires a premium subscription. Please upgrade to continue learning.",
+    "ATTEMPT_COUNT_INVALID": "Invalid attempt count.",
+    "HINT_COUNT_INVALID": "Invalid hint count.",
+    "SHADOWING_SCORE_INVALID": "Invalid shadowing score.",
+    "WORDS_ACCURACY_INVALID": "Invalid words accuracy array.",
+    "AUDIO_RECORDING_REQUIRED": "Audio recording is required.",
+    "INVALID_REQUEST": "Invalid request.",
+    "FILE_TOO_LARGE": "File size exceeds the allowed limit.",
+    "INVALID_FILE_TYPE": "Invalid file type.",
+    "FILE_TYPE_MISMATCH": "File type does not match.",
+    "FILE_ACCESS_DENIED": "Access to file is denied.",
+    "FILE_UPLOAD_FAILED": "Failed to upload file. Please try again."
   },
   "validation": {
     "username": {

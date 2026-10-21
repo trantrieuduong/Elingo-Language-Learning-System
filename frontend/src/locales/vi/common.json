@@ -1,26 +1,34 @@
 {
   "all": "Tất cả",
-  "save": "Lưu",
+  "back": "Quay lại",
+  "backHome": "Về trang chủ",
   "cancel": "Hủy",
-  "confirm": "Xác nhận",
+  "clearFilters": "Xóa bộ lọc",
+  "clearSearch": "Xóa tìm kiếm",
   "close": "Đóng",
-  "showPassword": "Hiện mật khẩu",
-  "hidePassword": "Ẩn mật khẩu",
+  "confirm": "Xác nhận",
   "delete": "Xóa",
   "edit": "Chỉnh sửa",
-  "search": "Tìm kiếm...",
-  "loading": "Đang tải...",
-  "backHome": "Về trang chủ",
-  "pageNotFound": "Không tìm thấy trang",
-  "underConstruction": "Tính năng đang được phát triển",
   "filter": {
+    "clearFilters": "Xóa bộ lọc",
     "level": "Cấp độ",
     "topic": "Chủ đề"
   },
+  "hidePassword": "Ẩn mật khẩu",
+  "loading": "Đang tải...",
+  "pageNotFound": "Không tìm thấy trang",
   "pagination": {
-    "prev": "Trang trước",
-    "next": "Trang tiếp",
     "goTo": "Đi đến",
-    "page": "Trang {{page}}"
-  }
+    "next": "Trang tiếp",
+    "page": "Trang {{page}}",
+    "prev": "Trang trước"
+  },
+  "premium": "Premium",
+  "retry": "Thử lại",
+  "save": "Lưu",
+  "saveChanges": "Lưu thay đổi",
+  "saving": "Đang lưu...",
+  "search": "Tìm kiếm...",
+  "showPassword": "Hiện mật khẩu",
+  "underConstruction": "Tính năng đang được phát triển"
 }

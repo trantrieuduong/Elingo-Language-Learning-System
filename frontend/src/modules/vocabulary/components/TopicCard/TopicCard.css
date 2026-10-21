@@ -1,0 +1,51 @@
+/* ==========================================================================
+   TopicCard.css — Liquid Glass Minimalism
+   ========================================================================== */
+
+.topic-card {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.topic-card__select {
+  min-height: 34px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.topic-card__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topic-card__actions {
+  display: flex;
+  gap: var(--spacing-xs);
+  flex-shrink: 0;
+}
+
+.topic-card__actions .btn-icon {
+  width: 34px;
+  height: 34px;
+}
+
+.topic-card__btn-edit {
+  color: var(--color-primary);
+}
+
+.topic-card__btn-delete {
+  color: var(--color-error);
+}
+
+.topic-card__btn-edit:hover,
+.topic-card__btn-delete:hover {
+  transform: scale(1.1);
+}
+
+@media (max-width: 600px) {
+  .topic-card {
+    gap: var(--spacing-xs);
+  }
+}

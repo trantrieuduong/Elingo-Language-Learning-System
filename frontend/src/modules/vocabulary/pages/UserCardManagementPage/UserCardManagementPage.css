@@ -1,0 +1,169 @@
+.user-card-management-page {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  padding-top: calc(var(--spacing-3xl) + 64px);
+  padding-bottom: var(--spacing-md);
+}
+
+.user-card-management-page__container {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+  min-height: 0;
+}
+
+.user-card-management-page__heading {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: var(--spacing-lg);
+}
+
+.user-card-management-page__breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  color: var(--color-text-disabled);
+  font-size: var(--font-size-body-sm);
+}
+
+.user-card-management-page__breadcrumb button {
+  border: 0;
+  background: transparent;
+  color: var(--color-primary);
+  cursor: pointer;
+  font: inherit;
+}
+
+.user-card-management-page__breadcrumb .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.user-card-management-page__title-group {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.user-card-management-page__header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.user-card-management-page__title-group {
+  min-width: 0;
+}
+
+.user-card-management-page__title-group h1 {
+  color: var(--color-text-high);
+}
+
+.user-card-management-page__title-group p,
+.user-card-management-page__list-heading p {
+  color: var(--color-on-surface-variant);
+}
+
+.user-card-management-page__icon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: var(--radius-pill);
+  color: var(--color-primary);
+}
+
+.user-card-management-page__icon {
+  width: 56px;
+  height: 56px;
+}
+
+.user-card-management-page__icon .material-symbols-outlined {
+  font-size: 28px;
+}
+
+.user-card-management-page__create-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  flex: 0 0 auto;
+}
+
+.user-card-management-page__list-section {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.user-card-management-page__search {
+  max-width: none;
+}
+
+.user-card-management-page__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-md);
+  min-height: 0;
+}
+
+.user-card-management-page__empty {
+  grid-column: 1 / -1;
+  width: 100%;
+  box-sizing: border-box;
+  display: grid;
+  justify-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xl);
+  color: var(--color-on-surface-variant);
+  text-align: center;
+}
+
+.user-card-management-page__empty .material-symbols-outlined {
+  color: var(--color-primary);
+  font-size: 32px;
+}
+
+@media (max-width: 1024px) {
+  .user-card-management-page__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .user-card-management-page {
+    padding-top: calc(var(--spacing-xl) + 64px);
+  }
+
+  .user-card-management-page__header {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .user-card-management-page__heading {
+    align-items: flex-start;
+  }
+
+  .user-card-management-page__create-btn {
+    width: 100%;
+  }
+
+}
+
+@media (max-width: 360px) {
+  .user-card-management-page__title-group {
+    align-items: flex-start;
+  }
+
+  .user-card-management-page__icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .user-card-management-page__title-group h1 {
+    font-size: var(--font-size-headline-sm);
+  }
+}

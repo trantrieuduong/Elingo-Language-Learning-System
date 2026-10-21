@@ -13,6 +13,24 @@
   z-index: var(--z-base);
 }
 
+.app-main--card-management {
+  flex: 0 0 auto;
+}
+
+.app-main--card-management + .footer {
+  margin-top: 0;
+}
+
+@media (max-width: 600px) {
+  .app-main--vocabulary {
+    flex: 0 0 auto;
+  }
+
+  .app-main--vocabulary + .footer {
+    margin-top: 0;
+  }
+}
+
 /* ── Placeholder page (xóa khi pages thật được build) ── */
 .placeholder-page {
   display: flex;

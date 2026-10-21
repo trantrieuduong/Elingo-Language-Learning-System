@@ -1,54 +1,157 @@
 .deck-list-page {
-  min-height: calc(100vh - 140px); /* Bù chiều cao header/footer để vừa màn hình */
+  min-height: calc(100vh - 140px);
   padding-top: calc(72px + var(--spacing-2xl));
+  padding-bottom: var(--spacing-xl);
 }
 
 .deck-list-container {
+  max-width: var(--container-wide);
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: var(--spacing-lg);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xl);
+  position: relative;
 }
 
-/* Filters Section */
-.deck-list-filters {
-  border-radius: var(--radius-card);
-  padding: var(--spacing-xl);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
+/* Toast thông báo */
+.deck-toast-wrapper {
+  position: fixed;
+  top: 90px;
+  right: var(--spacing-xl);
+  z-index: 999;
+  animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.deck-list-filters__top {
-  display: flex; /*Kích hoạt mô hình hộp linh hoạt (Flexbox)*/
-  align-items: center; /*Căn giữa các thành phần con theo chiều dọc*/
-  gap: var(--spacing-md);
-  width: 100%; /*giãn rộng ra hết 100% chiều rộng*/
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.deck-list-filters__search {
-  flex: 1; /*ô tìm kiếm tự động giãn ra để lấp đầy toàn bộ khoảng trống còn lại trong hàng đó*/
-}
-
-.btn-clear-filter {
+.deck-toast {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  color: var(--color-error);
-  padding: 8px 16px;
-  border-radius: var(--radius-full);
-  background: transparent;
-  border: 1px solid transparent;
-  cursor: pointer;
-  transition: var(--transition-base);
-  font-family: var(--font-body);
-  font-weight: 500;
-  font-size: var(--font-size-body-md);
-  white-space: nowrap;/*Buộc toàn bộ văn bản hiển thị trên một dòng duy nhất*/
+  gap: var(--spacing-sm);
+  padding: 12px 20px;
+  border-radius: var(--radius-pill);
+  background: var(--color-success-bg);
+  border: 1px solid var(--color-success);
+  box-shadow: var(--shadow-pill);
 }
 
-.btn-clear-filter:hover {
-  background: var(--color-error-container);
-  color: var(--color-on-error-container);
+.deck-toast__icon {
+  font-size: 20px;
+  color: var(--color-success);
+}
+
+.deck-toast__text {
+  font-family: var(--font-display);
+  font-size: var(--font-size-label-md);
+  font-weight: 600;
+  color: var(--color-text-high);
+}
+
+/* Tab Switcher */
+.deck-tabs-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.deck-tabs {
+  display: inline-flex;
+  padding: 6px;
+  border-radius: var(--radius-pill);
+  gap: 6px;
+  background: var(--glass-well-bg);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--color-glass-border-standard);
+}
+
+.deck-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  border: none;
+  background: transparent;
+  color: var(--color-text-body);
+  font-family: var(--font-display);
+  font-size: var(--font-size-label-lg);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-base);
+}
+
+.deck-tab-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.deck-tab-btn .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.deck-tab-btn:hover {
+  color: var(--color-text-high);
+  background: var(--glass-thumb-bg);
+}
+
+.deck-tab-btn--active {
+  background: var(--color-secondary-container) !important;
+  color: var(--color-on-secondary-container) !important;
+}
+
+.deck-btn-create-top {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: var(--shadow-btn-primary);
+}
+
+.deck-btn-create-top .material-symbols-outlined {
+  font-size: 20px;
+}
+
+/* Status Filter Pills for My Decks (giữ lại vì là custom cho Deck) */
+.deck-status-filters {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.deck-status-pill {
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-display);
+  font-size: var(--font-size-label-sm);
+  font-weight: 600;
+  border: 1px solid var(--color-outline-variant);
+  background: var(--color-surface);
+  color: var(--color-text-mid);
+  cursor: pointer;
+  transition: var(--transition-base);
+  white-space: nowrap;
+}
+
+.deck-status-pill:hover {
+  background: var(--color-surface-container);
+}
+
+.deck-status-pill--active {
+  background: var(--color-secondary-container) !important;
+  color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
 }
 
 /* Content Grid */
@@ -70,11 +173,7 @@
 }
 
 .vocabulary-card--premium {
-  border: 1px solid rgba(155, 183, 232, 0.45);
-}
-
-[data-theme='dark'] .vocabulary-card--premium {
-  border-color: rgba(155, 183, 232, 0.28);
+  border: 1px solid var(--color-primary-container);
 }
 
 .vocabulary-card__badge {
@@ -94,47 +193,35 @@
   z-index: 2;
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-thumb);
   max-width: calc(50% - var(--spacing-sm));
   white-space: nowrap;
 }
 
 .vocabulary-card__badge--premium {
-  background: linear-gradient(135deg, rgba(58, 86, 128, 0.9) 0%, rgba(35, 59, 94, 0.95) 100%);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: var(--color-primary-container);
+  color: var(--color-on-primary-container);
+  border: 1px solid var(--color-glass-border-standard);
 }
 
 .vocabulary-card__badge--premium .material-symbols-outlined {
   font-size: 14px;
-  color: #fbd38d;
+  color: var(--color-warning);
   line-height: 1;
 }
 
 .vocabulary-card__badge--free {
-  background: rgba(255, 255, 255, 0.82);
+  background: var(--glass-thumb-bg);
   color: var(--color-on-surface);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-}
-
-[data-theme='dark'] .vocabulary-card__badge--premium {
-  background: linear-gradient(135deg, rgba(77, 109, 158, 0.92) 0%, rgba(43, 72, 114, 0.96) 100%);
-  border-color: rgba(192, 211, 238, 0.4);
-  color: #ffffff;
-}
-
-[data-theme='dark'] .vocabulary-card__badge--free {
-  background: rgba(30, 48, 72, 0.85);
-  color: var(--color-on-surface);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid var(--color-glass-border-standard);
 }
 
 .vocabulary-card__word-count {
   position: absolute;
   top: var(--spacing-md);
   right: var(--spacing-md);
-  background: rgba(0, 0, 0, 0.65);
-  color: #fff;
+  background: var(--glass-card-bg);
+  color: var(--color-on-surface);
   padding: 4px 10px;
   border-radius: 20px;
   font-size: 12px;
@@ -142,8 +229,8 @@
   z-index: 2;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--color-glass-border-faint);
+  box-shadow: var(--shadow-thumb);
 }
 
 .vocabulary-card__cover-image {
@@ -163,7 +250,6 @@
 
 .vocabulary-card:hover {
   transform: translateY(-3px);
-  /* Optional: Tăng shadow hoặc độ đậm nhạt của background nếu cần, ở đây translateY là đủ theo design system */
 }
 
 .vocabulary-card__cover-placeholder {
@@ -173,7 +259,7 @@
   align-items: center;
   justify-content: center;
   background-color: var(--color-surface-variant);
-  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(0, 0, 0, 0.05) 100%);
+  background-image: linear-gradient(135deg, var(--color-glass-border-faint), transparent);
   border-bottom: 1px solid var(--color-outline-variant);
 }
 
@@ -208,19 +294,6 @@
   width: 100%;
 }
 
-.vocabulary-card__progress .progress-bar-title {
-  font-size: var(--font-size-label-sm, 11px);
-  color: var(--color-on-surface-variant);
-  font-weight: 600;
-  letter-spacing: var(--tracking-wide, 0.02em);
-  text-transform: uppercase;
-}
-
-.vocabulary-card__progress .progress-bar-stats {
-  font-size: var(--font-size-label-sm, 11px);
-  font-weight: 700;
-}
-
 .vocabulary-card__footer {
   display: flex;
   align-items: center;
@@ -252,6 +325,28 @@
   font-size: 48px;
 }
 
+.user-deck-empty {
+  padding: 60px 24px;
+}
+
+.user-deck-empty__icon {
+  font-size: 64px;
+  color: var(--color-primary);
+  opacity: 0.7;
+}
+
+.user-deck-empty__desc {
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+.user-deck-empty__btn {
+  margin-top: var(--spacing-md);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 /* Responsive Breakpoints */
 @media (max-width: 1024px) {
   .deck-list-page {
@@ -267,23 +362,51 @@
   .deck-list-page {
     padding-top: calc(60px + var(--spacing-lg));
   }
-
-  .deck-list-filters {
-    padding: var(--spacing-md);
+  
+  .deck-list-container {
+    padding-inline: var(--spacing-md);
   }
 
-  .deck-list-filters__top {
-    flex-direction: column;
-    align-items: stretch;
+  .deck-status-filters {
+    overflow-x: auto;
+    padding-bottom: 4px;
   }
 
   .vocabulary-grid {
     grid-template-columns: 1fr;
+  }
+
+  .deck-tabs-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .deck-tabs {
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+    overflow: visible;
+    border-radius: var(--radius-card);
+  }
+
+  .deck-tab-btn {
+    flex: 1 1 calc(50% - 6px);
+    justify-content: center;
+    min-width: 0;
+    white-space: normal;
+  }
+
+  .deck-btn-create-top {
+    justify-content: center;
   }
 }
 
 @media (max-width: 360px) {
   .deck-list-page {
     padding-top: calc(60px + var(--spacing-md));
+  }
+  
+  .deck-list-container {
+    padding-inline: var(--spacing-sm);
   }
 }
