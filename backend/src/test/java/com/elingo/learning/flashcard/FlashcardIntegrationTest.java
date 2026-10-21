@@ -19,14 +19,17 @@ import com.elingo.premium.entity.SubscriptionStatus;
 import com.elingo.premium.entity.UserSubscription;
 import com.elingo.premium.repository.PremiumPlanRepository;
 import com.elingo.premium.repository.UserSubscriptionRepository;
+import com.elingo.common.service.RedisService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
@@ -38,6 +41,8 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -76,11 +81,16 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private PremiumPlanRepository premiumPlanRepository;
 
+    @MockitoBean
+    private RedisService redisService;
+
     private User testUser;
     private String authToken;
 
     @BeforeEach
     void setUp() {
+        Mockito.when(redisService.incrementWithTtl(anyString(), any())).thenReturn(1L);
+
         testUser = userRepository.save(User.builder()
                 .username("flashcard_tester")
                 .email("flashcard_tester@elingo.test")
@@ -407,6 +417,20 @@ public class FlashcardIntegrationTest extends BaseIntegrationTest {
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.success").value(false))
                     .andExpect(jsonPath("$.errors[0].code").value("INVALID_REQUEST"));
+        }
+
+        @Test
+        @DisplayName("Submit SRS review: Fail because of duplicate submission rate limit")
+        void testSubmitSrsReview_Fail_RateLimitExceeded() throws Exception {
+            Mockito.when(redisService.incrementWithTtl(anyString(), any())).thenReturn(2L);
+
+            mockMvc.perform(post("/flashcards/{cardId}/srs", card.getId())
+                            .header("Authorization", "Bearer " + authToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"grade\": 3}"))
+                    .andExpect(status().isTooManyRequests())
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.errors[0].code").value("RATE_LIMIT_EXCEEDED"));
         }
 
         @Test
