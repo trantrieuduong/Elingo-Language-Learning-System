@@ -4,18 +4,25 @@
   "cancel": "Hủy",
   "confirm": "Xác nhận",
   "close": "Đóng",
+  "back": "Quay lại",
   "showPassword": "Hiện mật khẩu",
   "hidePassword": "Ẩn mật khẩu",
   "delete": "Xóa",
   "edit": "Chỉnh sửa",
   "search": "Tìm kiếm...",
   "loading": "Đang tải...",
+  "saving": "Đang lưu...",
+  "retry": "Thử lại",
   "backHome": "Về trang chủ",
   "pageNotFound": "Không tìm thấy trang",
   "underConstruction": "Tính năng đang được phát triển",
+  "clearSearch": "Xóa tìm kiếm",
+  "saveChanges": "Lưu thay đổi",
+  "premium": "Premium",
   "filter": {
     "level": "Cấp độ",
-    "topic": "Chủ đề"
+    "topic": "Chủ đề",
+    "clearFilters": "Xóa bộ lọc"
   },
   "pagination": {
     "prev": "Trang trước",

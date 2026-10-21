@@ -19,7 +19,7 @@ import './FlashcardReviewPage.css'
  * @param {Function} onNavigate - Hàm điều hướng custom router từ App.jsx
  */
 function FlashcardReviewPage({ onNavigate }) {
-  const { t } = useTranslation(['learning', 'api'])
+  const { t } = useTranslation(['learning', 'api', 'common'])
   const [reviewCards, setReviewCards] = useState([])
 
   const [loading, setLoading] = useState(true)
@@ -202,7 +202,7 @@ function FlashcardReviewPage({ onNavigate }) {
     <div className="flashcard-page-container">
       <div className="flashcard-layout">
         <div className="flashcard-header-bar">
-          <BackButton label={t('flashcard.back')} onClick={() => onNavigate?.('/decks')} />
+          <BackButton label={t('common:back')} onClick={() => onNavigate?.('/decks')} />
         </div>
         
         {/*Thanh tiến độ rỗng tựa bên StudyPage */}

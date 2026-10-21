@@ -18,15 +18,7 @@
 .dictation-top-bar {
   display: flex;
   align-items: center;
-}
-
-.dictation-back-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding: 8px 18px;
-  font-size: var(--font-size-label-md);
-  font-weight: 600;
+  gap: var(--spacing-md);
 }
 
 /* ── 3-Column Layout ──

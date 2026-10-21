@@ -1,0 +1,13 @@
+/* ============================================================
+   BackButton.css — Shared Back Button Component
+   Liquid Glass Minimalism Design System
+   ============================================================ */
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 8px 18px;
+  font-size: var(--font-size-label-md);
+  font-weight: 600;
+}

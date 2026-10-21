@@ -10,8 +10,7 @@ import {
   getCefrLevelsApi,
 } from '../../vocabularyApi'
 import Pagination from '../../../../components/Pagination/Pagination'
-import Filter from '../../../../components/Filter/Filter'
-import SearchInput from '../../../../components/SearchInput/SearchInput'
+import FilterSection from '../../../../components/FilterSection/FilterSection'
 import ProgressBar from '../../../../components/ProgressBar/ProgressBar'
 import Modal from '../../../../components/Modal/Modal'
 import UserDeckCard from '../../components/UserDeckCard/UserDeckCard'
@@ -363,20 +362,20 @@ function DeckListPage({ onNavigate }) {
         </section>
 
         {/* Thanh lọc & tìm kiếm */}
-        <section className="deck-list-filters glass-well">
-          <div className="deck-list-filters__top">
-            <SearchInput
-              id="search-decks"
-              className="deck-list-filters__search"
-              placeholder={t('deckList.searchPlaceholder')}
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              onClear={() => setSearchQuery('')}
-              clearLabel={t('deckList.clearSearch')}
-            />
-
-            {/* Filter trạng thái khi ở tab My Decks */}
-            {activeTab === 'my-decks' && (
+        <FilterSection
+          searchQuery={searchQuery}
+          onSearchChange={(event) => setSearchQuery(event.target.value)}
+          searchPlaceholder={t('deckList.searchPlaceholder')}
+          cefrLevels={cefrLevels}
+          tags={tags}
+          selectedCefrLevelId={selectedCefrLevelId}
+          selectedTagId={selectedTagId}
+          onCefrChange={handleCefrChange}
+          onTagChange={handleTagChange}
+          hasActiveFilters={hasActiveFilters}
+          onClearFilters={handleClearFilters}
+          extraControls={
+            activeTab === 'my-decks' && (
               <div className="deck-status-filters">
                 <button
                   type="button"
@@ -415,25 +414,9 @@ function DeckListPage({ onNavigate }) {
                   {t('userDeck.statusDraft')}
                 </button>
               </div>
-            )}
-
-            {hasActiveFilters && (
-              <button type="button" className="btn-clear-filter" onClick={handleClearFilters}>
-                <span className="material-symbols-outlined">filter_alt_off</span>
-                {t('deckList.clearFilters')}
-              </button>
-            )}
-          </div>
-
-          <Filter
-            cefrLevels={cefrLevels}
-            tags={tags}
-            selectedCefrLevelId={selectedCefrLevelId}
-            selectedTagId={selectedTagId}
-            onCefrChange={handleCefrChange}
-            onTagChange={handleTagChange}
-          />
-        </section>
+            )
+          }
+        />
 
         {/* ========================================================================= */}
         {/* TAB 1: BỘ TỪ HỆ THỐNG                                                     */}

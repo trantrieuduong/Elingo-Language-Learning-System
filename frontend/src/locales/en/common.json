@@ -4,18 +4,25 @@
   "cancel": "Cancel",
   "confirm": "Confirm",
   "close": "Close",
+  "back": "Back",
   "showPassword": "Show password",
   "hidePassword": "Hide password",
   "delete": "Delete",
   "edit": "Edit",
   "search": "Search...",
   "loading": "Loading...",
+  "saving": "Saving...",
+  "retry": "Try again",
   "backHome": "Back to Home",
   "pageNotFound": "Page not found",
   "underConstruction": "Feature under development",
+  "clearSearch": "Clear search",
+  "saveChanges": "Save changes",
+  "premium": "Premium",
   "filter": {
     "level": "Level",
-    "topic": "Topic"
+    "topic": "Topic",
+    "clearFilters": "Clear filters"
   },
   "pagination": {
     "prev": "Previous",

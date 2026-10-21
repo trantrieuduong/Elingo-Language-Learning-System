@@ -28,7 +28,7 @@ const LIMIT = 9;
  * @param {Function} onNavigate - Hàm điều hướng từ App.jsx
  */
 function TopicListPage({ deckId, onNavigate }) {
-  const { t } = useTranslation('learning');
+  const { t } = useTranslation(['learning', 'common']);
 
   // States dữ liệu
   const [deck, setDeck] = useState(null);
@@ -242,18 +242,18 @@ function TopicListPage({ deckId, onNavigate }) {
         ) : deckLoadError ? (
           <div className="topic-list-empty glass-card" role="alert">
             <h1 className="text-headline-sm">{deckLoadError}</h1>
-            <BackButton label={t('topic.backToDecks')} onClick={() => onNavigate?.('/decks')} />
+            <BackButton label={t('common:back')} onClick={() => onNavigate?.('/decks')} />
           </div>
         ) : !deck ? (
           <div className="topic-list-empty glass-card">
             <h1 className="text-headline-sm">{t('topic.deckNotFound')}</h1>
-            <BackButton label={t('topic.backToDecks')} onClick={() => onNavigate?.('/decks')} />
+            <BackButton label={t('common:back')} onClick={() => onNavigate?.('/decks')} />
           </div>
         ) : (
           <>
             <header className="topic-list-page__header">
               <div className="topic-list-page__heading">
-                <BackButton label={t('flashcard.back')} onClick={() => onNavigate?.('/decks')} />
+                <BackButton label={t('common:back')} onClick={() => onNavigate?.('/decks')} />
                 <div className="topic-list-page__title-group">
                   <div className="topic-list-page__title-row">
                     <h1 className="text-headline-md topic-list-page__title">{deck.title}</h1>

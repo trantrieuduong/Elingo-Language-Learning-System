@@ -7,6 +7,7 @@ import { splitWords } from '../../lesson/utils/text'
 import { getWordStatuses, isAllDone } from '../utils/dictation'
 import LessonYoutubePlayer from '../../lesson/components/LessonYoutubePlayer/LessonYoutubePlayer'
 import StudySegmentSidebar from '../../lesson/components/StudySegmentSidebar/StudySegmentSidebar'
+import BackButton from '../../../../components/BackButton/BackButton'
 import './DictationPage.css'
 
 function DictationPage({ slug, onNavigate }) {
@@ -267,7 +268,7 @@ function DictationPage({ slug, onNavigate }) {
             className="btn-primary"
             onClick={() => onNavigate && onNavigate('/learning')}
           >
-            {t('dictation.backToList')}
+            {t('common:back')}
           </button>
         </div>
       </div>
@@ -288,7 +289,7 @@ function DictationPage({ slug, onNavigate }) {
             className="btn-primary"
             onClick={() => onNavigate && onNavigate('/learning')}
           >
-            {t('dictation.backToList')}
+            {t('common:back')}
           </button>
         </div>
       </div>
@@ -305,14 +306,10 @@ function DictationPage({ slug, onNavigate }) {
     <div className="dictation-page-container">
       {/* Thanh điều hướng quay lại danh sách */}
       <div className="dictation-top-bar">
-        <button
-          type="button"
-          className="btn-secondary dictation-back-btn"
+        <BackButton
+          label={t('common:back')}
           onClick={() => onNavigate && onNavigate('/learning')}
-        >
-          <span className="material-symbols-outlined">arrow_back</span>
-          <span>{t('dictation.backToList')}</span>
-        </button>
+        />
       </div>
 
       {/* Layout 3 cột: Player | Khu học tập / Kết quả | Sidebar tiến độ */}
@@ -373,7 +370,7 @@ function DictationPage({ slug, onNavigate }) {
                   className="btn-secondary"
                   onClick={() => onNavigate && onNavigate('/learning')}
                 >
-                  {t('dictation.backToList')}
+                  {t('common:back')}
                 </button>
                 <button
                   type="button"

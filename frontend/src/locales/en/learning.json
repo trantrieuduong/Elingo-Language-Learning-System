@@ -1,8 +1,10 @@
 {
+  "filter": {
+    "clearFilters": "Clear filters"
+  },
   "deckList": {
     "searchPlaceholder": "Search by deck name...",
     "clearSearch": "Clear search",
-    "clearFilters": "Clear filters",
     "loadError": "Unable to load deck list",
     "networkError": "A network or system error occurred. Please try again.",
     "retry": "Try again",
@@ -18,7 +20,6 @@
     "pageSubtitle": "Practice dictation and shadowing with authentic video content",
     "searchPlaceholder": "Search lessons...",
     "clearSearch": "Clear search",
-    "clearFilters": "Clear filters",
     "loading": "Loading lessons...",
     "loadError": "Unable to load lesson list. Please try again.",
     "retry": "Try again",
@@ -95,13 +96,19 @@
     "locked": "Locked",
     "bestScore": "Best score: {{score}}"
   },
+  "lessonStudy": {
+    "replaySegment": "Replay this segment",
+    "nextSegment": "Next segment",
+    "finishLesson": "Finish lesson",
+    "passedBadge": "Passed",
+    "failedBadge": "Not passed",
+    "passedSegmentsStats": "Passed segments: {{passed}} / {{total}}"
+  },
   "dictation": {
-    "backToList": "Back to Lesson List",
     "loading": "Loading dictation lesson...",
     "errorLoad": "Unable to load lesson. Please try again later.",
     "notFound": "Requested lesson was not found or is not published.",
     "emptySegments": "This lesson does not have any segments for practice yet.",
-    "replaySegment": "Replay this segment",
     "typeWhatYouHear": "Type what you hear",
     "inputPlaceholder": "Listen to the video and transcribe the sentence here...",
     "vocabularyHint": "Vocabulary Hints & Typing Progress:",
@@ -110,25 +117,18 @@
     "showAllBtn": "Show all",
     "completeSegmentBtn": "Complete segment",
     "submitting": "Submitting score...",
-    "passedBadge": "Passed",
-    "failedBadge": "Not passed",
     "currentScore": "Current score: {{score}}",
     "bestScore": "Best score: {{score}}",
     "bestScoreNotice": "Best score will only update when you achieve a higher result.",
     "hintsUsedInfo": "Hints used: {{count}}",
     "retrySegmentBtn": "Retry this segment",
-    "nextSegmentBtn": "Next segment",
-    "finishLessonBtn": "Finish lesson",
     "completedTitle": "Congratulations! You completed this lesson!",
     "completedSubtitle": "You have transcribed all segments in this dictation practice lesson.",
-    "passedSegmentsStats": "Passed segments: {{passed}} / {{total}}",
     "learnShadowing": "Practice Shadowing for this lesson"
   },
   "shadowing": {
     "pageTitle": "Shadowing Practice",
     "progressTitle": "SHADOWING PROGRESS",
-    "backToList": "Back to lesson list",
-    "replaySegment": "Replay this segment",
     "loading": "Loading lesson...",
     "loadError": "Failed to load lesson information",
     "noSegments": "This lesson does not have any segments yet.",
@@ -138,8 +138,6 @@
     "recordBtn": "Press to Speak",
     "recordingBtn": "Recording (Press to Stop)",
     "continueBtn": "Continue",
-    "nextSegmentBtn": "Next segment",
-    "finishLessonBtn": "Finish lesson",
     "retrySegmentBtn": "Record again",
     "statusIdle": "Ready to record",
     "statusRecording": "Recording in progress...",

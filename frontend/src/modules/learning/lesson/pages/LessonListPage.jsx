@@ -2,10 +2,9 @@ import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getLessonsApi } from '../lessonApi'
 import { getTagsApi, getCefrLevelsApi } from '../../../vocabulary/vocabularyApi'
-import Filter from '../../../../components/Filter/Filter'
+import FilterSection from '../../../../components/FilterSection/FilterSection'
 import Pagination from '../../../../components/Pagination/Pagination'
 import PageError from '../../../../components/PageError/PageError'
-import Input from '../../../../components/Input/Input'
 import LessonCard from '../components/LessonCard/LessonCard'
 import LessonModeModal from '../components/LessonModeModal/LessonModeModal'
 import './LessonListPage.css'
@@ -162,38 +161,19 @@ function LessonListPage({ onNavigate }) {
     <main className="lessons-container">
 
       {/* Filter Section */}
-      <section className="lessons-filters glass-well">
-        <div className="lessons-filters__top">
-          <div className="lessons-filters__search">
-            <Input
-              id="search-lessons"
-              placeholder={t('lessonList.searchPlaceholder')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              rightElement={<span className="material-symbols-outlined">search</span>}
-            />
-          </div>
-          {isFiltering && (
-            <button
-              type="button"
-              className="btn-clear-filter"
-              onClick={handleClearFilters}
-            >
-              <span className="material-symbols-outlined" aria-hidden="true">filter_alt_off</span>
-              {t('lessonList.clearFilters')}
-            </button>
-          )}
-        </div>
-
-        <Filter
-          cefrLevels={cefrLevels}
-          tags={tags}
-          selectedCefrLevelId={selectedCefrCode}
-          selectedTagId={selectedTagCode}
-          onCefrChange={setSelectedCefrCode}
-          onTagChange={setSelectedTagCode}
-        />
-      </section>
+      <FilterSection
+        searchQuery={searchQuery}
+        onSearchChange={(e) => setSearchQuery(e.target.value)}
+        searchPlaceholder={t('lessonList.searchPlaceholder')}
+        cefrLevels={cefrLevels}
+        tags={tags}
+        selectedCefrLevelId={selectedCefrCode}
+        selectedTagId={selectedTagCode}
+        onCefrChange={setSelectedCefrCode}
+        onTagChange={setSelectedTagCode}
+        hasActiveFilters={isFiltering}
+        onClearFilters={handleClearFilters}
+      />
 
       {/* Nội dung danh sách bài học */}
       {loading ? (

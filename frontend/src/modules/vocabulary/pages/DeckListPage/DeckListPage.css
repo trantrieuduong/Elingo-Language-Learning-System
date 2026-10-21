@@ -1,10 +1,14 @@
 .deck-list-page {
-  min-height: calc(100vh - 140px); /* Bù chiều cao header/footer để vừa màn hình */
+  min-height: calc(100vh - 140px);
   padding-top: calc(72px + var(--spacing-2xl));
   padding-bottom: var(--spacing-xl);
 }
 
 .deck-list-container {
+  max-width: var(--container-wide);
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: var(--spacing-lg);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xl);
@@ -119,30 +123,7 @@
   font-size: 20px;
 }
 
-/* Filters Section */
-.deck-list-filters {
-  border-radius: var(--radius-card);
-  padding: var(--spacing-xl);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
-}
-
-.deck-list-filters__top {
-  display: flex; /*Kích hoạt mô hình hộp linh hoạt (Flexbox)*/
-  align-items: center; /*Căn giữa các thành phần con theo chiều dọc*/
-  gap: var(--spacing-md);
-  width: 100%;
-  flex-wrap: wrap;
-}
-
-.deck-list-filters__search {
-  flex: 1;
-  min-width: 260px;
-  max-width: none;
-}
-
-/* Status Filter Pills for My Decks */
+/* Status Filter Pills for My Decks (giữ lại vì là custom cho Deck) */
 .deck-status-filters {
   display: inline-flex;
   align-items: center;
@@ -171,28 +152,6 @@
   background: var(--color-secondary-container) !important;
   color: var(--color-primary) !important;
   border-color: var(--color-primary) !important;
-}
-
-.btn-clear-filter {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  color: var(--color-error);
-  padding: 8px 16px;
-  border-radius: var(--radius-pill);
-  background: transparent;
-  border: 1px solid transparent;
-  cursor: pointer;
-  transition: var(--transition-base);
-  font-family: var(--font-body);
-  font-weight: 500;
-  font-size: var(--font-size-body-md);
-  white-space: nowrap;/*Buộc toàn bộ văn bản hiển thị trên một dòng duy nhất*/
-}
-
-.btn-clear-filter:hover {
-  background: var(--color-error-container);
-  color: var(--color-on-error-container);
 }
 
 /* Content Grid */
@@ -403,14 +362,9 @@
   .deck-list-page {
     padding-top: calc(60px + var(--spacing-lg));
   }
-
-  .deck-list-filters {
-    padding: var(--spacing-md);
-  }
-
-  .deck-list-filters__top {
-    flex-direction: column;
-    align-items: stretch;
+  
+  .deck-list-container {
+    padding-inline: var(--spacing-md);
   }
 
   .deck-status-filters {
@@ -450,5 +404,9 @@
 @media (max-width: 360px) {
   .deck-list-page {
     padding-top: calc(60px + var(--spacing-md));
+  }
+  
+  .deck-list-container {
+    padding-inline: var(--spacing-sm);
   }
 }

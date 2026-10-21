@@ -15,6 +15,7 @@ import {
 } from '../whisper/modelConfig'
 import LessonYoutubePlayer from '../../lesson/components/LessonYoutubePlayer/LessonYoutubePlayer'
 import StudySegmentSidebar from '../../lesson/components/StudySegmentSidebar/StudySegmentSidebar'
+import BackButton from '../../../../components/BackButton/BackButton'
 import './ShadowingPage.css'
 
 function ShadowingPage({ slug, onNavigate }) {
@@ -581,7 +582,7 @@ function ShadowingPage({ slug, onNavigate }) {
             className="btn-primary"
             onClick={() => onNavigate && onNavigate('/learning')}
           >
-            {t('shadowing.backToList')}
+            {t('common:back')}
           </button>
         </div>
       </div>
@@ -600,7 +601,7 @@ function ShadowingPage({ slug, onNavigate }) {
             className="btn-primary"
             onClick={() => onNavigate && onNavigate('/learning')}
           >
-            {t('shadowing.backToList')}
+            {t('common:back')}
           </button>
         </div>
       </div>
@@ -618,7 +619,7 @@ function ShadowingPage({ slug, onNavigate }) {
             className="btn-primary"
             onClick={() => onNavigate && onNavigate('/learning')}
           >
-            {t('shadowing.backToList')}
+            {t('common:back')}
           </button>
         </div>
       </div>
@@ -641,14 +642,10 @@ function ShadowingPage({ slug, onNavigate }) {
     <div className="shadowing-page-container">
       {/* Top Bar */}
       <div className="shadowing-top-bar">
-        <button
-          type="button"
-          className="btn-secondary shadowing-back-btn"
+        <BackButton
+          label={t('common:back')}
           onClick={() => onNavigate && onNavigate('/learning')}
-        >
-          <span className="material-symbols-outlined">arrow_back</span>
-          <span>{t('shadowing.backToList')}</span>
-        </button>
+        />
       </div>
 
       {/* 3-Column Layout */}
@@ -710,7 +707,7 @@ function ShadowingPage({ slug, onNavigate }) {
                   className="btn-secondary"
                   onClick={() => onNavigate && onNavigate('/learning')}
                 >
-                  {t('shadowing.backToList')}
+                  {t('common:back')}
                 </button>
                 <button
                   type="button"

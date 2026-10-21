@@ -5,6 +5,7 @@ import FlashcardStudyArea from '../components/FlashcardStudyArea'
 import FlashcardCompletePlaceholder from '../components/FlashcardCompletePlaceholder'
 import PageError from '../../../../components/PageError/PageError'
 import ProgressBar from '../../../../components/ProgressBar/ProgressBar'
+import BackButton from '../../../../components/BackButton/BackButton'
 import './FlashcardStudyPage.css'
 
 /**
@@ -12,7 +13,7 @@ import './FlashcardStudyPage.css'
  * @param {Function} onNavigate - navigate function từ App.jsx
  */
 function FlashcardStudyPage({ deckId, onNavigate }) {
-  const { t } = useTranslation(['learning', 'api'])
+  const { t } = useTranslation(['learning', 'api', 'common'])
   const [topics, setTopics] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -304,13 +305,10 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
         
         {/* Sẽ tự động chia 2 cột khớp với grid bên dưới */}
         <div className="flashcard-header-bar">
-          <button 
-            className="btn-secondary" 
-            onClick={() => { if (onNavigate) onNavigate('/decks') }}
-          >
-            <span className="material-symbols-outlined">arrow_back</span>
-            {t('flashcard.back')}
-          </button>
+          <BackButton 
+            label={t('common:back')}
+            onClick={() => onNavigate?.('/decks')}
+          />
         </div>
 
         <div>

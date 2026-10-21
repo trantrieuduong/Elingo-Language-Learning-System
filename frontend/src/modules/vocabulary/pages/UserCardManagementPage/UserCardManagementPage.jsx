@@ -10,7 +10,7 @@ import { getMockCardsForTopic } from '../../userCardMockData'
 import './UserCardManagementPage.css'
 
 function UserCardManagementPage({ deckId, topicId, onNavigate }) {
-  const { t } = useTranslation('learning')
+  const { t } = useTranslation(['learning', 'common'])
   const [deck, setDeck] = useState(null)
   const [topic, setTopic] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -97,7 +97,7 @@ function UserCardManagementPage({ deckId, topicId, onNavigate }) {
               {contextError || t('userCards.topicNotFound')}
             </h1>
             <BackButton
-              label={t('flashcard.back')}
+              label={t('common:back')}
               onClick={() => onNavigate?.(deck ? `/decks/${deckId}/topics` : '/decks')}
             />
           </div>
@@ -123,7 +123,7 @@ function UserCardManagementPage({ deckId, topicId, onNavigate }) {
         <header className="user-card-management-page__header">
           <div className="user-card-management-page__heading">
             <BackButton
-              label={t('flashcard.back')}
+              label={t('common:back')}
               onClick={() => onNavigate?.(`/decks/${deckId}/topics`)}
             />
             <div className="user-card-management-page__title-group">
