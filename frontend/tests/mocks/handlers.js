@@ -10,6 +10,13 @@ export const handlers = [
     })
   }),
 
+  http.post(`${API_URL}/auth/refresh`, () => {
+    return HttpResponse.json({
+      success: true,
+      data: { accessToken: 'mock-refreshed-access-token' },
+    })
+  }),
+
   http.get(`${API_URL}/users/me`, () => {
     return HttpResponse.json({
       success: true,

@@ -26,7 +26,7 @@ function UserCardFormModal({
   onClose,
   isSubmitting = false,
 }) {
-  const { t } = useTranslation(['learning', 'common'])
+  const { t } = useTranslation(['learning', 'api', 'common'])
   const isEdit = mode === 'edit'
 
   const [topicId, setTopicId] = useState('')
@@ -127,7 +127,6 @@ function UserCardFormModal({
     if (!validate()) return
 
     const payload = {
-      topicId: Number(topicId),
       term: term.trim(),
       pos: pos.trim() || null,
       translation: translation.trim(),
@@ -137,13 +136,21 @@ function UserCardFormModal({
       examplesEn: examplesEn.trim() || null,
     }
 
+    if (!isEdit) {
+      payload.topicId = Number(topicId)
+    }
+
     try {
       const res = await onSubmit?.(payload)
       if (res && !res.success) {
-        setFormError(res.message || t('userCards.saveError'))
+        const errorCode = res.code
+        const msg = (errorCode && t(`api:error.${errorCode}`, { defaultValue: '' })) || res.message || t('userCards.saveError')
+        setFormError(msg)
       }
     } catch (err) {
-      setFormError(err.response?.data?.message || err.message || t('userCards.saveError'))
+      const errorCode = err.response?.data?.code
+      const msg = (errorCode && t(`api:error.${errorCode}`, { defaultValue: '' })) || err.response?.data?.message || err.message || t('userCards.saveError')
+      setFormError(msg)
     }
   }
 
@@ -193,7 +200,7 @@ function UserCardFormModal({
           <div className="user-card-form-modal__body">
             <div className="user-card-form-modal__grid">
               {/* Chủ đề */}
-              <div className="user-card-form-modal__field">
+              <div className={`user-card-form-modal__field ${isEdit ? 'user-card-form-modal__field--hidden' : ''}`}>
                 <label className="input-label" htmlFor="user-card-topic">
                   {t('userCards.topicRequired')}
                 </label>

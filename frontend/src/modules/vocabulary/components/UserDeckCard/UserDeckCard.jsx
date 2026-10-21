@@ -77,6 +77,22 @@ function UserDeckCard({ deck, onEdit, onDelete, onToggleStatus, onStudy, onManag
 
       {/* Nội dung card */}
       <div className="user-deck-card__body">
+        {/* Tags và CEFR levels */}
+        {((deck.cefrLevels && deck.cefrLevels.length > 0) || (deck.tags && deck.tags.length > 0)) && (
+          <div className="user-deck-card__tags">
+            {deck.cefrLevels?.map((cefr) => (
+              <span key={cefr.id || cefr.code} className="badge badge--soft-blue user-deck-card__cefr-tag" style={{ fontWeight: 'bold' }}>
+                {cefr.code || cefr.label}
+              </span>
+            ))}
+            {deck.tags?.map((tag) => (
+              <span key={tag.id || tag.code} className="badge badge--default">
+                {tag.label || tag.code}
+              </span>
+            ))}
+          </div>
+        )}
+
         <div className="user-deck-card__header">
           <h3 className="user-deck-card__title text-title-md" title={deck.title}>
             {deck.title}
@@ -98,20 +114,6 @@ function UserDeckCard({ deck, onEdit, onDelete, onToggleStatus, onStudy, onManag
             />
           </div>
         )}
-
-        {/* Tags và CEFR levels */}
-        <div className="user-deck-card__tags">
-          {deck.cefrLevels?.map((cefr) => (
-            <span key={cefr.id} className="badge badge--primary">
-              {cefr.label || cefr.code}
-            </span>
-          ))}
-          {deck.tags?.map((tag) => (
-            <span key={tag.id} className="badge badge--default">
-              {tag.label || tag.code}
-            </span>
-          ))}
-        </div>
 
         {/* Footer chứa các nút hành động CRUD */}
         <div className="user-deck-card__actions">

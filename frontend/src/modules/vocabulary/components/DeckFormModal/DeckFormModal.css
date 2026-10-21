@@ -450,6 +450,22 @@
   border-width: 2px;
 }
 
+/* UserDeckRequest only accepts title and description. */
+.deck-form-secondary-column,
+.deck-form-taxonomy-column,
+.deck-form-primary-column > .deck-form-field:nth-child(2) {
+  display: none;
+}
+
+/* With only the UserDeckRequest fields, the form is a compact single column. */
+.deck-form-modal {
+  max-width: 640px;
+}
+
+.deck-form-layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 @media (max-width: 600px) {
   .deck-form-modal {
     padding: var(--spacing-md);

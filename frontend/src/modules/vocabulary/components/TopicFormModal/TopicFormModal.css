@@ -111,9 +111,12 @@
 
 /* ── Slug helpers ── */
 .topic-form-slug-field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
+  display: none;
+}
+
+/* UpdateUserTopicRequest contains only name. */
+.topic-form-unsupported-field {
+  display: none;
 }
 
 .topic-form-slug-hint {

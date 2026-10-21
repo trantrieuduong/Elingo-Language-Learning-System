@@ -32,7 +32,7 @@ const LIMIT = 9;
  * @param {Function} onNavigate - Hàm điều hướng từ App.jsx
  */
 function TopicListPage({ deckId, onNavigate }) {
-  const { t } = useTranslation(['learning', 'common']);
+  const { t } = useTranslation(['learning', 'api', 'common']);
 
   // States dữ liệu
   const [deck, setDeck] = useState(null);
@@ -228,10 +228,14 @@ function TopicListPage({ deckId, onNavigate }) {
         setEditingTopic(null);
         setRefreshTrigger((prev) => prev + 1);
       } else {
-        setFormError(res?.message ?? t('topic.submitError'));
+        const errorCode = res?.code;
+        const msg = (errorCode && t(`api:error.${errorCode}`, { defaultValue: '' })) || res?.message || t('topic.submitError');
+        setFormError(msg);
       }
-    } catch {
-      setFormError(t('topic.submitError'));
+    } catch (err) {
+      const errorCode = err?.response?.data?.code;
+      const msg = (errorCode && t(`api:error.${errorCode}`, { defaultValue: '' })) || err?.response?.data?.message || err?.message || t('topic.submitError');
+      setFormError(msg);
     } finally {
       setIsSubmitting(false);
     }
