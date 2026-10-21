@@ -123,14 +123,7 @@ function TopicFormModal({ isOpen, mode = 'create', topic = null, onSubmit, onClo
     e.preventDefault()
     if (!validate()) return
 
-    const payload = {
-      name: form.name.trim(),
-      slug: form.slug.trim(),
-    }
-
-    if (mode === 'edit') {
-      payload.order = form.order !== '' ? Number(form.order) : (topic?.order ?? null)
-    }
+    const payload = { name: form.name.trim() }
 
     onSubmit?.(payload)
   }
@@ -217,6 +210,7 @@ function TopicFormModal({ isOpen, mode = 'create', topic = null, onSubmit, onClo
           {mode === 'edit' && (
             <Input
               id="topic-order"
+              className="topic-form-unsupported-field"
               label={t('topic.labelOrder')}
               type="number"
               placeholder="1"

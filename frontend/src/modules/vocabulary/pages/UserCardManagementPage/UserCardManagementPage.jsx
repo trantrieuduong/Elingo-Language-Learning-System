@@ -17,7 +17,7 @@ import {
 import './UserCardManagementPage.css'
 
 function UserCardManagementPage({ deckId, topicId, onNavigate }) {
-  const { t } = useTranslation(['learning', 'common'])
+  const { t } = useTranslation(['learning', 'api', 'common'])
   const [deck, setDeck] = useState(null)
   const [topic, setTopic] = useState(null)
   const [cards, setCards] = useState([])
@@ -152,9 +152,16 @@ function UserCardManagementPage({ deckId, topicId, onNavigate }) {
         setCardToDelete(null)
         setToastMessage(t('userCards.deleteSuccess'))
         setRefreshTrigger((prev) => prev + 1)
+      } else {
+        const errorCode = res?.code
+        const msg = (errorCode && t(`api:error.${errorCode}`, { defaultValue: '' })) || res?.message || t('common:error')
+        setToastMessage(msg)
       }
     } catch (err) {
       console.error('Lỗi khi xóa thẻ:', err)
+      const errorCode = err.response?.data?.code
+      const msg = (errorCode && t(`api:error.${errorCode}`, { defaultValue: '' })) || err.response?.data?.message || err.message || t('common:error')
+      setToastMessage(msg)
     } finally {
       setIsDeleting(false)
     }

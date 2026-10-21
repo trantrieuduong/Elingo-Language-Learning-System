@@ -76,12 +76,21 @@ function FlashcardReviewPage({ onNavigate }) {
     fetchDueReviewCards()
   }, [t])
 
+  const [toastMessage, setToastMessage] = useState('')
+
+  useEffect(() => {
+    if (!toastMessage) return
+    const timer = setTimeout(() => setToastMessage(''), 3000)
+    return () => clearTimeout(timer)
+  }, [toastMessage])
+
   /**
    * Xử lý lỗi chung khi tương tác với flashcard (Review, Star, Hide).
    */
   const handleCardActionError = (err) => {
     const errorCode = err.response?.data?.code
-    const errorMessage = err.response?.data?.message || t('api:common.UNKNOWN_ERROR')
+    const mappedMessage = (errorCode && t(`api:error.${errorCode}`, { defaultValue: '' }))
+    const errorMessage = mappedMessage || err.response?.data?.message || t('api:common.UNKNOWN_ERROR')
 
     if (errorCode === 'DECK_PREMIUM_REQUIRED') {
       setError({
@@ -89,12 +98,14 @@ function FlashcardReviewPage({ onNavigate }) {
         actionLabel: t('flashcard.upgradePremium'),
         actionPath: '/premium'
       })
-    } else if (errorCode === 'DECK_NOT_FOUND') {
+    } else if (errorCode === 'DECK_NOT_FOUND' || errorCode === 'DECK_ACCESS_DENIED') {
       setError({
         message: errorMessage,
         actionLabel: t('flashcard.backToDecks'),
         actionPath: '/decks'
       })
+    } else {
+      setToastMessage(errorMessage)
     }
   }
 
@@ -246,6 +257,13 @@ function FlashcardReviewPage({ onNavigate }) {
           )}
         </main>
       </div>
+
+      {toastMessage && (
+        <div className="toast toast-error" role="alert" style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 1000 }}>
+          <span className="material-symbols-outlined" style={{ marginRight: '8px' }}>error</span>
+          <span>{toastMessage}</span>
+        </div>
+      )}
     </div>
   )
 }

@@ -30,7 +30,7 @@ function DeckFormModal({
   onSubmit,
   isLoading = false,
 }) {
-  const { t } = useTranslation(['learning', 'common'])
+  const { t } = useTranslation(['learning', 'api', 'common'])
   const isEdit = mode === 'edit'
 
   // Form states
@@ -148,21 +148,20 @@ function DeckFormModal({
 
     const payload = {
       title: title.trim(),
-      slug: slug.trim(),
       description: description.trim(),
-      coverImageUrl: coverImageUrl.trim(),
-      status,
-      tagIds: selectedTagIds,
-      cefrLevelIds: selectedCefrIds,
     }
 
     try {
       const res = await onSubmit(payload)
       if (res && !res.success) {
-        setGeneralError(res.message || t('userDeck.form.saveError'))
+        const errorCode = res.code
+        const msg = (errorCode && t(`api:error.${errorCode}`, { defaultValue: '' })) || res.message || t('userDeck.form.saveError')
+        setGeneralError(msg)
       }
     } catch (err) {
-      setGeneralError(err.message || t('userDeck.form.systemError'))
+      const errorCode = err.response?.data?.code
+      const msg = (errorCode && t(`api:error.${errorCode}`, { defaultValue: '' })) || err.response?.data?.message || err.message || t('userDeck.form.systemError')
+      setGeneralError(msg)
     }
   }
 
