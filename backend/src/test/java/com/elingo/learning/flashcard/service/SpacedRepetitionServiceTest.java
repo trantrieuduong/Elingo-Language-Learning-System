@@ -1,6 +1,6 @@
 package com.elingo.learning.flashcard.service;
 
-import com.elingo.config.FlashcardProperties;
+import com.elingo.vocabulary.config.FlashcardProperties;
 import com.elingo.learning.flashcard.entity.UserCardState;
 import com.elingo.learning.flashcard.service.impl.SpacedRepetitionServiceImpl;
 import com.elingo.user.entity.User;

@@ -29,9 +29,8 @@ public interface UserCardStateRepository extends JpaRepository<UserCardState, Lo
     }
 
     @Query("""
-            select distinct s from UserCardState s
+            select s from UserCardState s
             join fetch s.card c
-            left join fetch c.phonetics
             where s.user.id = :userId
               and s.flagsHidden = false
               and s.srsNextReviewAt is not null and s.srsNextReviewAt <= :now
