@@ -15,7 +15,7 @@ import com.elingo.user.repository.UserRepository;
 import com.elingo.vocabulary.entity.Card;
 import com.elingo.vocabulary.entity.Deck;
 import com.elingo.vocabulary.entity.DeckStatus;
-import com.elingo.vocabulary.mapper.CardMapper;
+import com.elingo.learning.flashcard.mapper.FlashcardMapper;
 import com.elingo.vocabulary.repository.CardRepository;
 import org.springframework.data.domain.PageRequest;
 
@@ -37,7 +37,7 @@ public class FlashcardServiceImpl implements FlashcardService {
     private final CardRepository cardRepository;
     private final UserCardStateRepository userCardStateRepository;
     private final SpacedRepetitionService spacedRepetitionService;
-    private final CardMapper cardMapper;
+    private final FlashcardMapper flashcardMapper;
     private final UserSubscriptionRepository userSubscriptionRepository;
 
     @Override
@@ -149,11 +149,7 @@ public class FlashcardServiceImpl implements FlashcardService {
         Map<Long, Card> cardMap = cards.stream().collect(Collectors.toMap(Card::getId, Function.identity()));
         log.info("Review cards fetched count={} limit={}", cards.size(), limit);
         return states.stream().map(
-                state -> new ReviewCardResponse(
-                        cardMapper.toCardResponse(cardMap.get(state.getCard().getId())),
-                        state.getSrsNextReviewAt(),
-                        state.getFlagsStarred(),
-                        state.getFlagsHidden())
+                state -> flashcardMapper.toReviewCardResponse(cardMap.get(state.getCard().getId()), state)
         ).toList();
     }
 }

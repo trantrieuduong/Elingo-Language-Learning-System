@@ -139,6 +139,14 @@
   animation: headerDropdownFadeIn 0.15s ease-out;
 }
 
+.header .header__nav-dropdown-menu.glass-card,
+.header .header__dropdown-menu.glass-card,
+.header .header__mobile-nav.glass-capsule {
+  background: var(--color-surface-container-lowest);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
 /* Cầu nối vô hình chống rớt hover giữa nút nav và dropdown menu */
 .header__nav-dropdown-menu::before {
   content: '';

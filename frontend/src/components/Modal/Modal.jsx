@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import './Modal.css'
 
 /**
@@ -52,7 +53,7 @@ function Modal({
 
   if (!isOpen) return null
 
-  return (
+  return createPortal(
     <div
       className="modal-overlay"
       onClick={() => !isLoading && onCancel?.()}
@@ -61,7 +62,7 @@ function Modal({
       aria-labelledby="modal-title"
     >
       {/* stopPropagation ngăn click bên trong đóng modal */}
-      <div className="modal-container glass-card" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-container glass-capsule" onClick={(e) => e.stopPropagation()}>
         <h2 id="modal-title" className="modal-title text-headline-sm">
           {title}
         </h2>
@@ -92,7 +93,8 @@ function Modal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 

@@ -9,6 +9,7 @@ import {
 import FlashcardStudyArea from '../components/FlashcardStudyArea'
 import FlashcardCompletePlaceholder from '../components/FlashcardCompletePlaceholder'
 import PageError from '../../../../components/PageError/PageError'
+import BackButton from '../../../../components/BackButton/BackButton'
 import './FlashcardReviewPage.css'
 
 /**
@@ -201,15 +202,7 @@ function FlashcardReviewPage({ onNavigate }) {
     <div className="flashcard-page-container">
       <div className="flashcard-layout">
         <div className="flashcard-header-bar">
-          <button
-            className="btn-secondary"
-            onClick={() => {
-              if (onNavigate) onNavigate('/decks')
-            }}
-          >
-            <span className="material-symbols-outlined">arrow_back</span>
-            {t('flashcard.back')}
-          </button>
+          <BackButton label={t('flashcard.back')} onClick={() => onNavigate?.('/decks')} />
         </div>
         
         {/*Thanh tiến độ rỗng tựa bên StudyPage */}

@@ -9,6 +9,8 @@ import LoginPage from './modules/auth/pages/LoginPage'
 import ResetPasswordPage from './modules/auth/pages/ResetPasswordPage'
 import SignupPage from './modules/auth/pages/SignupPage'
 import DeckListPage from './modules/vocabulary/pages/DeckListPage/DeckListPage'
+import TopicListPage from './modules/vocabulary/pages/TopicListPage/TopicListPage'
+import UserCardManagementPage from './modules/vocabulary/pages/UserCardManagementPage/UserCardManagementPage'
 import FlashcardStudyPage from './modules/learning/flashcard/pages/FlashcardStudyPage'
 import FlashcardReviewPage from './modules/learning/flashcard/pages/FlashcardReviewPage'
 import LessonListPage from './modules/learning/lesson/pages/LessonListPage'
@@ -55,6 +57,8 @@ function App() {
   const flashcardStudyMatch = currentPath.match(/^\/decks\/([^/]+)$/)
   const dictationMatch = currentPath.match(/^\/learning\/dictation\/([^/]+)$/)
   const shadowingMatch = currentPath.match(/^\/learning\/shadowing\/([^/]+)$/)
+  const deckTopicsMatch = currentPath.match(/^\/decks\/([^/]+)\/topics$/)
+  const topicCardsMatch = currentPath.match(/^\/decks\/([^/]+)\/topics\/([^/]+)\/cards$/)
 
   useEffect(() => {
     if (loading) return
@@ -64,7 +68,7 @@ function App() {
     const isAdminPath = currentPath.startsWith('/admin')
     const isPrivateUserPath = PRIVATE_USER_PATHS.some((path) => {
       return currentPath === path || currentPath.startsWith(`${path}/`)
-    }) || !!flashcardStudyMatch // Trang học flashcard (/decks/:slug) bắt buộc đăng nhập
+    }) || !!flashcardStudyMatch // Trang học flashcard (/decks/:deckId) bắt buộc đăng nhập
 
     if (!user && (isAdminPath || isPrivateUserPath)) {
       navigate('/login')
@@ -121,7 +125,21 @@ function App() {
 
   const renderContent = () => {
     if (flashcardStudyMatch) {
-      return <FlashcardStudyPage deckSlug={flashcardStudyMatch[1]} onNavigate={navigate} />
+      return <FlashcardStudyPage deckId={flashcardStudyMatch[1]} onNavigate={navigate} />
+    }
+
+    if (deckTopicsMatch) {
+      return <TopicListPage deckId={deckTopicsMatch[1]} onNavigate={navigate} />
+    }
+
+    if (topicCardsMatch) {
+      return (
+        <UserCardManagementPage
+          deckId={topicCardsMatch[1]}
+          topicId={topicCardsMatch[2]}
+          onNavigate={navigate}
+        />
+      )
     }
 
     if (dictationMatch) {
@@ -192,7 +210,11 @@ function App() {
         <div className="ambient-bg__orb ambient-bg__orb--ambient" />
       </div>
       {!isFlashcardPage && <Header onNavigate={navigate} currentPath={currentPath} />}
-      <div className="app-main">{renderContent()}</div>
+      <div
+        className={`app-main ${deckTopicsMatch || topicCardsMatch ? 'app-main--vocabulary' : ''} ${topicCardsMatch ? 'app-main--card-management' : ''}`}
+      >
+        {renderContent()}
+      </div>
       {!isFlashcardPage && <Footer onNavigate={navigate} />}
     </>
   )

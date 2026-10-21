@@ -1,13 +1,13 @@
 app:
   front-end-domain: "http://localhost:5173"
   google:
-    client-id: ${DEV_GOOGLE_CLIENT_ID}
+    client-id: 984627537144-ujge6icvv22vgvg78jak3a4abo6avjvk.apps.googleusercontent.com
 
 spring:
   datasource:
-    url: ${DEV_MYSQL_CONNECTION_URL:jdbc:mysql://localhost:3306/elingo} #?connectionTimeZone=Asia/Ho_Chi_Minh&forceConnectionTimeZoneToSession=true
-    username: ${DEV_MYSQL_USERNAME}
-    password: ${DEV_MYSQL_PASSWORD}
+    url: jdbc:mysql://localhost:3306/elingo
+    username: root
+    password: 123456
   jpa:
     hibernate:
       ddl-auto: update
@@ -16,20 +16,21 @@ spring:
       hibernate:
         format_sql: true
   mail:
-    host: ${DEV_MAIL_HOST}
-    port: ${DEV_MAIL_PORT}
-    username: ${DEV_MAIL_USERNAME}
-    password: ${DEV_MAIL_PASSWORD}
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: 587
+    username: gameronline314@gmail.com
+    password: kfqh dtix yldg rzom
 
 jwt:
-  signer-key: ${DEV_JWT_SIGNER_KEY}
+  signer-key: be1d1181daf5fff858cff997560dd014c793131e13169a0bf20ee381fde64d0a252d646502726ea4ea153df78b51eea2db9b5f31e5705cf57be76f57a013d35b
 
 r2:
-  account-id: ${DEV_R2_ACCOUNT_ID}
-  access-key: ${DEV_R2_ACCESS_KEY}
-  secret-key: ${DEV_R2_SECRET_KEY}
-  bucket: ${DEV_R2_BUCKET}
-  public-url: ${DEV_R2_PUBLIC_URL:http://localhost:8787}
+  account-id: ced50b1fee7fe31fb2368a8fe4ca0824
+  access-key: 1b5556a8134decc812765340d6a34b8b
+  secret-key: 5ee7d414be0a68fbc6d3a28fefbb0f59d4677bbcd4d6dbf7c6d589293fd99e09
+  bucket: elingo-dev
+  public-url: https://pub-b90f33ac1c054f41abb8a8e6611593b0.r2.dev
+  max-file-size-bytes: 104857600
   multipart-min-part-size: 5242880
   presign-duration-minutes: 30
 

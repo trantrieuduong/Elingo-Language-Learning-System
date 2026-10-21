@@ -33,6 +33,7 @@ public interface UserCardStateRepository extends JpaRepository<UserCardState, Lo
             JOIN FETCH u.card c
             JOIN FETCH u.deck d
             WHERE u.user.id = :userId
+              AND c.isDeleted = false
               AND u.srsNextReviewAt IS NOT NULL
               AND u.srsNextReviewAt <= :now
               AND u.flagsHidden = false

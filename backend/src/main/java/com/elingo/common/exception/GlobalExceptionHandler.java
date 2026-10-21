@@ -8,6 +8,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -17,6 +18,23 @@ import java.util.List;
 @RestControllerAdvice
 @Slf4j(topic = "GLOBAL-EXCEPTION-HANDLER")
 public class GlobalExceptionHandler {
+
+    /*
+     * Access denied / forbidden error (403)
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    ResponseEntity<ApiResponse<Void>> handleAccessDeniedException(AccessDeniedException ex) {
+        AppError appError = AppError.UNAUTHORIZED;
+        log.warn("Access denied code={}", appError.getCode());
+        return ResponseEntity.status(appError.getHttpStatusCode())
+                .body(ApiResponse.<Void>builder()
+                        .success(false)
+                        .errors(List.of(ErrorDetail.builder()
+                                .code(appError.getCode())
+                                .message(appError.getMessage())
+                                .build()))
+                        .build());
+    }
 
     /*
      * Unhandled errors during runtime
