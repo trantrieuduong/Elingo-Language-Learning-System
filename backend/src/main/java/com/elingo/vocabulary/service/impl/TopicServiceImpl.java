@@ -43,7 +43,7 @@ public class TopicServiceImpl implements TopicService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<CardResponse> getCardsByTopic(Long userId, Long topicId) {
+    public List<CardResponse> getCardsByTopic(Long topicId, Long userId) {
         DeckRepository.DeckAccessView deck = deckRepository.findAccessViewByTopicId(topicId)
                 .orElseThrow(() -> new AppException(AppError.TOPIC_NOT_FOUND));
 
