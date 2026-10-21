@@ -6,6 +6,9 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  paramsSerializer: {
+    indexes: null, // Biến mảng ['a', 'b'] thành ?tags=a&tags=b thay vì ?tags[]=a&tags[]=b chuẩn Spring Boot
+  },
   timeout: 15000,
 })
 

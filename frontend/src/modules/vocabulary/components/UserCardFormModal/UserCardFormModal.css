@@ -340,3 +340,6 @@
     width: 100%;
   }
 }
+.user-card-form-modal__field--hidden {
+  display: none;
+}

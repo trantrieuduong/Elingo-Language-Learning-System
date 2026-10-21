@@ -3,19 +3,46 @@ import apiClient from '../../services/apiClient'
 /**
  * Lấy danh sách các decks published có phân trang và filter từ backend.
  * Backend endpoint: GET /decks
- * Query params: q, tags, cefr, premium, ownerType, page (0-indexed), size, sort
+ * Query params: q, tags, cefr, premium, ownerType, page (1-indexed), size, sort
  *
  * @param {Object} params - { keyword, tagCode, cefrCode, page, limit, sort }
  */
 export const getDecksApi = async (params = {}) => {
   const queryParams = {
-    q: params.keyword || params.q || undefined,
-    tags: params.tagCode ? [params.tagCode] : params.tags,
-    cefr: params.cefrCode ? [params.cefrCode] : params.cefr,
-    page: params.page ? params.page - 1 : 0,
+    // Spring is configured with `one-indexed-parameters: true`, so the UI page
+    // number must be sent unchanged (page 1 maps to Spring's internal index 0).
+    page: params.page || 1,
     size: params.limit || params.size || 20,
     sort: params.sort,
+    ownerType: params.ownerType,
   }
+
+  const keyword = params.keyword || params.q
+  if (keyword && keyword.trim()) {
+    queryParams.q = keyword.trim()
+  }
+
+  if (params.tagCode) {
+    queryParams.tags = [params.tagCode]
+  } else if (Array.isArray(params.tags) && params.tags.length > 0) {
+    queryParams.tags = params.tags
+  }
+
+  if (params.cefrCode) {
+    const rawCode = String(params.cefrCode).trim()
+    const match = rawCode.match(/(A1|A2|B1|B2|C1|C2)/i)
+    if (match) {
+      queryParams.cefr = [match[1].toUpperCase()]
+    }
+  } else if (Array.isArray(params.cefr) && params.cefr.length > 0) {
+    const validCefr = params.cefr
+      .map((c) => String(c).trim().match(/(A1|A2|B1|B2|C1|C2)/i)?.[1]?.toUpperCase())
+      .filter(Boolean)
+    if (validCefr.length > 0) {
+      queryParams.cefr = validCefr
+    }
+  }
+
   const response = await apiClient.get('/decks', { params: queryParams })
   return response.data
 }

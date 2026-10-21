@@ -11,7 +11,6 @@ import org.springframework.util.StringUtils;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 
 public final class DeckSpecifications {
@@ -37,8 +36,8 @@ public final class DeckSpecifications {
                 hasOwnerType(f.ownerType()),
                 hasPremium(f.premium()),
                 titleContains(f.keyword()),
-                hasAllTags(f.tags()),
-                hasAllCerfLevel(f.cefrLevels())
+                hasCefrLevels(f.cefrLevels()),
+                hasTags(f.tags())
         );
     }
 
@@ -70,11 +69,19 @@ public final class DeckSpecifications {
                 : cb.equal(root.get(OWNER_TYPE), ownerType);
     }
 
-    public static Specification<Deck> hasAllTags(Collection<String> tagCodes) {
-        return matchAll(TAGS, tagCodes);
+    /**
+     * Filters CEFR codes using the relation that contains CEFR metadata in the
+     * current system-deck dataset.
+     */
+    private static Specification<Deck> hasCefrLevels(Collection<String> cefrCodes) {
+        return matchAll(TAGS, cefrCodes);
     }
 
-    public static Specification<Deck> hasAllCerfLevel(Collection<String> tagCodes) {
+    /**
+     * Filters tag codes using the relation that contains tag metadata in the
+     * current system-deck dataset.
+     */
+    private static Specification<Deck> hasTags(Collection<String> tagCodes) {
         return matchAll(CEFR_LEVELS, tagCodes);
     }
 

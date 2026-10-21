@@ -18,6 +18,10 @@ import UserDeckCard from '../../components/UserDeckCard/UserDeckCard'
 import DeckFormModal from '../../components/DeckFormModal/DeckFormModal'
 import './DeckListPage.css'
 
+// CEFR codes are uppercase. Tags such as `b1` and `c1` must not be treated as
+// CEFR levels merely because they have the same letters and digits.
+const isCefrCode = (code) => /^(A1|A2|B1|B2|C1|C2)$/.test(String(code || '').trim())
+
 /**
  * Trang danh sách các bộ từ vựng công khai (decks)
  * @param {Function} onNavigate - Hàm điều hướng từ App.jsx
@@ -109,6 +113,24 @@ function DeckListPage({ onNavigate }) {
         if (cefrRes.success && cefrRes.data) {
           setCefrLevels(cefrRes.data.map((cefr) => ({ _id: cefr.code, name: cefr.label })))
         }
+
+        const metadata = [
+          ...(Array.isArray(tagsRes?.data) ? tagsRes.data : []),
+          ...(Array.isArray(cefrRes?.data) ? cefrRes.data : []),
+        ]
+
+        // A CEFR code is unambiguous, so this also tolerates a deployed API
+        // whose /tags and /cefr-levels metadata responses are swapped.
+        setCefrLevels(
+          metadata
+            .filter((item) => isCefrCode(item.code))
+            .map((item) => ({ _id: item.code, name: item.label || item.code }))
+        )
+        setTags(
+          metadata
+            .filter((item) => !isCefrCode(item.code))
+            .map((item) => ({ _id: item.code, name: item.label || item.code }))
+        )
       } catch (err) {
         console.error('Failed to fetch metadata:', err)
       }
@@ -119,7 +141,7 @@ function DeckListPage({ onNavigate }) {
 
   // ── Fetch dữ liệu cho tab Khám phá ──
   useEffect(() => {
-    if (activeTab !== 'system-decks') return
+    if (activeTab !== 'system-decks' && activeTab !== 'community-decks') return
 
     const fetchDecks = async () => {
       setLoading(true)
@@ -130,6 +152,7 @@ function DeckListPage({ onNavigate }) {
           tagCode: selectedTagId || undefined,
           cefrCode: selectedCefrLevelId || undefined,
           page,
+          ownerType: activeTab === 'community-decks' ? 'USER' : 'SYSTEM',
         })
 
         if (response.success && response.data) {
@@ -339,9 +362,9 @@ function DeckListPage({ onNavigate }) {
             </button>
             <button
               type="button"
-              className="deck-tab-btn"
-              disabled
-              aria-disabled="true"
+              className={`deck-tab-btn ${activeTab === 'community-decks' ? 'deck-tab-btn--active' : ''}`}
+              onClick={() => setActiveTab('community-decks')}
+              aria-pressed={activeTab === 'community-decks'}
             >
               <span className="material-symbols-outlined">explore</span>
               {t('userDeck.tabs.explore')}
@@ -429,7 +452,7 @@ function DeckListPage({ onNavigate }) {
         {/* ========================================================================= */}
         {/* TAB 1: BỘ TỪ HỆ THỐNG                                                     */}
         {/* ========================================================================= */}
-        {activeTab === 'system-decks' && (
+        {(activeTab === 'system-decks' || activeTab === 'community-decks') && (
           <section className="deck-list-content">
             {loading ? (
               <div className="page-loading">
@@ -460,6 +483,9 @@ function DeckListPage({ onNavigate }) {
                   {decks.map((deck) => {
                     const totalCards = deck.cardCount ?? 0
                     const learnedCards = deck.learnedCardCount ?? 0
+                    const deckMetadata = [...(deck.tags || []), ...(deck.cefrLevels || [])]
+                    const deckCefrLevels = deckMetadata.filter((item) => isCefrCode(item.code))
+                    const deckTags = deckMetadata.filter((item) => !isCefrCode(item.code))
 
                     return (
                       <article
@@ -469,18 +495,16 @@ function DeckListPage({ onNavigate }) {
                         }`}
                         onClick={() => handleDeckClick(deck.id)}
                       >
-                        <span
-                          className={`vocabulary-card__badge ${
-                            deck.isPremium
-                              ? 'vocabulary-card__badge--premium'
-                              : 'vocabulary-card__badge--free'
-                          }`}
-                        >
-                          {deck.isPremium && (
-                            <span className="material-symbols-outlined">workspace_premium</span>
-                          )}
-                          {deck.isPremium ? t('deckList.premium') : t('deckList.free')}
-                        </span>
+                        {/* Huy hiệu Premium ở góc trên bên trái ảnh bìa */}
+                        {deck.isPremium && (
+                          <span className="vocabulary-card__premium-badge">
+                            <span className="material-symbols-outlined vocabulary-card__premium-icon" aria-hidden="true">
+                              workspace_premium
+                            </span>
+                            {t('deckList.premium')}
+                          </span>
+                        )}
+
                         <span className="vocabulary-card__word-count">
                           {t('deckList.cardStats', {
                             topicCount: deck.topicCount ?? 0,
@@ -500,6 +524,22 @@ function DeckListPage({ onNavigate }) {
                           </div>
                         )}
                         <div className="vocabulary-card__body">
+                          {/* Tags & CEFR đặt phía trên tiêu đề tương tự LessonCard */}
+                          {(deckCefrLevels.length > 0 || deckTags.length > 0) && (
+                            <div className="vocabulary-card__tags">
+                              {deckCefrLevels.map((cefr) => (
+                                <span key={cefr.id || cefr.code} className="badge badge--soft-blue vocabulary-card__cefr-tag">
+                                  {cefr.code || cefr.label}
+                                </span>
+                              ))}
+                              {deckTags.map((tag) => (
+                                <span key={tag.id || tag.code} className="badge badge--default vocabulary-card__topic-tag">
+                                  {tag.label || tag.code}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+
                           <div className="vocabulary-card__info">
                             <h3 className="text-title-md">{deck.title}</h3>
                             <p className="text-body-sm text-disabled">
@@ -512,20 +552,6 @@ function DeckListPage({ onNavigate }) {
                               current={learnedCards}
                               total={totalCards}
                             />
-                          </div>
-                          <div className="vocabulary-card__footer">
-                            <div className="vocabulary-card__tags">
-                              {deck.cefrLevels?.map((cefr) => (
-                                <span key={cefr.id} className="badge badge--primary">
-                                  {cefr.label}
-                                </span>
-                              ))}
-                              {deck.tags?.map((tag) => (
-                                <span key={tag.id} className="badge badge--default">
-                                  {tag.label}
-                                </span>
-                              ))}
-                            </div>
                           </div>
                         </div>
                       </article>
