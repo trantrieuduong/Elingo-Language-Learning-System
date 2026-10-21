@@ -1,33 +1,34 @@
 {
   "all": "All",
-  "save": "Save",
-  "cancel": "Cancel",
-  "confirm": "Confirm",
-  "close": "Close",
   "back": "Back",
-  "showPassword": "Show password",
-  "hidePassword": "Hide password",
+  "backHome": "Back to Home",
+  "cancel": "Cancel",
+  "clearFilters": "Clear filters",
+  "clearSearch": "Clear search",
+  "close": "Close",
+  "confirm": "Confirm",
   "delete": "Delete",
   "edit": "Edit",
-  "search": "Search...",
-  "loading": "Loading...",
-  "saving": "Saving...",
-  "retry": "Try again",
-  "backHome": "Back to Home",
-  "pageNotFound": "Page not found",
-  "underConstruction": "Feature under development",
-  "clearSearch": "Clear search",
-  "saveChanges": "Save changes",
-  "premium": "Premium",
   "filter": {
+    "clearFilters": "Clear filters",
     "level": "Level",
-    "topic": "Topic",
-    "clearFilters": "Clear filters"
+    "topic": "Topic"
   },
+  "hidePassword": "Hide password",
+  "loading": "Loading...",
+  "pageNotFound": "Page not found",
   "pagination": {
-    "prev": "Previous",
-    "next": "Next",
     "goTo": "Go to",
-    "page": "Page {{page}}"
-  }
+    "next": "Next",
+    "page": "Page {{page}}",
+    "prev": "Previous"
+  },
+  "premium": "Premium",
+  "retry": "Try again",
+  "save": "Save",
+  "saveChanges": "Save changes",
+  "saving": "Saving...",
+  "search": "Search...",
+  "showPassword": "Show password",
+  "underConstruction": "Feature under development"
 }

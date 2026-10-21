@@ -30,7 +30,7 @@ function DeckFormModal({
   onSubmit,
   isLoading = false,
 }) {
-  const { t } = useTranslation('learning')
+  const { t } = useTranslation(['learning', 'common'])
   const isEdit = mode === 'edit'
 
   // Form states
@@ -218,7 +218,7 @@ function DeckFormModal({
             className="btn-icon deck-form-header__btn-close"
             onClick={onClose}
             disabled={isLoading}
-            aria-label={t('userDeck.form.close')}
+            aria-label={t('common:close')}
           >
             <span className="material-symbols-outlined">close</span>
           </button>
@@ -450,7 +450,7 @@ function DeckFormModal({
               onClick={onClose}
               disabled={isLoading}
             >
-              {t('userDeck.form.cancel')}
+              {t('common:cancel')}
             </button>
             <button
               type="submit"
@@ -460,12 +460,12 @@ function DeckFormModal({
               {isLoading ? (
                 <>
                   <span className="app-loading-spinner deck-form-spinner" />
-                  {t('userDeck.form.saving')}
+                  {t('common:saving')}
                 </>
               ) : isEdit ? (
                 <>
                   <span className="material-symbols-outlined">save</span>
-                  {t('userDeck.form.saveChanges')}
+                  {t('common:saveChanges')}
                 </>
               ) : (
                 <>

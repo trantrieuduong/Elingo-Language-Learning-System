@@ -2,227 +2,132 @@ package com.elingo.vocabulary.service.impl;
 
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
-import com.elingo.learning.flashcard.repository.UserCardStateRepository;
-import com.elingo.premium.entity.SubscriptionStatus;
-import com.elingo.premium.repository.UserSubscriptionRepository;
-import com.elingo.vocabulary.dto.request.CreateTopicRequest;
-import com.elingo.vocabulary.dto.request.UpdateTopicRequest;
+import com.elingo.common.util.SlugUtils;
+import com.elingo.learning.flashcard.dto.response.CardLearningState;
+import com.elingo.learning.flashcard.service.CardStateService;
+import com.elingo.vocabulary.config.FlashcardProperties;
+import com.elingo.vocabulary.dto.request.CreateUserTopicRequest;
+import com.elingo.vocabulary.dto.request.UpdateUserTopicRequest;
 import com.elingo.vocabulary.dto.response.CardResponse;
 import com.elingo.vocabulary.dto.response.TopicResponse;
-import com.elingo.vocabulary.entity.*;
+import com.elingo.vocabulary.entity.Card;
+import com.elingo.vocabulary.entity.Topic;
 import com.elingo.vocabulary.mapper.CardMapper;
 import com.elingo.vocabulary.mapper.TopicMapper;
 import com.elingo.vocabulary.repository.CardRepository;
 import com.elingo.vocabulary.repository.DeckRepository;
 import com.elingo.vocabulary.repository.TopicRepository;
+import com.elingo.vocabulary.service.DeckAccessPolicy;
 import com.elingo.vocabulary.service.TopicService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "TOPIC-SERVICE")
 public class TopicServiceImpl implements TopicService {
-    private final CardRepository cardRepository;
-    private final TopicRepository topicRepository;
+
     private final DeckRepository deckRepository;
+    private final TopicRepository topicRepository;
+    private final DeckAccessPolicy accessPolicy;
+    private final CardRepository cardRepository;
+    private final CardStateService cardStateService;
     private final CardMapper cardMapper;
+    private final FlashcardProperties flashcardProperties;
     private final TopicMapper topicMapper;
-    private final UserSubscriptionRepository userSubscriptionRepository;
-    private final UserCardStateRepository userCardStateRepository;
 
     @Override
     @Transactional(readOnly = true)
-    public List<CardResponse> getUnlearnedCardsByTopic(Long userId, Long topicId) {
-        Topic topic = topicRepository.findByIdWithDeck(topicId)
+    public List<CardResponse> getCardsByTopic(Long topicId, Long userId) {
+        DeckRepository.DeckAccessView deck = deckRepository.findAccessViewByTopicId(topicId)
                 .orElseThrow(() -> new AppException(AppError.TOPIC_NOT_FOUND));
 
-        if (topic.getDeck().getIsPremium()) {
-            boolean hasActiveSubscription = userSubscriptionRepository
-                    .existsByUserIdAndStatusAndEndAtAfter(userId, SubscriptionStatus.ACTIVE, LocalDateTime.now());
-            if (!hasActiveSubscription) {
-                throw new AppException(AppError.DECK_PREMIUM_REQUIRED);
-            }
-        }
+        accessPolicy.assertCanLearn(deck, userId);
 
-        List<Card> unlearnedCards = cardRepository
-                .findAllUnlearnedCardsByTopicIdWithPhonetics(topicId, userId);
+        List<Card> cards = cardRepository.findByTopicIdWithPhonetics(topicId);
 
-        if (unlearnedCards.isEmpty()) {
-            log.info("Cards fetched count=0 topicId={}", topicId);
-            return List.of();
-        }
+        Map<Long, CardLearningState> states = (userId == null || cards.isEmpty())
+                ? Map.of()
+                : cardStateService.getStates(userId, cards.stream().map(Card::getId).toList());
 
-        List<Long> cardIds = unlearnedCards.stream().map(Card::getId).toList();
-        Map<Long, Boolean> starredMap = userCardStateRepository
-                .findByUserIdAndCardIdIn(userId, cardIds)
-                .stream()
-                .collect(Collectors.toMap(
-                        ucs -> ucs.getCard().getId(),
-                        ucs -> Boolean.TRUE.equals(ucs.getFlagsStarred())
-                ));
-
-        List<CardResponse> cards = unlearnedCards.stream()
-                .map(card -> cardMapper.toCardResponse(card, starredMap.getOrDefault(card.getId(), false)))
-                .toList();
-
-        log.info("Cards fetched count={} topicId={}", cards.size(), topicId);
-        return cards;
+        return cards.stream().map(card -> cardMapper.toCardResponse(card, userId == null
+                ? null
+                : states.getOrDefault(card.getId(), CardLearningState.NONE))
+        ).toList();
     }
 
     @Override
     @Transactional
-    public TopicResponse createUserTopic(CreateTopicRequest request, Long currentUserId) {
-        Deck deck = deckRepository.findById(request.deckId())
-                .orElseThrow(() -> new AppException(AppError.DECK_NOT_FOUND));
+    public TopicResponse createUserTopic(Long userId, CreateUserTopicRequest request) {
+        Long deckId = request.deckId();
+        assertCanEditDeck(userId, deckId);
 
-        if (deck.getOwnerType() != OwnerType.USER || !deck.getOwner().getId().equals(currentUserId)) {
-            throw new AppException(AppError.TOPIC_ACCESS_DENIED);
-        }
+        if (topicRepository.countByDeckId(deckId) >= flashcardProperties
+                .getUserDeckLimit().getMaxTopicsPerDeck())
+            throw new AppException(AppError.TOPIC_LIMIT_EXCEEDED);
 
-        Topic topic = insertTopicCoreLogic(deck, request);
+        Topic topic = topicRepository.save(Topic.builder()
+                .deck(deckRepository.getReferenceById(deckId))
+                .name(request.name())
+                .slug(SlugUtils.generateSlug(request.name()))
+                .order(nextOrder(deckId))
+                .build());
+
+        deckRepository.adjustTopicCount(deckId, 1);
+
+        log.info("User topic created deckId={} topicId={}", deckId, topic.getId());
         return topicMapper.toTopicResponse(topic);
     }
 
     @Override
     @Transactional
-    public TopicResponse createSystemTopic(CreateTopicRequest request) {
-        Deck deck = deckRepository.findById(request.deckId())
-                .orElseThrow(() -> new AppException(AppError.DECK_NOT_FOUND));
+    public TopicResponse updateUserTopic(Long userId, Long topicId, UpdateUserTopicRequest request) {
+        assertCanEditByTopic(userId, topicId);
+        Topic topic = topicRepository.findById(topicId)
+                .orElseThrow(() -> new AppException(AppError.TOPIC_NOT_FOUND));
 
-        if (deck.getOwnerType() != OwnerType.SYSTEM) {
-            throw new AppException(AppError.TOPIC_ACCESS_DENIED);
-        }
+        topicMapper.update(topic, request);
 
-        Topic topic = insertTopicCoreLogic(deck, request);
+        log.info("User topic updated topicId={}", topicId);
         return topicMapper.toTopicResponse(topic);
     }
 
-    private Topic insertTopicCoreLogic(Deck deck, CreateTopicRequest request) {
-        if (topicRepository.existsByDeckIdAndSlug(deck.getId(), request.slug())) {
-            throw new AppException(AppError.TOPIC_SLUG_EXISTED);
-        }
-
-        Topic topic = new Topic();
-        topic.setDeck(deck);
-        topic.setName(request.name());
-        topic.setSlug(request.slug());
-        topic.setOrder(topicRepository.findMaxOrderByDeckId(deck.getId()) + 1);
-        topic.setCardCount(0);
-        topicRepository.save(topic);
-
-        deck.setTopicCount(deck.getTopicCount() + 1);
-        deckRepository.save(deck);
-        return topic;
-    }
-
-
     @Override
     @Transactional
-    public TopicResponse updateUserTopic(Long topicId, UpdateTopicRequest request, Long currentUserId) {
-        Topic topic = topicRepository.findById(topicId)
-                .orElseThrow(() -> new AppException(AppError.TOPIC_NOT_FOUND));
+    public void deleteUserTopic(Long userId, Long topicId) {
+        Long deckId = assertCanEditByTopic(userId, topicId).getId();
 
-        Deck deck = topic.getDeck();
-        if (deck.getOwnerType() != OwnerType.USER || !deck.getOwner().getId().equals(currentUserId)) {
-            throw new AppException(AppError.TOPIC_ACCESS_DENIED);
-        }
-        return topicMapper.toTopicResponse(updateTopicCoreLogic(topic, request));
+        int detached = cardRepository.detachByTopicId(topicId);
+        topicRepository.deleteById(topicId);
+
+        deckRepository.adjustTopicCount(deckId, -1);
+        if (detached > 0)
+            deckRepository.adjustCardCount(deckId, -detached);
+
+        log.info("User topic deleted topicId={} detachedCards={}", topicId, detached);
     }
 
-    @Override
-    @Transactional
-    public TopicResponse updateSystemTopic(Long topicId, UpdateTopicRequest request) {
-        Topic topic = topicRepository.findById(topicId)
+    private DeckRepository.DeckAccessView assertCanEditByTopic(Long userId, Long topicId) {
+        DeckRepository.DeckAccessView view = deckRepository.findAccessViewByTopicId(topicId)
                 .orElseThrow(() -> new AppException(AppError.TOPIC_NOT_FOUND));
-
-        if (topic.getDeck().getOwnerType() != OwnerType.SYSTEM) {
-            throw new AppException(AppError.TOPIC_ACCESS_DENIED);
-        }
-        return topicMapper.toTopicResponse(updateTopicCoreLogic(topic, request));
+        accessPolicy.assertCanEdit(view, userId);
+        return view;
     }
 
-    private Topic updateTopicCoreLogic(Topic topic, UpdateTopicRequest request) {
-        if (request.name() != null) {
-            topic.setName(request.name());
-        }
-
-        if (request.slug() != null) {
-            if (!topic.getSlug().equals(request.slug()) &&
-                    topicRepository.existsByDeckIdAndSlug(topic.getDeck().getId(), request.slug())) {
-                throw new AppException(AppError.TOPIC_SLUG_EXISTED);
-            }
-            topic.setSlug(request.slug());
-        }
-
-        Integer requestedOrder = request.order();
-        if (requestedOrder != null && !requestedOrder.equals(topic.getOrder())) {
-            Integer maxOrder = topicRepository.findMaxOrderByDeckId(topic.getDeck().getId());
-            if (requestedOrder < 0 || requestedOrder > maxOrder) {
-                throw new AppException(AppError.TOPIC_ORDER_INVALID);
-            }
-
-            if (requestedOrder < topic.getOrder()) {
-                topicRepository.shiftOrdersDown(
-                        topic.getDeck().getId(),
-                        requestedOrder,
-                        topic.getOrder()
-                );
-            } else {
-                topicRepository.shiftOrdersUp(
-                        topic.getDeck().getId(),
-                        topic.getOrder(),
-                        requestedOrder
-                );
-            }
-            topic.setOrder(requestedOrder);
-        }
-        return topicRepository.save(topic);
+    private void assertCanEditDeck(Long userId, Long deckId) {
+        DeckRepository.DeckAccessView view = deckRepository.findAccessViewById(deckId)
+                .orElseThrow(() -> new AppException(AppError.DECK_NOT_FOUND));
+        accessPolicy.assertCanEdit(view, userId);
     }
 
-    @Override
-    @Transactional
-    public void deleteTopic(Long topicId, Long currentUserId, boolean isAdmin) {
-        Topic topic = topicRepository.findById(topicId)
-                .orElseThrow(() -> new AppException(AppError.TOPIC_NOT_FOUND));
-        Deck deck = topic.getDeck();
-
-        if (!isAdmin) {
-            if (deck.getOwnerType() != OwnerType.USER || !deck.getOwner().getId().equals(currentUserId)) {
-                throw new AppException(AppError.TOPIC_ACCESS_DENIED);
-            }
-        } else {
-            if (deck.getOwnerType() != OwnerType.SYSTEM) {
-                throw new AppException(AppError.TOPIC_ACCESS_DENIED);
-            }
-        }
-
-        int cardsInTopic = topic.getCardCount();
-        deck.setTopicCount(deck.getTopicCount() - 1);
-        deck.setCardCount(deck.getCardCount() - cardsInTopic);
-        deckRepository.save(deck);
-
-        topic.setCardCount(0);
-        if (deck.getPublishedAt() != null) {
-            topic.setIsDeleted(true);
-            topicRepository.save(topic);
-            cardRepository.softDeleteByTopicId(topicId);
-
-            log.info("Topic Soft-deleted successfully, topicId={}", topicId);
-        } else {
-            // Database tự động CASCADE xóa toàn bộ Cards, CardPhonetics
-            topicRepository.delete(topic);
-
-            log.info("Topic Hard-deleted successfully, topicId={}", topicId);
-        }
-
-        topicRepository.compactOrdersAfterDelete(deck.getId(), topic.getOrder());
+    private int nextOrder(Long deckId) {
+        return topicRepository.findFirstByDeckIdOrderByOrderDesc(deckId)
+                .map(last -> last.getOrder() + 1)
+                .orElse(1);
     }
 }

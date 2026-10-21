@@ -1,10 +1,9 @@
 package com.elingo.learning.flashcard.service.impl;
 
-import com.elingo.learning.flashcard.config.FlashcardProperties;
+import com.elingo.vocabulary.config.FlashcardProperties;
 import com.elingo.learning.flashcard.entity.UserCardState;
 import com.elingo.learning.flashcard.service.SpacedRepetitionService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -13,8 +12,8 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j(topic = "SRS-SERVICE")
 public class SpacedRepetitionServiceImpl implements SpacedRepetitionService {
+
     private final FlashcardProperties flashcardProperties;
 
     // grade: 0=Again, 1=Hard, 2=Good, 3=Easy
@@ -22,31 +21,31 @@ public class SpacedRepetitionServiceImpl implements SpacedRepetitionService {
     // Tham khảo: https://super-memory.com/english/ol/sm2.htm
     @Override
     public void calculateNextSRS(UserCardState state, int grade) {
-        FlashcardProperties.Srs srs = flashcardProperties.srs();
+        FlashcardProperties.Srs srs = flashcardProperties.getSrs();
         BigDecimal ef = state.getSrsEaseFactor();
         int prevInterval = state.getSrsInterval();
 
         BigDecimal newEf = switch (grade) {
-            case 0 -> ef.subtract(srs.againEfPenalty()).max(srs.efMin());
-            case 1 -> ef.subtract(srs.hardEfPenalty()).max(srs.efMin());
+            case 0 -> ef.subtract(srs.getAgainEfPenalty()).max(srs.getEfMin());
+            case 1 -> ef.subtract(srs.getHardEfPenalty()).max(srs.getEfMin());
             case 2 -> ef;
-            default -> ef.add(srs.easyEfBonus());
+            default -> ef.add(srs.getEasyEfBonus());
         };
         newEf = newEf.setScale(2, RoundingMode.HALF_UP);
 
         int newInterval = switch (grade) {
             case 0 -> 0;
             case 1 -> (prevInterval == 0) ? 1
-                    : BigDecimal.valueOf(prevInterval).multiply(srs.hardIntervalFactor()).setScale(0, RoundingMode.HALF_UP).intValue();
+                    : BigDecimal.valueOf(prevInterval).multiply(srs.getHardIntervalFactor()).setScale(0, RoundingMode.HALF_UP).intValue();
             case 2 -> (prevInterval == 0) ? 3
                     : BigDecimal.valueOf(prevInterval).multiply(ef).setScale(0, RoundingMode.HALF_UP).intValue();
             default -> (prevInterval == 0) ? 5
-                    : BigDecimal.valueOf(prevInterval).multiply(newEf).multiply(srs.easyIntervalFactor()).setScale(0, RoundingMode.HALF_UP).intValue();
+                    : BigDecimal.valueOf(prevInterval).multiply(newEf).multiply(srs.getEasyIntervalFactor()).setScale(0, RoundingMode.HALF_UP).intValue();
         };
 
         LocalDateTime nextReviewAt;
         if (newInterval == 0) {
-            nextReviewAt = LocalDateTime.now().plusMinutes(srs.againReviewMinutes());
+            nextReviewAt = LocalDateTime.now().plusMinutes(srs.getAgainReviewMinutes());
         } else {
             nextReviewAt = LocalDateTime.now().plusDays(newInterval);
         }
@@ -55,8 +54,5 @@ public class SpacedRepetitionServiceImpl implements SpacedRepetitionService {
         state.setSrsInterval(newInterval);
         state.setSrsLastGrade((short) grade);
         state.setSrsNextReviewAt(nextReviewAt);
-
-        log.info("SRS calculation completed cardId={} grade={} oldEf={} newEf={} oldInterval={} newInterval={} nextReviewAt={}",
-                state.getCard().getId(), grade, ef, newEf, prevInterval, newInterval, nextReviewAt);
     }
 }

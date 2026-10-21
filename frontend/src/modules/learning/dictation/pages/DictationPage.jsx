@@ -11,7 +11,7 @@ import BackButton from '../../../../components/BackButton/BackButton'
 import './DictationPage.css'
 
 function DictationPage({ slug, onNavigate }) {
-  const { t } = useTranslation(['learning'])
+  const { t } = useTranslation(['learning', 'common'])
 
   // Dữ liệu bài học và danh sách phân đoạn
   const [lesson, setLesson] = useState(null)
@@ -333,7 +333,7 @@ function DictationPage({ slug, onNavigate }) {
               onClick={handleReplay}
             >
               <span className="material-symbols-outlined">replay</span>
-              <span>{t('dictation.replaySegment')}</span>
+              <span>{t('lessonStudy.replaySegment')}</span>
             </button>
           </div>
         </div>
@@ -357,7 +357,7 @@ function DictationPage({ slug, onNavigate }) {
 
               <div className="dictation-completion-stats">
                 <span className="dictation-completion-stats-tag">
-                  {t('dictation.passedSegmentsStats', {
+                  {t('lessonStudy.passedSegmentsStats', {
                     passed: passedSegmentsCount,
                     total: segments.length,
                   })}
@@ -396,8 +396,8 @@ function DictationPage({ slug, onNavigate }) {
                   }`}
                 >
                   {segmentResult.passed
-                    ? t('dictation.passedBadge')
-                    : t('dictation.failedBadge')}
+                    ? t('lessonStudy.passedBadge')
+                    : t('lessonStudy.failedBadge')}
                 </span>
                 <span className="dictation-result-score">
                   {t('dictation.currentScore', { score: segmentResult.score })}
@@ -443,8 +443,8 @@ function DictationPage({ slug, onNavigate }) {
                 >
                   <span>
                     {currentIndex < segments.length - 1
-                      ? t('dictation.nextSegmentBtn')
-                      : t('dictation.finishLessonBtn')}
+                      ? t('lessonStudy.nextSegment')
+                      : t('lessonStudy.finishLesson')}
                   </span>
                   <span className="material-symbols-outlined">arrow_forward</span>
                 </button>

@@ -5,14 +5,22 @@ import SearchInput from '../../../../components/SearchInput/SearchInput'
 import BackButton from '../../../../components/BackButton/BackButton'
 import UserCardFormModal from '../../components/UserCardFormModal/UserCardFormModal'
 import UserCardItem from '../../components/UserCardItem/UserCardItem'
-import { getTopicsApi, getUserDecksApi } from '../../vocabularyApi'
-import { getMockCardsForTopic } from '../../userCardMockData'
+import {
+  getTopicsApi,
+  getUserDecksApi,
+  getDecksApi,
+  getCardsByTopicApi,
+  createUserCardApi,
+  updateUserCardApi,
+  deleteUserCardApi,
+} from '../../vocabularyApi'
 import './UserCardManagementPage.css'
 
 function UserCardManagementPage({ deckId, topicId, onNavigate }) {
   const { t } = useTranslation(['learning', 'common'])
   const [deck, setDeck] = useState(null)
   const [topic, setTopic] = useState(null)
+  const [cards, setCards] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [contextError, setContextError] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
@@ -20,41 +28,73 @@ function UserCardManagementPage({ deckId, topicId, onNavigate }) {
   const [formMode, setFormMode] = useState('create')
   const [selectedCard, setSelectedCard] = useState(null)
   const [cardToDelete, setCardToDelete] = useState(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
+  const [toastMessage, setToastMessage] = useState('')
 
   useEffect(() => {
-    const fetchContext = async () => {
+    if (!toastMessage) return
+    const timer = setTimeout(() => setToastMessage(''), 3000)
+    return () => clearTimeout(timer)
+  }, [toastMessage])
+
+  useEffect(() => {
+    let isMounted = true
+    const fetchContextAndCards = async () => {
       setIsLoading(true)
       setContextError('')
       try {
-        const [decksResponse, topicsResponse] = await Promise.all([
+        const [userDecksRes, pubDecksRes, topicsRes, cardsRes] = await Promise.allSettled([
           getUserDecksApi({ page: 1, limit: 100 }),
+          getDecksApi({ page: 1, limit: 100 }),
           getTopicsApi({ deckId, page: 1, limit: 100 }),
+          getCardsByTopicApi(topicId),
         ])
-        const userDecks = decksResponse?.data?.content ?? []
-        const deckTopics = topicsResponse?.data?.content ?? []
-        setDeck(userDecks.find((userDeck) => String(userDeck.id) === String(deckId)) ?? null)
-        setTopic(deckTopics.find((deckTopic) => String(deckTopic.id) === String(topicId)) ?? null)
+
+        if (!isMounted) return
+
+        const allDecks = [
+          ...(userDecksRes.value?.data?.content || []),
+          ...(pubDecksRes.value?.data?.content || []),
+        ]
+        const matchedDeck = allDecks.find((d) => String(d.id) === String(deckId)) ?? null
+        setDeck(matchedDeck)
+
+        const allTopics = topicsRes.value?.data?.content || []
+        const matchedTopic = allTopics.find((t) => String(t.id) === String(topicId)) ?? null
+        setTopic(matchedTopic)
+
+        if (cardsRes.status === 'fulfilled' && cardsRes.value?.success && Array.isArray(cardsRes.value.data)) {
+          setCards(cardsRes.value.data)
+        } else {
+          setCards([])
+        }
       } catch {
+        if (!isMounted) return
         setDeck(null)
         setTopic(null)
         setContextError(t('userCards.contextLoadError'))
       } finally {
-        setIsLoading(false)
+        if (isMounted) setIsLoading(false)
       }
     }
 
-    fetchContext()
-  }, [deckId, topicId, t])
+    fetchContextAndCards()
+    return () => {
+      isMounted = false
+    }
+  }, [deckId, topicId, refreshTrigger, t])
 
-  const cards = useMemo(
-    () => getMockCardsForTopic(topic),
-    [topic]
-  )
   const filteredCards = useMemo(() => {
-    const normalizedQuery = searchQuery.trim().toLocaleLowerCase()
+    const normalizedQuery = searchQuery.trim().toLowerCase()
     if (!normalizedQuery) return cards
 
-    return cards.filter((card) => card.term.toLocaleLowerCase().includes(normalizedQuery))
+    return cards.filter(
+      (card) =>
+        card.term?.toLowerCase().includes(normalizedQuery) ||
+        card.translation?.toLowerCase().includes(normalizedQuery)
+    )
   }, [cards, searchQuery])
 
   const handleOpenCreate = () => {
@@ -70,12 +110,54 @@ function UserCardManagementPage({ deckId, topicId, onNavigate }) {
   }
 
   const handleCloseForm = () => {
+    if (isSubmitting) return
     setIsFormOpen(false)
     setSelectedCard(null)
   }
 
   const handleCloseDelete = () => {
+    if (isDeleting) return
     setCardToDelete(null)
+  }
+
+  const handleFormSubmit = async (formData) => {
+    setIsSubmitting(true)
+    try {
+      let res
+      if (formMode === 'create') {
+        res = await createUserCardApi({ ...formData, topicId })
+      } else {
+        res = await updateUserCardApi(selectedCard.id, formData)
+      }
+
+      if (res?.success) {
+        setIsFormOpen(false)
+        setSelectedCard(null)
+        setToastMessage(formMode === 'create' ? t('userCards.createSuccess') : t('userCards.updateSuccess'))
+        setRefreshTrigger((prev) => prev + 1)
+        return res
+      }
+      return res
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!cardToDelete) return
+    setIsDeleting(true)
+    try {
+      const res = await deleteUserCardApi(cardToDelete.id)
+      if (res?.success) {
+        setCardToDelete(null)
+        setToastMessage(t('userCards.deleteSuccess'))
+        setRefreshTrigger((prev) => prev + 1)
+      }
+    } catch (err) {
+      console.error('Lỗi khi xóa thẻ:', err)
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   if (isLoading) {
@@ -109,6 +191,15 @@ function UserCardManagementPage({ deckId, topicId, onNavigate }) {
   return (
     <main className="user-card-management-page">
       <div className="container user-card-management-page__container">
+        {toastMessage && (
+          <div className="topic-list-success-toast" role="status" aria-live="polite">
+            <span className="material-symbols-outlined" aria-hidden="true">
+              check_circle
+            </span>
+            {toastMessage}
+          </div>
+        )}
+
         <nav className="user-card-management-page__breadcrumb" aria-label={t('userCards.breadcrumb')}>
           <button type="button" onClick={() => onNavigate?.('/decks')}>
             {t('userDeck.tabs.myDecks')}
@@ -158,14 +249,14 @@ function UserCardManagementPage({ deckId, topicId, onNavigate }) {
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             onClear={() => setSearchQuery('')}
-            clearLabel={t('userCards.clearSearch')}
+            clearLabel={t('common:clearSearch')}
           />
 
           <div className="user-card-management-page__grid">
             {filteredCards.map((card) => (
               <UserCardItem
                 key={card.id}
-                card={card}
+                card={{ ...card, topicName: topic.name }}
                 onEdit={handleOpenEdit}
                 onDelete={setCardToDelete}
               />
@@ -192,17 +283,20 @@ function UserCardManagementPage({ deckId, topicId, onNavigate }) {
         card={selectedCard}
         topics={[topic]}
         isTopicLocked
+        onSubmit={handleFormSubmit}
         onClose={handleCloseForm}
+        isSubmitting={isSubmitting}
       />
 
       <Modal
         isOpen={!!cardToDelete}
         title={t('userCards.deleteModalTitle')}
         message={t('userCards.deleteModalMessage', { term: cardToDelete?.term ?? '' })}
-        confirmText={t('userCards.delete')}
-        cancelText={t('userCards.cancel')}
+        confirmText={t('common:delete')}
+        cancelText={t('common:cancel')}
         isDanger
-        onConfirm={handleCloseDelete}
+        isLoading={isDeleting}
+        onConfirm={handleConfirmDelete}
         onCancel={handleCloseDelete}
       />
     </main>

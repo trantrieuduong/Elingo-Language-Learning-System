@@ -38,9 +38,11 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
           
           const progressMap = {}
           res.data.forEach((t) => {
+            const total = t.cardCount ?? 0
+            const learned = t.learnedCardCount ?? 0
             progressMap[t.id] = {
-              unlearned: t.unlearnedCardCount ?? 0,
-              total: t.cardCount ?? 0
+              learned: Math.min(learned, total),
+              total
             }
           })
           setTopicProgress(progressMap)
@@ -95,9 +97,16 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
       try {
         const res = await getUnlearnedCardsByTopicIdApi(selectedTopicId)
         if (res && res.success) {
+          // Lọc bỏ thẻ đã ẩn và đã học (chỉ giữ thẻ chưa học và không bị ẩn)
+          const allCards = Array.isArray(res.data) ? res.data : []
+          const unlearnedCards = allCards.filter(card => {
+            const isHidden = Boolean(card.state?.hidden)
+            const isLearned = Boolean(card.state?.learned)
+            return !isHidden && !isLearned
+          })
           setUnlearnedCardsByTopic(prev => ({
             ...prev,
-            [selectedTopicId]: res.data || []
+            [selectedTopicId]: unlearnedCards
           }))
         } else {
           setTopicCardsError(prev => ({ ...prev, [selectedTopicId]: true }))
@@ -144,8 +153,19 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
         ...prev,
         [selectedTopicId]: {
           ...current,
-          unlearned: Math.max(0, current.unlearned - 1)
+          learned: Math.min(current.total, (current.learned ?? 0) + 1)
         }
+      }
+    })
+  }
+
+  // Chỉ xoá thẻ khỏi hàng đợi mà không tăng tiến độ "đã học" (dùng cho hành động ẩn thẻ)
+  const removeCurrentCardOnly = () => {
+    setUnlearnedCardsByTopic((prev) => {
+      const list = prev[selectedTopicId] || []
+      return {
+        ...prev,
+        [selectedTopicId]: list.slice(1)
       }
     })
   }
@@ -215,12 +235,12 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
     const currentCard = currentCardList[0]
     if (!currentCard || !currentCard.id) return
 
-    const isStarred = Boolean(currentCard.flagsStarred)
+    const isStarred = Boolean(currentCard.state?.starred ?? currentCard.flagsStarred)
     const nextStarredState = !isStarred
 
     setIsProcessing(true)
     try {
-      const res = await toggleStarApi(currentCard.id)
+      const res = await toggleStarApi(currentCard.id, nextStarredState)
       if (res && res.success) {
         // Cập nhật trạng thái star trong danh sách thẻ của topic
         setUnlearnedCardsByTopic((prev) => {
@@ -229,7 +249,8 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
             if (idx === 0) {
               return {
                 ...card,
-                flagsStarred: nextStarredState
+                flagsStarred: nextStarredState,
+                state: card.state ? { ...card.state, starred: nextStarredState } : { starred: nextStarredState }
               }
             }
             return card
@@ -261,9 +282,9 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
 
     setIsProcessing(true)
     try {
-      const res = await toggleHideApi(currentCard.id)
+      const res = await toggleHideApi(currentCard.id, true)
       if (res && res.success) {
-        removeCurrentCardAndUpdateProgress()
+        removeCurrentCardOnly()
       } else {
         console.error('Ẩn thẻ không thành công:', res)
       }
@@ -297,7 +318,7 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
 
   const currentCardList = selectedTopicId ? (unlearnedCardsByTopic[selectedTopicId] || []) : []
   const currentCard = currentCardList[0] || null
-  const isCurrentCardStarred = Boolean(currentCard?.flagsStarred)
+  const isCurrentCardStarred = Boolean(currentCard?.state?.starred ?? currentCard?.flagsStarred)
 
   return (
     <div className="flashcard-page-container">
@@ -316,10 +337,9 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
           {(() => {
             const progressValues = Object.values(topicProgress)
             if (progressValues.length === 0) return null
-            const globalTotal = progressValues.reduce((acc, curr) => acc + curr.total, 0)
+            const globalTotal = progressValues.reduce((acc, curr) => acc + (curr.total || 0), 0)
             if (globalTotal === 0) return null
-            const globalUnlearned = progressValues.reduce((acc, curr) => acc + curr.unlearned, 0)
-            const globalLearned = globalTotal - globalUnlearned
+            const globalLearned = progressValues.reduce((acc, curr) => acc + (curr.learned || 0), 0)
             return (
               <div className="glass-card flashcard-global-progress">
                 <ProgressBar
@@ -343,6 +363,10 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
 
           {topics.map((topic) => {
             const progress = topicProgress[topic.id]
+            const learned = progress?.learned ?? 0
+            const total = progress?.total ?? 0
+            const percent = total > 0 ? Math.round((learned / total) * 100) : 0
+
             return (
               <div
                 key={topic.id}
@@ -353,18 +377,18 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
                   <h3 className="flashcard-topic-title">{topic.name}</h3>
                   {progress && (
                     <span className="flashcard-progress-stats">
-                      {progress.total - progress.unlearned} / {progress.total}
+                      {learned} / {total}
                     </span>
                   )}
                 </div>
                 {topic.description && (
                   <p className="flashcard-topic-desc">{topic.description}</p>
                 )}
-                {progress && progress.total > 0 && (
+                {progress && total > 0 && (
                   <div className="flashcard-progress-track">
                     <div 
                       className="flashcard-progress-bar"
-                      style={{ width: `${Math.round(((progress.total - progress.unlearned) / progress.total) * 100)}%` }} 
+                      style={{ width: `${percent}%` }} 
                     />
                   </div>
                 )}
@@ -400,7 +424,7 @@ function FlashcardStudyPage({ deckId, onNavigate }) {
                   setUnlearnedCardsByTopic(prev => ({ ...prev, [selectedTopicId]: undefined }))
                 }}
               >
-                {t('flashcard.retry')}
+                {t('common:retry')}
               </button>
             </div>
           ) : unlearnedCardsByTopic[selectedTopicId] === undefined ? (

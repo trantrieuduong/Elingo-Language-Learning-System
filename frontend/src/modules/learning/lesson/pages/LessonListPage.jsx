@@ -10,7 +10,7 @@ import LessonModeModal from '../components/LessonModeModal/LessonModeModal'
 import './LessonListPage.css'
 
 function LessonListPage({ onNavigate }) {
-  const { t } = useTranslation(['learning', 'api'])
+  const { t } = useTranslation(['learning', 'common', 'api'])
 
   // Dữ liệu danh sách bài học và phân trang
   const [lessons, setLessons] = useState([])
@@ -186,7 +186,7 @@ function LessonListPage({ onNavigate }) {
           <PageError
             error={error}
             onAction={() => setRetryCount((prev) => prev + 1)}
-            actionLabel={t('lessonList.retry')}
+            actionLabel={t('common:retry')}
           />
         </div>
       ) : lessons.length === 0 ? (
@@ -204,7 +204,7 @@ function LessonListPage({ onNavigate }) {
               className="btn-primary"
               onClick={handleClearFilters}
             >
-              {t('lessonList.clearFilters')}
+              {t('common:filter.clearFilters')}
             </button>
           )}
         </div>

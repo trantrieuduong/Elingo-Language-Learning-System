@@ -1,12 +1,6 @@
 package com.elingo.vocabulary.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -18,12 +12,18 @@ import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 
 import com.elingo.common.entity.BaseEntity;
+import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(
         name = "topics",
         uniqueConstraints = {
                 @UniqueConstraint(name = "uk_topic_slug_per_deck", columnNames = {"deck_id", "slug"})
+        },
+        indexes = {
+                @Index(name = "idx_topic_deck_order", columnList = "deck_id, `order`")
         }
 )
 @Data
@@ -32,9 +32,11 @@ import com.elingo.common.entity.BaseEntity;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@DynamicUpdate
 public class Topic extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "deck_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     Deck deck;
@@ -52,8 +54,4 @@ public class Topic extends BaseEntity {
     @Column(name = "card_count", nullable = false)
     @Builder.Default
     Integer cardCount = 0;
-
-    @Column(name = "is_deleted", nullable = false)
-    @Builder.Default
-    Boolean isDeleted = false;
 }

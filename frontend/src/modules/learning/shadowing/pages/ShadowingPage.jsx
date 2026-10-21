@@ -19,7 +19,7 @@ import BackButton from '../../../../components/BackButton/BackButton'
 import './ShadowingPage.css'
 
 function ShadowingPage({ slug, onNavigate }) {
-  const { t } = useTranslation(['learning'])
+  const { t } = useTranslation(['learning', 'common'])
 
   // Dữ liệu bài học và phân đoạn
   const [lesson, setLesson] = useState(null)
@@ -670,7 +670,7 @@ function ShadowingPage({ slug, onNavigate }) {
               disabled={stepState === 'recording'}
             >
               <span className="material-symbols-outlined">replay</span>
-              <span>{t('shadowing.replaySegment')}</span>
+              <span>{t('lessonStudy.replaySegment')}</span>
             </button>
           </div>
         </div>
@@ -694,7 +694,7 @@ function ShadowingPage({ slug, onNavigate }) {
 
               <div className="dictation-completion-stats">
                 <span className="dictation-completion-stats-tag">
-                  {t('dictation.passedSegmentsStats', {
+                  {t('lessonStudy.passedSegmentsStats', {
                     passed: passedSegmentsCount,
                     total: segments.length,
                   })}
@@ -772,8 +772,8 @@ function ShadowingPage({ slug, onNavigate }) {
                 >
                   <span>
                     {currentIndex < segments.length - 1
-                      ? t('shadowing.nextSegmentBtn')
-                      : t('shadowing.finishLessonBtn')}
+                      ? t('lessonStudy.nextSegment')
+                      : t('lessonStudy.finishLesson')}
                   </span>
                   <span className="material-symbols-outlined">arrow_forward</span>
                 </button>
@@ -855,8 +855,8 @@ function ShadowingPage({ slug, onNavigate }) {
                             }`}
                         >
                           {segmentResult.passed
-                            ? t('shadowing.passedBadge')
-                            : t('shadowing.failedBadge')}
+                            ? t('lessonStudy.passedBadge')
+                            : t('lessonStudy.failedBadge')}
                         </span>
                       </div>
 
@@ -996,7 +996,7 @@ function ShadowingPage({ slug, onNavigate }) {
                 type="button"
                 className="btn-icon"
                 onClick={() => setShowModelModal(false)}
-                aria-label={t('lessonMode.close')}
+                aria-label={t('common:close')}
               >
                 <span className="material-symbols-outlined">close</span>
               </button>
@@ -1044,7 +1044,7 @@ function ShadowingPage({ slug, onNavigate }) {
                 className="btn-secondary"
                 onClick={() => setShowModelModal(false)}
               >
-                {t('shadowing.btnCancel')}
+                {t('common:cancel')}
               </button>
               <button
                 type="button"

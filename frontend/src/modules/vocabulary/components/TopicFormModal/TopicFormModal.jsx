@@ -20,7 +20,7 @@ import './TopicFormModal.css'
  * @param {boolean}  isSubmitting - Trạng thái đang gửi request
  */
 function TopicFormModal({ isOpen, mode = 'create', topic = null, onSubmit, onClose, isSubmitting = false }) {
-  const { t } = useTranslation('learning')
+  const { t } = useTranslation(['learning', 'common'])
 
   // ── Form state ──
   const [form, setForm] = useState({ name: '', slug: '', order: '' })
@@ -163,7 +163,7 @@ function TopicFormModal({ isOpen, mode = 'create', topic = null, onSubmit, onClo
             type="button"
             className="btn-icon topic-form-close"
             onClick={onClose}
-            aria-label={t('topic.close')}
+            aria-label={t('common:close')}
           >
             <span className="material-symbols-outlined">close</span>
           </button>
@@ -235,7 +235,7 @@ function TopicFormModal({ isOpen, mode = 'create', topic = null, onSubmit, onClo
               onClick={onClose}
               disabled={isSubmitting}
             >
-              {t('topic.cancel')}
+              {t('common:cancel')}
             </button>
             <button
               type="submit"
@@ -245,14 +245,14 @@ function TopicFormModal({ isOpen, mode = 'create', topic = null, onSubmit, onClo
               {isSubmitting ? (
                 <>
                   <span className="topic-form-spinner" />
-                  {t('topic.saving')}
+                  {t('common:saving')}
                 </>
               ) : (
                 <>
                   <span className="material-symbols-outlined">
                     {isCreate ? 'add_circle' : 'save'}
                   </span>
-                  {isCreate ? t('topic.submitCreate') : t('topic.submitEdit')}
+                  {isCreate ? t('topic.submitCreate') : t('common:saveChanges')}
                 </>
               )}
             </button>

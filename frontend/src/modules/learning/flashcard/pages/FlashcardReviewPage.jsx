@@ -33,12 +33,24 @@ function FlashcardReviewPage({ onNavigate }) {
       try {
         const res = await getCardsForReviewApi(100)
         if (res && res.success) {
-          const formattedCards = res.data
-            .filter((item) => item?.card)
-            .map((item) => ({
-              ...item.card,
-              flagsStarred: item.flagsStarred
-            }))
+          const rawList = Array.isArray(res.data) ? res.data : []
+          const formattedCards = rawList.map((item) => {
+            // Trường hợp backend trả về CardResponse trực tiếp
+            if (item && item.id) {
+              return {
+                ...item,
+                flagsStarred: Boolean(item.state?.starred ?? item.flagsStarred)
+              }
+            }
+            // Trường hợp backend trả về bọc { card: {...}, flagsStarred }
+            if (item?.card) {
+              return {
+                ...item.card,
+                flagsStarred: Boolean(item.card?.state?.starred ?? item.flagsStarred)
+              }
+            }
+            return item
+          }).filter(Boolean)
           setReviewCards(formattedCards)
         } else {
           setError({
@@ -122,11 +134,12 @@ function FlashcardReviewPage({ onNavigate }) {
     const cardId = currentCard?.id
     if (!cardId) return
 
-    const nextStarredState = !(currentCard.flagsStarred)
+    const isStarred = Boolean(currentCard.state?.starred ?? currentCard.flagsStarred)
+    const nextStarredState = !isStarred
 
     setIsProcessing(true)
     try {
-      const res = await toggleStarApi(cardId)
+      const res = await toggleStarApi(cardId, nextStarredState)
       if (res && res.success) {
         setReviewCards((prev) => {
           if (prev.length === 0) return prev
@@ -134,6 +147,9 @@ function FlashcardReviewPage({ onNavigate }) {
           updated[0] = {
             ...updated[0],
             flagsStarred: nextStarredState,
+            state: updated[0].state
+              ? { ...updated[0].state, starred: nextStarredState }
+              : { starred: nextStarredState }
           }
           return updated
         })
@@ -160,7 +176,7 @@ function FlashcardReviewPage({ onNavigate }) {
 
     setIsProcessing(true)
     try {
-      const res = await toggleHideApi(cardId)
+      const res = await toggleHideApi(cardId, true)
       if (res && res.success) {
         setReviewCards((prev) => prev.slice(1))
       } else {
@@ -195,7 +211,7 @@ function FlashcardReviewPage({ onNavigate }) {
   }
 
   const currentCard = reviewCards[0] || null
-  const isCurrentCardStarred = Boolean(currentCard?.flagsStarred)
+  const isCurrentCardStarred = Boolean(currentCard?.state?.starred ?? currentCard?.flagsStarred)
   const currentCardId = currentCard?.id
 
   return (

@@ -2,235 +2,114 @@ package com.elingo.vocabulary.service.impl;
 
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
-import com.elingo.vocabulary.dto.request.CreateCardPhoneticRequest;
-import com.elingo.vocabulary.dto.request.CreateCardRequest;
-import com.elingo.vocabulary.dto.request.UpdateCardRequest;
+import com.elingo.vocabulary.config.FlashcardProperties;
+import com.elingo.vocabulary.dto.request.CreateUserCardRequest;
+import com.elingo.vocabulary.dto.request.UpdateUserCardRequest;
 import com.elingo.vocabulary.dto.response.CardResponse;
-import com.elingo.vocabulary.entity.*;
+import com.elingo.vocabulary.entity.Card;
+import com.elingo.vocabulary.entity.Topic;
 import com.elingo.vocabulary.mapper.CardMapper;
 import com.elingo.vocabulary.repository.CardRepository;
 import com.elingo.vocabulary.repository.DeckRepository;
 import com.elingo.vocabulary.repository.TopicRepository;
 import com.elingo.vocabulary.service.CardService;
+import com.elingo.vocabulary.service.DeckAccessPolicy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "CARD-SERVICE")
 public class CardServiceImpl implements CardService {
-    private final CardRepository cardRepository;
-    private final TopicRepository topicRepository;
+
     private final DeckRepository deckRepository;
+    private final TopicRepository topicRepository;
+    private final CardRepository cardRepository;
+    private final FlashcardProperties flashcardProperties;
+    private final DeckAccessPolicy accessPolicy;
     private final CardMapper cardMapper;
 
     @Override
     @Transactional
-    public CardResponse createUserCard(CreateCardRequest request, Long currentUserId) {
-        Card card = insertCardCoreLogic(request, OwnerType.USER, currentUserId);
-        return cardMapper.toCardResponse(card);
-    }
-
-    @Override
-    @Transactional
-    public CardResponse createSystemCard(CreateCardRequest request) {
-        Card card = insertCardCoreLogic(request, OwnerType.SYSTEM, null);
-        return cardMapper.toCardResponse(card);
-    }
-
-    private Card insertCardCoreLogic(CreateCardRequest request, OwnerType expectedOwnerType, Long currentUserId) {
+    public CardResponse createUserCard(Long userId, CreateUserCardRequest request) {
         Topic topic = topicRepository.findById(request.topicId())
                 .orElseThrow(() -> new AppException(AppError.TOPIC_NOT_FOUND));
+        DeckRepository.DeckAccessView deckView = assertCanEditByTopic(userId, request.topicId());
+        Long deckId = deckView.getId();
 
-        Deck deck = topic.getDeck();
+        long currentCardCount = cardRepository.countByTopicId(request.topicId());
+        int maxCards = flashcardProperties.getUserDeckLimit().getMaxCardsPerTopic();
+        if (currentCardCount >= maxCards)
+            throw new AppException(AppError.CARD_LIMIT_EXCEEDED);
 
-        if (deck.getOwnerType() != expectedOwnerType) {
-            throw new AppException(AppError.CARD_ACCESS_DENIED);
-        }
-        if (expectedOwnerType == OwnerType.USER && !deck.getOwner().getId().equals(currentUserId)) {
-            throw new AppException(AppError.CARD_ACCESS_DENIED);
-        }
 
-        Card card = new Card();
-        card.setDeck(deck);
+        int nextOrder = calculateNextOrder(request.topicId());
+        Card card = cardMapper.toCard(request);
+        card.setDeck(deckRepository.getReferenceById(deckId));
         card.setTopic(topic);
-        card.setOrder(cardRepository.findMaxOrderByTopicId(topic.getId()) + 1);
-        card.setTerm(request.term());
-        card.setPos(request.pos());
-        card.setTranslation(request.translation());
-        card.setExplanationVi(request.explanationVi());
-        card.setExplanationEn(request.explanationEn());
-        card.setExamplesVi(request.examplesVi());
-        card.setExamplesEn(request.examplesEn());
-        card.setImageUrl(request.imageUrl());
+        card.setOrder(nextOrder);
+        card.setPhonetics(new ArrayList<>());
 
-        if (request.phonetics() != null) {
-            request.phonetics().forEach(p -> {
-                CardPhonetic phonetic = new CardPhonetic();
-                phonetic.setText(p.text());
-                phonetic.setAudioUrl(p.audioUrl());
-                phonetic.setLocale(p.locale());
-                phonetic.setCard(card);
-                card.getPhonetics().add(phonetic);
-            });
-        }
-        cardRepository.save(card);
+        Card savedCard = cardRepository.save(card);
+        topicRepository.adjustCardCount(request.topicId(), 1);
+        deckRepository.adjustCardCount(deckId, 1);
 
-        deck.setCardCount(deck.getCardCount() + 1);
-        deckRepository.save(deck);
-
-        topic.setCardCount(topic.getCardCount() + 1);
-        topicRepository.save(topic);
-        return card;
+        log.info("User card created cardId={} topicId={} deckId={}",
+                savedCard.getId(), request.topicId(), deckId);
+        return cardMapper.toCardResponse(savedCard);
     }
 
     @Override
     @Transactional
-    public CardResponse updateUserCard(Long cardId, UpdateCardRequest request, Long currentUserId) {
+    public CardResponse updateUserCard(Long userId, Long cardId, UpdateUserCardRequest request) {
+        assertCanEditByCard(userId, cardId);
+
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new AppException(AppError.CARD_NOT_FOUND));
 
-        Deck deck = card.getDeck();
-        if (deck.getOwnerType() != OwnerType.USER || !deck.getOwner().getId().equals(currentUserId)) {
-            throw new AppException(AppError.CARD_ACCESS_DENIED);
-        }
-        return cardMapper.toCardResponse(updateCardCoreLogic(card, request));
+        cardMapper.updateCard(card, request);
+
+        log.info("User card updated cardId={}", cardId);
+        return cardMapper.toCardResponse(card);
     }
 
     @Override
     @Transactional
-    public CardResponse updateSystemCard(Long cardId, UpdateCardRequest request) {
+    public void deleteUserCard(Long userId, Long cardId) {
+        DeckRepository.DeckAccessView deckView = assertCanEditByCard(userId, cardId);
+        Long deckId = deckView.getId();
+
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new AppException(AppError.CARD_NOT_FOUND));
 
-        if (card.getDeck().getOwnerType() != OwnerType.SYSTEM) {
-            throw new AppException(AppError.CARD_ACCESS_DENIED);
-        }
-        return cardMapper.toCardResponse(updateCardCoreLogic(card, request));
+        Long topicId = card.getTopic().getId();
+
+        cardRepository.delete(card);
+        topicRepository.adjustCardCount(topicId, -1);
+        deckRepository.adjustCardCount(deckId, -1);
+
+        log.info("User card deleted cardId={} topicId={} deckId={}", cardId, topicId, deckId);
     }
 
-    private Card updateCardCoreLogic(Card card, UpdateCardRequest request) {
-        Integer requestedOrder = request.order();
-        if (requestedOrder != null && !requestedOrder.equals(card.getOrder())) {
-            Long topicId = card.getTopic().getId();
-            Integer maxOrder = cardRepository.findMaxOrderByTopicId(topicId);
-            if (requestedOrder < 0 || requestedOrder > maxOrder) {
-                throw new AppException(AppError.CARD_ORDER_INVALID);
-            }
-
-            if (requestedOrder < card.getOrder()) {
-                cardRepository.shiftOrdersDown(topicId, requestedOrder, card.getOrder());
-            } else {
-                cardRepository.shiftOrdersUp(topicId, card.getOrder(), requestedOrder);
-            }
-            card.setOrder(requestedOrder);
-        }
-
-        card.setTerm(request.term());
-        card.setPos(request.pos());
-        card.setTranslation(request.translation());
-        card.setExplanationVi(request.explanationVi());
-        card.setExplanationEn(request.explanationEn());
-        card.setExamplesVi(request.examplesVi());
-        card.setExamplesEn(request.examplesEn());
-        card.setImageUrl(request.imageUrl());
-
-        if (request.phonetics() != null) {
-            updatePhonetics(card, request.phonetics());
-        }
-        return cardRepository.save(card);
+    private DeckRepository.DeckAccessView assertCanEditByTopic(Long userId, Long topicId) {
+        DeckRepository.DeckAccessView view = deckRepository.findAccessViewByTopicId(topicId)
+                .orElseThrow(() -> new AppException(AppError.TOPIC_NOT_FOUND));
+        accessPolicy.assertCanEdit(view, userId);
+        return view;
     }
-
-    private void updatePhonetics(
-            Card card,
-            List<CreateCardPhoneticRequest> requests
-    ) {
-        // Mỗi locale xác định một phonetic của card
-        Map<String, CardPhonetic> existingByLocale =
-                card.getPhonetics().stream()
-                        .collect(Collectors.toMap(
-                                CardPhonetic::getLocale,
-                                Function.identity()
-                        ));
-
-        Set<String> requestedLocales = requests.stream()
-                .map(CreateCardPhoneticRequest::locale)
-                .collect(Collectors.toSet());
-
-        // Không cho phép một locale xuất hiện nhiều lần
-        if (requestedLocales.size() != requests.size()) {
-            throw new AppException(AppError.DUPLICATE_CARD_PHONETIC_LOCALE);
-        }
-
-        // Xóa các phonetic không còn được gửi lên
-        card.getPhonetics().removeIf(
-                p -> !requestedLocales.contains(
-                        p.getLocale()
-                )
-        );
-
-        for (CreateCardPhoneticRequest request : requests) {
-            String locale = request.locale();
-            CardPhonetic phonetic = existingByLocale.get(locale);
-
-            if (phonetic == null) {
-                // Locale mới: tạo phonetic mới
-                phonetic = new CardPhonetic();
-                phonetic.setCard(card);
-                card.getPhonetics().add(phonetic);
-            }
-
-            // Locale đã tồn tại: cập nhật bản ghi cũ
-            phonetic.setText(request.text());
-            phonetic.setAudioUrl(request.audioUrl());
-            phonetic.setLocale(locale);
-        }
-    }
-
-    @Override
-    @Transactional
-    public void deleteCard(Long cardId, Long currentUserId, boolean isAdmin) {
-        Card card = cardRepository.findById(cardId)
+    private DeckRepository.DeckAccessView assertCanEditByCard(Long userId, Long cardId) {
+        DeckRepository.DeckAccessView view = deckRepository.findAccessViewByCardId(cardId)
                 .orElseThrow(() -> new AppException(AppError.CARD_NOT_FOUND));
-
-        Deck deck = card.getDeck();
-        Topic topic = card.getTopic();
-
-        if (!isAdmin) {
-            if (deck.getOwnerType() != OwnerType.USER || !deck.getOwner().getId().equals(currentUserId)) {
-                throw new AppException(AppError.CARD_ACCESS_DENIED);
-            }
-        } else {
-            if (deck.getOwnerType() != OwnerType.SYSTEM) {
-                throw new AppException(AppError.CARD_ACCESS_DENIED);
-            }
-        }
-
-        deck.setCardCount(deck.getCardCount() - 1);
-        deckRepository.save(deck);
-        topic.setCardCount(topic.getCardCount() - 1);
-        topicRepository.save(topic);
-
-        if (deck.getPublishedAt() != null) {
-            card.setIsDeleted(true);
-            cardRepository.save(card);
-
-            log.info("Card Soft-deleted successfully, cardId={}", cardId);
-        } else {
-            cardRepository.delete(card);
-
-            log.info("Card Hard-deleted successfully, cardId={}", cardId);
-        }
-
-        cardRepository.compactOrdersAfterDelete(topic.getId(), card.getOrder());
+        accessPolicy.assertCanEdit(view, userId);
+        return view;
     }
-
+    private int calculateNextOrder(Long topicId) {
+        return cardRepository.findFirstByTopicIdOrderByOrderDesc(topicId)
+                .map(c -> c.getOrder() + 1)
+                .orElse(1);
+    }
 }

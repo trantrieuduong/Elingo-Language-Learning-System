@@ -3,7 +3,7 @@ import VocabularyFlashCard from '../../../../components/VocabularyFlashCard/Voca
 import './UserCardItem.css'
 
 function UserCardItem({ card, onEdit, onDelete }) {
-  const { t } = useTranslation('learning')
+  const { t } = useTranslation(['learning', 'common'])
 
   const frontMeta = (
     <>
@@ -12,7 +12,7 @@ function UserCardItem({ card, onEdit, onDelete }) {
         <span className="user-card-item__order text-body-sm">
           {t('userCards.cardOrder', { order: card.order })}
         </span>
-        {card.flagsStarred && (
+        {(card.state?.starred || card.flagsStarred) && (
           <span className="user-card-item__star" aria-label={t('userCards.starred')}>
             <span className="material-symbols-outlined" aria-hidden="true">
               star
@@ -38,7 +38,7 @@ function UserCardItem({ card, onEdit, onDelete }) {
           className="btn-icon"
           onClick={() => onEdit?.(card)}
           aria-label={t('userCards.editCard', { term: card.term })}
-          title={t('userCards.edit')}
+          title={t('common:edit')}
         >
           <span className="material-symbols-outlined" aria-hidden="true">
             edit
@@ -49,7 +49,7 @@ function UserCardItem({ card, onEdit, onDelete }) {
           className="btn-icon user-card-item__delete"
           onClick={() => onDelete?.(card)}
           aria-label={t('userCards.deleteCard', { term: card.term })}
-          title={t('userCards.delete')}
+          title={t('common:delete')}
         >
           <span className="material-symbols-outlined" aria-hidden="true">
             delete

@@ -2,8 +2,6 @@ package com.elingo.learning.flashcard.entity;
 
 import com.elingo.user.entity.User;
 import com.elingo.vocabulary.entity.Card;
-import com.elingo.vocabulary.entity.Deck;
-import com.elingo.vocabulary.entity.Topic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -25,6 +23,8 @@ import lombok.experimental.FieldDefaults;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import com.elingo.common.entity.BaseEntity;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(
@@ -45,24 +45,14 @@ import com.elingo.common.entity.BaseEntity;
 public class UserCardState extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "card_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     Card card;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "deck_id", nullable = false)
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    Deck deck;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "topic_id")
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    Topic topic;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     User user;

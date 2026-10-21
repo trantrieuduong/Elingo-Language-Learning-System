@@ -5,6 +5,7 @@ import {
   getUserDecksApi,
   createUserDeckApi,
   updateUserDeckApi,
+  publishUserDeckApi,
   deleteUserDeckApi,
   getTagsApi,
   getCefrLevelsApi,
@@ -171,11 +172,11 @@ function DeckListPage({ onNavigate }) {
           setUserDecks(content)
           setUserDeckTotalPages(response.data.totalPages)
         } else {
-          setUserDecksError(response.message || 'Không thể tải danh sách bộ từ của bạn')
+          setUserDecksError(response.message || t('userDeck.loadError'))
         }
       } catch (err) {
         console.error('Failed to fetch user decks:', err)
-        setUserDecksError('Đã có lỗi xảy ra khi tải bộ từ của bạn')
+        setUserDecksError(t('userDeck.loadError'))
       } finally {
         setUserDecksLoading(false)
       }
@@ -223,6 +224,13 @@ function DeckListPage({ onNavigate }) {
         res = await createUserDeckApi(formData)
       } else {
         res = await updateUserDeckApi(selectedDeckForEdit.id, formData)
+        if (formData.status && formData.status !== selectedDeckForEdit.status) {
+          try {
+            await publishUserDeckApi(selectedDeckForEdit.id, formData.status === 'PUBLISHED')
+          } catch (pubErr) {
+            console.warn('Publish status update failed:', pubErr)
+          }
+        }
       }
 
       if (res.success) {
@@ -263,19 +271,19 @@ function DeckListPage({ onNavigate }) {
 
   // Chuyển đổi trạng thái nhanh (DRAFT <-> PUBLISHED)
   const handleToggleStatus = async (deck) => {
-    const newStatus = deck.status === 'PUBLISHED' ? 'DRAFT' : 'PUBLISHED'
+    const isCurrentlyPublished = deck.status === 'PUBLISHED'
     try {
-      const res = await updateUserDeckApi(deck.id, {
-        title: deck.title,
-        slug: deck.slug,
-        status: newStatus,
-      })
-      if (res.success) {
+      const res = await publishUserDeckApi(deck.id, !isCurrentlyPublished)
+      if (res?.success) {
         setToastMessage(t('userDeck.statusChanged'))
         setUserDeckRefreshTrigger((prev) => prev + 1)
+      } else {
+        setToastMessage(res?.message || t('userDeck.statusChangeError'))
       }
     } catch (err) {
       console.error('Lỗi khi cập nhật trạng thái:', err)
+      const errorMsg = err.response?.data?.message || err.message || t('userDeck.statusChangeError')
+      setToastMessage(errorMsg)
     }
   }
 
@@ -436,7 +444,7 @@ function DeckListPage({ onNavigate }) {
                   className="btn-secondary"
                   onClick={() => setRetryCount((c) => c + 1)}
                 >
-                  {t('deckList.retry')}
+                  {t('common:retry')}
                 </button>
               </div>
             ) : decks.length === 0 ? (
@@ -549,7 +557,7 @@ function DeckListPage({ onNavigate }) {
                   className="btn-secondary"
                   onClick={() => setUserDeckRefreshTrigger((c) => c + 1)}
                 >
-                  {t('deckList.retry')}
+                  {t('common:retry')}
                 </button>
               </div>
             ) : userDecks.length === 0 ? (
@@ -606,7 +614,7 @@ function DeckListPage({ onNavigate }) {
         title={t('userDeck.deleteModalTitle')}
         message={t('userDeck.deleteModalMsg', { title: deckToDelete?.title || '' })}
         confirmText={t('userDeck.deleteConfirm')}
-        cancelText={t('userDeck.cancel')}
+        cancelText={t('common:cancel')}
         isDanger={true}
         isLoading={isDeleting}
         onConfirm={handleConfirmDelete}

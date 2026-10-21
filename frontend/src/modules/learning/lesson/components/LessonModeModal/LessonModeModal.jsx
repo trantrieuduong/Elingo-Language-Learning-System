@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import './LessonModeModal.css'
 
 function LessonModeModal({ isOpen, lesson, onSelectMode, onClose }) {
-  const { t } = useTranslation(['learning'])
+  const { t } = useTranslation(['learning', 'common'])
 
   // Đóng modal khi nhấn Escape
   useEffect(() => {
@@ -81,7 +81,7 @@ function LessonModeModal({ isOpen, lesson, onSelectMode, onClose }) {
             type="button"
             className="btn-icon"
             onClick={onClose}
-            aria-label={t('lessonMode.close')}
+            aria-label={t('common:close')}
           >
             <span className="material-symbols-outlined">close</span>
           </button>

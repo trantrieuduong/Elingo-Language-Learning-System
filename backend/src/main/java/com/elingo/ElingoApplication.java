@@ -1,8 +1,8 @@
 package com.elingo;
 
+import com.elingo.vocabulary.config.FlashcardProperties;
 import com.elingo.gamification.config.GamificationProperties;
 import com.elingo.learning.lesson.config.LessonProperties;
-import com.elingo.learning.flashcard.config.FlashcardProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

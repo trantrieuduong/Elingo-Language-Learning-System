@@ -3,18 +3,20 @@ package com.elingo.vocabulary.controller;
 import com.elingo.common.annotation.CurrentUserId;
 import com.elingo.common.dto.ApiResponse;
 import com.elingo.common.dto.PageResponse;
-import com.elingo.vocabulary.dto.request.CreateDeckRequest;
-import com.elingo.vocabulary.dto.request.GetPublishedDecksRequest;
-import com.elingo.vocabulary.dto.request.UpdateDeckRequest;
+import com.elingo.vocabulary.dto.request.DeckSearchRequest;
+import com.elingo.vocabulary.dto.request.UserDeckPublicationRequest;
+import com.elingo.vocabulary.dto.request.UserDeckRequest;
 import com.elingo.vocabulary.dto.response.DeckResponse;
 import com.elingo.vocabulary.service.DeckService;
 import com.elingo.vocabulary.dto.response.TopicResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
-import com.elingo.common.annotation.IsAdmin;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,15 +26,17 @@ import java.util.List;
 @RequiredArgsConstructor
 @Tag(name = "Deck Controller")
 public class DeckController {
+
     private final DeckService deckService;
 
     @GetMapping
-    @Operation(summary = "Get all published decks with optional filters (cefrCode, tagCode, keyword) and pagination (9 items/page)")
-    public ApiResponse<PageResponse<DeckResponse>> getAllPublishedDecks(
-            @ModelAttribute @Valid GetPublishedDecksRequest request,
+    @Operation(summary = "Get all published decks with optional filters and pagination")
+    public ApiResponse<PageResponse<DeckResponse>> getPublishedDecks(
+            @ModelAttribute @Valid DeckSearchRequest request,
+            @PageableDefault(size = 20, sort = "publishedAt", direction = Sort.Direction.DESC) Pageable pageable,
             @CurrentUserId Long currentUserId
-    ) {// @ModelAttribute là một "bộ gom dữ liệu" giúp không phải viết một hàng dài các @RequestParam
-        PageResponse<DeckResponse> decks = deckService.getAllPublishedDecks(currentUserId, request);
+    ) {
+        PageResponse<DeckResponse> decks = deckService.getPublishedDecks(request, pageable, currentUserId);
         return ApiResponse.<PageResponse<DeckResponse>>builder()
                 .success(true)
                 .data(decks)
@@ -40,11 +44,23 @@ public class DeckController {
     }
 
     @GetMapping("/{deckId}/topics")
-    @Operation(summary = "Get all topics belonging to a deck")
-    public ApiResponse<List<TopicResponse>> getTopicsByDeck(
+    @Operation(summary = "Get all topics belonging to a deck by id")
+    public ApiResponse<List<TopicResponse>> getTopicsByDeckId(
             @PathVariable Long deckId,
             @CurrentUserId Long currentUserId) {
-        List<TopicResponse> topics = deckService.getTopicsByDeck(currentUserId, deckId);
+        List<TopicResponse> topics = deckService.getTopicsByDeckId(deckId, currentUserId);
+        return ApiResponse.<List<TopicResponse>>builder()
+                .success(true)
+                .data(topics)
+                .build();
+    }
+
+    @GetMapping("/slug/{slug}/topics")
+    @Operation(summary = "Get all topics belonging to a deck by slug")
+    public ApiResponse<List<TopicResponse>> getTopicsByDeckSlug(
+            @PathVariable String slug,
+            @CurrentUserId Long currentUserId) {
+        List<TopicResponse> topics = deckService.getTopicsByDeckSlug(slug, currentUserId);
         return ApiResponse.<List<TopicResponse>>builder()
                 .success(true)
                 .data(topics)
@@ -52,66 +68,47 @@ public class DeckController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('USER')")
-    @Operation(summary = "Create a new user deck (User only)")
+    @Operation(summary = "Create user deck")
     public ApiResponse<DeckResponse> createUserDeck(
-            @RequestBody @Valid CreateDeckRequest request,
+            @Valid @RequestBody UserDeckRequest request,
             @CurrentUserId Long currentUserId) {
-        DeckResponse deck = deckService.createUserDeck(request, currentUserId);
         return ApiResponse.<DeckResponse>builder()
                 .success(true)
-                .data(deck)
-                .build();
-    }
-
-    @PostMapping("/system")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Create a new system deck (Admin only)")
-    public ApiResponse<DeckResponse> createSystemDeck(
-            @RequestBody @Valid CreateDeckRequest request) {
-        DeckResponse deck = deckService.createSystemDeck(request);
-        return ApiResponse.<DeckResponse>builder()
-                .success(true)
-                .data(deck)
+                .data(deckService.createUserDeck(currentUserId, request))
                 .build();
     }
 
     @PutMapping("/{deckId}")
-    @PreAuthorize("hasRole('USER')")
-    @Operation(summary = "Update a user deck (User only)")
+    @Operation(summary = "Update user deck")
     public ApiResponse<DeckResponse> updateUserDeck(
-            @PathVariable Long deckId,
-            @RequestBody @Valid UpdateDeckRequest request,
+            @PathVariable @Positive(message = "INVALID_REQUEST") Long deckId,
+            @Valid @RequestBody UserDeckRequest request,
             @CurrentUserId Long currentUserId) {
-        DeckResponse deck = deckService.updateUserDeck(deckId, request, currentUserId);
         return ApiResponse.<DeckResponse>builder()
                 .success(true)
-                .data(deck)
-                .build();
-    }
-
-    @PutMapping("/{deckId}/system")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Update a system deck (Admin only)")
-    public ApiResponse<DeckResponse> updateSystemDeck(
-            @PathVariable Long deckId,
-            @RequestBody @Valid UpdateDeckRequest request) {
-        DeckResponse deck = deckService.updateSystemDeck(deckId, request);
-        return ApiResponse.<DeckResponse>builder()
-                .success(true)
-                .data(deck)
+                .data(deckService.updateUserDeck(currentUserId, deckId, request))
                 .build();
     }
 
     @DeleteMapping("/{deckId}")
-    @Operation(summary = "Delete a deck (Soft delete if published, Hard delete if draft)")
-    public ApiResponse<Void> deleteDeck(
-            @PathVariable Long deckId,
-            @CurrentUserId Long currentUserId,
-            @IsAdmin boolean isAdmin) {
-        deckService.deleteDeck(deckId, currentUserId, isAdmin);
+    @Operation(summary = "Hard delete user deck")
+    public ApiResponse<Void> deleteUserDeck(
+            @PathVariable @Positive(message = "INVALID_REQUEST") Long deckId,
+            @CurrentUserId Long currentUserId) {
+        deckService.deleteUserDeck(currentUserId, deckId);
         return ApiResponse.<Void>builder()
                 .success(true)
+                .build();
+    }
+
+    @PutMapping("/{deckId}/publication")
+    public ApiResponse<DeckResponse> setUserDeckPublication(
+            @PathVariable @Positive(message = "INVALID_REQUEST") Long deckId,
+            @Valid @RequestBody UserDeckPublicationRequest request,
+            @CurrentUserId Long currentUserId) {
+        return ApiResponse.<DeckResponse>builder()
+                .success(true)
+                .data(deckService.setUserDeckPublished(currentUserId, deckId, request.published()))
                 .build();
     }
 }

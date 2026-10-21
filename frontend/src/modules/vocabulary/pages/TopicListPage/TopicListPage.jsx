@@ -2,11 +2,16 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   getUserDecksApi,
+  getDecksApi,
   getTopicsApi,
   createTopicApi,
   updateTopicApi,
   deleteTopicApi,
   updateUserDeckApi,
+  getCardsByTopicApi,
+  createUserCardApi,
+  updateUserCardApi,
+  deleteUserCardApi,
 } from '../../vocabularyApi';
 import Pagination from '../../../../components/Pagination/Pagination';
 import Modal from '../../../../components/Modal/Modal';
@@ -17,7 +22,6 @@ import TopicFormModal from '../../components/TopicFormModal/TopicFormModal';
 import DeckFormModal from '../../components/DeckFormModal/DeckFormModal';
 import UserCardFormModal from '../../components/UserCardFormModal/UserCardFormModal';
 import UserCardItem from '../../components/UserCardItem/UserCardItem';
-import { getMockCardsForTopic } from '../../userCardMockData';
 import './TopicListPage.css';
 
 const LIMIT = 9;
@@ -39,6 +43,11 @@ function TopicListPage({ deckId, onNavigate }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // States danh sách thẻ của chủ đề được chọn
+  const [topicCards, setTopicCards] = useState([]);
+  const [cardsLoading, setCardsLoading] = useState(false);
+  const [cardRefreshTrigger, setCardRefreshTrigger] = useState(0);
+
   // States filter và tìm kiếm
   const [cardSearchQuery, setCardSearchQuery] = useState('');
 
@@ -48,14 +57,14 @@ function TopicListPage({ deckId, onNavigate }) {
   const [totalElements, setTotalElements] = useState(0);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // States modal tạo / sửa
+  // States modal tạo / sửa topic
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formMode, setFormMode] = useState('create'); // 'create' | 'edit'
   const [editingTopic, setEditingTopic] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
 
-  // States modal xóa
+  // States modal xóa topic
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [deletingTopic, setDeletingTopic] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -63,16 +72,21 @@ function TopicListPage({ deckId, onNavigate }) {
   // States thông báo thành công
   const [successMsg, setSuccessMsg] = useState('');
   const [isDeckFormOpen, setIsDeckFormOpen] = useState(false);
+
+  // States modal tạo / sửa card
   const [isCardFormOpen, setIsCardFormOpen] = useState(false);
   const [cardToEdit, setCardToEdit] = useState(null);
   const [cardToDelete, setCardToDelete] = useState(null);
+  const [isCardSubmitting, setIsCardSubmitting] = useState(false);
+  const [isDeletingCard, setIsDeletingCard] = useState(false);
 
   const selectedTopic =
     topics.find((topic) => String(topic.id) === String(selectedTopicId)) ?? null;
-  const topicCards = getMockCardsForTopic(selectedTopic);
-  const normalizedCardSearchQuery = cardSearchQuery.trim().toLocaleLowerCase();
+
+  const normalizedCardSearchQuery = cardSearchQuery.trim().toLowerCase();
   const filteredTopicCards = topicCards.filter((card) =>
-    card.term.toLocaleLowerCase().includes(normalizedCardSearchQuery)
+    card.term?.toLowerCase().includes(normalizedCardSearchQuery) ||
+    card.translation?.toLowerCase().includes(normalizedCardSearchQuery)
   );
 
   useEffect(() => {
@@ -80,9 +94,15 @@ function TopicListPage({ deckId, onNavigate }) {
       setDeckLoading(true);
       setDeckLoadError('');
       try {
-        const response = await getUserDecksApi({ page: 1, limit: 100 });
-        const userDecks = response?.data?.content ?? [];
-        setDeck(userDecks.find((userDeck) => String(userDeck.id) === String(deckId)) ?? null);
+        const [userDecksRes, pubDecksRes] = await Promise.allSettled([
+          getUserDecksApi({ page: 1, limit: 100 }),
+          getDecksApi({ page: 1, limit: 100 }),
+        ]);
+        const allDecks = [
+          ...(userDecksRes.value?.data?.content || []),
+          ...(pubDecksRes.value?.data?.content || []),
+        ];
+        setDeck(allDecks.find((userDeck) => String(userDeck.id) === String(deckId)) ?? null);
       } catch {
         setDeck(null);
         setDeckLoadError(t('topic.deckLoadError'));
@@ -123,6 +143,30 @@ function TopicListPage({ deckId, onNavigate }) {
     fetchTopics();
   }, [deckId, page, refreshTrigger, t]);
 
+  // ── Fetch cards của selected topic từ BE ──
+  useEffect(() => {
+    if (!selectedTopicId) {
+      setTopicCards([]);
+      return;
+    }
+    const fetchCards = async () => {
+      setCardsLoading(true);
+      try {
+        const res = await getCardsByTopicApi(selectedTopicId);
+        if (res?.success && Array.isArray(res.data)) {
+          setTopicCards(res.data);
+        } else {
+          setTopicCards([]);
+        }
+      } catch {
+        setTopicCards([]);
+      } finally {
+        setCardsLoading(false);
+      }
+    };
+    fetchCards();
+  }, [selectedTopicId, cardRefreshTrigger]);
+
   // Auto-dismiss thông báo thành công sau 3 giây
   useEffect(() => {
     if (!successMsg) return;
@@ -130,7 +174,7 @@ function TopicListPage({ deckId, onNavigate }) {
     return () => clearTimeout(timer);
   }, [successMsg]);
 
-  // ── Handlers ──
+  // ── Handlers Topic ──
   const handleOpenCreate = () => {
     setFormMode('create');
     setEditingTopic(null);
@@ -227,9 +271,53 @@ function TopicListPage({ deckId, onNavigate }) {
     return response;
   };
 
+  // ── Handlers Card ──
   const handleCloseCardForm = () => {
+    if (isCardSubmitting) return;
     setIsCardFormOpen(false);
     setCardToEdit(null);
+  };
+
+  const handleCardFormSubmit = async (formData) => {
+    setIsCardSubmitting(true);
+    try {
+      let res;
+      if (cardToEdit) {
+        res = await updateUserCardApi(cardToEdit.id, formData);
+      } else {
+        res = await createUserCardApi({ ...formData, topicId: selectedTopicId });
+      }
+
+      if (res?.success) {
+        setIsCardFormOpen(false);
+        setCardToEdit(null);
+        setSuccessMsg(cardToEdit ? t('userCards.updateSuccess') : t('userCards.createSuccess'));
+        setCardRefreshTrigger((prev) => prev + 1);
+        setRefreshTrigger((prev) => prev + 1); // update cardCount on topics/deck
+        return res;
+      }
+      return res;
+    } finally {
+      setIsCardSubmitting(false);
+    }
+  };
+
+  const handleConfirmDeleteCard = async () => {
+    if (!cardToDelete) return;
+    setIsDeletingCard(true);
+    try {
+      const res = await deleteUserCardApi(cardToDelete.id);
+      if (res?.success) {
+        setCardToDelete(null);
+        setSuccessMsg(t('userCards.deleteSuccess'));
+        setCardRefreshTrigger((prev) => prev + 1);
+        setRefreshTrigger((prev) => prev + 1);
+      }
+    } catch (err) {
+      console.error('Lỗi khi xóa thẻ:', err);
+    } finally {
+      setIsDeletingCard(false);
+    }
   };
 
   return (
@@ -316,7 +404,7 @@ function TopicListPage({ deckId, onNavigate }) {
                     value={cardSearchQuery}
                     onChange={(event) => setCardSearchQuery(event.target.value)}
                     onClear={() => setCardSearchQuery('')}
-                    clearLabel={t('userCards.clearSearch')}
+                    clearLabel={t('common:clearSearch')}
                   />
                   <button
                     type="button"
@@ -343,7 +431,7 @@ function TopicListPage({ deckId, onNavigate }) {
                       className="btn-secondary"
                       onClick={() => setRefreshTrigger((prev) => prev + 1)}
                     >
-                      {t('topic.retry')}
+                      {t('common:retry')}
                     </button>
                   </div>
                 ) : topics.length === 0 ? (
@@ -407,28 +495,34 @@ function TopicListPage({ deckId, onNavigate }) {
                     </div>
                   </div>
 
-                  <div
-                    className={`topic-list-page__cards-grid${topicCards.length === 0 ? ' topic-list-page__cards-grid--empty' : ''}`}
-                  >
-                    {filteredTopicCards.length > 0 ? (
-                      filteredTopicCards.map((card) => (
-                        <UserCardItem
-                          key={card.id}
-                          card={{ ...card, topicName: selectedTopic.name }}
-                          onEdit={handleOpenEditCard}
-                          onDelete={setCardToDelete}
-                        />
-                      ))
-                    ) : (
-                      <div className="topic-list-page__cards-empty glass-well">
-                        <p className="text-body-md">
-                          {topicCards.length > 0 && normalizedCardSearchQuery
-                            ? t('userCards.noSearchResults')
-                            : t('userCards.emptyTopicCards')}
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                  {cardsLoading ? (
+                    <div className="page-loading" style={{ minHeight: 120 }}>
+                      <div className="app-loading-spinner" />
+                    </div>
+                  ) : (
+                    <div
+                      className={`topic-list-page__cards-grid${topicCards.length === 0 ? ' topic-list-page__cards-grid--empty' : ''}`}
+                    >
+                      {filteredTopicCards.length > 0 ? (
+                        filteredTopicCards.map((card) => (
+                          <UserCardItem
+                            key={card.id}
+                            card={{ ...card, topicName: selectedTopic.name }}
+                            onEdit={handleOpenEditCard}
+                            onDelete={setCardToDelete}
+                          />
+                        ))
+                      ) : (
+                        <div className="topic-list-page__cards-empty glass-well">
+                          <p className="text-body-md">
+                            {topicCards.length > 0 && normalizedCardSearchQuery
+                              ? t('userCards.noSearchResults')
+                              : t('userCards.emptyTopicCards')}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </section>
               )}
             </div>
@@ -458,7 +552,7 @@ function TopicListPage({ deckId, onNavigate }) {
         title={t('topic.deleteModalTitle')}
         message={t('topic.deleteModalMsg', { name: deletingTopic?.name ?? '' })}
         confirmText={t('topic.deleteConfirm')}
-        cancelText={t('topic.cancel')}
+        cancelText={t('common:cancel')}
         onConfirm={handleConfirmDelete}
         onCancel={() => {
           if (!isDeleting) {
@@ -484,18 +578,23 @@ function TopicListPage({ deckId, onNavigate }) {
         card={cardToEdit}
         topics={selectedTopic ? [selectedTopic] : []}
         isTopicLocked
+        onSubmit={handleCardFormSubmit}
         onClose={handleCloseCardForm}
+        isSubmitting={isCardSubmitting}
       />
 
       <Modal
         isOpen={!!cardToDelete}
         title={t('userCards.deleteModalTitle')}
         message={t('userCards.deleteModalMessage', { term: cardToDelete?.term ?? '' })}
-        confirmText={t('userCards.delete')}
-        cancelText={t('topic.cancel')}
+        confirmText={t('common:delete')}
+        cancelText={t('common:cancel')}
         isDanger
-        onConfirm={() => setCardToDelete(null)}
-        onCancel={() => setCardToDelete(null)}
+        isLoading={isDeletingCard}
+        onConfirm={handleConfirmDeleteCard}
+        onCancel={() => {
+          if (!isDeletingCard) setCardToDelete(null);
+        }}
       />
     </main>
   );
