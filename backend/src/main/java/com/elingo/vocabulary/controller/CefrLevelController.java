@@ -1,6 +1,5 @@
 package com.elingo.vocabulary.controller;
 
-import com.elingo.common.annotation.CurrentUserId;
 import com.elingo.common.dto.ApiResponse;
 import com.elingo.vocabulary.dto.response.CefrLevelResponse;
 import com.elingo.vocabulary.service.CefrLevelService;
@@ -18,15 +17,15 @@ import java.util.List;
 @RequiredArgsConstructor
 @Tag(name = "CEFR Level Controller")
 public class CefrLevelController {
+
     private final CefrLevelService cefrLevelService;
 
     @GetMapping
     @Operation(summary = "Get all CEFR levels")
-    public ApiResponse<List<CefrLevelResponse>> getAllCefrLevels(@CurrentUserId Long currentUserId) {
-        List<CefrLevelResponse> cefrLevels = cefrLevelService.getAllCefrLevels(currentUserId);
+    public ApiResponse<List<CefrLevelResponse>> getAllCefrLevels() {
         return ApiResponse.<List<CefrLevelResponse>>builder()
                 .success(true)
-                .data(cefrLevels)
+                .data(cefrLevelService.getAllCefrLevels())
                 .build();
     }
 }

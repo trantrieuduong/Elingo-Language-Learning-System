@@ -1,14 +1,12 @@
 package com.elingo.learning.flashcard.controller;
 
 import com.elingo.common.annotation.CurrentUserId;
+import com.elingo.common.dto.ApiResponse;
 import com.elingo.learning.flashcard.dto.request.SrsReviewRequest;
-import com.elingo.learning.flashcard.dto.response.ReviewCardResponse;
-import com.elingo.learning.flashcard.service.FlashcardService;
 import com.elingo.vocabulary.dto.response.CardResponse;
+import com.elingo.learning.flashcard.service.CardStateService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 
 import org.jspecify.annotations.NonNull;
@@ -33,7 +31,8 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -43,7 +42,7 @@ class FlashcardControllerTest {
     private MockMvc mockMvc;
 
     @Mock
-    private FlashcardService flashcardService;
+    private CardStateService cardStateService;
 
     @InjectMocks
     private FlashcardController flashcardController;
@@ -71,7 +70,6 @@ class FlashcardControllerTest {
                 .build();
     }
 
-
     @Nested
     @DisplayName("submitSrsReview")
     class SubmitSrsReviewTests {
@@ -81,13 +79,13 @@ class FlashcardControllerTest {
         void submitSrsReview_GradeAgain_Success() throws Exception {
             SrsReviewRequest request = new SrsReviewRequest(0);
 
-            mockMvc.perform(patch("/flashcards/{cardId}/srs", CARD_ID)
+            mockMvc.perform(post("/flashcards/{cardId}/srs", CARD_ID)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true));
 
-            verify(flashcardService).submitSrsReview(USER_ID, CARD_ID, request);
+            verify(cardStateService).submitReview(USER_ID, CARD_ID, request);
         }
 
         @Test
@@ -95,13 +93,13 @@ class FlashcardControllerTest {
         void submitSrsReview_GradeHard_Success() throws Exception {
             SrsReviewRequest request = new SrsReviewRequest(1);
 
-            mockMvc.perform(patch("/flashcards/{cardId}/srs", CARD_ID)
+            mockMvc.perform(post("/flashcards/{cardId}/srs", CARD_ID)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true));
 
-            verify(flashcardService).submitSrsReview(USER_ID, CARD_ID, request);
+            verify(cardStateService).submitReview(USER_ID, CARD_ID, request);
         }
 
         @Test
@@ -109,13 +107,13 @@ class FlashcardControllerTest {
         void submitSrsReview_GradeGood_Success() throws Exception {
             SrsReviewRequest request = new SrsReviewRequest(2);
 
-            mockMvc.perform(patch("/flashcards/{cardId}/srs", CARD_ID)
+            mockMvc.perform(post("/flashcards/{cardId}/srs", CARD_ID)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true));
 
-            verify(flashcardService).submitSrsReview(USER_ID, CARD_ID, request);
+            verify(cardStateService).submitReview(USER_ID, CARD_ID, request);
         }
 
         @Test
@@ -123,13 +121,13 @@ class FlashcardControllerTest {
         void submitSrsReview_GradeEasy_Success() throws Exception {
             SrsReviewRequest request = new SrsReviewRequest(3);
 
-            mockMvc.perform(patch("/flashcards/{cardId}/srs", CARD_ID)
+            mockMvc.perform(post("/flashcards/{cardId}/srs", CARD_ID)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true));
 
-            verify(flashcardService).submitSrsReview(USER_ID, CARD_ID, request);
+            verify(cardStateService).submitReview(USER_ID, CARD_ID, request);
         }
     }
 
@@ -140,12 +138,13 @@ class FlashcardControllerTest {
         @Test
         @DisplayName("Toggle star state successfully")
         void toggleStar_Success() throws Exception {
-            mockMvc.perform(patch("/flashcards/{cardId}/stars", CARD_ID)
-                            .contentType(MediaType.APPLICATION_JSON))
+            mockMvc.perform(put("/flashcards/stars")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"cardId\": " + CARD_ID + ", \"starred\": true}"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true));
 
-            verify(flashcardService).toggleStar(USER_ID, CARD_ID);
+            verify(cardStateService).setStarred(USER_ID, CARD_ID, true);
         }
     }
 
@@ -156,45 +155,53 @@ class FlashcardControllerTest {
         @Test
         @DisplayName("Toggle hidden state successfully")
         void toggleHidden_Success() throws Exception {
-            mockMvc.perform(patch("/flashcards/{cardId}/hidden", CARD_ID)
-                            .contentType(MediaType.APPLICATION_JSON))
+            mockMvc.perform(put("/flashcards/hidden")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"cardId\": " + CARD_ID + ", \"hidden\": true}"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true));
 
-            verify(flashcardService).toggleHide(USER_ID, CARD_ID);
+            verify(cardStateService).setHidden(USER_ID, CARD_ID, true);
         }
     }
 
     @Nested
-    @DisplayName("getCardsForReview")
-    class GetCardsForReviewTests {
+    @DisplayName("getDueCards")
+    class GetDueCardsTests {
 
         @Test
         @DisplayName("Get list of flashcards due for review successfully")
-        void getCardsForReview_Success() throws Exception {
+        void getDueCards_Success() throws Exception {
             CardResponse cardResponse = new CardResponse(
                     CARD_ID, 1, "hello", "verb", "chào",
                     "chào hỏi người khác", "greeting in English",
                     "chào mọi người", "hello everyone",
-                    "http://image.url", Collections.emptyList()
+                    null, List.of(), null
             );
-            ReviewCardResponse reviewCardResponse = new ReviewCardResponse(
-                    cardResponse, LocalDateTime.now(), true, false
-            );
-            List<ReviewCardResponse> responseMock = List.of(reviewCardResponse);
+            when(cardStateService.getDueCards(USER_ID, 100)).thenReturn(List.of(cardResponse));
 
-            when(flashcardService.getCardsForReview(USER_ID, 100)).thenReturn(responseMock);
-
-            mockMvc.perform(get("/flashcards/reviews")
+            mockMvc.perform(get("/flashcards/due")
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data[0].card.id").value(CARD_ID))
-                    .andExpect(jsonPath("$.data[0].card.term").value("hello"))
-                    .andExpect(jsonPath("$.data[0].flagsStarred").value(true))
-                    .andExpect(jsonPath("$.data[0].flagsHidden").value(false));
+                    .andExpect(jsonPath("$.data").isArray())
+                    .andExpect(jsonPath("$.data.length()").value(1))
+                    .andExpect(jsonPath("$.data[0].id").value(CARD_ID))
+                    .andExpect(jsonPath("$.data[0].term").value("hello"));
 
-            verify(flashcardService).getCardsForReview(USER_ID, 100);
+            verify(cardStateService).getDueCards(USER_ID, 100);
+        }
+
+        @Test
+        @DisplayName("Get due cards with custom limit")
+        void getDueCards_CustomLimit() throws Exception {
+            when(cardStateService.getDueCards(USER_ID, 50)).thenReturn(List.of());
+
+            mockMvc.perform(get("/flashcards/due").param("limit", "50"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.length()").value(0));
+
+            verify(cardStateService).getDueCards(USER_ID, 50);
         }
     }
 }

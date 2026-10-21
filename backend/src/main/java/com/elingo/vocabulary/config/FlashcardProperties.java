@@ -1,4 +1,4 @@
-package com.elingo.config;
+package com.elingo.vocabulary.config;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -19,10 +19,12 @@ public class FlashcardProperties {
     @Valid// Spring tiếp tục vào bên trong class con Srs
     private Srs srs = new Srs();
 
+    @Valid
+    private UserDeckLimit userDeckLimit = new UserDeckLimit();
+
     @Getter
     @Setter
     public static class Srs {
-
         @NotNull
         private BigDecimal efMin;
 
@@ -43,5 +45,16 @@ public class FlashcardProperties {
 
         @Min(1)
         private int againReviewMinutes;
+    }
+
+    @Getter
+    @Setter
+    public static class UserDeckLimit {
+        @Min(1)
+        private int maxDecksPerUser;
+        @Min(1)
+        private int maxTopicsPerDeck;
+        @Min(1)
+        private int maxCardsPerTopic;
     }
 }

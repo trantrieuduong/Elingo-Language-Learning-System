@@ -15,16 +15,15 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j(topic = "TAG-SERVICE")
 public class TagServiceImpl implements TagService {
+
     private final TagRepository tagRepository;
     private final TagMapper tagMapper;
 
     @Override
     @Transactional(readOnly = true)
-    public List<TagResponse> getAllTags(Long userId) {
-        List<TagResponse> tags = tagRepository.findAll().stream()
+    public List<TagResponse> getAllTags() {
+        return tagRepository.findAll().stream()
                 .map(tagMapper::toTagResponse)
                 .toList();
-        log.info("Tags fetched count={}", tags.size());
-        return tags;
     }
 }

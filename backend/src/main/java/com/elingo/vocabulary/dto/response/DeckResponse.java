@@ -1,9 +1,11 @@
 package com.elingo.vocabulary.dto.response;
 
+import com.elingo.common.annotation.BuildMediaUrl;
 import com.elingo.vocabulary.entity.DeckStatus;
 import com.elingo.vocabulary.entity.OwnerType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -13,35 +15,15 @@ public record DeckResponse(
         String slug,
         String description,
         Boolean isPremium,
-        String coverImageUrl,
+        @BuildMediaUrl String coverImageUrl,
         DeckStatus status,
         OwnerType ownerType,
+        Long ownerId,
         Integer topicCount,
         Integer cardCount,
         Integer learnedCardCount,
+        LocalDateTime publishedAt,
         Set<TagResponse> tags,
         Set<CefrLevelResponse> cefrLevels
 ) {
-    public DeckResponse(
-            Long id,
-            String title,
-            String slug,
-            String description,
-            Boolean isPremium,
-            String coverImageUrl,
-            DeckStatus status,
-            OwnerType ownerType,
-            Integer topicCount,
-            Integer cardCount,
-            Set<TagResponse> tags,
-            Set<CefrLevelResponse> cefrLevels
-    ) {
-        this(id, title, slug, description, isPremium, coverImageUrl, status, ownerType, topicCount, cardCount, 0, tags, cefrLevels);
-    }
-
-    public DeckResponse withLearnedCardCount(Integer learnedCardCount) {
-        return new DeckResponse(
-                id, title, slug, description, isPremium, coverImageUrl, status, ownerType, topicCount, cardCount, learnedCardCount, tags, cefrLevels
-        );
-    }
 }

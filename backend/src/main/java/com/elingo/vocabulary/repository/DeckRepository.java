@@ -1,50 +1,65 @@
 package com.elingo.vocabulary.repository;
 
 import com.elingo.vocabulary.entity.Deck;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import com.elingo.vocabulary.entity.DeckStatus;
+import com.elingo.vocabulary.entity.OwnerType;
+import org.springframework.data.jpa.repository.*;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface DeckRepository extends JpaRepository<Deck, Long> {
-    @Query(
-            value = """
-                    SELECT d FROM Deck d
-                    LEFT JOIN FETCH d.tags
-                    LEFT JOIN FETCH d.cefrLevels
-                    WHERE d.status = 'PUBLISHED'
-                      AND (:cefrCode IS NULL OR EXISTS (
-                              SELECT 1 FROM d.cefrLevels cl WHERE cl.code = :cefrCode))
-                      AND (:tagCode  IS NULL OR EXISTS (
-                              SELECT 1 FROM d.tags t  WHERE t.code  = :tagCode))
-                      AND (:keyword  IS NULL OR LOWER(d.title) LIKE LOWER(CONCAT('%', :keyword, '%')))
-                    ORDER BY d.publishedAt DESC
-                    """,
-            countQuery = """
-                    SELECT COUNT(d) FROM Deck d
-                    WHERE d.status = 'PUBLISHED'
-                      AND (:cefrCode IS NULL OR EXISTS (
-                              SELECT 1 FROM d.cefrLevels cl WHERE cl.code = :cefrCode))
-                      AND (:tagCode  IS NULL OR EXISTS (
-                              SELECT 1 FROM d.tags t  WHERE t.code  = :tagCode))
-                      AND (:keyword  IS NULL OR LOWER(d.title) LIKE LOWER(CONCAT('%', :keyword, '%')))
-                    """
-    )
-    Page<Deck> findPublishedWithFilters(
-            String cefrCode,
-            String tagCode,
-            String keyword,
-            Pageable pageable
-    );
+public interface DeckRepository extends JpaRepository<Deck, Long>, JpaSpecificationExecutor<Deck> {
+    interface DeckAccessView {
+        Long getId();
+        DeckStatus getStatus();
+        OwnerType getOwnerType();
+        Long getOwnerId();
+        Boolean getIsPremium();
+    }
 
-    Optional<Deck> findBySlug(String slug);
+    long countByOwnerTypeAndOwnerId(OwnerType ownerType, Long ownerId);
 
-    boolean existsBySlug(String slug);
+    List<Deck> findAllByOwnerTypeAndOwnerId(OwnerType ownerType, Long ownerId);
 
-    boolean existsBySlugAndIdNot(String slug, Long id);
+    @Query("""
+    select d.id as id, d.status as status, d.ownerType as ownerType,
+           d.owner.id as ownerId, d.isPremium as isPremium
+    from Deck d where d.slug = :slug
+    """)
+    @EntityGraph(attributePaths = "owner")
+    Optional<DeckAccessView> findAccessViewBySlug(@Param("slug") String slug);
+
+    @Query("""
+    select d.id as id, d.status as status, d.ownerType as ownerType,
+           d.owner.id as ownerId, d.isPremium as isPremium
+    from Deck d where d.id = :deckId
+    """)
+    @EntityGraph(attributePaths = "owner") // @ManyToOne only
+    Optional<DeckAccessView> findAccessViewById(@Param("deckId") Long Id);
+
+    @Query("""
+    select d.id as id, d.status as status, d.ownerType as ownerType,
+           d.owner.id as ownerId, d.isPremium as isPremium
+    from Topic t join t.deck d where t.id = :topicId
+    """)
+    Optional<DeckAccessView> findAccessViewByTopicId(@Param("topicId") Long topicId);
+
+    @Query("""
+    select d.id as id, d.status as status, d.ownerType as ownerType,
+           d.owner.id as ownerId, d.isPremium as isPremium
+    from Card c join c.deck d where c.id = :cardId
+    """)
+    Optional<DeckAccessView> findAccessViewByCardId(@Param("cardId") Long cardId);
+
+    @Modifying
+    @Query("update Deck d set d.cardCount = d.cardCount + :delta where d.id = :id")
+    void adjustCardCount(@Param("id") Long id, @Param("delta") int delta);
+
+    @Modifying
+    @Query("update Deck d set d.topicCount = d.topicCount + :delta where d.id = :id")
+    void adjustTopicCount(@Param("id") Long id, @Param("delta") int delta);
 }
 
