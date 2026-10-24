@@ -197,12 +197,37 @@ public class R2ServiceImpl implements R2Service, InitializingBean {
         // 1. Phải thuộc staging/{userId}/
         requireOwnedStagingKey(stagingKey, userId);
 
-        // 2. Loại file khai và kích thước thật phải hợp lệ
-        String declaredType;
-        HeadObjectResponse head = readMetadata(stagingKey)
-                .orElseThrow(() -> new AppException(AppError.FILE_NOT_FOUND));
-        long actualSize = Objects.requireNonNullElse(head.contentLength(), 0L);
+        // 2. Dùng 1 Range GET (bytes=0-31) để lấy header bytes, ETag và Content-Range
+        ResponseBytes<GetObjectResponse> object;
+        try {
+            GetObjectRequest getRequest = GetObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(stagingKey)
+                    .range("bytes=0-31")
+                    .build();
+            object = s3Client.getObjectAsBytes(getRequest);
+        } catch (NoSuchKeyException e) {
+            throw new AppException(AppError.FILE_NOT_FOUND);
+        } catch (S3Exception e) {
+            if (e.statusCode() == 404) {
+                throw new AppException(AppError.FILE_NOT_FOUND);
+            }
+            if (e.statusCode() == 416) {
+                // Đối tượng rỗng (0 bytes) trả về HTTP 416 Range Not Satisfiable
+                deleteFile(stagingKey);
+                throw new AppException(AppError.INVALID_REQUEST);
+            }
+            log.warn("File header read failed key={}", stagingKey, e);
+            throw new AppException(AppError.FILE_UPLOAD_FAILED);
+        }
 
+        GetObjectResponse getResponse = object.response();
+        long actualSize = parseTotalSize(getResponse.contentRange());
+        String etag = getResponse.eTag();
+        byte[] header = object.asByteArray();
+
+        // 3. Loại file khai và kích thước thật phải hợp lệ
+        String declaredType;
         try {
             declaredType = validateRequest(request.fileType(), actualSize);
         } catch (AppException e) {
@@ -210,12 +235,7 @@ public class R2ServiceImpl implements R2Service, InitializingBean {
             throw e;
         }
 
-        // 3. Magic bytes phải khớp đúng loại đã khai.
-        byte[] header = readHeader(stagingKey);
-        if (header == null) {
-            // Lỗi đọc tạm thời, không xoá file của user để còn thử lại.
-            throw new AppException(AppError.FILE_UPLOAD_FAILED);
-        }
+        // 4. Magic bytes phải khớp đúng loại đã khai
         String actualType = FileSignatureVerifier.detect(header);
         if (actualType == null || !actualType.equals(declaredType)) {
             log.warn("File type mismatch key={} declared={} actual={}",
@@ -226,7 +246,10 @@ public class R2ServiceImpl implements R2Service, InitializingBean {
 
         String verifiedKey = buildKey(userId, actualType, FileKey.VERIFIED_PREFIX);
 
-        copyWithinBucket(stagingKey, verifiedKey);
+        // 5. Copy staging -> verified dùng copySourceIfMatch(etag)
+        copyWithinBucket(stagingKey, verifiedKey, etag);
+
+        // 6. Xóa staging sau khi copy
         deleteFile(stagingKey);
 
         log.info("File verified stagingKey={} verifiedKey={} type={} size={}",
@@ -252,56 +275,90 @@ public class R2ServiceImpl implements R2Service, InitializingBean {
     }
 
     /**
-     * Promote {@code verified/} sang {@code uploads/}. Idempotent: gọi lại khi bản
-     * {@code uploads/} đã có thì không làm gì.
+     * Promote {@code verified/} sang {@code uploads/}.
+     * Bỏ 2 lần HEAD ở đầu, copy thẳng verified -> uploads. Chỉ khi gặp NoSuchKey mới
+     * kiểm tra HEAD uploads: nếu có thì coi như đã promote (idempotent), không có thì FILE_NOT_FOUND.
+     * Bỏ delete đồng bộ verified để lifecycle bucket tự dọn dẹp.
      *
      * @throws IllegalArgumentException nếu cặp key lệch vùng hoặc khác tên file (lỗi lập trình)
      * @throws AppException             {@code FILE_NOT_FOUND} nếu cả hai bản đều không có;
-     *                                  {@code FILE_UPLOAD_FAILED} nếu copy hỏng (bản
-     *                                  {@code verified/} được giữ nguyên)
+     *                                  {@code FILE_UPLOAD_FAILED} nếu copy hỏng
      */
     @Override
     public void promoteToUploads(String verifiedKey, String uploadsKey) {
-        // toUploads kiểm verifiedKey thuộc vùng verified; so sánh bên dưới kiểm uploadsKey
-        // thuộc vùng uploads và hai key cùng tên file.
         if (!Objects.equals(uploadsKey, FileKey.toUploads(verifiedKey))) {
             throw new IllegalArgumentException(
                     "Promoted key must keep the same user and file name but was: %s and %s"
                             .formatted(verifiedKey, uploadsKey));
         }
 
+        try {
+            CopyObjectRequest copyRequest = CopyObjectRequest.builder()
+                    .destinationBucket(bucket)
+                    .destinationKey(uploadsKey)
+                    .copySource(bucket + "/" + verifiedKey)
+                    .build();
+            s3Client.copyObject(copyRequest);
+            log.info("File promoted verifiedKey={} uploadsKey={}", verifiedKey, uploadsKey);
+        } catch (NoSuchKeyException e) {
+            handleMissingVerifiedKey(verifiedKey, uploadsKey);
+        } catch (S3Exception e) {
+            if (e.statusCode() == 404 || "NoSuchKey".equals(e.awsErrorDetails() != null ? e.awsErrorDetails().errorCode() : null)) {
+                handleMissingVerifiedKey(verifiedKey, uploadsKey);
+            } else {
+                log.error("File copy failed source={} destination={}", verifiedKey, uploadsKey, e);
+                throw new AppException(AppError.FILE_UPLOAD_FAILED);
+            }
+        }
+    }
+
+    private void handleMissingVerifiedKey(String verifiedKey, String uploadsKey) {
         if (readMetadata(uploadsKey).isPresent()) {
             log.debug("File already promoted uploadsKey={}", uploadsKey);
             return;
         }
-        if (readMetadata(verifiedKey).isEmpty()) {
-            log.error("File to promote not found verifiedKey={} uploadsKey={}", verifiedKey, uploadsKey);
-            throw new AppException(AppError.FILE_NOT_FOUND);
-        }
+        log.error("File to promote not found verifiedKey={} uploadsKey={}", verifiedKey, uploadsKey);
+        throw new AppException(AppError.FILE_NOT_FOUND);
+    }
 
-        copyWithinBucket(verifiedKey, uploadsKey);
-
-        if (deleteFile(verifiedKey)) {
-            log.info("File promoted verifiedKey={} uploadsKey={}", verifiedKey, uploadsKey);
+    /**
+     * Copy trong cùng một bucket kèm điều kiện ETag tùy chọn.
+     */
+    private void copyWithinBucket(String sourceKey, String destinationKey, String matchEtag) {
+        try {
+            CopyObjectRequest.Builder builder = CopyObjectRequest.builder()
+                    .destinationBucket(bucket)
+                    .destinationKey(destinationKey)
+                    .copySource(bucket + "/" + sourceKey);
+            if (matchEtag != null && !matchEtag.isBlank()) {
+                builder.copySourceIfMatch(matchEtag);
+            }
+            CopyObjectRequest request = builder.build();
+            s3Client.copyObject(request);
+        } catch (S3Exception e) {
+            log.error("File copy failed source={} destination={}", sourceKey, destinationKey, e);
+            throw new AppException(AppError.FILE_UPLOAD_FAILED);
         }
     }
 
     /**
-     * Copy trong cùng một bucket — cả hai luồng promote (staging → verified, verified →
-     * uploads) đều đi qua đây. Lỗi được log một lần ở đây rồi ném lên.
-     *
-     * <p>{@code copySource} nhận dạng {@code "<bucket>/<key>"} dạng chuỗi; lớp
-     * {@code CopySource} của SDK nằm ở artifact riêng nên ở đây chỉ ghép chuỗi.
+     * Trích xuất tổng dung lượng file từ header Content-Range (dạng "bytes 0-31/1048576").
      */
-    private void copyWithinBucket(String sourceKey, String destinationKey) {
+    private long parseTotalSize(String contentRange) {
+        if (contentRange == null || contentRange.isBlank()) {
+            throw new AppException(AppError.FILE_UPLOAD_FAILED);
+        }
+        int slash = contentRange.lastIndexOf('/');
+        if (slash < 0 || slash == contentRange.length() - 1) {
+            throw new AppException(AppError.FILE_UPLOAD_FAILED);
+        }
+        String totalPart = contentRange.substring(slash + 1).trim();
+        if ("*".equals(totalPart)) {
+            throw new AppException(AppError.FILE_UPLOAD_FAILED);
+        }
         try {
-            s3Client.copyObject(CopyObjectRequest.builder()
-                    .destinationBucket(bucket)
-                    .destinationKey(destinationKey)
-                    .copySource(bucket + "/" + sourceKey)
-                    .build());
-        } catch (S3Exception e) {
-            log.error("File copy failed source={} destination={}", sourceKey, destinationKey, e);
+            return Long.parseLong(totalPart);
+        } catch (NumberFormatException e) {
             throw new AppException(AppError.FILE_UPLOAD_FAILED);
         }
     }
@@ -310,15 +367,17 @@ public class R2ServiceImpl implements R2Service, InitializingBean {
      * Metadata của object.
      *
      * @return metadata, hoặc rỗng nếu object không tồn tại (404)
-     * @throws AppException {@code FILE_UPLOAD_FAILED} nếu R2 lỗi vì lý do khác — không được
-     *                      coi lỗi tạm thời như "file không tồn tại"
+     * @throws AppException {@code FILE_UPLOAD_FAILED} nếu R2 lỗi vì lý do khác
      */
     private Optional<HeadObjectResponse> readMetadata(String key) {
         try {
-            return Optional.of(s3Client.headObject(HeadObjectRequest.builder()
-                    .bucket(bucket)
-                    .key(key)
-                    .build()));
+            HeadObjectResponse response = s3Client.headObject(HeadObjectRequest.builder()
+                            .bucket(bucket)
+                            .key(key)
+                            .build());
+            return Optional.of(response);
+        } catch (NoSuchKeyException e) {
+            return Optional.empty();
         } catch (S3Exception e) {
             if (e.statusCode() == 404) {
                 return Optional.empty();
@@ -329,27 +388,7 @@ public class R2ServiceImpl implements R2Service, InitializingBean {
     }
 
     /**
-     * Đọc {@value FileSignatureVerifier#SIGNATURE_LENGTH} byte đầu object.
-     *
-     * @return byte đầu file, hoặc {@code null} nếu đọc hỏng (đã ghi log)
-     */
-    private byte[] readHeader(String key) {
-        try {
-            ResponseBytes<GetObjectResponse> object = s3Client.getObjectAsBytes(GetObjectRequest.builder()
-                    .bucket(bucket)
-                    .key(key)
-                    .range("bytes=0-" + (FileSignatureVerifier.SIGNATURE_LENGTH - 1))
-                    .build());
-            return object.asByteArray();
-        } catch (S3Exception e) {
-            log.warn("File header read failed key={}", key, e);
-            return null;
-        }
-    }
-
-    /**
-     * Key phải nằm trong thư mục của chính user đang đăng nhập, trong vùng staging. Đây là
-     * toàn bộ cơ chế chống IDOR của module — không cần tra CSDL, userId lấy từ token.
+     * Key phải nằm trong thư mục của chính user đang đăng nhập, trong vùng staging.
      */
     private void requireOwnedStagingKey(String key, Long userId) {
         if (!FileKey.isInZone(key, FileKey.STAGING_PREFIX)) {
@@ -362,8 +401,7 @@ public class R2ServiceImpl implements R2Service, InitializingBean {
 
     /**
      * @return mime type đã chuẩn hoá
-     * @throws AppException khi loại file không được phép, kích thước không hợp lệ hoặc
-     *                      vượt trần của nhóm
+     * @throws AppException khi loại file không được phép, kích thước không hợp lệ hoặc vượt trần
      */
     private String validateRequest(String fileType, long fileSize) {
         String declaredType = MediaKind.normalizeMimeType(fileType);
@@ -387,7 +425,6 @@ public class R2ServiceImpl implements R2Service, InitializingBean {
     private String buildKey(Long userId, String mimeType, String zone) {
         String extension = MediaKind.extensionOf(mimeType);
         if (extension == null) {
-            // Không bao giờ xảy ra nếu mime type đã qua validateRequest/detect.
             throw new IllegalStateException("Unsupported mime type for key: " + mimeType);
         }
         return "%s/%d/%s.%s".formatted(zone, userId, UUID.randomUUID(), extension);

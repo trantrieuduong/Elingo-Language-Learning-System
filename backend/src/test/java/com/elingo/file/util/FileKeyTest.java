@@ -240,6 +240,14 @@ class FileKeyTest {
         }
 
         @Test
+        @DisplayName("value is spoofed domain starting with base prefix -> AppException")
+        void spoofedDomain() {
+            assertThatThrownBy(() -> FileKey.toKey("https://cdn.elingo.com",
+                    "https://cdn.elingo.com.evil.com/uploads/12/a.png"))
+                    .isInstanceOf(AppException.class);
+        }
+
+        @Test
         @DisplayName("value reduces to empty after stripping -> null")
         void reducesToEmpty() {
             assertThat(FileKey.toKey("https://cdn.elingo.com",

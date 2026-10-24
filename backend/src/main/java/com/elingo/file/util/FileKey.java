@@ -118,8 +118,10 @@ public final class FileKey {
                 ? publicUrl.substring(0, publicUrl.length() - 1)
                 : publicUrl;
 
-        if (v.startsWith(base)) {
-            v = v.substring(base.length());
+        if (v.startsWith(base + "/")) {
+            v = v.substring(base.length() + 1);
+        } else if (v.equals(base) || v.startsWith(base + "?") || v.startsWith(base + "#")) {
+            v = "";
         } else if (v.startsWith("http://") || v.startsWith("https://")) {
             // URL của domain khác thì không chấp nhận
             throw new AppException(AppError.INVALID_REQUEST);
