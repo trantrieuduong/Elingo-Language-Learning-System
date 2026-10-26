@@ -8,14 +8,16 @@ import org.springframework.util.StringUtils;
 
 public final class LessonSpecifications {
 
+    private static final String ID = "id";
+
     private LessonSpecifications() {
     }
 
     public static Specification<Lesson> withFilter(LessonFilter filter) {
         return Specification.allOf(
                 isPublished(),
-                hasCefrCode(filter.cefrCode()),
-                hasTagCode(filter.tagCode()),
+                hasCefrLevelId(filter.cefrLevelId()),
+                hasTagId(filter.tagId()),
                 matchesKeyword(filter.keyword())
         );
     }
@@ -24,28 +26,28 @@ public final class LessonSpecifications {
         return (root, query, cb) -> cb.equal(root.get("status"), LessonStatus.PUBLISHED);
     }
 
-    private static Specification<Lesson> hasCefrCode(String cefrCode) {
-        if (!StringUtils.hasText(cefrCode)) {
+    private static Specification<Lesson> hasCefrLevelId(Long cefrLevelId) {
+        if (cefrLevelId == null) {
             return (root, query, cb) -> null;
         }
         return (root, query, cb) -> {
             Subquery<Long> sub = query.subquery(Long.class);
             var subRoot = sub.correlate(root);
             var join = subRoot.join("cefrLevels");
-            sub.select(cb.literal(1L)).where(cb.equal(join.get("code"), cefrCode));
+            sub.select(cb.literal(1L)).where(cb.equal(join.get(ID), cefrLevelId));
             return cb.exists(sub);
         };
     }
 
-    private static Specification<Lesson> hasTagCode(String tagCode) {
-        if (!StringUtils.hasText(tagCode)) {
+    private static Specification<Lesson> hasTagId(Long tagId) {
+        if (tagId == null) {
             return (root, query, cb) -> null;
         }
         return (root, query, cb) -> {
             Subquery<Long> sub = query.subquery(Long.class);
             var subRoot = sub.correlate(root);
             var join = subRoot.join("tags");
-            sub.select(cb.literal(1L)).where(cb.equal(join.get("code"), tagCode));
+            sub.select(cb.literal(1L)).where(cb.equal(join.get(ID), tagId));
             return cb.exists(sub);
         };
     }
