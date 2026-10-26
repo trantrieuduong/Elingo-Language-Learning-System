@@ -50,17 +50,18 @@ class TagControllerTest {
         @DisplayName("Get all tags successfully")
         void getAllTags_Success() throws Exception {
             when(tagService.getAllTags()).thenReturn(List.of(
-                    new TagResponse(1L, "TRAVEL", "Travel"),
-                    new TagResponse(2L, "FOOD", "Food")));
+                    new TagResponse(1L, "Travel"),
+                    new TagResponse(2L, "Food")));
 
             mockMvc.perform(get("/tags"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data").isArray())
                     .andExpect(jsonPath("$.data.length()").value(2))
-                    .andExpect(jsonPath("$.data[0].code").value("TRAVEL"))
+                    .andExpect(jsonPath("$.data[0].id").value(1))
                     .andExpect(jsonPath("$.data[0].label").value("Travel"))
-                    .andExpect(jsonPath("$.data[1].code").value("FOOD"));
+                    .andExpect(jsonPath("$.data[1].id").value(2))
+                    .andExpect(jsonPath("$.data[1].label").value("Food"));
 
             verify(tagService).getAllTags();
         }

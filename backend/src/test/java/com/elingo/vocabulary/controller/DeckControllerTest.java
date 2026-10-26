@@ -193,8 +193,8 @@ class DeckControllerTest {
 
             mockMvc.perform(get("/decks")
                             .param("q", "travel")
-                            .param("tags", "TRAVEL", "FOOD")
-                            .param("cefr", "B1", "B2")
+                            .param("tagIds", "1", "2")
+                            .param("cefrLevelIds", "10", "20")
                             .param("premium", "false")
                             .param("ownerType", "USER"))
                     .andExpect(status().isOk())
@@ -204,8 +204,8 @@ class DeckControllerTest {
             verify(deckService).getPublishedDecks(captor.capture(), any(Pageable.class), eq(USER_ID));
             DeckSearchRequest request = captor.getValue();
             assertThat(request.q()).isEqualTo("travel");
-            assertThat(request.tags()).containsExactlyInAnyOrder("TRAVEL", "FOOD");
-            assertThat(request.cefr()).containsExactlyInAnyOrder("B1", "B2");
+            assertThat(request.tagIds()).containsExactlyInAnyOrder(1L, 2L);
+            assertThat(request.cefrLevelIds()).containsExactlyInAnyOrder(10L, 20L);
             assertThat(request.premium()).isFalse();
             assertThat(request.ownerType()).isEqualTo(OwnerType.USER);
         }
@@ -225,20 +225,9 @@ class DeckControllerTest {
         }
 
         @Test
-        @DisplayName("Get published decks: Fail because of invalid CEFR code")
+        @DisplayName("Get published decks: Fail because of invalid CEFR level ID")
         void getPublishedDecks_Fail_InvalidCefrCode() throws Exception {
-            mockMvc.perform(get("/decks").param("cefr", "B999"))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.errors[0].code").value("CEFR_LEVEL_CODE_INVALID"));
-
-            verify(deckService, never()).getPublishedDecks(any(), any(), any());
-        }
-
-        @Test
-        @DisplayName("Get published decks: Fail because of blank tag")
-        void getPublishedDecks_Fail_BlankTag() throws Exception {
-            mockMvc.perform(get("/decks").param("tags", " "))
+            mockMvc.perform(get("/decks").param("cefrLevelIds", "-1"))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.success").value(false))
                     .andExpect(jsonPath("$.errors[0].code").value("INVALID_REQUEST"));
@@ -247,32 +236,43 @@ class DeckControllerTest {
         }
 
         @Test
-        @DisplayName("Get published decks: Success when all six CEFR values are requested")
+        @DisplayName("Get published decks: Fail because of invalid tag ID")
+        void getPublishedDecks_Fail_BlankTag() throws Exception {
+            mockMvc.perform(get("/decks").param("tagIds", "-1"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.errors[0].code").value("INVALID_REQUEST"));
+
+            verify(deckService, never()).getPublishedDecks(any(), any(), any());
+        }
+
+        @Test
+        @DisplayName("Get published decks: Success when multiple CEFR level IDs are requested")
         void getPublishedDecks_Success_AllCefrValues() throws Exception {
             when(deckService.getPublishedDecks(any(DeckSearchRequest.class), any(Pageable.class), eq(USER_ID)))
                     .thenReturn(singlePageOf());
 
-            mockMvc.perform(get("/decks").param("cefr", "A1", "A2", "B1", "B2", "C1", "C2"))
+            mockMvc.perform(get("/decks").param("cefrLevelIds", "1", "2", "3", "4", "5", "6"))
                     .andExpect(status().isOk());
 
             ArgumentCaptor<DeckSearchRequest> captor = ArgumentCaptor.forClass(DeckSearchRequest.class);
             verify(deckService).getPublishedDecks(captor.capture(), any(Pageable.class), eq(USER_ID));
-            assertThat(captor.getValue().cefr())
-                    .containsExactlyInAnyOrder("A1", "A2", "B1", "B2", "C1", "C2");
+            assertThat(captor.getValue().cefrLevelIds())
+                    .containsExactlyInAnyOrder(1L, 2L, 3L, 4L, 5L, 6L);
         }
 
         @Test
-        @DisplayName("Get published decks: Fail because of duplicated CEFR values are de-duplicated by the Set")
+        @DisplayName("Get published decks: Duplicated CEFR level IDs are de-duplicated by the Set")
         void getPublishedDecks_Success_DuplicateCefrValuesDeduplicated() throws Exception {
             when(deckService.getPublishedDecks(any(DeckSearchRequest.class), any(Pageable.class), eq(USER_ID)))
                     .thenReturn(singlePageOf());
 
-            mockMvc.perform(get("/decks").param("cefr", "A1", "A1", "A1", "A1", "A1", "A1", "A1"))
+            mockMvc.perform(get("/decks").param("cefrLevelIds", "1", "1", "1", "1", "1"))
                     .andExpect(status().isOk());
 
             ArgumentCaptor<DeckSearchRequest> captor = ArgumentCaptor.forClass(DeckSearchRequest.class);
             verify(deckService).getPublishedDecks(captor.capture(), any(Pageable.class), eq(USER_ID));
-            assertThat(captor.getValue().cefr()).containsExactly("A1");
+            assertThat(captor.getValue().cefrLevelIds()).containsExactly(1L);
         }
 
         @Test

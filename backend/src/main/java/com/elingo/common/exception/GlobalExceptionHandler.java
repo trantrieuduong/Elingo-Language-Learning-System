@@ -125,10 +125,6 @@ public class GlobalExceptionHandler {
                     appError = AppError.TOPIC_SLUG_EXISTED;
                 } else if (constraint.contains("uk_lesson_slug")) {
                     appError = AppError.LESSON_SLUG_EXISTED;
-                } else if (constraint.contains("uk_tag_code")) {
-                    appError = AppError.TAG_CODE_EXISTED;
-                } else if (constraint.contains("uk_cefr_level_code")) {
-                    appError = AppError.CEFR_LEVEL_CODE_EXISTED;
                 } else if (constraint.contains("uk_badge_code")) {
                     appError = AppError.BADGE_CODE_EXISTED;
                 } else if (constraint.contains("uk_user_checkin_date")) {
