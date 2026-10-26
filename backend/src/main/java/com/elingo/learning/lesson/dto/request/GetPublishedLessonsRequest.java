@@ -4,12 +4,14 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
-public record GetPublishedLessonsRequest(
-        @Positive(message = "INVALID_REQUEST")
-        Long cefrLevelId,
+import java.util.Set;
 
-        @Positive(message = "INVALID_REQUEST")
-        Long tagId,
+public record GetPublishedLessonsRequest(
+        @Size(max = 6, message = "INVALID_REQUEST")
+        Set<@Positive(message = "INVALID_REQUEST") Long> cefrLevelIds,
+
+        @Size(max = 10, message = "INVALID_REQUEST")
+        Set<@Positive(message = "INVALID_REQUEST") Long> tagIds,
 
         @Size(max = 255, message = "KEYWORD_INVALID")
         String keyword,

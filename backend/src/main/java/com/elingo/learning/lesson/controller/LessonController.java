@@ -25,7 +25,7 @@ public class LessonController {
     private final LessonService lessonService;
 
     @GetMapping
-    @Operation(summary = "Get all published lessons with optional filters (cefrLevelId, tagId, keyword) and pagination (9 items/page)")
+    @Operation(summary = "Get all published lessons with optional filters (cefrLevelIds, tagIds, keyword) and pagination (9 items/page)")
     public ApiResponse<PageResponse<LessonResponse>> getAllPublishedLessons(
             @ModelAttribute @Valid GetPublishedLessonsRequest request,
             @CurrentUserId Long userId) {
