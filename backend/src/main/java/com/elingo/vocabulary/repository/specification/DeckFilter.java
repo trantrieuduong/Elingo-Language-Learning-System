@@ -14,14 +14,14 @@ public record DeckFilter(
         OwnerType ownerType,
         Boolean premium,
         String keyword,
-        Set<String> tags,
-        Set<String> cefrLevels
+        Set<Long> tagIds,
+        Set<Long> cefrLevelIds
 ) {
     public static DeckFilterBuilder fromRequest(DeckSearchRequest request) {
         return builder()
                 .keyword(request.q())
-                .tags(request.tags())
-                .cefrLevels(request.cefr())
+                .tagIds(request.tagIds())
+                .cefrLevelIds(request.cefrLevelIds())
                 .premium(request.premium())
                 .ownerType(request.ownerType());
     }

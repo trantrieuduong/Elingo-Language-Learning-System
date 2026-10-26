@@ -48,6 +48,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -314,22 +315,24 @@ class R2ServiceTest {
     @DisplayName("verifyUploadedFile")
     class VerifyUploadedFile {
 
-        private void stubHead(long size) {
-            when(s3Client.headObject(any(HeadObjectRequest.class)))
-                    .thenReturn(HeadObjectResponse.builder().contentLength(size).build());
-        }
-
-        private void stubHeader(byte[] header) {
+        private void stubRangeGet(byte[] header, long size, String etag) {
+            GetObjectResponse resp = GetObjectResponse.builder()
+                    .contentRange("bytes 0-" + (header.length - 1) + "/" + size)
+                    .eTag(etag)
+                    .build();
             ResponseBytes<GetObjectResponse> bytes =
-                    ResponseBytes.fromByteArray(GetObjectResponse.builder().build(), header);
+                    ResponseBytes.fromByteArray(resp, header);
             when(s3Client.getObjectAsBytes(any(GetObjectRequest.class))).thenReturn(bytes);
         }
 
+        private void stubRangeGet(byte[] header, long size) {
+            stubRangeGet(header, size, "\"test-etag\"");
+        }
+
         @Test
-        @DisplayName("valid -> copy to verified/, delete staging/, return verifiedFileKey")
+        @DisplayName("valid -> copy with etag to verified/, async delete staging/, return verifiedFileKey")
         void success() {
-            stubHead(1024L);
-            stubHeader(PNG_HEADER);
+            stubRangeGet(PNG_HEADER, 1024L, "\"etag-123\"");
 
             VerifyUploadRequest request = new VerifyUploadRequest("staging/12/a.png", "image/png");
             VerifiedFileResponse response = r2Service.verifyUploadedFile(request, USER_ID);
@@ -340,9 +343,10 @@ class R2ServiceTest {
             assertThat(response.verifiedPublicUrl())
                     .isEqualTo(PUBLIC_URL + "/" + response.verifiedFileKey());
 
-            verify(s3Client).copyObject(any(CopyObjectRequest.class));
-            // xoá đúng bản staging/
-            verify(s3Client).deleteObject(org.mockito.ArgumentMatchers.argThat(
+            verify(s3Client).copyObject(org.mockito.ArgumentMatchers.argThat(
+                    (CopyObjectRequest req) -> "\"etag-123\"".equals(req.copySourceIfMatch())));
+            // xoá đúng bản staging/ (chạy async)
+            verify(s3Client, timeout(2000)).deleteObject(org.mockito.ArgumentMatchers.argThat(
                     (DeleteObjectRequest req) -> req.key().equals("staging/12/a.png")));
         }
 
@@ -355,13 +359,13 @@ class R2ServiceTest {
                     .isInstanceOf(AppException.class)
                     .satisfies(ex -> assertThat(((AppException) ex).getAppError())
                             .isEqualTo(AppError.FILE_ACCESS_DENIED));
-            verify(s3Client, never()).headObject(any(HeadObjectRequest.class));
+            verify(s3Client, never()).getObjectAsBytes(any(GetObjectRequest.class));
         }
 
         @Test
         @DisplayName("object does not exist (404) -> FILE_NOT_FOUND")
         void notFound() {
-            when(s3Client.headObject(any(HeadObjectRequest.class))).thenThrow(s3Error(404));
+            when(s3Client.getObjectAsBytes(any(GetObjectRequest.class))).thenThrow(s3Error(404));
 
             VerifyUploadRequest request = new VerifyUploadRequest("staging/12/a.png", "image/png");
 
@@ -372,9 +376,24 @@ class R2ServiceTest {
         }
 
         @Test
+        @DisplayName("empty object (416 Range Not Satisfiable) -> INVALID_REQUEST and async delete staging/")
+        void emptyObject() {
+            when(s3Client.getObjectAsBytes(any(GetObjectRequest.class))).thenThrow(s3Error(416));
+
+            VerifyUploadRequest request = new VerifyUploadRequest("staging/12/a.png", "image/png");
+
+            assertThatThrownBy(() -> r2Service.verifyUploadedFile(request, USER_ID))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.INVALID_REQUEST));
+            verify(s3Client, timeout(2000)).deleteObject(org.mockito.ArgumentMatchers.argThat(
+                    (DeleteObjectRequest req) -> req.key().equals("staging/12/a.png")));
+        }
+
+        @Test
         @DisplayName("actual size exceeds group limit -> FILE_TOO_LARGE and delete staging/")
         void tooLarge() {
-            stubHead(6L * 1024 * 1024); // ảnh trần 5MB
+            stubRangeGet(PNG_HEADER, 6L * 1024 * 1024); // ảnh trần 5MB
 
             VerifyUploadRequest request = new VerifyUploadRequest("staging/12/a.png", "image/png");
 
@@ -389,7 +408,7 @@ class R2ServiceTest {
         @Test
         @DisplayName("unsupported declared type -> INVALID_FILE_TYPE and delete staging/")
         void invalidDeclaredType() {
-            stubHead(1024L);
+            stubRangeGet(PNG_HEADER, 1024L);
 
             VerifyUploadRequest request = new VerifyUploadRequest("staging/12/a.png", "application/pdf");
 
@@ -403,8 +422,7 @@ class R2ServiceTest {
         @Test
         @DisplayName("magic bytes differ from declared type -> FILE_TYPE_MISMATCH and delete staging/")
         void typeMismatch() {
-            stubHead(1024L);
-            stubHeader(JPEG_HEADER); // thật là jpeg
+            stubRangeGet(JPEG_HEADER, 1024L); // thật là jpeg
 
             VerifyUploadRequest request = new VerifyUploadRequest("staging/12/a.png", "image/png");
 
@@ -419,8 +437,7 @@ class R2ServiceTest {
         @Test
         @DisplayName("unrecognized magic bytes -> FILE_TYPE_MISMATCH and delete staging/")
         void unknownSignature() {
-            stubHead(1024L);
-            stubHeader(new byte[]{0x00, 0x01, 0x02, 0x03});
+            stubRangeGet(new byte[]{0x00, 0x01, 0x02, 0x03}, 1024L);
 
             VerifyUploadRequest request = new VerifyUploadRequest("staging/12/a.png", "image/png");
 
@@ -434,7 +451,6 @@ class R2ServiceTest {
         @Test
         @DisplayName("header read failed (temporary error) -> FILE_UPLOAD_FAILED, do NOT delete staging/")
         void headerReadFails() {
-            stubHead(1024L);
             when(s3Client.getObjectAsBytes(any(GetObjectRequest.class))).thenThrow(s3Error(500));
 
             VerifyUploadRequest request = new VerifyUploadRequest("staging/12/a.png", "image/png");
@@ -470,7 +486,7 @@ class R2ServiceTest {
     }
 
     // ========================================================================
-    // promoteToUploads — đọc -> copy -> xoá
+    // promoteToUploads — copy verified -> uploads
     // ========================================================================
     @Nested
     @DisplayName("promoteToUploads")
@@ -480,32 +496,27 @@ class R2ServiceTest {
         private static final String UPLOADS_KEY = "uploads/12/a.png";
 
         @Test
-        @DisplayName("normal: verified exists, uploads not -> copy then delete verified/")
+        @DisplayName("normal: copy straight from verified/ to uploads/, no HEAD and no delete verified/")
         void success() {
-            when(s3Client.headObject(any(HeadObjectRequest.class))).thenAnswer(inv -> {
-                HeadObjectRequest req = inv.getArgument(0);
-                if (req.key().equals(UPLOADS_KEY)) {
-                    throw s3Error(404); // uploads chưa có
-                }
-                return HeadObjectResponse.builder().contentLength(10L).build(); // verified có
-            });
-
             r2Service.promoteToUploads(VERIFIED_KEY, UPLOADS_KEY);
 
             verify(s3Client).copyObject(any(CopyObjectRequest.class));
-            verify(s3Client).deleteObject(org.mockito.ArgumentMatchers.argThat(
-                    (DeleteObjectRequest req) -> req.key().equals(VERIFIED_KEY)));
+            verify(s3Client, never()).headObject(any(HeadObjectRequest.class));
+            verify(s3Client, never()).deleteObject(any(DeleteObjectRequest.class));
         }
 
         @Test
-        @DisplayName("idempotent: uploads already exists -> no copy, no delete")
+        @DisplayName("idempotent: copy fails with 404 but uploads already exists -> no error")
         void alreadyPromoted() {
+            when(s3Client.copyObject(any(CopyObjectRequest.class))).thenThrow(s3Error(404));
             when(s3Client.headObject(any(HeadObjectRequest.class)))
                     .thenReturn(HeadObjectResponse.builder().contentLength(10L).build());
 
             r2Service.promoteToUploads(VERIFIED_KEY, UPLOADS_KEY);
 
-            verify(s3Client, never()).copyObject(any(CopyObjectRequest.class));
+            verify(s3Client).copyObject(any(CopyObjectRequest.class));
+            verify(s3Client).headObject(org.mockito.ArgumentMatchers.argThat(
+                    (HeadObjectRequest req) -> req.key().equals(UPLOADS_KEY)));
             verify(s3Client, never()).deleteObject(any(DeleteObjectRequest.class));
         }
 
@@ -514,56 +525,33 @@ class R2ServiceTest {
         void keyMismatch() {
             assertThatThrownBy(() -> r2Service.promoteToUploads(VERIFIED_KEY, "uploads/12/b.png"))
                     .isInstanceOf(IllegalArgumentException.class);
+            verify(s3Client, never()).copyObject(any(CopyObjectRequest.class));
             verify(s3Client, never()).headObject(any(HeadObjectRequest.class));
         }
 
         @Test
         @DisplayName("neither verified nor uploads exists -> FILE_NOT_FOUND")
         void bothMissing() {
+            when(s3Client.copyObject(any(CopyObjectRequest.class))).thenThrow(s3Error(404));
             when(s3Client.headObject(any(HeadObjectRequest.class))).thenThrow(s3Error(404));
 
             assertThatThrownBy(() -> r2Service.promoteToUploads(VERIFIED_KEY, UPLOADS_KEY))
                     .isInstanceOf(AppException.class)
                     .satisfies(ex -> assertThat(((AppException) ex).getAppError())
                             .isEqualTo(AppError.FILE_NOT_FOUND));
-            verify(s3Client, never()).copyObject(any(CopyObjectRequest.class));
         }
 
         @Test
-        @DisplayName("copy failed -> FILE_UPLOAD_FAILED, no delete verified/")
+        @DisplayName("copy failed with 500 -> FILE_UPLOAD_FAILED, no HEAD")
         void copyFails() {
-            when(s3Client.headObject(any(HeadObjectRequest.class))).thenAnswer(inv -> {
-                HeadObjectRequest req = inv.getArgument(0);
-                if (req.key().equals(UPLOADS_KEY)) {
-                    throw s3Error(404);
-                }
-                return HeadObjectResponse.builder().contentLength(10L).build();
-            });
             when(s3Client.copyObject(any(CopyObjectRequest.class))).thenThrow(s3Error(500));
 
             assertThatThrownBy(() -> r2Service.promoteToUploads(VERIFIED_KEY, UPLOADS_KEY))
                     .isInstanceOf(AppException.class)
                     .satisfies(ex -> assertThat(((AppException) ex).getAppError())
                             .isEqualTo(AppError.FILE_UPLOAD_FAILED));
+            verify(s3Client, never()).headObject(any(HeadObjectRequest.class));
             verify(s3Client, never()).deleteObject(any(DeleteObjectRequest.class));
-        }
-
-        @Test
-        @DisplayName("copy ok but delete verified/ failed -> still complete, no throw")
-        void deleteVerifiedFailsButCompletes() {
-            when(s3Client.headObject(any(HeadObjectRequest.class))).thenAnswer(inv -> {
-                HeadObjectRequest req = inv.getArgument(0);
-                if (req.key().equals(UPLOADS_KEY)) {
-                    throw s3Error(404);
-                }
-                return HeadObjectResponse.builder().contentLength(10L).build();
-            });
-            when(s3Client.deleteObject(any(DeleteObjectRequest.class))).thenThrow(s3Error(500));
-
-            // bản verified/ sẽ tự hết hạn; không ném exception
-            r2Service.promoteToUploads(VERIFIED_KEY, UPLOADS_KEY);
-
-            verify(s3Client).copyObject(any(CopyObjectRequest.class));
         }
     }
 }

@@ -50,17 +50,18 @@ class CefrLevelControllerTest {
         @DisplayName("Get all CEFR levels successfully")
         void getAllCefrLevels_Success() throws Exception {
             when(cefrLevelService.getAllCefrLevels()).thenReturn(List.of(
-                    new CefrLevelResponse(1L, "A1", "Beginner"),
-                    new CefrLevelResponse(2L, "B2", "Upper-Intermediate")));
+                    new CefrLevelResponse(1L, "Beginner"),
+                    new CefrLevelResponse(2L, "Upper-Intermediate")));
 
             mockMvc.perform(get("/cefr-levels"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data").isArray())
                     .andExpect(jsonPath("$.data.length()").value(2))
-                    .andExpect(jsonPath("$.data[0].code").value("A1"))
+                    .andExpect(jsonPath("$.data[0].id").value(1))
                     .andExpect(jsonPath("$.data[0].label").value("Beginner"))
-                    .andExpect(jsonPath("$.data[1].code").value("B2"));
+                    .andExpect(jsonPath("$.data[1].id").value(2))
+                    .andExpect(jsonPath("$.data[1].label").value("Upper-Intermediate"));
 
             verify(cefrLevelService).getAllCefrLevels();
         }

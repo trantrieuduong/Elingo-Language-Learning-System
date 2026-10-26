@@ -189,7 +189,7 @@ class DeckServiceTest {
         }
 
         @Test
-        @DisplayName("Get published decks successfully: filter by CEFR code is passed to repository")
+        @DisplayName("Get published decks successfully: filter by CEFR level ID is passed to repository")
         void getPublishedDecks_Success_FilterByCefrCode() {
             DeckResponse b2Deck = buildDeckResponse("B2 Vocabulary");
             Page<Deck> entityPage = new PageImpl<>(List.of(new Deck()), PageRequest.of(0, PAGE_SIZE), 1);
@@ -197,7 +197,7 @@ class DeckServiceTest {
             when(deckRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(entityPage);
             when(deckMapper.toDeckResponse(any(), eq(0))).thenReturn(b2Deck);
 
-            DeckSearchRequest request = new DeckSearchRequest(null, null, Set.of("B2"), null, null);
+            DeckSearchRequest request = new DeckSearchRequest(null, null, Set.of(1L), null, null);
             PageResponse<DeckResponse> result =
                     deckService.getPublishedDecks(request, PageRequest.of(0, PAGE_SIZE), USER_ID);
 
@@ -207,13 +207,13 @@ class DeckServiceTest {
         }
 
         @Test
-        @DisplayName("Get published decks successfully: filter by tag code is passed to repository")
+        @DisplayName("Get published decks successfully: filter by tag ID is passed to repository")
         void getPublishedDecks_Success_FilterByTagCode() {
             Page<Deck> entityPage = new PageImpl<>(List.of(), PageRequest.of(0, PAGE_SIZE), 0);
 
             when(deckRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(entityPage);
 
-            DeckSearchRequest request = new DeckSearchRequest(null, Set.of("TRAVEL"), null, null, null);
+            DeckSearchRequest request = new DeckSearchRequest(null, Set.of(1L), null, null, null);
             PageResponse<DeckResponse> result =
                     deckService.getPublishedDecks(request, PageRequest.of(0, PAGE_SIZE), USER_ID);
 
@@ -260,7 +260,7 @@ class DeckServiceTest {
 
             when(deckRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(entityPage);
 
-            DeckSearchRequest request = new DeckSearchRequest(null, null, Set.of("C2"), null, null);
+            DeckSearchRequest request = new DeckSearchRequest(null, null, Set.of(2L), null, null);
             PageResponse<DeckResponse> result =
                     deckService.getPublishedDecks(request, PageRequest.of(0, PAGE_SIZE), USER_ID);
 

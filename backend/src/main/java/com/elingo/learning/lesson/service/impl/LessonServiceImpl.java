@@ -54,16 +54,16 @@ public class LessonServiceImpl implements LessonService {
     @Transactional(readOnly = true)
     public PageResponse<LessonResponse> getAllPublishedLessons(Long userId, GetPublishedLessonsRequest request) {
         // 1. Trim + null hoá filter rỗng, page mặc định = 1
-        String cefrCode = StringUtils.hasText(request.cefrCode()) ? request.cefrCode().trim() : null;
-        String tagCode  = StringUtils.hasText(request.tagCode())  ? request.tagCode().trim()  : null;
-        String keyword  = StringUtils.hasText(request.keyword())  ? request.keyword().trim()  : null;
+        Long cefrLevelId = request.cefrLevelId();
+        Long tagId       = request.tagId();
+        String keyword   = StringUtils.hasText(request.keyword()) ? request.keyword().trim() : null;
         int page = request.page() == null ? 1 : request.page();
 
         // 2. Paginate + sort: mới nhất trước
         Pageable pageable = PageRequest.of(page - 1, PAGE_SIZE,
                 Sort.by(Sort.Order.desc("publishedAt"), Sort.Order.desc("id")));
         Page<Lesson> lessonPage = lessonRepository.findAll(
-                LessonSpecifications.withFilter(new LessonFilter(cefrCode, tagCode, keyword)),
+                LessonSpecifications.withFilter(new LessonFilter(cefrLevelId, tagId, keyword)),
                 pageable);
 
         // 3. Load tiến độ cho tất cả lesson trong trang — 1 query

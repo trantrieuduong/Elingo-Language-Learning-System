@@ -100,15 +100,15 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
 
     // ─────────────────────── helpers ───────────────────────
 
-    private Tag buildTag(String code, String label) {
+    private Tag buildTag(String label) {
         return tagRepository.save(
-                Tag.builder().code(code).label(label).build()
+                Tag.builder().label(label).build()
         );
     }
 
-    private CefrLevel buildCefrLevel(String code, String label) {
+    private CefrLevel buildCefrLevel(String label) {
         return cefrLevelRepository.save(
-                CefrLevel.builder().code(code).label(label).build()
+                CefrLevel.builder().label(label).build()
         );
     }
 
@@ -303,11 +303,11 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Get published decks: Success - filter by CEFR level code")
         void testGetPublishedDecks_FilterByCefrCode_Success() throws Exception {
-            CefrLevel b2 = buildCefrLevel("B2", "Upper-Intermediate");
+            CefrLevel b2 = buildCefrLevel("Upper-Intermediate");
             persistPublishedDeck("B2 Vocabulary", "b2-vocab", Set.of(), Set.of(b2));
             persistPublishedDeck("Other Deck", "other", Set.of(), Set.of());
 
-            performGetDecks("?cefr=B2")
+            performGetDecks("?cefrLevelIds=" + b2.getId())
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.content.length()").value(1))
                     .andExpect(jsonPath("$.data.content[0].title").value("B2 Vocabulary"));
@@ -316,10 +316,10 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Get published decks: Success - filter by CEFR code returns empty when no match")
         void testGetPublishedDecks_FilterByCefrCode_NotFound() throws Exception {
-            CefrLevel a1 = buildCefrLevel("A1", "Beginner");
+            CefrLevel a1 = buildCefrLevel("Beginner");
             persistPublishedDeck("A1 Vocab", "a1-vocab", Set.of(), Set.of(a1));
 
-            performGetDecks("?cefr=C2")
+            performGetDecks("?cefrLevelIds=999999")
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.content").isArray())
                     .andExpect(jsonPath("$.data.content.length()").value(0))
@@ -331,11 +331,11 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Get published decks: Success - filter by tag code")
         void testGetPublishedDecks_FilterByTagCode_Success() throws Exception {
-            Tag travel = buildTag("TRAVEL", "Travel");
+            Tag travel = buildTag("Travel");
             persistPublishedDeck("Travel Words", "travel-words", Set.of(travel), Set.of());
             persistPublishedDeck("Other Deck", "other-2", Set.of(), Set.of());
 
-            performGetDecks("?tags=TRAVEL")
+            performGetDecks("?tagIds=" + travel.getId())
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.content.length()").value(1))
                     .andExpect(jsonPath("$.data.content[0].title").value("Travel Words"));
@@ -344,10 +344,10 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Get published decks: Success - filter by tag code returns empty when no match")
         void testGetPublishedDecks_FilterByTagCode_NotFound() throws Exception {
-            Tag food = buildTag("FOOD", "Food");
+            Tag food = buildTag("Food");
             persistPublishedDeck("Food Deck", "food-deck", Set.of(food), Set.of());
 
-            performGetDecks("?tags=TRAVEL")
+            performGetDecks("?tagIds=999999")
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.content.length()").value(0))
                     .andExpect(jsonPath("$.data.totalElements").value(0));
@@ -395,14 +395,14 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Get published decks: Success - combined CEFR and keyword filters")
         void testGetPublishedDecks_CombinedFilters_Success() throws Exception {
-            CefrLevel b1 = buildCefrLevel("B1", "Intermediate");
-            Tag science = buildTag("SCIENCE", "Science");
+            CefrLevel b1 = buildCefrLevel("Intermediate");
+            Tag science = buildTag("Science");
 
             persistPublishedDeck("B1 Science", "b1-science", Set.of(science), Set.of(b1));
             persistPublishedDeck("B1 Travel", "b1-travel", Set.of(), Set.of(b1));
             persistPublishedDeck("A1 Science", "a1-science-2", Set.of(science), Set.of());
 
-            performGetDecks("?cefr=B1&tags=SCIENCE&q=science")
+            performGetDecks("?cefrLevelIds=" + b1.getId() + "&tagIds=" + science.getId() + "&q=science")
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.content.length()").value(1))
                     .andExpect(jsonPath("$.data.content[0].title").value("B1 Science"));
@@ -443,21 +443,21 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
         // ─────── input validation ───────
 
         @Test
-        @DisplayName("Get published decks: Fail because of invalid CEFR code")
+        @DisplayName("Get published decks: Fail because of invalid CEFR level ID")
         void testGetPublishedDecks_Fail_InvalidCefrCode() throws Exception {
-            performGetDecks("?cefr=B9999999999")
+            performGetDecks("?cefrLevelIds=-1")
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.errors[0].code").value("CEFR_LEVEL_CODE_INVALID"));
+                    .andExpect(jsonPath("$.errors[0].code").value("INVALID_REQUEST"));
         }
 
         @Test
-        @DisplayName("Get published decks: Fail because of invalid tag code")
+        @DisplayName("Get published decks: Fail because of invalid tag ID")
         void testGetPublishedDecks_Fail_InvalidTagCode() throws Exception {
-            performGetDecks("?tags=INVALID_TAG_CODE_TOO_LONG_" + "x".repeat(100))
+            performGetDecks("?tagIds=-1")
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.errors[0].code").value("TAG_INVALID"));
+                    .andExpect(jsonPath("$.errors[0].code").value("INVALID_REQUEST"));
         }
     }
 

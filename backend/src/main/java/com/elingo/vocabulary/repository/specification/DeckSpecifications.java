@@ -22,7 +22,6 @@ public final class DeckSpecifications {
     private static final String OWNER = "owner";
     private static final String TAGS = "tags";
     private static final String CEFR_LEVELS = "cefrLevels";
-    private static final String CODE = "code";
     private static final String ID = "id";
 
     private static final char LIKE_ESCAPE = '!';
@@ -36,8 +35,8 @@ public final class DeckSpecifications {
                 hasOwnerType(f.ownerType()),
                 hasPremium(f.premium()),
                 titleContains(f.keyword()),
-                hasCefrLevels(f.cefrLevels()),
-                hasTags(f.tags())
+                hasCefrLevels(f.cefrLevelIds()),
+                hasTags(f.tagIds())
         );
     }
 
@@ -69,12 +68,12 @@ public final class DeckSpecifications {
                 : cb.equal(root.get(OWNER_TYPE), ownerType);
     }
 
-    private static Specification<Deck> hasCefrLevels(Collection<String> cefrCodes) {
-        return matchAll(CEFR_LEVELS, cefrCodes);
+    private static Specification<Deck> hasCefrLevels(Collection<Long> cefrLevelIds) {
+        return matchAll(CEFR_LEVELS, cefrLevelIds);
     }
 
-    private static Specification<Deck> hasTags(Collection<String> tagCodes) {
-        return matchAll(TAGS, tagCodes);
+    private static Specification<Deck> hasTags(Collection<Long> tagIds) {
+        return matchAll(TAGS, tagIds);
     }
 
     public static Specification<Deck> ownedBy(Long ownerId) {
@@ -83,17 +82,17 @@ public final class DeckSpecifications {
                 : cb.equal(root.get(OWNER).get(ID), ownerId);
     }
 
-    private static Specification<Deck> matchAll(String attribute, Collection<String> codes) {
+    private static Specification<Deck> matchAll(String attribute, Collection<Long> ids) {
         return (root, query, cb) -> {
-            if (codes == null || codes.isEmpty()) {
+            if (ids == null || ids.isEmpty()) {
                 return null;
             }
-            Set<String> distinctCodes = new HashSet<>(codes);       // bỏ mã trùng trước khi đếm
+            Set<Long> distinctIds = new HashSet<>(ids);       // bỏ mã trùng trước khi đếm
             Subquery<Long> sub = query.subquery(Long.class);
             Root<Deck> subDeck = sub.correlate(root);
             Join<Deck, Object> item = subDeck.join(attribute);
-            sub.select(cb.countDistinct(item.get(CODE))).where(item.get(CODE).in(distinctCodes));
-            return cb.equal(sub, (long) distinctCodes.size());
+            sub.select(cb.countDistinct(item.get(ID))).where(item.get(ID).in(distinctIds));
+            return cb.equal(sub, (long) distinctIds.size());
         };
     }
 
