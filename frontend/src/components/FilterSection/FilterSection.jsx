@@ -11,10 +11,8 @@ import './FilterSection.css';
  * @param {string} searchPlaceholder - Placeholder cho ô tìm kiếm
  * @param {Array} cefrLevels - [{_id, name}] — danh sách CEFR levels
  * @param {Array} tags - [{_id, name}] — danh sách tags
- * @param {string|null} selectedCefrLevelId - ID CEFR đang chọn
- * @param {string|null} selectedTagId - ID tag đang chọn
- * @param {Function} onCefrChange - (id: string|null) => void
- * @param {Function} onTagChange - (id: string|null) => void
+ * @param {Array} selectedCefrLevelIds - Các ID CEFR đang chọn
+ * @param {Array} selectedTagIds - Các ID tag đang chọn
  * @param {boolean} hasActiveFilters - Có filter đang active hay không
  * @param {Function} onClearFilters - Callback xóa tất cả filters
  * @param {React.ReactNode} extraControls - Các control bổ sung (như status pills)
@@ -25,8 +23,8 @@ function FilterSection({
   searchPlaceholder,
   cefrLevels = [],
   tags = [],
-  selectedCefrLevelId,
-  selectedTagId,
+  selectedCefrLevelIds = [],
+  selectedTagIds = [],
   onCefrChange,
   onTagChange,
   hasActiveFilters = false,
@@ -63,9 +61,7 @@ function FilterSection({
         {/* Nút xóa filter */}
         {hasActiveFilters && (
           <button type="button" className="btn-clear-filter" onClick={onClearFilters}>
-            <span className="material-symbols-outlined">
-              filter_alt_off
-            </span>
+            <span className="material-symbols-outlined">filter_alt_off</span>
             {t('filter.clearFilters')}
           </button>
         )}
@@ -76,8 +72,8 @@ function FilterSection({
         <Filter
           cefrLevels={cefrLevels}
           tags={tags}
-          selectedCefrLevelId={selectedCefrLevelId}
-          selectedTagId={selectedTagId}
+          selectedCefrLevelIds={selectedCefrLevelIds}
+          selectedTagIds={selectedTagIds}
           onCefrChange={onCefrChange}
           onTagChange={onTagChange}
         />

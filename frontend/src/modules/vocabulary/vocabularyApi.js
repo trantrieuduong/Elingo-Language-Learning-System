@@ -1,7 +1,7 @@
 import apiClient from '../../services/apiClient';
 
 /**
- * @param {Object} params - { q, tags, cefr, page, size, sort, ownerType }
+ * @param {Object} params - { keyword, tagIds, cefrLevelIds, page, limit, sort, ownerType }
  */
 export const getDecksApi = async (params = {}) => {
   const queryParams = {
@@ -9,6 +9,8 @@ export const getDecksApi = async (params = {}) => {
     size: params.limit,
     sort: params.sort,
     ownerType: params.ownerType,
+    tagIds: params.tagIds,
+    cefrLevelIds: params.cefrLevelIds,
   };
 
   const keyword = params.keyword || params.q;
@@ -16,19 +18,10 @@ export const getDecksApi = async (params = {}) => {
     queryParams.q = keyword.trim();
   }
 
-  if (params.tagCode) {
-    queryParams.tags = [params.tagCode];
-  } else if (Array.isArray(params.tags) && params.tags.length > 0) {
-    queryParams.tags = params.tags;
-  }
-
-  if (params.cefrCode) {
-    queryParams.cefr = [params.cefrCode];
-  } else if (Array.isArray(params.cefr) && params.cefr.length > 0) {
-    queryParams.cefr = params.cefr;
-  }
-
-  const response = await apiClient.get('/decks', { params: queryParams });
+  const response = await apiClient.get('/decks', {
+    params: queryParams,
+    paramsSerializer: { indexes: null },
+  });
   return response.data;
 };
 

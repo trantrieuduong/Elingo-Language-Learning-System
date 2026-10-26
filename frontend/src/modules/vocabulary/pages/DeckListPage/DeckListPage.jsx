@@ -40,8 +40,8 @@ function DeckListPage({ onNavigate }) {
   // States filter và tìm kiếm
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
-  const [selectedTagId, setSelectedTagId] = useState(null);
-  const [selectedCefrLevelId, setSelectedCefrLevelId] = useState(null);
+  const [selectedTagIds, setSelectedTagIds] = useState([]);
+  const [selectedCefrLevelIds, setSelectedCefrLevelIds] = useState([]);
 
   // States cho tab "Bộ từ cộng đồng"
   const [decks, setDecks] = useState([]);
@@ -88,14 +88,14 @@ function DeckListPage({ onNavigate }) {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const handleCefrChange = (id) => {
-    setSelectedCefrLevelId(id);
+  const handleCefrChange = (ids) => {
+    setSelectedCefrLevelIds(ids);
     setPage(1);
     setUserDeckPage(1);
   };
 
-  const handleTagChange = (id) => {
-    setSelectedTagId(id);
+  const handleTagChange = (ids) => {
+    setSelectedTagIds(ids);
     setPage(1);
     setUserDeckPage(1);
   };
@@ -131,6 +131,8 @@ function DeckListPage({ onNavigate }) {
       try {
         const response = await getDecksApi({
           keyword: debouncedQuery || undefined,
+          tagIds: activeTab === 'system-decks' ? selectedTagIds : [],
+          cefrLevelIds: activeTab === 'system-decks' ? selectedCefrLevelIds : [],
           page,
           limit: 9,
           ownerType: activeTab === 'community-decks' ? 'USER' : 'SYSTEM',
@@ -159,7 +161,7 @@ function DeckListPage({ onNavigate }) {
     return () => {
       isActive = false;
     };
-  }, [activeTab, debouncedQuery, selectedTagId, selectedCefrLevelId, page, retryCount, t]);
+  }, [activeTab, debouncedQuery, selectedTagIds, selectedCefrLevelIds, page, retryCount, t]);
 
   useEffect(() => {
     if (activeTab !== 'my-decks') return;
@@ -308,14 +310,15 @@ function DeckListPage({ onNavigate }) {
 
   const hasActiveFilters =
     searchQuery !== '' ||
-    (activeTab === 'system-decks' && (selectedTagId !== null || selectedCefrLevelId !== null)) ||
+    (activeTab === 'system-decks' &&
+      (selectedTagIds.length > 0 || selectedCefrLevelIds.length > 0)) ||
     (activeTab === 'my-decks' && userDeckStatusFilter !== 'ALL');
 
   const handleClearFilters = () => {
     setSearchQuery('');
     setDebouncedQuery('');
-    setSelectedTagId(null);
-    setSelectedCefrLevelId(null);
+    setSelectedTagIds([]);
+    setSelectedCefrLevelIds([]);
     setUserDeckStatusFilter('ALL');
     setPage(1);
     setUserDeckPage(1);
@@ -375,8 +378,8 @@ function DeckListPage({ onNavigate }) {
           searchPlaceholder={t('deckList.searchPlaceholder')}
           cefrLevels={cefrLevels}
           tags={tags}
-          selectedCefrLevelId={selectedCefrLevelId}
-          selectedTagId={selectedTagId}
+          selectedCefrLevelIds={selectedCefrLevelIds}
+          selectedTagIds={selectedTagIds}
           onCefrChange={handleCefrChange}
           onTagChange={handleTagChange}
           hasActiveFilters={hasActiveFilters}
