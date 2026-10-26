@@ -1,4 +1,4 @@
-import apiClient from './apiClient'
+import apiClient from './apiClient';
 
 /**
  * Upload file lên Cloud Storage (Cloudflare R2 / S3 qua presigned URL) theo quy trình 3 bước chuẩn của Elingo:
@@ -12,18 +12,18 @@ import apiClient from './apiClient'
  */
 export async function uploadFileForVerification(blob, fileType) {
   if (!blob || !(blob instanceof Blob)) {
-    throw new Error('Dữ liệu upload không hợp lệ (cần Blob)')
+    throw new Error('Dữ liệu upload không hợp lệ (cần Blob)');
   }
 
   // Bước 1: Xin presigned URL từ backend
   const presignedRes = await apiClient.post('/files/presigned-urls', {
     fileType,
     fileSize: blob.size,
-  })
+  });
 
-  const { url, key } = presignedRes.data?.data || {}
+  const { url, key } = presignedRes.data?.data || {};
   if (!url || !key) {
-    throw new Error('Không nhận được presigned URL hợp lệ từ máy chủ')
+    throw new Error('Không nhận được presigned URL hợp lệ từ máy chủ');
   }
 
   // Bước 2: Upload trực tiếp file lên storage bucket bằng fetch thuần
@@ -33,21 +33,21 @@ export async function uploadFileForVerification(blob, fileType) {
       'Content-Type': fileType,
     },
     body: blob,
-  })
+  });
 
   if (!uploadRes.ok) {
-    const errorText = await uploadRes.text().catch(() => '')
+    const errorText = await uploadRes.text().catch(() => '');
     throw new Error(
       `Tải tệp lên bộ lưu trữ thất bại (HTTP ${uploadRes.status}): ${errorText || uploadRes.statusText}`
-    )
+    );
   }
 
   // Bước 3: Xác thực file đã upload thành công với backend
   const verifyRes = await apiClient.post('/files/verifications', {
     fileKey: key,
     fileType,
-  })
+  });
 
-  const verifiedFileKey = verifyRes.data?.data?.verifiedFileKey || key
-  return verifiedFileKey
+  const verifiedFileKey = verifyRes.data?.data?.verifiedFileKey || key;
+  return verifiedFileKey;
 }

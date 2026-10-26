@@ -1,4 +1,4 @@
-import './SearchInput.css'
+import './SearchInput.css';
 
 /**
  * SearchInput — Ô tìm kiếm dùng chung với nút xóa nội dung.
@@ -21,23 +21,21 @@ function SearchInput({ id, placeholder, value, onChange, onClear, clearLabel, cl
         placeholder={placeholder}
         value={value}
         onChange={onChange}
-        aria-label={placeholder}
       />
       {value && onClear && (
         <button
           type="button"
           className="btn-icon search-input__clear"
           onClick={onClear}
-          aria-label={clearLabel}
           title={clearLabel}
         >
-          <span className="material-symbols-outlined" aria-hidden="true">
+          <span className="material-symbols-outlined">
             close
           </span>
         </button>
       )}
     </div>
-  )
+  );
 }
 
-export default SearchInput
+export default SearchInput;

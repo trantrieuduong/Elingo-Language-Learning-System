@@ -8,12 +8,7 @@ import './ProgressBar.css';
  * @param {number} [total=0] - Tổng số lượng mục
  * @param {number} [percent] - Phần trăm tùy chọn (nếu không truyền sẽ tự tính từ current & total)
  */
-function ProgressBar({
-  title,
-  current = 0,
-  total = 0,
-  percent,
-}) {
+function ProgressBar({ title, current = 0, total = 0, percent }) {
   const calculatedPercent =
     percent !== undefined ? percent : total > 0 ? Math.round((current / total) * 100) : 0;
 
@@ -28,7 +23,7 @@ function ProgressBar({
           {title && <span className="progress-bar-title">{title}</span>}
           {total > 0 && (
             <span className="progress-bar-stats">
-              {current} / {total}  ({safePercent}%)
+              {current} / {total} ({safePercent}%)
             </span>
           )}
         </div>

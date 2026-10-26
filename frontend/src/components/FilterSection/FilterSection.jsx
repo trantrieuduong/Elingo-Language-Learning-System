@@ -1,11 +1,11 @@
-import { useTranslation } from 'react-i18next'
-import SearchInput from '../SearchInput/SearchInput'
-import Filter from '../Filter/Filter'
-import './FilterSection.css'
+import { useTranslation } from 'react-i18next';
+import SearchInput from '../SearchInput/SearchInput';
+import Filter from '../Filter/Filter';
+import './FilterSection.css';
 
 /**
  * FilterSection — Component vùng lọc dùng chung cho các trang danh sách
- * 
+ *
  * @param {string} searchQuery - Giá trị tìm kiếm hiện tại
  * @param {Function} onSearchChange - (e) => void - Callback khi giá trị tìm kiếm thay đổi
  * @param {string} searchPlaceholder - Placeholder cho ô tìm kiếm
@@ -32,16 +32,17 @@ function FilterSection({
   hasActiveFilters = false,
   onClearFilters,
   extraControls = null,
+  showCategoryFilters = true,
 }) {
-  const { t } = useTranslation(['common'])
+  const { t } = useTranslation(['common']);
 
   const handleClearSearch = () => {
     // Tạo synthetic event để tương thích với onSearchChange
     const syntheticEvent = {
-      target: { value: '' }
-    }
-    onSearchChange(syntheticEvent)
-  }
+      target: { value: '' },
+    };
+    onSearchChange(syntheticEvent);
+  };
 
   return (
     <section className="filter-section glass-well">
@@ -61,12 +62,8 @@ function FilterSection({
 
         {/* Nút xóa filter */}
         {hasActiveFilters && (
-          <button
-            type="button"
-            className="btn-clear-filter"
-            onClick={onClearFilters}
-          >
-            <span className="material-symbols-outlined" aria-hidden="true">
+          <button type="button" className="btn-clear-filter" onClick={onClearFilters}>
+            <span className="material-symbols-outlined">
               filter_alt_off
             </span>
             {t('filter.clearFilters')}
@@ -75,16 +72,18 @@ function FilterSection({
       </div>
 
       {/* Component Filter với CEFR và Tags */}
-      <Filter
-        cefrLevels={cefrLevels}
-        tags={tags}
-        selectedCefrLevelId={selectedCefrLevelId}
-        selectedTagId={selectedTagId}
-        onCefrChange={onCefrChange}
-        onTagChange={onTagChange}
-      />
+      {showCategoryFilters && (
+        <Filter
+          cefrLevels={cefrLevels}
+          tags={tags}
+          selectedCefrLevelId={selectedCefrLevelId}
+          selectedTagId={selectedTagId}
+          onCefrChange={onCefrChange}
+          onTagChange={onTagChange}
+        />
+      )}
     </section>
-  )
+  );
 }
 
-export default FilterSection
+export default FilterSection;

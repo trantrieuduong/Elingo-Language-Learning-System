@@ -65,3 +65,5 @@ __pycache__
 
 # Environment file
 .env
+*storybook.log
+storybook-static

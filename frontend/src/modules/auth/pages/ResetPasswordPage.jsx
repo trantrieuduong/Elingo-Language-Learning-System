@@ -1,139 +1,139 @@
-import { useEffect, useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import Input from '../../../components/Input/Input'
-import { useAuth } from '../../../context/AuthContext'
-import './AuthPages.css'
+import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import Input from '../../../components/Input/Input';
+import { useAuth } from '../../../context/AuthContext';
+import './AuthPages.css';
 
 const initialForm = {
   email: '',
   otp: '',
   newPassword: '',
   confirmPassword: '',
-}
+};
 
-const OTP_RESEND_COOLDOWN = Number(import.meta.env.VITE_OTP_RESEND_COOLDOWN) || 60
+const OTP_RESEND_COOLDOWN = Number(import.meta.env.VITE_OTP_RESEND_COOLDOWN) || 60;
 
 function ResetPasswordPage({ onNavigate }) {
-  const { t } = useTranslation('auth')
-  const { sendResetPasswordOtp, resetPassword } = useAuth()
+  const { t } = useTranslation('auth');
+  const { sendResetPasswordOtp, resetPassword } = useAuth();
 
-  const [form, setForm] = useState(initialForm)
-  const [errors, setErrors] = useState({})
-  const [generalError, setGeneralError] = useState('')
-  const [successMsg, setSuccessMsg] = useState('')
+  const [form, setForm] = useState(initialForm);
+  const [errors, setErrors] = useState({});
+  const [generalError, setGeneralError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
 
-  const [isOtpSent, setIsOtpSent] = useState(false)
-  const [isSendingOtp, setIsSendingOtp] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [resendCooldown, setResendCooldown] = useState(0)
+  const [isOtpSent, setIsOtpSent] = useState(false);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
-  const redirectTimerRef = useRef(null)
+  const redirectTimerRef = useRef(null);
 
   useEffect(() => {
-    if (resendCooldown <= 0) return undefined
-    const timer = setTimeout(() => setResendCooldown((seconds) => seconds - 1), 1000)
-    return () => clearTimeout(timer)
-  }, [resendCooldown])
+    if (resendCooldown <= 0) return undefined;
+    const timer = setTimeout(() => setResendCooldown((seconds) => seconds - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
 
-  useEffect(() => () => clearTimeout(redirectTimerRef.current), [])
+  useEffect(() => () => clearTimeout(redirectTimerRef.current), []);
 
   const handleChange = (field, value) => {
-    setForm((prev) => ({ ...prev, [field]: value }))
+    setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: '' }))
+      setErrors((prev) => ({ ...prev, [field]: '' }));
     }
-    if (generalError) setGeneralError('')
-  }
+    if (generalError) setGeneralError('');
+  };
 
   const validateEmail = () => {
     if (!form.email.trim()) {
-      setErrors((prev) => ({ ...prev, email: t('emailRequired') }))
-      return false
+      setErrors((prev) => ({ ...prev, email: t('emailRequired') }));
+      return false;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      setErrors((prev) => ({ ...prev, email: t('emailInvalid') }))
-      return false
+      setErrors((prev) => ({ ...prev, email: t('emailInvalid') }));
+      return false;
     }
-    return true
-  }
+    return true;
+  };
 
   const handleSendOtp = async () => {
-    setGeneralError('')
-    setSuccessMsg('')
-    if (!validateEmail()) return
+    setGeneralError('');
+    setSuccessMsg('');
+    if (!validateEmail()) return;
 
-    setIsSendingOtp(true)
-    const result = await sendResetPasswordOtp(form.email.trim())
-    setIsSendingOtp(false)
+    setIsSendingOtp(true);
+    const result = await sendResetPasswordOtp(form.email.trim());
+    setIsSendingOtp(false);
 
     if (result.success) {
-      setIsOtpSent(true)
-      setSuccessMsg(result.message)
-      setResendCooldown(OTP_RESEND_COOLDOWN)
+      setIsOtpSent(true);
+      setSuccessMsg(result.message);
+      setResendCooldown(OTP_RESEND_COOLDOWN);
     } else {
       // Xử lý lỗi field-specific
       if (result.code === 'EMAIL_NOT_EXISTED' || result.code === 'USER_NOT_FOUND') {
-        setErrors((prev) => ({ ...prev, email: result.message }))
+        setErrors((prev) => ({ ...prev, email: result.message }));
       } else {
-        setGeneralError(result.message)
+        setGeneralError(result.message);
       }
     }
-  }
+  };
 
   const validate = () => {
-    const newErrors = {}
+    const newErrors = {};
 
     if (!form.email.trim()) {
-      newErrors.email = t('emailRequired')
+      newErrors.email = t('emailRequired');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      newErrors.email = t('emailInvalid')
+      newErrors.email = t('emailInvalid');
     }
 
     if (!form.otp.trim()) {
-      newErrors.otp = t('resetOtpRequired')
+      newErrors.otp = t('resetOtpRequired');
     }
 
     if (!form.newPassword) {
-      newErrors.newPassword = t('resetNewPasswordRequired')
+      newErrors.newPassword = t('resetNewPasswordRequired');
     } else if (!getPasswordRequirements(form.newPassword).every((r) => r.isMet)) {
-      newErrors.newPassword = t('passwordSignupInvalid')
+      newErrors.newPassword = t('passwordSignupInvalid');
     }
 
     if (form.newPassword !== form.confirmPassword) {
-      newErrors.confirmPassword = t('resetConfirmPasswordMismatch')
+      newErrors.confirmPassword = t('resetConfirmPasswordMismatch');
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setGeneralError('')
-    setSuccessMsg('')
-    if (!validate()) return
+    e.preventDefault();
+    setGeneralError('');
+    setSuccessMsg('');
+    if (!validate()) return;
 
-    setIsSubmitting(true)
-    const result = await resetPassword(form.email.trim(), form.otp.trim(), form.newPassword)
-    setIsSubmitting(false)
+    setIsSubmitting(true);
+    const result = await resetPassword(form.email.trim(), form.otp.trim(), form.newPassword);
+    setIsSubmitting(false);
 
     if (result.success) {
-      setSuccessMsg(result.message)
+      setSuccessMsg(result.message);
       redirectTimerRef.current = setTimeout(() => {
-        if (onNavigate) onNavigate('/login')
-      }, 1200)
+        if (onNavigate) onNavigate('/login');
+      }, 1200);
     } else {
       // Xử lý validation errors từ backend
       if (result.errors && Array.isArray(result.errors)) {
-        const newErrors = {}
+        const newErrors = {};
         result.errors.forEach((err) => {
           if (err.field && err.message) {
-            newErrors[err.field] = err.message
+            newErrors[err.field] = err.message;
           }
-        })
+        });
         if (Object.keys(newErrors).length > 0) {
-          setErrors((prev) => ({ ...prev, ...newErrors }))
-          return
+          setErrors((prev) => ({ ...prev, ...newErrors }));
+          return;
         }
       }
 
@@ -144,27 +144,27 @@ function ResetPasswordPage({ onNavigate }) {
         USER_NOT_FOUND: 'email',
         PASSWORD_INCORRECT: 'newPassword',
         NEW_PASSWORD_SAME_AS_OLD: 'newPassword',
-      }
+      };
 
-      const field = fieldErrorMap[result.code]
+      const field = fieldErrorMap[result.code];
       if (field) {
-        setErrors((prev) => ({ ...prev, [field]: result.message }))
+        setErrors((prev) => ({ ...prev, [field]: result.message }));
       } else {
-        setGeneralError(result.message)
+        setGeneralError(result.message);
       }
     }
-  }
+  };
 
   const handleLoginClick = (e) => {
-    e.preventDefault()
-    if (onNavigate) onNavigate('/login')
-  }
+    e.preventDefault();
+    if (onNavigate) onNavigate('/login');
+  };
 
   const formatCooldown = () => {
-    const minutes = Math.floor(resendCooldown / 60)
-    const seconds = resendCooldown % 60
-    return `${minutes}:${String(seconds).padStart(2, '0')}`
-  }
+    const minutes = Math.floor(resendCooldown / 60);
+    const seconds = resendCooldown % 60;
+    return `${minutes}:${String(seconds).padStart(2, '0')}`;
+  };
 
   return (
     <main className="auth-page">
@@ -265,7 +265,7 @@ function ResetPasswordPage({ onNavigate }) {
         </p>
       </section>
     </main>
-  )
+  );
 }
 
 function getPasswordRequirements(password) {
@@ -274,30 +274,32 @@ function getPasswordRequirements(password) {
     { key: 'case', isMet: /[A-Z]/.test(password) && /[a-z]/.test(password) },
     { key: 'number', isMet: /\d/.test(password) },
     { key: 'special', isMet: /[^A-Za-z0-9]/.test(password) },
-  ]
+  ];
 }
 
 function PasswordRequirements({ password, t }) {
-  const hasPasswordInput = password.length > 0
-  const requirements = getPasswordRequirements(password)
+  const hasPasswordInput = password.length > 0;
+  const requirements = getPasswordRequirements(password);
 
   return (
-    <ul className="auth-password-requirements" aria-label={t('passwordRequirements.title')}>
+    <ul className="auth-password-requirements">
       {requirements.map((req) => {
         const statusClass = !hasPasswordInput
           ? 'auth-password-requirements__item--neutral'
           : req.isMet
             ? 'auth-password-requirements__item--met'
-            : 'auth-password-requirements__item--unmet'
+            : 'auth-password-requirements__item--unmet';
         return (
           <li className={statusClass} key={req.key}>
-            <span className="material-symbols-outlined">{req.isMet ? 'check_circle' : 'cancel'}</span>
+            <span className="material-symbols-outlined">
+              {req.isMet ? 'check_circle' : 'cancel'}
+            </span>
             {t(`passwordRequirements.${req.key}`)}
           </li>
-        )
+        );
       })}
     </ul>
-  )
+  );
 }
 
-export default ResetPasswordPage
+export default ResetPasswordPage;

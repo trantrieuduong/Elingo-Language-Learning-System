@@ -1,23 +1,26 @@
-import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import FlipCard from '../FlipCard/FlipCard'
-import './VocabularyFlashCard.css'
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import FlipCard from '../FlipCard/FlipCard';
+import './VocabularyFlashCard.css';
 
 const formatLocale = (locale) => {
-  if (!locale || typeof locale !== 'string') return ''
-  const upper = locale.toUpperCase().trim()
-  if (upper.includes('UK')) return 'UK'
-  if (upper.includes('US')) return 'US'
-  return locale
-}
+  if (!locale || typeof locale !== 'string') return '';
+  const upper = locale.toUpperCase().trim();
+  if (upper.includes('UK')) return 'UK';
+  if (upper.includes('US')) return 'US';
+  return locale;
+};
 
 const formatPhonetic = (text) => {
-  if (!text || typeof text !== 'string') return ''
-  const trimmed = text.trim()
-  if ((trimmed.startsWith('/') && trimmed.endsWith('/'))
-    || (trimmed.startsWith('[') && trimmed.endsWith(']'))) return trimmed
-  return `/${trimmed}/`
-}
+  if (!text || typeof text !== 'string') return '';
+  const trimmed = text.trim();
+  if (
+    (trimmed.startsWith('/') && trimmed.endsWith('/')) ||
+    (trimmed.startsWith('[') && trimmed.endsWith(']'))
+  )
+    return trimmed;
+  return `/${trimmed}/`;
+};
 
 function VocabularyFlashCard({
   card,
@@ -27,28 +30,27 @@ function VocabularyFlashCard({
   compact = false,
   className: additionalClassName = '',
 }) {
-  const { t } = useTranslation('learning')
-  const [imgError, setImgError] = useState(false)
+  const { t } = useTranslation('learning');
+  const [imgError, setImgError] = useState(false);
   const phonetics = Array.isArray(card.phonetics)
     ? card.phonetics.filter((phonetic) => phonetic && (phonetic.text || phonetic.audioUrl))
-    : []
+    : [];
   const className = [
     'vocabulary-flashcard',
     compact ? 'vocabulary-flashcard--compact' : '',
     additionalClassName,
-  ].filter(Boolean).join(' ')
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <FlipCard
       className={className}
-      ariaLabel={t('flashcard.card.ariaLabel', { term: card.term || '' })}
       frontClassName="flashcard-front glass-card"
       backClassName="flashcard-back glass-card"
-      front={(
-        <>
-          {frontMeta && (
-            <div className="vocabulary-flashcard__meta">{frontMeta}</div>
-          )}
+      front={
+        <div className="flashcard-face-content flashcard-front-content">
+          {frontMeta && <div className="vocabulary-flashcard__meta">{frontMeta}</div>}
           {card.imageUrl && !imgError && (
             <div className="flashcard-image-wrapper">
               <img
@@ -66,10 +68,10 @@ function VocabularyFlashCard({
           {phonetics.length > 0 && (
             <div className="flashcard-phonetics-group">
               {phonetics.map((phonetic, index) => {
-                const key = `phonetic-${index}`
-                const localeLabel = formatLocale(phonetic.locale)
-                const formattedPhonetic = formatPhonetic(phonetic.text)
-                const isPlaying = playingAudioKey === key
+                const key = `phonetic-${index}`;
+                const localeLabel = formatLocale(phonetic.locale);
+                const formattedPhonetic = formatPhonetic(phonetic.text);
+                const isPlaying = playingAudioKey === key;
 
                 return (
                   <div key={key} className="flashcard-phonetic-item">
@@ -89,18 +91,16 @@ function VocabularyFlashCard({
                           locale: localeLabel ? `(${localeLabel})` : '',
                           term: card.term,
                         })}
-                        aria-label={t('flashcard.card.playAudioAria', {
-                          locale: localeLabel ? `(${localeLabel})` : '',
-                          term: card.term,
-                        })}
                       >
-                        <span className={`material-symbols-outlined${isPlaying ? ' pulse-icon' : ''}`}>
+                        <span
+                          className={`material-symbols-outlined${isPlaying ? ' pulse-icon' : ''}`}
+                        >
                           volume_up
                         </span>
                       </button>
                     )}
                   </div>
-                )
+                );
               })}
             </div>
           )}
@@ -109,16 +109,18 @@ function VocabularyFlashCard({
             <span className="material-symbols-outlined flashcard-hint-icon">touch_app</span>
             {t('flashcard.card.hintFront')}
           </p>
-        </>
-      )}
-      back={(
-        <>
+        </div>
+      }
+      back={
+        <div className="flashcard-face-content flashcard-back-content">
           <h2 className="flashcard-term">{card.translation || ''}</h2>
 
           <div className="flashcard-details">
             {card.explanationVi && (
               <div className="flashcard-section">
-                <span className="material-symbols-outlined" aria-hidden="true">menu_book</span>
+                <span className="material-symbols-outlined">
+                  menu_book
+                </span>
                 <div>
                   <p className="flashcard-section-label">{t('flashcard.card.definitionVi')}</p>
                   <p className="flashcard-explanation-text">{card.explanationVi}</p>
@@ -128,7 +130,9 @@ function VocabularyFlashCard({
 
             {card.explanationEn && (
               <div className="flashcard-section">
-                <span className="material-symbols-outlined" aria-hidden="true">menu_book</span>
+                <span className="material-symbols-outlined">
+                  menu_book
+                </span>
                 <div>
                   <p className="flashcard-section-label">{t('flashcard.card.definitionEn')}</p>
                   <p className="flashcard-explanation-text">{card.explanationEn}</p>
@@ -138,7 +142,9 @@ function VocabularyFlashCard({
 
             {(card.examplesEn || card.examplesVi) && (
               <div className="flashcard-section">
-                <span className="material-symbols-outlined" aria-hidden="true">format_quote</span>
+                <span className="material-symbols-outlined">
+                  format_quote
+                </span>
                 <div>
                   <p className="flashcard-section-label">{t('flashcard.card.examples')}</p>
                   {card.examplesEn && <p className="flashcard-example-en">"{card.examplesEn}"</p>}
@@ -152,10 +158,10 @@ function VocabularyFlashCard({
             <span className="material-symbols-outlined flashcard-hint-icon">touch_app</span>
             {t('flashcard.card.hintBack')}
           </p>
-        </>
-      )}
+        </div>
+      }
     />
-  )
+  );
 }
 
-export default VocabularyFlashCard
+export default VocabularyFlashCard;

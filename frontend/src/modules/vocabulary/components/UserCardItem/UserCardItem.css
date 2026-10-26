@@ -1,7 +1,8 @@
 .user-card-item {
-  display: flex;
+  display: grid;
   min-width: 0;
-  flex-direction: column;
+  height: clamp(348px, calc(30vw + 48px), 428px);
+  grid-template-rows: minmax(0, 1fr) auto;
   border: 1px solid var(--color-glass-border-standard);
   border-radius: var(--radius-card);
   overflow: hidden;
@@ -16,16 +17,38 @@
 
 .user-card-item__flip {
   min-width: 0;
+  min-height: 0;
 }
 
-.user-card-item__meta-trailing {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-sm);
+.user-card-item__flip.vocabulary-flashcard--compact {
+  height: 100%;
+  min-height: 0;
 }
 
-.user-card-item__order {
-  color: var(--color-text-disabled);
+.user-card-item__flip.vocabulary-flashcard--compact .flip-card__inner,
+.user-card-item__flip.vocabulary-flashcard--compact .flashcard-front,
+.user-card-item__flip.vocabulary-flashcard--compact .flashcard-back {
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+}
+
+.user-card-item__flip.vocabulary-flashcard--compact .flip-card__inner {
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.user-card-item__flip.vocabulary-flashcard--compact .flashcard-face-content {
+  box-sizing: border-box;
+  height: 100%;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.user-card-item__flip.vocabulary-flashcard--compact .flashcard-front-content {
+  padding-top: 2.5rem;
+  padding-bottom: 1.75rem;
 }
 
 .user-card-item__star {

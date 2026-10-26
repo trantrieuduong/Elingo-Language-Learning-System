@@ -1,0 +1,4 @@
+.flashcard-star-button.active-star,
+.flashcard-star-button.active-star .material-symbols-outlined {
+  color: var(--color-warning);
+}

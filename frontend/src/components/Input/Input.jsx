@@ -1,12 +1,11 @@
-import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import './Input.css'
+import { useState } from 'react';
+import './Input.css';
 
 /**
  * Input component dùng chung toàn project.
  * Hỗ trợ show/hide password, error state, label, right element.
  *
- * @param {string} id - ID duy nhất của input (bắt buộc để a11y)
+ * @param {string} id - ID duy nhất của input
  * @param {string} label - Text label phía trên input
  * @param {string} type - Input type (default: 'text')
  * @param {string} placeholder
@@ -32,11 +31,10 @@ function Input({
   className = '',
   ...props
 }) {
-  const { t } = useTranslation()
-  const [showPassword, setShowPassword] = useState(false)
+  const [showPassword, setShowPassword] = useState(false);
 
-  const isPassword = type === 'password'
-  const inputType = isPassword ? (showPassword ? 'text' : 'password') : type
+  const isPassword = type === 'password';
+  const inputType = isPassword ? (showPassword ? 'text' : 'password') : type;
 
   return (
     <div className={`input-wrapper ${error ? 'input-wrapper--error' : ''} ${className}`}>
@@ -56,8 +54,6 @@ function Input({
           autoFocus={autoFocus}
           disabled={disabled}
           className={`input-field ${error ? 'input-field--error' : ''}`}
-          aria-invalid={!!error}
-          aria-describedby={error ? `${id}-error` : undefined}
           {...props}
         />
 
@@ -67,7 +63,6 @@ function Input({
             type="button"
             className="input-toggle-password"
             onClick={() => setShowPassword((prev) => !prev)}
-            aria-label={showPassword ? t('hidePassword') : t('showPassword')}
             tabIndex={-1}
           >
             <span className="material-symbols-outlined">
@@ -77,18 +72,14 @@ function Input({
         )}
 
         {/* Custom right element (vd: icon tìm kiếm) */}
-        {!isPassword && rightElement && (
-          <div className="input-right-element">{rightElement}</div>
-        )}
+        {!isPassword && rightElement && <div className="input-right-element">{rightElement}</div>}
       </div>
 
       {error && (
-        <p id={`${id}-error`} className="input-error" role="alert">
-          {error}
-        </p>
+        <p className="input-error">{error}</p>
       )}
     </div>
-  )
+  );
 }
 
-export default Input
+export default Input;

@@ -30,7 +30,7 @@
   background: rgba(255, 255, 255, 0.6);
   backdrop-filter: var(--blur-sm);
   -webkit-backdrop-filter: var(--blur-sm);
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--color-outline-variant);
   border-radius: var(--radius-input);
   color: var(--color-text-high);
   font-family: var(--font-body);

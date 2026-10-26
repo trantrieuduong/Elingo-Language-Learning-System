@@ -152,7 +152,7 @@
   min-height: 40px;
 }
 
-.auth-google-button>div {
+.auth-google-button > div {
   width: 100% !important;
 }
 
@@ -273,7 +273,6 @@
   .auth-submit {
     min-height: 40px;
   }
-
 }
 
 .auth-send-otp-inside-btn {

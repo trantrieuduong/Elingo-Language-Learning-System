@@ -415,6 +415,61 @@ class DeckServiceTest {
         }
     }
 
+    // ─────────────────────── getDeckById ───────────────────────
+
+    @Nested
+    @DisplayName("getDeckById")
+    class GetDeckByIdTests {
+
+        @Test
+        @DisplayName("Get deck by id successfully: checks access and maps deck")
+        void getDeckById_Success() {
+            DeckRepository.DeckAccessView deckAccess = accessView(DECK_ID);
+            Deck deck = userDeck("My deck");
+            DeckResponse response = buildDeckResponse("My deck");
+
+            when(deckRepository.findAccessViewById(DECK_ID)).thenReturn(Optional.of(deckAccess));
+            when(deckRepository.findById(DECK_ID)).thenReturn(Optional.of(deck));
+            when(deckMapper.toDeckResponse(deck)).thenReturn(response);
+
+            assertThat(deckService.getDeckById(DECK_ID, USER_ID)).isSameAs(response);
+
+            verify(accessPolicy).assertCanView(deckAccess, USER_ID);
+            verify(deckRepository).findById(DECK_ID);
+            verify(deckMapper).toDeckResponse(deck);
+        }
+
+        @Test
+        @DisplayName("Get deck by id failed: caller cannot view deck")
+        void getDeckById_Fail_AccessDenied() {
+            DeckRepository.DeckAccessView deckAccess = accessView(DECK_ID);
+            when(deckRepository.findAccessViewById(DECK_ID)).thenReturn(Optional.of(deckAccess));
+            doThrow(new AppException(AppError.DECK_NOT_FOUND))
+                    .when(accessPolicy).assertCanView(deckAccess, USER_ID);
+
+            assertThatThrownBy(() -> deckService.getDeckById(DECK_ID, USER_ID))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.DECK_NOT_FOUND));
+
+            verify(deckRepository, never()).findById(DECK_ID);
+            verifyNoInteractions(deckMapper);
+        }
+
+        @Test
+        @DisplayName("Get deck by id failed: deck does not exist")
+        void getDeckById_Fail_DeckNotFound() {
+            when(deckRepository.findAccessViewById(DECK_ID)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> deckService.getDeckById(DECK_ID, USER_ID))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.DECK_NOT_FOUND));
+
+            verifyNoInteractions(accessPolicy, deckMapper);
+        }
+    }
+
     // ─────────────────────── getUserDecks ───────────────────────
 
     @Nested

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { useTranslation } from 'react-i18next'
+import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   getDecksApi,
   getUserDecksApi,
@@ -9,344 +9,322 @@ import {
   deleteUserDeckApi,
   getTagsApi,
   getCefrLevelsApi,
-} from '../../vocabularyApi'
-import Pagination from '../../../../components/Pagination/Pagination'
-import FilterSection from '../../../../components/FilterSection/FilterSection'
-import ProgressBar from '../../../../components/ProgressBar/ProgressBar'
-import Modal from '../../../../components/Modal/Modal'
-import UserDeckCard from '../../components/UserDeckCard/UserDeckCard'
-import DeckFormModal from '../../components/DeckFormModal/DeckFormModal'
-import './DeckListPage.css'
+} from '../../vocabularyApi';
+import Pagination from '../../../../components/Pagination/Pagination';
+import FilterSection from '../../../../components/FilterSection/FilterSection';
+import ProgressBar from '../../../../components/ProgressBar/ProgressBar';
+import EmptyState from '../../../../components/EmptyState/EmptyState';
+import PageLoading from '../../../../components/PageLoading/PageLoading';
+import Toast from '../../../../components/Toast/Toast';
+import ConfirmModal from '../../../../components/ConfirmModal/ConfirmModal';
+import UserDeckCard from '../../components/UserDeckCard/UserDeckCard';
+import DeckStatsPill from '../../components/DeckStatsPill/DeckStatsPill';
+import DeckFormModal from '../../components/DeckFormModal/DeckFormModal';
+import './DeckListPage.css';
 
-// CEFR codes are uppercase. Tags such as `b1` and `c1` must not be treated as
-// CEFR levels merely because they have the same letters and digits.
-const isCefrCode = (code) => /^(A1|A2|B1|B2|C1|C2)$/.test(String(code || '').trim())
+const DECK_TABS = new Set(['system-decks', 'community-decks', 'my-decks']);
 
-/**
- * Trang danh sách các bộ từ vựng công khai (decks)
- * @param {Function} onNavigate - Hàm điều hướng từ App.jsx
- */
+const getInitialTab = () => {
+  const tab = new URLSearchParams(window.location.search).get('tab');
+  return DECK_TABS.has(tab) ? tab : 'system-decks';
+};
+
 function DeckListPage({ onNavigate }) {
-  const { t } = useTranslation('learning')
-
-  // Tab: 'system-decks' hoặc 'my-decks'
-  const [activeTab, setActiveTab] = useState('system-decks')
+  const { t } = useTranslation(['learning', 'common']);
+  const [activeTab, setActiveTab] = useState(getInitialTab);
 
   // States danh mục dùng chung
-  const [tags, setTags] = useState([])
-  const [cefrLevels, setCefrLevels] = useState([])
+  const [tags, setTags] = useState([]);
+  const [cefrLevels, setCefrLevels] = useState([]);
 
   // States filter và tìm kiếm
-  const [searchQuery, setSearchQuery] = useState('')
-  const [debouncedQuery, setDebouncedQuery] = useState('')
-  const [selectedTagId, setSelectedTagId] = useState(null)
-  const [selectedCefrLevelId, setSelectedCefrLevelId] = useState(null)
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [selectedTagId, setSelectedTagId] = useState(null);
+  const [selectedCefrLevelId, setSelectedCefrLevelId] = useState(null);
 
-  // ── 1. States cho tab "Khám phá" (Explore) ──
-  const [decks, setDecks] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [page, setPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [retryCount, setRetryCount] = useState(0)
+  // States cho tab "Bộ từ cộng đồng"
+  const [decks, setDecks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [retryCount, setRetryCount] = useState(0);
 
-  // ── 2. States cho tab "Bộ từ của tôi" (My Decks CRUD) ──
-  const [userDecks, setUserDecks] = useState([])
-  const [userDecksLoading, setUserDecksLoading] = useState(true)
-  const [userDecksError, setUserDecksError] = useState(null)
-  const [userDeckStatusFilter, setUserDeckStatusFilter] = useState('ALL') // ALL | PUBLISHED | DRAFT
-  const [userDeckPage, setUserDeckPage] = useState(1)
-  const [userDeckTotalPages, setUserDeckTotalPages] = useState(1)
-  const [userDeckRefreshTrigger, setUserDeckRefreshTrigger] = useState(0)
+  // States cho tab "Bộ từ của tôi"
+  const [userDecks, setUserDecks] = useState([]);
+  const [userDecksLoading, setUserDecksLoading] = useState(true);
+  const [userDecksError, setUserDecksError] = useState(null);
+  const [userDeckStatusFilter, setUserDeckStatusFilter] = useState('ALL'); // ALL | PUBLISHED | DRAFT
+  const [userDeckPage, setUserDeckPage] = useState(1);
+  const [userDeckTotalPages, setUserDeckTotalPages] = useState(1);
+  const [userDeckRefreshTrigger, setUserDeckRefreshTrigger] = useState(0);
 
-  // ── 3. States cho Modals & Toasts ──
-  const [isFormModalOpen, setIsFormModalOpen] = useState(false)
-  const [formModalMode, setFormModalMode] = useState('create') // 'create' | 'edit'
-  const [selectedDeckForEdit, setSelectedDeckForEdit] = useState(null)
-  const [isFormSubmitting, setIsFormSubmitting] = useState(false)
+  // States cho Modals & Toasts ──
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [formModalMode, setFormModalMode] = useState('create'); // 'create' | 'edit'
+  const [selectedDeckForEdit, setSelectedDeckForEdit] = useState(null);
+  const [isFormSubmitting, setIsFormSubmitting] = useState(false);
 
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-  const [deckToDelete, setDeckToDelete] = useState(null)
-  const [isDeleting, setIsDeleting] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deckToDelete, setDeckToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const [toastMessage, setToastMessage] = useState('')
-
-  // Toast tự tắt sau 3 giây (Pattern 9.5)
-  useEffect(() => {
-    if (!toastMessage) return
-    const timer = setTimeout(() => setToastMessage(''), 3000)
-    return () => clearTimeout(timer)
-  }, [toastMessage])
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastVariant, setToastVariant] = useState('success');
+  const handleToastDismiss = useCallback(() => setToastMessage(''), []);
+  const showToast = (message, variant = 'success') => {
+    setToastVariant(variant);
+    setToastMessage(message);
+  };
 
   // Debounce tìm kiếm chung
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedQuery(searchQuery)
-      setPage(1) // Reset về trang 1 khi đổi keyword
-      setUserDeckPage(1)
-    }, 500)
-    return () => clearTimeout(timer)
-  }, [searchQuery])
+      setDebouncedQuery(searchQuery);
+      setPage(1); // Reset về trang 1 khi đổi keyword
+      setUserDeckPage(1);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
-  // Lọc dữ liệu khi tag/cefr thay đổi
   const handleCefrChange = (id) => {
-    setSelectedCefrLevelId(id)
-    setPage(1)
-    setUserDeckPage(1)
-  }
+    setSelectedCefrLevelId(id);
+    setPage(1);
+    setUserDeckPage(1);
+  };
 
   const handleTagChange = (id) => {
-    setSelectedTagId(id)
-    setPage(1)
-    setUserDeckPage(1)
-  }
+    setSelectedTagId(id);
+    setPage(1);
+    setUserDeckPage(1);
+  };
 
   useEffect(() => {
     const fetchMetadata = async () => {
       try {
-        const [tagsRes, cefrRes] = await Promise.all([getTagsApi(), getCefrLevelsApi()])
+        const [tagsRes, cefrRes] = await Promise.all([getTagsApi(), getCefrLevelsApi()]);
 
         if (tagsRes.success && tagsRes.data) {
           // Format theo id, name của component Filter
-          setTags(tagsRes.data.map((tag) => ({ _id: tag.code, name: tag.label })))
+          setTags(tagsRes.data.map((tag) => ({ _id: tag.id, name: tag.label })));
         }
         if (cefrRes.success && cefrRes.data) {
-          setCefrLevels(cefrRes.data.map((cefr) => ({ _id: cefr.code, name: cefr.label })))
+          setCefrLevels(cefrRes.data.map((cefr) => ({ _id: cefr.id, name: cefr.label })));
         }
-
-        const metadata = [
-          ...(Array.isArray(tagsRes?.data) ? tagsRes.data : []),
-          ...(Array.isArray(cefrRes?.data) ? cefrRes.data : []),
-        ]
-
-        // A CEFR code is unambiguous, so this also tolerates a deployed API
-        // whose /tags and /cefr-levels metadata responses are swapped.
-        setCefrLevels(
-          metadata
-            .filter((item) => isCefrCode(item.code))
-            .map((item) => ({ _id: item.code, name: item.label || item.code }))
-        )
-        setTags(
-          metadata
-            .filter((item) => !isCefrCode(item.code))
-            .map((item) => ({ _id: item.code, name: item.label || item.code }))
-        )
       } catch (err) {
-        console.error('Failed to fetch metadata:', err)
+        console.error('Failed to fetch metadata:', err);
       }
-    }
+    };
 
-    fetchMetadata()
-  }, [])
+    fetchMetadata();
+  }, []);
 
-  // ── Fetch dữ liệu cho tab Khám phá ──
   useEffect(() => {
-    if (activeTab !== 'system-decks' && activeTab !== 'community-decks') return
+    if (activeTab !== 'system-decks' && activeTab !== 'community-decks') return;
+
+    let isActive = true;
 
     const fetchDecks = async () => {
-      setLoading(true)
-      setError(null)
+      setLoading(true);
+      setError(null);
       try {
         const response = await getDecksApi({
           keyword: debouncedQuery || undefined,
-          tagCode: selectedTagId || undefined,
-          cefrCode: selectedCefrLevelId || undefined,
           page,
+          limit: 9,
           ownerType: activeTab === 'community-decks' ? 'USER' : 'SYSTEM',
-        })
+        });
+
+        if (!isActive) return;
 
         if (response.success && response.data) {
-          const fetchedDecks = response.data.content
-          setDecks(Array.isArray(fetchedDecks) ? fetchedDecks : [])
-          setTotalPages(response.data.totalPages)
+          const fetchedDecks = response.data.content;
+          setDecks(Array.isArray(fetchedDecks) ? fetchedDecks : []);
+          setTotalPages(response.data.totalPages);
         } else {
-          setError(response.message || t('deckList.loadError'))
+          setError(t('common:loadError'));
         }
       } catch (err) {
-        console.error('Failed to fetch decks:', err)
-        setError(err.response?.data?.message || t('deckList.networkError'))
+        if (!isActive) return;
+        console.error('Failed to fetch decks:', err);
+        setError(t('common:loadError'));
       } finally {
-        setLoading(false)
+        if (isActive) setLoading(false);
       }
-    }
+    };
 
-    fetchDecks()
-  }, [activeTab, debouncedQuery, selectedTagId, selectedCefrLevelId, page, retryCount, t])
+    fetchDecks();
 
-  // ── Fetch dữ liệu cho tab Bộ từ của tôi (User Decks CRUD) ──
+    return () => {
+      isActive = false;
+    };
+  }, [activeTab, debouncedQuery, selectedTagId, selectedCefrLevelId, page, retryCount, t]);
+
   useEffect(() => {
-    if (activeTab !== 'my-decks') return
+    if (activeTab !== 'my-decks') return;
+
+    let isActive = true;
 
     const fetchUserDecks = async () => {
-      setUserDecksLoading(true)
-      setUserDecksError(null)
+      setUserDecksLoading(true);
+      setUserDecksError(null);
       try {
         const response = await getUserDecksApi({
           keyword: debouncedQuery || undefined,
           status: userDeckStatusFilter,
-          tagCode: selectedTagId || undefined,
-          cefrCode: selectedCefrLevelId || undefined,
           page: userDeckPage,
           limit: 9,
-        })
+        });
+
+        if (!isActive) return;
 
         if (response.success && response.data) {
-          const content = response.data.content || []
-          setUserDecks(content)
-          setUserDeckTotalPages(response.data.totalPages)
+          const content = response.data.content || [];
+          setUserDecks(content);
+          setUserDeckTotalPages(response.data.totalPages);
         } else {
-          setUserDecksError(response.message || t('userDeck.loadError'))
+          setUserDecksError(t('common:loadError'));
         }
       } catch (err) {
-        console.error('Failed to fetch user decks:', err)
-        setUserDecksError(t('userDeck.loadError'))
+        if (!isActive) return;
+        console.error('Failed to fetch user decks:', err);
+        setUserDecksError(t('common:loadError'));
       } finally {
-        setUserDecksLoading(false)
+        if (isActive) setUserDecksLoading(false);
       }
-    }
+    };
 
-    fetchUserDecks()
-  }, [
-    activeTab,
-    debouncedQuery,
-    userDeckStatusFilter,
-    selectedTagId,
-    selectedCefrLevelId,
-    userDeckPage,
-    userDeckRefreshTrigger,
-  ])
+    fetchUserDecks();
 
-  // ── CRUD Actions Handlers ──
+    return () => {
+      isActive = false;
+    };
+  }, [activeTab, debouncedQuery, userDeckStatusFilter, userDeckPage, userDeckRefreshTrigger, t]);
 
-  // Mở modal tạo mới
   const handleOpenCreateModal = () => {
-    setFormModalMode('create')
-    setSelectedDeckForEdit(null)
-    setIsFormModalOpen(true)
-  }
+    setFormModalMode('create');
+    setSelectedDeckForEdit(null);
+    setIsFormModalOpen(true);
+  };
 
-  // Mở modal sửa
   const handleOpenEditModal = (deck) => {
-    setFormModalMode('edit')
-    setSelectedDeckForEdit(deck)
-    setIsFormModalOpen(true)
-  }
+    setFormModalMode('edit');
+    setSelectedDeckForEdit(deck);
+    setIsFormModalOpen(true);
+  };
 
-  // Mở modal xác nhận xóa
   const handleOpenDeleteModal = (deck) => {
-    setDeckToDelete(deck)
-    setIsDeleteModalOpen(true)
-  }
+    setDeckToDelete(deck);
+    setIsDeleteModalOpen(true);
+  };
 
-  // Submit form tạo / sửa deck
+  const handleCurrentUserNotFound = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('user');
+    window.dispatchEvent(new Event('auth:logout'));
+    if (onNavigate) onNavigate('/login');
+  };
+
   const handleFormSubmit = async (formData) => {
-    setIsFormSubmitting(true)
+    setIsFormSubmitting(true);
     try {
-      let res
+      let res;
       if (formModalMode === 'create') {
-        res = await createUserDeckApi(formData)
-      } else {
-        res = await updateUserDeckApi(selectedDeckForEdit.id, formData)
-        if (formData.status && formData.status !== selectedDeckForEdit.status) {
-          try {
-            await publishUserDeckApi(selectedDeckForEdit.id, formData.status === 'PUBLISHED')
-          } catch (pubErr) {
-            console.warn('Publish status update failed:', pubErr)
+        try {
+          res = await createUserDeckApi(formData);
+        } catch (error) {
+          if (error.response?.data?.code === 'USER_NOT_FOUND') {
+            handleCurrentUserNotFound();
           }
+          throw error;
         }
-      }
-
-      if (res.success) {
-        setIsFormModalOpen(false)
-        setToastMessage(
-          formModalMode === 'create'
-            ? t('userDeck.createSuccess')
-            : t('userDeck.updateSuccess')
-        )
-        // Refresh danh sách
-        setUserDeckRefreshTrigger((prev) => prev + 1)
-        return res
-      }
-      return res
-    } finally {
-      setIsFormSubmitting(false)
-    }
-  }
-
-  // Xác nhận xóa deck
-  const handleConfirmDelete = async () => {
-    if (!deckToDelete) return
-    setIsDeleting(true)
-    try {
-      const res = await deleteUserDeckApi(deckToDelete.id)
-      if (res.success) {
-        setIsDeleteModalOpen(false)
-        setDeckToDelete(null)
-        setToastMessage(t('userDeck.deleteSuccess'))
-        setUserDeckRefreshTrigger((prev) => prev + 1)
-      }
-    } catch (err) {
-      console.error('Lỗi khi xóa bộ từ:', err)
-    } finally {
-      setIsDeleting(false)
-    }
-  }
-
-  // Chuyển đổi trạng thái nhanh (DRAFT <-> PUBLISHED)
-  const handleToggleStatus = async (deck) => {
-    const isCurrentlyPublished = deck.status === 'PUBLISHED'
-    try {
-      const res = await publishUserDeckApi(deck.id, !isCurrentlyPublished)
-      if (res?.success) {
-        setToastMessage(t('userDeck.statusChanged'))
-        setUserDeckRefreshTrigger((prev) => prev + 1)
       } else {
-        setToastMessage(res?.message || t('userDeck.statusChangeError'))
+        res = await updateUserDeckApi(selectedDeckForEdit.id, formData);
+      }
+
+      if (res.success) {
+        setIsFormModalOpen(false);
+        showToast(
+          formModalMode === 'create' ? t('userDeck.createSuccess') : t('userDeck.updateSuccess')
+        );
+        setUserDeckRefreshTrigger((prev) => prev + 1);
+        return res;
+      }
+      return res;
+    } finally {
+      setIsFormSubmitting(false);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deckToDelete) return;
+    setIsDeleting(true);
+    try {
+      const res = await deleteUserDeckApi(deckToDelete.id);
+      if (res.success) {
+        setIsDeleteModalOpen(false);
+        setDeckToDelete(null);
+        showToast(t('userDeck.deleteSuccess'));
+        setUserDeckRefreshTrigger((prev) => prev + 1);
+      } else {
+        showToast(res?.message || t('userDeck.deleteError'), 'error');
       }
     } catch (err) {
-      console.error('Lỗi khi cập nhật trạng thái:', err)
-      const errorMsg = err.response?.data?.message || err.message || t('userDeck.statusChangeError')
-      setToastMessage(errorMsg)
+      const errorMessage =
+        err.response?.data?.message || err.message || t('userDeck.deleteError');
+      showToast(errorMessage, 'error');
+    } finally {
+      setIsDeleting(false);
     }
-  }
+  };
 
-  // Điều hướng vào học flashcard
-  const handleStudyDeck = (deck) => {
-    onNavigate(`/decks/${deck.id}`)
-  }
+  // Chuyển đổi trạng thái DRAFT <-> PUBLISHED
+  const handleToggleStatus = async (deck) => {
+    const isCurrentlyPublished = deck.status === 'PUBLISHED';
+    try {
+      const res = await publishUserDeckApi(deck.id, !isCurrentlyPublished);
+      if (res?.success) {
+        showToast(t('userDeck.statusChanged'));
+        setUserDeckRefreshTrigger((prev) => prev + 1);
+      } else {
+        showToast(res?.message || t('userDeck.statusChangeError'), 'error');
+      }
+    } catch (err) {
+      console.error('Lỗi khi cập nhật trạng thái:', err);
+      const errorMsg =
+        err.response?.data?.message || err.message || t('userDeck.statusChangeError');
+      showToast(errorMsg, 'error');
+    }
+  };
 
   const handleManageTopics = (deck) => {
-    onNavigate(`/decks/${deck.id}/topics`)
-  }
+    onNavigate(`/decks/${deck.id}/topics?tab=my-decks`);
+  };
 
-  const handleDeckClick = (deckId) => {
-    onNavigate(`/decks/${deckId}`)
-  }
+  const handleDeckClick = (deck) => {
+    onNavigate(`/decks/${deck.slug}`, { returnTo: `/decks?tab=${activeTab}` });
+  };
 
   const hasActiveFilters =
-    searchQuery !== '' || selectedTagId !== null || selectedCefrLevelId !== null
+    searchQuery !== '' ||
+    (activeTab === 'system-decks' && (selectedTagId !== null || selectedCefrLevelId !== null)) ||
+    (activeTab === 'my-decks' && userDeckStatusFilter !== 'ALL');
 
   const handleClearFilters = () => {
-    setSearchQuery('')
-    setDebouncedQuery('')
-    setSelectedTagId(null)
-    setSelectedCefrLevelId(null)
-    setPage(1)
-    setUserDeckPage(1)
-  }
+    setSearchQuery('');
+    setDebouncedQuery('');
+    setSelectedTagId(null);
+    setSelectedCefrLevelId(null);
+    setUserDeckStatusFilter('ALL');
+    setPage(1);
+    setUserDeckPage(1);
+  };
 
   return (
     <main className="deck-list-page">
       <div className="container deck-list-container">
-        {/* Toast thông báo thành công */}
-        {toastMessage && (
-          <div className="deck-toast-wrapper" role="status">
-            <div className="deck-toast glass-card">
-              <span className="material-symbols-outlined deck-toast__icon">check_circle</span>
-              <span className="deck-toast__text">{toastMessage}</span>
-            </div>
-          </div>
-        )}
+        <Toast message={toastMessage} variant={toastVariant} onDismiss={handleToastDismiss} />
 
         {/* Thanh chuyển đổi tab bộ từ */}
         <section className="deck-tabs-section">
@@ -355,7 +333,6 @@ function DeckListPage({ onNavigate }) {
               type="button"
               className={`deck-tab-btn ${activeTab === 'system-decks' ? 'deck-tab-btn--active' : ''}`}
               onClick={() => setActiveTab('system-decks')}
-              aria-pressed={activeTab === 'system-decks'}
             >
               <span className="material-symbols-outlined">auto_stories</span>
               {t('userDeck.tabs.systemDecks')}
@@ -364,7 +341,6 @@ function DeckListPage({ onNavigate }) {
               type="button"
               className={`deck-tab-btn ${activeTab === 'community-decks' ? 'deck-tab-btn--active' : ''}`}
               onClick={() => setActiveTab('community-decks')}
-              aria-pressed={activeTab === 'community-decks'}
             >
               <span className="material-symbols-outlined">explore</span>
               {t('userDeck.tabs.explore')}
@@ -405,6 +381,7 @@ function DeckListPage({ onNavigate }) {
           onTagChange={handleTagChange}
           hasActiveFilters={hasActiveFilters}
           onClearFilters={handleClearFilters}
+          showCategoryFilters={activeTab === 'system-decks'}
           extraControls={
             activeTab === 'my-decks' && (
               <div className="deck-status-filters">
@@ -414,8 +391,8 @@ function DeckListPage({ onNavigate }) {
                     userDeckStatusFilter === 'ALL' ? 'deck-status-pill--active' : ''
                   }`}
                   onClick={() => {
-                    setUserDeckStatusFilter('ALL')
-                    setUserDeckPage(1)
+                    setUserDeckStatusFilter('ALL');
+                    setUserDeckPage(1);
                   }}
                 >
                   {t('userDeck.statusAll')}
@@ -426,8 +403,8 @@ function DeckListPage({ onNavigate }) {
                     userDeckStatusFilter === 'PUBLISHED' ? 'deck-status-pill--active' : ''
                   }`}
                   onClick={() => {
-                    setUserDeckStatusFilter('PUBLISHED')
-                    setUserDeckPage(1)
+                    setUserDeckStatusFilter('PUBLISHED');
+                    setUserDeckPage(1);
                   }}
                 >
                   {t('userDeck.statusPublished')}
@@ -438,8 +415,8 @@ function DeckListPage({ onNavigate }) {
                     userDeckStatusFilter === 'DRAFT' ? 'deck-status-pill--active' : ''
                   }`}
                   onClick={() => {
-                    setUserDeckStatusFilter('DRAFT')
-                    setUserDeckPage(1)
+                    setUserDeckStatusFilter('DRAFT');
+                    setUserDeckPage(1);
                   }}
                 >
                   {t('userDeck.statusDraft')}
@@ -449,43 +426,37 @@ function DeckListPage({ onNavigate }) {
           }
         />
 
-        {/* ========================================================================= */}
-        {/* TAB 1: BỘ TỪ HỆ THỐNG                                                     */}
-        {/* ========================================================================= */}
         {(activeTab === 'system-decks' || activeTab === 'community-decks') && (
           <section className="deck-list-content">
             {loading ? (
-              <div className="page-loading">
-                <div className="app-loading-spinner" />
-              </div>
+              <PageLoading />
             ) : error ? (
-              <div className="empty-state glass-card">
-                <span className="material-symbols-outlined empty-state__icon text-error">error</span>
-                <p className="text-body-lg text-error">{error}</p>
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={() => setRetryCount((c) => c + 1)}
-                >
-                  {t('common:retry')}
-                </button>
-              </div>
+              <EmptyState
+                icon="error"
+                isError
+                description={error}
+                actionLabel={t('common:retry')}
+                onAction={() => setRetryCount((c) => c + 1)}
+              />
             ) : decks.length === 0 ? (
-              <div className="empty-state glass-card">
-                <span className="material-symbols-outlined empty-state__icon text-disabled">
-                  inbox
-                </span>
-                <p className="text-body-lg">{t('deckList.empty')}</p>
-              </div>
+              <EmptyState
+                icon="layers"
+                title={t('deckList.emptyTitle')}
+                description={
+                  hasActiveFilters ? t('deckList.emptyFilter') : t('deckList.emptyDefault')
+                }
+                actionLabel={hasActiveFilters ? t('common:filter.clearFilters') : undefined}
+                onAction={hasActiveFilters ? handleClearFilters : undefined}
+                actionVariant="primary"
+              />
             ) : (
               <>
                 <div className="vocabulary-grid">
                   {decks.map((deck) => {
-                    const totalCards = deck.cardCount ?? 0
-                    const learnedCards = deck.learnedCardCount ?? 0
-                    const deckMetadata = [...(deck.tags || []), ...(deck.cefrLevels || [])]
-                    const deckCefrLevels = deckMetadata.filter((item) => isCefrCode(item.code))
-                    const deckTags = deckMetadata.filter((item) => !isCefrCode(item.code))
+                    const totalCards = deck.cardCount ?? 0;
+                    const learnedCards = deck.learnedCardCount ?? 0;
+                    const deckCefrLevels = deck.cefrLevels || [];
+                    const deckTags = deck.tags || [];
 
                     return (
                       <article
@@ -493,24 +464,23 @@ function DeckListPage({ onNavigate }) {
                         className={`vocabulary-card glass-card ${
                           deck.isPremium ? 'vocabulary-card--premium' : ''
                         }`}
-                        onClick={() => handleDeckClick(deck.id)}
+                        onClick={() => handleDeckClick(deck)}
                       >
                         {/* Huy hiệu Premium ở góc trên bên trái ảnh bìa */}
                         {deck.isPremium && (
                           <span className="vocabulary-card__premium-badge">
-                            <span className="material-symbols-outlined vocabulary-card__premium-icon" aria-hidden="true">
+                            <span className="material-symbols-outlined vocabulary-card__premium-icon">
                               workspace_premium
                             </span>
                             {t('deckList.premium')}
                           </span>
                         )}
 
-                        <span className="vocabulary-card__word-count">
-                          {t('deckList.cardStats', {
-                            topicCount: deck.topicCount ?? 0,
-                            cardCount: deck.cardCount ?? 0,
-                          })}
-                        </span>
+                        <DeckStatsPill
+                          className="vocabulary-card__word-count"
+                          topicCount={deck.topicCount ?? 0}
+                          cardCount={deck.cardCount ?? 0}
+                        />
                         {deck.coverImageUrl ? (
                           <img
                             src={deck.coverImageUrl}
@@ -528,13 +498,19 @@ function DeckListPage({ onNavigate }) {
                           {(deckCefrLevels.length > 0 || deckTags.length > 0) && (
                             <div className="vocabulary-card__tags">
                               {deckCefrLevels.map((cefr) => (
-                                <span key={cefr.id || cefr.code} className="badge badge--soft-blue vocabulary-card__cefr-tag">
-                                  {cefr.code || cefr.label}
+                                <span
+                                  key={cefr.id}
+                                  className="badge badge--soft-blue vocabulary-card__cefr-tag"
+                                >
+                                  {cefr.label}
                                 </span>
                               ))}
                               {deckTags.map((tag) => (
-                                <span key={tag.id || tag.code} className="badge badge--default vocabulary-card__topic-tag">
-                                  {tag.label || tag.code}
+                                <span
+                                  key={tag.id}
+                                  className="badge badge--default vocabulary-card__topic-tag"
+                                >
+                                  {tag.label}
                                 </span>
                               ))}
                             </div>
@@ -555,7 +531,7 @@ function DeckListPage({ onNavigate }) {
                           </div>
                         </div>
                       </article>
-                    )
+                    );
                   })}
                 </div>
 
@@ -565,38 +541,38 @@ function DeckListPage({ onNavigate }) {
           </section>
         )}
 
-        {/* ========================================================================= */}
-        {/* TAB 2: BỘ TỪ CỦA TÔI (USER DECKS CRUD MOCK DATA)                         */}
-        {/* ========================================================================= */}
         {activeTab === 'my-decks' && (
           <section className="deck-list-content">
             {userDecksLoading ? (
-              <div className="page-loading">
-                <div className="app-loading-spinner" />
-              </div>
+              <PageLoading />
             ) : userDecksError ? (
-              <div className="empty-state glass-card">
-                <span className="material-symbols-outlined empty-state__icon text-error">error</span>
-                <p className="text-body-lg text-error">{userDecksError}</p>
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={() => setUserDeckRefreshTrigger((c) => c + 1)}
-                >
-                  {t('common:retry')}
-                </button>
-              </div>
+              <EmptyState
+                icon="error"
+                isError
+                description={userDecksError}
+                actionLabel={t('common:retry')}
+                onAction={() => setUserDeckRefreshTrigger((c) => c + 1)}
+              />
             ) : userDecks.length === 0 ? (
-              <div className="empty-state glass-card user-deck-empty">
-                <span className="material-symbols-outlined empty-state__icon user-deck-empty__icon">
-                  folder_open
-                </span>
-                <h3 className="text-headline-sm">{t('userDeck.emptyMyDecksTitle')}</h3>
-                <p className="text-body-md text-disabled user-deck-empty__desc">
-                  {t('userDeck.emptyMyDecksDesc')}
-                </p>
-                </div>
-
+              <EmptyState
+                icon="layers"
+                className="deck-list-empty-state"
+                title={
+                  hasActiveFilters
+                    ? t('userDeck.emptyFilteredTitle')
+                    : t('userDeck.emptyMyDecksTitle')
+                }
+                description={
+                  hasActiveFilters
+                    ? t('userDeck.emptyFilteredDesc')
+                    : t('userDeck.emptyMyDecksDesc')
+                }
+                actionLabel={
+                  hasActiveFilters ? t('common:filter.clearFilters') : t('userDeck.createBtn')
+                }
+                onAction={hasActiveFilters ? handleClearFilters : handleOpenCreateModal}
+                actionVariant="primary"
+              />
             ) : (
               <>
                 <div className="vocabulary-grid">
@@ -607,7 +583,6 @@ function DeckListPage({ onNavigate }) {
                       onEdit={handleOpenEditModal}
                       onDelete={handleOpenDeleteModal}
                       onToggleStatus={handleToggleStatus}
-                      onStudy={handleStudyDeck}
                       onManageTopics={handleManageTopics}
                     />
                   ))}
@@ -635,7 +610,7 @@ function DeckListPage({ onNavigate }) {
       />
 
       {/* Modal Xác nhận Xóa User Deck */}
-      <Modal
+      <ConfirmModal
         isOpen={isDeleteModalOpen}
         title={t('userDeck.deleteModalTitle')}
         message={t('userDeck.deleteModalMsg', { title: deckToDelete?.title || '' })}
@@ -647,7 +622,7 @@ function DeckListPage({ onNavigate }) {
         onCancel={() => setIsDeleteModalOpen(false)}
       />
     </main>
-  )
+  );
 }
 
-export default DeckListPage
+export default DeckListPage;

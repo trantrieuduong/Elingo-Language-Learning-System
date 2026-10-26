@@ -602,7 +602,11 @@
   border-radius: var(--radius-card);
   border: 1px solid var(--color-outline-variant);
   cursor: pointer;
-  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base), background-color var(--transition-base);
+  transition:
+    transform var(--transition-base),
+    box-shadow var(--transition-base),
+    border-color var(--transition-base),
+    background-color var(--transition-base);
   user-select: none;
 }
 
@@ -613,7 +617,9 @@
 
 .shadowing-model-radio-label--active {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--color-primary-container), var(--shadow-card-hover);
+  box-shadow:
+    0 0 0 2px var(--color-primary-container),
+    var(--shadow-card-hover);
 }
 
 .shadowing-model-radio-label input[type='radio'] {

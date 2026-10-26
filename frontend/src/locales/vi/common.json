@@ -3,19 +3,20 @@
   "back": "Quay lại",
   "backHome": "Về trang chủ",
   "cancel": "Hủy",
+  "characterCount": "{{count}}/{{max}} ký tự",
   "clearFilters": "Xóa bộ lọc",
   "clearSearch": "Xóa tìm kiếm",
   "close": "Đóng",
   "confirm": "Xác nhận",
   "delete": "Xóa",
   "edit": "Chỉnh sửa",
+  "loadError": "Không thể tải dữ liệu. Vui lòng thử lại.",
   "filter": {
     "clearFilters": "Xóa bộ lọc",
     "level": "Cấp độ",
     "topic": "Chủ đề"
   },
   "hidePassword": "Ẩn mật khẩu",
-  "loading": "Đang tải...",
   "pageNotFound": "Không tìm thấy trang",
   "pagination": {
     "goTo": "Đi đến",

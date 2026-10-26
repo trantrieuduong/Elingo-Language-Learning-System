@@ -1,5 +1,5 @@
-import { useTranslation } from 'react-i18next'
-import './Filter.css'
+import { useTranslation } from 'react-i18next';
+import './Filter.css';
 
 /**
  * Filter component — pill buttons cho lọc theo CEFR level và tag/category.
@@ -20,7 +20,7 @@ function Filter({
   onCefrChange,
   onTagChange,
 }) {
-  const { t } = useTranslation()
+  const { t } = useTranslation();
 
   return (
     <div className="filter-bar">
@@ -76,7 +76,7 @@ function Filter({
         </div>
       )}
     </div>
-  )
+  );
 }
 
-export default Filter
+export default Filter;

@@ -77,19 +77,19 @@ class DeckControllerTest {
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver(),
                         new HandlerMethodArgumentResolver() {
-                    @Override
-                    public boolean supportsParameter(@NonNull MethodParameter parameter) {
-                        return parameter.hasParameterAnnotation(CurrentUserId.class);
-                    }
+                            @Override
+                            public boolean supportsParameter(@NonNull MethodParameter parameter) {
+                                return parameter.hasParameterAnnotation(CurrentUserId.class);
+                            }
 
-                    @Override
-                    public Object resolveArgument(@NonNull MethodParameter parameter,
-                                                  ModelAndViewContainer mavContainer,
-                                                  @NonNull NativeWebRequest webRequest,
-                                                  WebDataBinderFactory binderFactory) {
-                        return USER_ID;
-                    }
-                })
+                            @Override
+                            public Object resolveArgument(@NonNull MethodParameter parameter,
+                                                          ModelAndViewContainer mavContainer,
+                                                          @NonNull NativeWebRequest webRequest,
+                                                          WebDataBinderFactory binderFactory) {
+                                return USER_ID;
+                            }
+                        })
                 .build();
     }
 
@@ -284,6 +284,38 @@ class DeckControllerTest {
                     .andExpect(jsonPath("$.errors[0].code").value("INVALID_REQUEST"));
 
             verify(deckService, never()).getPublishedDecks(any(), any(), any());
+        }
+    }
+
+    // ─────────────────────── getDeckById ───────────────────────
+    @Nested
+    @DisplayName("getDeckById")
+    class GetDeckByIdTests {
+
+        @Test
+        @DisplayName("Get deck by id successfully")
+        void getDeckById_Success() throws Exception {
+            when(deckService.getDeckById(DECK_ID, USER_ID)).thenReturn(buildDeckResponse("Animals"));
+
+            mockMvc.perform(get("/decks/{deckId}", DECK_ID))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.id").value(DECK_ID))
+                    .andExpect(jsonPath("$.data.title").value("Animals"));
+
+            verify(deckService).getDeckById(DECK_ID, USER_ID);
+        }
+
+        @Test
+        @DisplayName("Get deck by id failed: deck not found")
+        void getDeckById_Fail_DeckNotFound() throws Exception {
+            when(deckService.getDeckById(DECK_ID, USER_ID))
+                    .thenThrow(new AppException(AppError.DECK_NOT_FOUND));
+
+            mockMvc.perform(get("/decks/{deckId}", DECK_ID))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.errors[0].code").value("DECK_NOT_FOUND"));
         }
     }
 

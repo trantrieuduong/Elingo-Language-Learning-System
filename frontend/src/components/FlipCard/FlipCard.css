@@ -25,7 +25,9 @@
 }
 
 .flip-card__inner:focus-visible .flip-card__face {
-  box-shadow: 0 0 0 3px var(--color-primary-container), 0 16px 36px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 0 0 3px var(--color-primary-container),
+    0 16px 36px rgba(0, 0, 0, 0.1);
 }
 
 .flip-card__face {

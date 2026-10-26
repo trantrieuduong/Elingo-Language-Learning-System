@@ -1,271 +1,282 @@
-import { useState, useEffect } from 'react'
-import { useTranslation } from 'react-i18next'
+import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   getCardsForReviewApi,
   submitSrsReviewApi,
   toggleStarApi,
-  toggleHideApi
-} from '../flashcardApi'
-import FlashcardStudyArea from '../components/FlashcardStudyArea'
-import FlashcardCompletePlaceholder from '../components/FlashcardCompletePlaceholder'
-import PageError from '../../../../components/PageError/PageError'
-import BackButton from '../../../../components/BackButton/BackButton'
-import './FlashcardReviewPage.css'
+  toggleHideApi,
+} from '../flashcardApi';
+import FlashcardStudyArea from '../components/FlashcardStudyArea/FlashcardStudyArea';
+import FlashcardCompletionState from '../components/FlashcardCompletionState/FlashcardCompletionState';
+import FlashcardSessionLayout from '../components/FlashcardSessionLayout/FlashcardSessionLayout';
+import EmptyState from '../../../../components/EmptyState/EmptyState';
+import PageLoading from '../../../../components/PageLoading/PageLoading';
+import ProgressBar from '../../../../components/ProgressBar/ProgressBar';
+import Toast from '../../../../components/Toast/Toast';
+import './FlashcardSessionPage.css';
+import './FlashcardReviewPage.css';
 
 /**
  * FlashcardReviewPage — Trang ôn tập flashcard đến hạn (SM-2) tại route /review.
- * Giao diện tối giản: chỉ gồm nút quay lại, thẻ Flashcard 3D và 4 nút đánh giá.
+ * Hiển thị nút quay lại, tiến độ phiên, danh sách thẻ còn lại và khu vực ôn tập.
  *
  * @param {Function} onNavigate - Hàm điều hướng custom router từ App.jsx
  */
 function FlashcardReviewPage({ onNavigate }) {
-  const { t } = useTranslation(['learning', 'api', 'common'])
-  const [reviewCards, setReviewCards] = useState([])
+  const { t } = useTranslation(['learning', 'api', 'common']);
+  const [reviewCards, setReviewCards] = useState([]);
+  const [initialReviewTotal, setInitialReviewTotal] = useState(0);
 
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [isProcessing, setIsProcessing] = useState(false)
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     const fetchDueReviewCards = async () => {
-      setLoading(true)
-      setError(null)
+      setLoading(true);
+      setError(null);
       try {
-        const res = await getCardsForReviewApi(100)
+        const res = await getCardsForReviewApi(100);
         if (res && res.success) {
-          const rawList = Array.isArray(res.data) ? res.data : []
-          const formattedCards = rawList.map((item) => {
-            // Trường hợp backend trả về CardResponse trực tiếp
-            if (item && item.id) {
-              return {
-                ...item,
-                flagsStarred: Boolean(item.state?.starred ?? item.flagsStarred)
+          const rawList = Array.isArray(res.data) ? res.data : [];
+          const formattedCards = rawList
+            .map((item) => {
+              // Trường hợp backend trả về CardResponse trực tiếp
+              if (item && item.id) {
+                return {
+                  ...item,
+                  flagsStarred: Boolean(item.state?.starred ?? item.flagsStarred),
+                };
               }
-            }
-            // Trường hợp backend trả về bọc { card: {...}, flagsStarred }
-            if (item?.card) {
-              return {
-                ...item.card,
-                flagsStarred: Boolean(item.card?.state?.starred ?? item.flagsStarred)
+              // Trường hợp backend trả về bọc { card: {...}, flagsStarred }
+              if (item?.card) {
+                return {
+                  ...item.card,
+                  flagsStarred: Boolean(item.card?.state?.starred ?? item.flagsStarred),
+                };
               }
-            }
-            return item
-          }).filter(Boolean)
-          setReviewCards(formattedCards)
+              return item;
+            })
+            .filter(Boolean);
+          setReviewCards(formattedCards);
+          setInitialReviewTotal(formattedCards.length);
         } else {
           setError({
-            message: t('flashcard.loadReviewError'),
+            message: t('common:loadError'),
             actionLabel: t('flashcard.backToDecks'),
-            actionPath: '/decks'
-          })
+            actionPath: '/decks',
+          });
         }
       } catch (err) {
-        console.error('Lỗi khi tải flashcard đến hạn ôn tập:', err)
-        const errorMessage = err.response?.data?.message || t('api:common.UNKNOWN_ERROR')
-
+        console.error('Lỗi khi tải flashcard đến hạn ôn tập:', err);
         setError({
-          message: errorMessage,
+          message: t('common:loadError'),
           actionLabel: t('flashcard.backToDecks'),
-          actionPath: '/decks'
-        })
+          actionPath: '/decks',
+        });
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchDueReviewCards()
-  }, [t])
+    fetchDueReviewCards();
+  }, [t]);
 
-  const [toastMessage, setToastMessage] = useState('')
-
-  useEffect(() => {
-    if (!toastMessage) return
-    const timer = setTimeout(() => setToastMessage(''), 3000)
-    return () => clearTimeout(timer)
-  }, [toastMessage])
+  const [toastMessage, setToastMessage] = useState('');
+  const handleToastDismiss = useCallback(() => setToastMessage(''), []);
 
   /**
    * Xử lý lỗi chung khi tương tác với flashcard (Review, Star, Hide).
    */
   const handleCardActionError = (err) => {
-    const errorCode = err.response?.data?.code
-    const mappedMessage = (errorCode && t(`api:error.${errorCode}`, { defaultValue: '' }))
-    const errorMessage = mappedMessage || err.response?.data?.message || t('api:common.UNKNOWN_ERROR')
+    const errorCode = err.response?.data?.code;
+    const mappedMessage = errorCode && t(`api:error.${errorCode}`, { defaultValue: '' });
+    const errorMessage =
+      mappedMessage || err.response?.data?.message || t('api:common.UNKNOWN_ERROR');
 
-    if (errorCode === 'DECK_PREMIUM_REQUIRED') {
+    if (errorCode === 'PREMIUM_REQUIRED') {
       setError({
         message: errorMessage,
-        actionLabel: t('flashcard.upgradePremium'),
-        actionPath: '/premium'
-      })
+        actionLabel: t('flashcard.backToDecks'),
+        actionPath: '/decks',
+      });
     } else if (errorCode === 'DECK_NOT_FOUND' || errorCode === 'DECK_ACCESS_DENIED') {
       setError({
         message: errorMessage,
         actionLabel: t('flashcard.backToDecks'),
-        actionPath: '/decks'
-      })
+        actionPath: '/decks',
+      });
     } else {
-      setToastMessage(errorMessage)
+      setToastMessage(errorMessage);
     }
-  }
+  };
 
   /**
    * Đánh giá mức độ ghi nhớ SM-2 (0: Học lại, 1: Khó, 2: Dễ, 3: Quá dễ)
    */
   const handleReviewCard = async (grade, gradeLabel) => {
-    if (reviewCards.length === 0 || isProcessing) return
+    if (reviewCards.length === 0 || isProcessing) return;
 
-    const currentCard = reviewCards[0]
-    const cardId = currentCard?.id
-    if (!cardId) return
+    const currentCard = reviewCards[0];
+    const cardId = currentCard?.id;
+    if (!cardId) return;
 
-    setIsProcessing(true)
+    setIsProcessing(true);
     try {
-      const res = await submitSrsReviewApi(cardId, grade)
+      const res = await submitSrsReviewApi(cardId, grade);
       if (res && res.success) {
-        setReviewCards((prev) => prev.slice(1))
+        setReviewCards((prev) => prev.slice(1));
       } else {
-        console.error('Đánh giá thẻ không thành công:', res)
+        console.error('Đánh giá thẻ không thành công:', res);
       }
     } catch (err) {
-      console.error(`Lỗi khi gửi đánh giá SRS thẻ ID ${cardId} (${gradeLabel}):`, err)
-      handleCardActionError(err)
+      console.error(`Lỗi khi gửi đánh giá SRS thẻ ID ${cardId} (${gradeLabel}):`, err);
+      handleCardActionError(err);
     } finally {
-      setIsProcessing(false)
+      setIsProcessing(false);
     }
-  }
+  };
 
   /**
    * Đổi trạng thái gắn sao cho thẻ hiện tại
    */
   const handleToggleStar = async () => {
-    if (reviewCards.length === 0 || isProcessing) return
+    if (reviewCards.length === 0 || isProcessing) return;
 
-    const currentCard = reviewCards[0]
-    const cardId = currentCard?.id
-    if (!cardId) return
+    const currentCard = reviewCards[0];
+    const cardId = currentCard?.id;
+    if (!cardId) return;
 
-    const isStarred = Boolean(currentCard.state?.starred ?? currentCard.flagsStarred)
-    const nextStarredState = !isStarred
+    const isStarred = Boolean(currentCard.state?.starred ?? currentCard.flagsStarred);
+    const nextStarredState = !isStarred;
 
-    setIsProcessing(true)
+    setIsProcessing(true);
     try {
-      const res = await toggleStarApi(cardId, nextStarredState)
+      const res = await toggleStarApi(cardId, nextStarredState);
       if (res && res.success) {
         setReviewCards((prev) => {
-          if (prev.length === 0) return prev
-          const updated = [...prev]
+          if (prev.length === 0) return prev;
+          const updated = [...prev];
           updated[0] = {
             ...updated[0],
             flagsStarred: nextStarredState,
             state: updated[0].state
               ? { ...updated[0].state, starred: nextStarredState }
-              : { starred: nextStarredState }
-          }
-          return updated
-        })
+              : { starred: nextStarredState },
+          };
+          return updated;
+        });
       } else {
-        console.error('Đổi trạng thái gắn sao không thành công:', res)
+        console.error('Đổi trạng thái gắn sao không thành công:', res);
       }
     } catch (err) {
-      console.error(`Lỗi khi đổi trạng thái gắn sao thẻ ID ${cardId}:`, err)
-      handleCardActionError(err)
+      console.error(`Lỗi khi đổi trạng thái gắn sao thẻ ID ${cardId}:`, err);
+      handleCardActionError(err);
     } finally {
-      setIsProcessing(false)
+      setIsProcessing(false);
     }
-  }
+  };
 
   /**
-   * Ẩn thẻ khỏi phiên ôn tập
+   * Đánh dấu thẻ hiện tại đã thuộc và bỏ khỏi phiên ôn tập
    */
   const handleToggleHide = async () => {
-    if (reviewCards.length === 0 || isProcessing) return
+    if (reviewCards.length === 0 || isProcessing) return;
 
-    const currentCard = reviewCards[0]
-    const cardId = currentCard?.id
-    if (!cardId) return
+    const currentCard = reviewCards[0];
+    const cardId = currentCard?.id;
+    if (!cardId) return;
 
-    setIsProcessing(true)
+    setIsProcessing(true);
     try {
-      const res = await toggleHideApi(cardId, true)
+      const res = await toggleHideApi(cardId, true);
       if (res && res.success) {
-        setReviewCards((prev) => prev.slice(1))
+        setReviewCards((prev) => prev.slice(1));
       } else {
-        console.error('Ẩn thẻ không thành công:', res)
+        console.error('Ẩn thẻ không thành công:', res);
       }
     } catch (err) {
-      console.error(`Lỗi khi ẩn thẻ ID ${cardId}:`, err)
-      handleCardActionError(err)
+      console.error(`Lỗi khi ẩn thẻ ID ${cardId}:`, err);
+      handleCardActionError(err);
     } finally {
-      setIsProcessing(false)
+      setIsProcessing(false);
     }
-  }
+  };
 
   if (loading) {
-    return (
-      <div className="page-loading">
-        <div className="app-loading-spinner" />
-      </div>
-    )
+    return <PageLoading />;
   }
 
   if (error) {
     return (
-      <PageError 
-        error={error.message} 
-        actionLabel={error.actionLabel}
-        onAction={() => {
-          if (onNavigate) onNavigate(error.actionPath)
-        }} 
-      />
-    )
+      <div className="flashcard-page-container">
+        <EmptyState
+          icon="error"
+          isError
+          description={error.message}
+          actionLabel={error.actionLabel}
+          actionVariant="primary"
+          onAction={() => {
+            if (onNavigate) onNavigate(error.actionPath);
+          }}
+        />
+      </div>
+    );
   }
 
-  const currentCard = reviewCards[0] || null
-  const isCurrentCardStarred = Boolean(currentCard?.state?.starred ?? currentCard?.flagsStarred)
-  const currentCardId = currentCard?.id
+  const currentCard = reviewCards[0] || null;
+  const isCurrentCardStarred = Boolean(currentCard?.state?.starred ?? currentCard?.flagsStarred);
+  const currentCardId = currentCard?.id;
+  const reviewedCount = initialReviewTotal - reviewCards.length;
 
   return (
-    <div className="flashcard-page-container">
-      <div className="flashcard-layout">
-        <div className="flashcard-header-bar">
-          <BackButton label={t('common:back')} onClick={() => onNavigate?.('/decks')} />
-        </div>
-        
-        {/*Thanh tiến độ rỗng tựa bên StudyPage */}
-        <div></div>
-
-        {/* Danh sách Topics rỗng */}
-        <aside className="flashcard-sidebar"></aside>
-
-        {/* KHÔNG GIAN THẺ FLASHCARD & 4 NÚT ĐÁNH GIÁ SM-2 */}
-        <main className="flashcard-main-content glass-well">
-          {currentCard ? (
-            <FlashcardStudyArea
-              card={currentCard}
-              cardKey={`review-card-${currentCardId}`}
-              isProcessing={isProcessing}
-              isStarred={isCurrentCardStarred}
-              onToggleStar={handleToggleStar}
-              onToggleHide={handleToggleHide}
-              onReviewCard={handleReviewCard}
+    <>
+      <FlashcardSessionLayout
+        layoutClassName="flashcard-review-layout"
+        sidebarClassName="flashcard-sidebar flashcard-review-sidebar"
+        backLabel={t('common:back')}
+        onBack={() => onNavigate?.('/decks')}
+        progress={
+          <div className="glass-card flashcard-global-progress">
+            <ProgressBar
+              title={t('flashcard.reviewSessionProgress')}
+              current={reviewedCount}
+              total={initialReviewTotal}
             />
-          ) : (
-            <FlashcardCompletePlaceholder
-              message={t('flashcard.reviewCompleted')}
-            />
-          )}
-        </main>
-      </div>
-
-      {toastMessage && (
-        <div className="toast toast-error" role="alert" style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 1000 }}>
-          <span className="material-symbols-outlined" style={{ marginRight: '8px' }}>error</span>
-          <span>{toastMessage}</span>
-        </div>
-      )}
-    </div>
-  )
+          </div>
+        }
+        sidebar={reviewCards.map((card, index) => {
+          return (
+            <div
+              key={card.id ?? index}
+              className="glass-card flashcard-session-item flashcard-review-item"
+            >
+              <div className="flashcard-session-item-header">
+                <h3 className="flashcard-session-item-title">
+                  {card.term || t('flashcard.card.imageAlt')}
+                </h3>
+              </div>
+            </div>
+          );
+        })}
+      >
+        {currentCard ? (
+          <FlashcardStudyArea
+            card={currentCard}
+            cardKey={`review-card-${currentCardId}`}
+            isProcessing={isProcessing}
+            isStarred={isCurrentCardStarred}
+            onToggleStar={handleToggleStar}
+            onToggleHide={handleToggleHide}
+            onReviewCard={handleReviewCard}
+          />
+        ) : (
+          <FlashcardCompletionState message={t('flashcard.reviewCompleted')} />
+        )}
+      </FlashcardSessionLayout>
+      <Toast message={toastMessage} variant="error" onDismiss={handleToastDismiss} />
+    </>
+  );
 }
 
-export default FlashcardReviewPage
+export default FlashcardReviewPage;

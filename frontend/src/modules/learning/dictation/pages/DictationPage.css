@@ -109,12 +109,16 @@
   min-height: 90px;
   outline: none;
   box-shadow: var(--shadow-well);
-  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+  transition:
+    border-color var(--transition-base),
+    box-shadow var(--transition-base);
 }
 
 .dictation-textarea:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-container), var(--shadow-well);
+  box-shadow:
+    0 0 0 3px var(--color-primary-container),
+    var(--shadow-well);
 }
 
 .dictation-textarea::placeholder {
@@ -159,7 +163,9 @@
   justify-content: center;
   color: var(--color-text-body);
   border-radius: var(--radius-pill);
-  transition: color var(--transition-base), transform var(--transition-base);
+  transition:
+    color var(--transition-base),
+    transform var(--transition-base);
 }
 
 .dictation-eye-btn:hover {
@@ -179,7 +185,10 @@
   padding: 6px 14px;
   border-radius: var(--radius-pill);
   border: 1px solid transparent;
-  transition: background var(--transition-base), color var(--transition-base), border-color var(--transition-base);
+  transition:
+    background var(--transition-base),
+    color var(--transition-base),
+    border-color var(--transition-base);
   letter-spacing: 0.5px;
 }
 
@@ -258,7 +267,8 @@
 }
 
 @keyframes dictation-pulse {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 0 0 rgba(65, 95, 145, 0.4);
   }
   50% {

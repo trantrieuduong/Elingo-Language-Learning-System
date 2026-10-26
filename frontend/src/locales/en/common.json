@@ -3,19 +3,20 @@
   "back": "Back",
   "backHome": "Back to Home",
   "cancel": "Cancel",
+  "characterCount": "{{count}}/{{max}} characters",
   "clearFilters": "Clear filters",
   "clearSearch": "Clear search",
   "close": "Close",
   "confirm": "Confirm",
   "delete": "Delete",
   "edit": "Edit",
+  "loadError": "Unable to load data. Please try again.",
   "filter": {
     "clearFilters": "Clear filters",
     "level": "Level",
     "topic": "Topic"
   },
   "hidePassword": "Hide password",
-  "loading": "Loading...",
   "pageNotFound": "Page not found",
   "pagination": {
     "goTo": "Go to",

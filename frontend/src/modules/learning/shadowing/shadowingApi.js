@@ -1,4 +1,4 @@
-import apiClient from '../../../services/apiClient'
+import apiClient from '../../../services/apiClient';
 
 /**
  * Cập nhật tiến độ Shadowing cho 1 segment trong bài học.
@@ -16,6 +16,6 @@ export async function patchShadowingProgressApi(slug, segmentId, payload) {
   const response = await apiClient.patch(
     `/lessons/${encodeURIComponent(slug)}/segments/${encodeURIComponent(segmentId)}/shadowing-progress`,
     payload
-  )
-  return response.data
+  );
+  return response.data;
 }

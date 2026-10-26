@@ -89,7 +89,9 @@
   border-radius: var(--radius-pill);
   background: currentColor;
   opacity: 0;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
 .header__nav-link--active::after {
@@ -473,7 +475,6 @@
   .header__auth-btns .btn-secondary {
     padding-inline: 1rem;
   }
-
 }
 
 @media (max-width: 600px) {
@@ -527,5 +528,4 @@
   .header__auth-btns .btn-secondary {
     padding-inline: 0.625rem;
   }
-
 }

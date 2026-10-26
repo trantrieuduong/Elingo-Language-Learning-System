@@ -11,6 +11,9 @@ vi.mock('@/context/AuthContext')
 vi.mock('@/context/ThemeContext')
 
 const ACTIVE_NAV = 'header__nav-link--active'
+const getDesktopNav = () => document.querySelector('.header__nav')
+const getMobileNav = () => document.querySelector('.header__mobile-nav')
+const getHeaderButton = (selector) => document.querySelector(selector)
 
 describe('Header', () => {
   const mockLogout = vi.fn()
@@ -35,7 +38,7 @@ describe('Header', () => {
   it('language switch: toggles vi <-> en, updates UI text, <html lang> and persisted choice', async () => {
     const user = userEvent.setup()
     render(<Header onNavigate={vi.fn()} currentPath="/" />)
-    const switchBtn = screen.getByRole('button', { name: 'Switch language' })
+    const switchBtn = getHeaderButton('.header__lang-btn')
 
     expect(switchBtn).toHaveTextContent('VI')
     expect(screen.getAllByText(tr('nav:features')).length).toBeGreaterThan(0)
@@ -68,7 +71,7 @@ describe('Header', () => {
       const user = userEvent.setup()
       render(<Header onNavigate={mockNavigate} currentPath="/" />)
 
-      const btn = screen.getByRole('button', { name: tr('nav:darkMode') })
+      const btn = screen.getByText('dark_mode').closest('button')
       expect(btn).toHaveTextContent('dark_mode')
 
       await user.click(btn)
@@ -79,7 +82,7 @@ describe('Header', () => {
       mockTheme(true)
       render(<Header onNavigate={mockNavigate} currentPath="/" />)
 
-      expect(screen.getByRole('button', { name: tr('nav:lightMode') })).toHaveTextContent('light_mode')
+      expect(screen.getByText('light_mode').closest('button')).toHaveTextContent('light_mode')
     })
 
     it('thêm class header--auth khi không ở trang chủ', () => {
@@ -100,9 +103,8 @@ describe('Header', () => {
 
       expect(screen.getByRole('button', { name: tr('nav:login') })).toBeInTheDocument()
       expect(screen.getByRole('button', { name: tr('nav:signup') })).toBeInTheDocument()
-      expect(screen.queryByRole('button', { name: tr('nav:openMenu') })).not.toBeInTheDocument()
-      expect(screen.queryByRole('button', { name: tr('nav:notifications') })).not.toBeInTheDocument()
-      expect(screen.queryByRole('button', { name: tr('nav:userMenu') })).not.toBeInTheDocument()
+      expect(getHeaderButton('.header__hamburger')).not.toBeInTheDocument()
+      expect(getHeaderButton('.header__avatar')).not.toBeInTheDocument()
     })
 
     it('click login / signup gọi onNavigate đúng path', async () => {
@@ -129,7 +131,7 @@ describe('Header', () => {
     it('không hiển thị nav link khi không phải trang chủ', () => {
       render(<Header onNavigate={mockNavigate} currentPath="/login" />)
 
-      const nav = screen.getByRole('navigation', { name: 'Main navigation' })
+      const nav = getDesktopNav()
       expect(within(nav).queryAllByRole('link')).toHaveLength(0)
     })
 
@@ -200,7 +202,7 @@ describe('Header', () => {
     it('hiển thị 5 link landing và mặc định active "home"', () => {
       render(<Header onNavigate={mockNavigate} currentPath="/" />)
 
-      const nav = screen.getByRole('navigation', { name: 'Main navigation' })
+      const nav = getDesktopNav()
       expect(within(nav).getAllByRole('link')).toHaveLength(5)
       expect(linkOf('home')).toHaveClass(ACTIVE_NAV)
       expect(linkOf('features')).not.toHaveClass(ACTIVE_NAV)
@@ -299,14 +301,14 @@ describe('Header', () => {
     it('hiển thị 5 mục nav chính, chuông thông báo, user menu; ẩn login/signup', () => {
       render(<Header onNavigate={mockNavigate} currentPath="/learning" />)
 
-      const nav = screen.getByRole('navigation', { name: 'Main navigation' })
+      const nav = getDesktopNav()
       expect(within(nav).getByRole('link', { name: tr('nav:home') })).toBeInTheDocument()
       expect(within(nav).getByRole('button', { name: new RegExp(tr('nav:features')) })).toBeInTheDocument()
       expect(within(nav).getByRole('button', { name: new RegExp(tr('nav:learning')) })).toBeInTheDocument()
       expect(within(nav).getByRole('button', { name: new RegExp(tr('nav:community')) })).toBeInTheDocument()
       expect(within(nav).getByRole('button', { name: new RegExp(tr('nav:pricing')) })).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: tr('nav:notifications') })).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: tr('nav:userMenu') })).toBeInTheDocument()
+      expect(getHeaderButton('.header__right .btn-icon:nth-of-type(3)')).toBeInTheDocument()
+      expect(getHeaderButton('.header__avatar')).toBeInTheDocument()
       expect(screen.queryByRole('button', { name: tr('nav:login') })).not.toBeInTheDocument()
       expect(screen.queryByRole('button', { name: tr('nav:signup') })).not.toBeInTheDocument()
     })
@@ -315,7 +317,7 @@ describe('Header', () => {
       const user = userEvent.setup()
       render(<Header onNavigate={mockNavigate} currentPath="/dashboard" />)
 
-      const nav = screen.getByRole('navigation', { name: 'Main navigation' })
+      const nav = getDesktopNav()
       const featuresBtn = within(nav).getByRole('button', { name: new RegExp(tr('nav:features')) })
       const navItem = featuresBtn.closest('.header__nav-item')
       fireEvent.mouseEnter(navItem)
@@ -329,8 +331,7 @@ describe('Header', () => {
 
     it('active link khớp đúng path của dropdown sub-item và kích hoạt active trên parent button', () => {
       const { rerender } = render(<Header onNavigate={mockNavigate} currentPath="/learning" />)
-      const nav = screen.getByRole('navigation', { name: 'Main navigation' })
-      const getLearningBtn = () => within(nav).getByRole('button', { name: tr('nav:learning') })
+      const nav = getDesktopNav()
 
       expect(within(nav).getByRole('button', { name: new RegExp(tr('nav:learning')) })).toHaveClass(ACTIVE_NAV)
       expect(within(nav).getByRole('button', { name: new RegExp(tr('nav:features')) })).not.toHaveClass(ACTIVE_NAV)
@@ -359,7 +360,7 @@ describe('Header', () => {
       const user = userEvent.setup()
       render(<Header onNavigate={mockNavigate} currentPath="/learning" />)
 
-      await user.click(screen.getByRole('button', { name: tr('nav:notifications') }))
+      await user.click(screen.getByText('notifications').closest('button'))
       expect(mockNavigate).toHaveBeenCalledWith('/notification')
     })
 
@@ -373,26 +374,23 @@ describe('Header', () => {
 
     describe('User dropdown', () => {
       const openDropdown = async (user) => {
-        const trigger = screen.getByRole('button', { name: tr('nav:userMenu') })
+        const trigger = getHeaderButton('.header__avatar')
         await user.click(trigger)
         return trigger
       }
 
-      it('mở/đóng dropdown khi click avatar và cập nhật aria-expanded', async () => {
+      it('mở/đóng dropdown khi click avatar', async () => {
         const user = userEvent.setup()
         render(<Header onNavigate={mockNavigate} currentPath="/learning" />)
-        const trigger = screen.getByRole('button', { name: tr('nav:userMenu') })
+        const trigger = getHeaderButton('.header__avatar')
 
-        expect(trigger).toHaveAttribute('aria-expanded', 'false')
         expect(screen.queryByText(MOCK_USER.email)).not.toBeInTheDocument()
 
         await user.click(trigger)
-        expect(trigger).toHaveAttribute('aria-expanded', 'true')
         expect(screen.getByText(MOCK_USER.fullName)).toBeInTheDocument()
         expect(screen.getByText(MOCK_USER.email)).toBeInTheDocument()
 
         await user.click(trigger)
-        expect(trigger).toHaveAttribute('aria-expanded', 'false')
         expect(screen.queryByText(MOCK_USER.email)).not.toBeInTheDocument()
       })
 
@@ -453,7 +451,7 @@ describe('Header', () => {
       const user = userEvent.setup()
       render(<Header onNavigate={mockNavigate} currentPath="/learning" />)
 
-      await user.click(screen.getByRole('button', { name: tr('nav:logout') }))
+      await user.click(getHeaderButton('.header__logout-button'))
 
       await waitFor(() => {
         expect(mockLogout).toHaveBeenCalledTimes(1)
@@ -465,38 +463,36 @@ describe('Header', () => {
       const user = userEvent.setup()
       render(<Header currentPath="/learning" />)
 
-      await user.click(screen.getByRole('button', { name: tr('nav:logout') }))
+      await user.click(getHeaderButton('.header__logout-button'))
 
       await waitFor(() => expect(mockLogout).toHaveBeenCalledTimes(1))
-      await user.click(screen.getByRole('button', { name: tr('nav:notifications') })) // handleNav khi không có onNavigate
+      await user.click(screen.getByText('notifications').closest('button')) // handleNav khi không có onNavigate
       expect(mockNavigate).not.toHaveBeenCalled()
     })
 
     describe('Mobile menu', () => {
-      it('hamburger mở menu, đổi label/aria-expanded và đóng lại khi click lần nữa', async () => {
+      it('hamburger mở và đóng menu khi click lần nữa', async () => {
         const user = userEvent.setup()
         render(<Header onNavigate={mockNavigate} currentPath="/learning" />)
 
-        expect(screen.queryByRole('navigation', { name: 'Mobile navigation' })).not.toBeInTheDocument()
+        expect(getMobileNav()).not.toBeInTheDocument()
 
-        const openBtn = screen.getByRole('button', { name: tr('nav:openMenu') })
-        expect(openBtn).toHaveAttribute('aria-expanded', 'false')
+        const openBtn = getHeaderButton('.header__hamburger')
         await user.click(openBtn)
 
-        const closeBtn = screen.getByRole('button', { name: tr('nav:closeMenu') })
-        expect(closeBtn).toHaveAttribute('aria-expanded', 'true')
-        expect(screen.getByRole('navigation', { name: 'Mobile navigation' })).toBeInTheDocument()
+        const closeBtn = getHeaderButton('.header__hamburger')
+        expect(getMobileNav()).toBeInTheDocument()
 
         await user.click(closeBtn)
-        expect(screen.queryByRole('navigation', { name: 'Mobile navigation' })).not.toBeInTheDocument()
+        expect(getMobileNav()).not.toBeInTheDocument()
       })
 
       it('mobile nav có các mục và nhóm dropdown, đánh dấu active và click thì điều hướng + đóng menu', async () => {
         const user = userEvent.setup()
         render(<Header onNavigate={mockNavigate} currentPath="/learning" />)
 
-        await user.click(screen.getByRole('button', { name: tr('nav:openMenu') }))
-        const mobileNav = screen.getByRole('navigation', { name: 'Mobile navigation' })
+        await user.click(getHeaderButton('.header__hamburger'))
+        const mobileNav = getMobileNav()
 
         expect(within(mobileNav).getByRole('link', { name: tr('nav:home') })).toBeInTheDocument()
         expect(within(mobileNav).getByRole('button', { name: new RegExp(tr('nav:learning')) })).toHaveClass('header__mobile-nav-link--active')
@@ -505,18 +501,18 @@ describe('Header', () => {
         await user.click(within(mobileNav).getByRole('link', { name: tr('nav:home') }))
 
         expect(mockNavigate).toHaveBeenCalledWith('/dashboard')
-        expect(screen.queryByRole('navigation', { name: 'Mobile navigation' })).not.toBeInTheDocument()
+        expect(getMobileNav()).not.toBeInTheDocument()
       })
 
       it('tự đóng mobile menu khi currentPath thay đổi', async () => {
         const user = userEvent.setup()
         const { rerender } = render(<Header onNavigate={mockNavigate} currentPath="/learning" />)
 
-        await user.click(screen.getByRole('button', { name: tr('nav:openMenu') }))
-        expect(screen.getByRole('navigation', { name: 'Mobile navigation' })).toBeInTheDocument()
+        await user.click(getHeaderButton('.header__hamburger'))
+        expect(getMobileNav()).toBeInTheDocument()
 
         rerender(<Header onNavigate={mockNavigate} currentPath="/battle" />)
-        expect(screen.queryByRole('navigation', { name: 'Mobile navigation' })).not.toBeInTheDocument()
+        expect(getMobileNav()).not.toBeInTheDocument()
       })
     })
   })

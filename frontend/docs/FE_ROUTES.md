@@ -20,7 +20,7 @@
 | `/login` | `LoginPage` | `auth/pages/` | Đăng nhập |
 | `/signup` | `SignupPage` | `auth/pages/` | Đăng ký |
 | `/account-verification` | `AccountVerificationPage` | `auth/pages/` | Xác thực email bằng OTP; nhận email qua history state |
-| `/decks` | `DeckListPage` | `vocabulary/pages/` | Trang bộ từ hệ thống mặc định; tab bộ từ cộng đồng hiện tạm vô hiệu hóa |
+| `/decks` | `DeckListPage` | `vocabulary/pages/` | Trang bộ từ chứa các tab: bộ từ hệ thống (mặc định), bộ từ cộng đồng, bộ từ của tôi|
 
 **Planned, chưa tạo route/page:** `/forgot-password`, `/reset-password`.
 
@@ -32,9 +32,8 @@
 | `/learning` | `LessonListPage` | `learning/lesson/pages/` | Kho bài học (đã triển khai GD1; chọn chế độ bằng modal, không có trang chi tiết riêng) |
 | `/learning/dictation/:slug` | `DictationPage` | `learning/dictation/pages/` | Nghe chép chính tả (đã triển khai GD2; định danh theo slug) |
 | `/learning/shadowing/:slug` | `ShadowingPage` | `learning/shadowing/pages/` | Luyện nói đuổi (đã triển khai GD3; định danh theo slug) |
-| `/decks/:deckId` | `FlashcardStudyPage` | `learning/flashcard/pages/` | Học flashcard của một bộ từ (bắt buộc đăng nhập) |
-| `/decks/:deckId/topics` | `TopicListPage` | `vocabulary/pages/` | Quản lý các chủ đề thuộc bộ từ |
-| `/decks/:deckId/topics/:topicId/cards` | `UserCardManagementPage` | `vocabulary/pages/` | Quản lý thẻ thuộc một chủ đề trong bộ từ |
+| `/decks/:deckSlug` | `FlashcardStudyPage` | `learning/flashcard/pages/` | Học flashcard của một bộ từ (bắt buộc đăng nhập) |
+| `/decks/:deckId/topics` | `TopicListPage` | `vocabulary/pages/` | Quản lý các chủ đề thuộc bộ từ và các thẻ thuộc chủ đề được chọn |
 | `/review` | `FlashcardReviewPage` | `learning/flashcard/pages/` | Ôn tập flashcard đến hạn (giới hạn 100 flashcard/1 ngày) |
 | `/battle` | `BattleLobbyPage` | `battle/pages/` | Sảnh chờ thi đấu |
 | `/battle/play` | `BattlePlayPage` | `battle/pages/` | Màn hình thi đấu (WebSocket) |
@@ -87,10 +86,10 @@ switch (path) {
 ### 2.2 Dynamic Routes — regex matching
 
 ```jsx
-// Pattern: /path/:id
-const match = path.match(/^\/flashcard\/([a-zA-Z0-9-]+)$/)
+// Pattern: /decks/:deckSlug
+const match = path.match(/^\/decks\/([a-z0-9]+(?:-[a-z0-9]+)*)$/)
 if (match) {
-  return <FlashcardStudyPage deckId={match[1]} onNavigate={navigate} />
+  return <FlashcardStudyPage deckSlug={match[1]} onNavigate={navigate} />
 }
 ```
 

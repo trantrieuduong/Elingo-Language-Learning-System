@@ -1,184 +1,184 @@
-import { useState, useEffect, useRef } from 'react'
-import { useTranslation } from 'react-i18next'
-import { getLessonDetailApi, getLessonSegmentsApi } from '../../lesson/lessonApi'
-import { patchDictationProgressApi } from '../dictationApi'
-import { getYouTubeVideoId } from '../../lesson/utils/youtube'
-import { splitWords } from '../../lesson/utils/text'
-import { getWordStatuses, isAllDone } from '../utils/dictation'
-import LessonYoutubePlayer from '../../lesson/components/LessonYoutubePlayer/LessonYoutubePlayer'
-import StudySegmentSidebar from '../../lesson/components/StudySegmentSidebar/StudySegmentSidebar'
-import BackButton from '../../../../components/BackButton/BackButton'
-import './DictationPage.css'
+import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import { getLessonDetailApi, getLessonSegmentsApi } from '../../lesson/lessonApi';
+import { patchDictationProgressApi } from '../dictationApi';
+import { getYouTubeVideoId } from '../../lesson/utils/youtube';
+import { splitWords } from '../../lesson/utils/text';
+import { getWordStatuses, isAllDone } from '../utils/dictation';
+import LessonYoutubePlayer from '../../lesson/components/LessonYoutubePlayer/LessonYoutubePlayer';
+import StudySegmentSidebar from '../../lesson/components/StudySegmentSidebar/StudySegmentSidebar';
+import BackButton from '../../../../components/BackButton/BackButton';
+import './DictationPage.css';
 
 function DictationPage({ slug, onNavigate }) {
-  const { t } = useTranslation(['learning', 'common'])
+  const { t } = useTranslation(['learning', 'common']);
 
   // Dữ liệu bài học và danh sách phân đoạn
-  const [lesson, setLesson] = useState(null)
-  const [segments, setSegments] = useState([])
-  const [currentIndex, setCurrentIndex] = useState(0)
+  const [lesson, setLesson] = useState(null);
+  const [segments, setSegments] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   // Trạng thái tải và lỗi
-  const [loading, setLoading] = useState(true)
-  const [errorType, setErrorType] = useState(null) // null | 'not_found' | 'general'
-  const [errorMessage, setErrorMessage] = useState('')
+  const [loading, setLoading] = useState(true);
+  const [errorType, setErrorType] = useState(null); // null | 'not_found' | 'general'
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Trạng thái học tập của segment hiện tại
-  const [userInput, setUserInput] = useState('')
-  const [revealedIndices, setRevealedIndices] = useState(new Set())
-  const [attemptCount, setAttemptCount] = useState(1)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitError, setSubmitError] = useState('')
+  const [userInput, setUserInput] = useState('');
+  const [revealedIndices, setRevealedIndices] = useState(new Set());
+  const [attemptCount, setAttemptCount] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   // Kết quả nộp bài của segment hiện tại (null nếu đang làm, object nếu vừa nộp thành công)
-  const [segmentResult, setSegmentResult] = useState(null)
+  const [segmentResult, setSegmentResult] = useState(null);
 
   // Trạng thái hoàn thành toàn bộ bài học
-  const [isCompletedLesson, setIsCompletedLesson] = useState(false)
+  const [isCompletedLesson, setIsCompletedLesson] = useState(false);
 
   // Refs
-  const playerRef = useRef(null)
-  const textareaRef = useRef(null)
+  const playerRef = useRef(null);
+  const textareaRef = useRef(null);
 
   // 1. Tải thông tin bài học và danh sách segment khi slug thay đổi
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'instant' })
-    let isSubscribed = true
-    setLoading(true)
-    setErrorType(null)
-    setErrorMessage('')
-    setIsCompletedLesson(false)
-    setSegmentResult(null)
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    let isSubscribed = true;
+    setLoading(true);
+    setErrorType(null);
+    setErrorMessage('');
+    setIsCompletedLesson(false);
+    setSegmentResult(null);
 
     const fetchData = async () => {
       try {
         const [lessonRes, segmentsRes] = await Promise.all([
           getLessonDetailApi(slug),
           getLessonSegmentsApi(slug),
-        ])
+        ]);
 
-        if (!isSubscribed) return
+        if (!isSubscribed) return;
 
-        const lessonData = lessonRes?.data || lessonRes
-        const rawSegments = segmentsRes?.data || segmentsRes
-        const segmentsList = Array.isArray(rawSegments) ? rawSegments : []
+        const lessonData = lessonRes?.data || lessonRes;
+        const rawSegments = segmentsRes?.data || segmentsRes;
+        const segmentsList = Array.isArray(rawSegments) ? rawSegments : [];
 
-        setLesson(lessonData)
-        setSegments(segmentsList)
+        setLesson(lessonData);
+        setSegments(segmentsList);
 
         // Tìm segment đầu tiên chưa hoàn thành (chưa có dictationAttemptCount > 0)
         const firstIncompleteIdx = segmentsList.findIndex((seg) => {
-          const count = seg?.userProgress?.dictationAttemptCount
-          return typeof count !== 'number' || count <= 0
-        })
+          const count = seg?.userProgress?.dictationAttemptCount;
+          return typeof count !== 'number' || count <= 0;
+        });
 
-        setCurrentIndex(firstIncompleteIdx !== -1 ? firstIncompleteIdx : 0)
+        setCurrentIndex(firstIncompleteIdx !== -1 ? firstIncompleteIdx : 0);
       } catch (err) {
-        if (!isSubscribed) return
-        const errorCode = err?.response?.data?.code
+        if (!isSubscribed) return;
+        const errorCode = err?.response?.data?.code;
         if (errorCode === 'LESSON_NOT_FOUND' || err?.response?.status === 404) {
-          setErrorType('not_found')
+          setErrorType('not_found');
         } else {
-          setErrorType('general')
-          setErrorMessage(err?.response?.data?.message || t('dictation.errorLoad'))
+          setErrorType('general');
+          setErrorMessage(t('common:loadError'));
         }
       } finally {
-        if (isSubscribed) setLoading(false)
+        if (isSubscribed) setLoading(false);
       }
-    }
+    };
 
     if (slug) {
-      fetchData()
+      fetchData();
     }
 
     return () => {
-      isSubscribed = false
-    }
-  }, [slug, t])
+      isSubscribed = false;
+    };
+  }, [slug, t]);
 
   // 2. Reset trạng thái khi chuyển sang segment khác
   useEffect(() => {
-    setUserInput('')
-    setRevealedIndices(new Set())
-    setAttemptCount(1)
-    setSubmitError('')
-    setSegmentResult(null)
+    setUserInput('');
+    setRevealedIndices(new Set());
+    setAttemptCount(1);
+    setSubmitError('');
+    setSegmentResult(null);
 
     // Tự động focus vào ô textarea sau khi render
     const timer = setTimeout(() => {
       if (textareaRef.current) {
-        textareaRef.current.focus()
+        textareaRef.current.focus();
       }
-    }, 100)
+    }, 100);
 
-    return () => clearTimeout(timer)
-  }, [currentIndex])
+    return () => clearTimeout(timer);
+  }, [currentIndex]);
 
-  const currentSegment = segments[currentIndex]
-  const passScore = lesson?.dictationPassScore ?? 60
-  const videoId = lesson ? getYouTubeVideoId(lesson.sourceUrl) : ''
+  const currentSegment = segments[currentIndex];
+  const passScore = lesson?.dictationPassScore ?? 60;
+  const videoId = lesson ? getYouTubeVideoId(lesson.sourceUrl) : '';
 
   // Tách từ tham chiếu từ transcriptNormalized (đảm bảo đồng bộ với BE chấm điểm)
-  const normalizedText = currentSegment?.transcriptNormalized || ''
-  const refWords = splitWords(normalizedText)
+  const normalizedText = currentSegment?.transcriptNormalized || '';
+  const refWords = splitWords(normalizedText);
 
   // Trạng thái hiển thị từng viên từ
   const wordStatuses = getWordStatuses({
     refWords,
     userInput,
     revealedIndices,
-  })
+  });
 
   // Đã gõ/mở gợi ý đúng hết mọi từ trong segment
-  const allDone = isAllDone(wordStatuses)
+  const allDone = isAllDone(wordStatuses);
 
   // Tiết lộ một từ đơn lẻ bằng nút mắt
   const handleRevealWord = (index) => {
-    if (isSubmitting || segmentResult) return
+    if (isSubmitting || segmentResult) return;
     setRevealedIndices((prev) => {
-      const next = new Set(prev)
-      next.add(index)
-      return next
-    })
-  }
+      const next = new Set(prev);
+      next.add(index);
+      return next;
+    });
+  };
 
   // Tiết lộ tất cả các từ CHƯA đúng
   const handleShowAllRemaining = () => {
-    if (isSubmitting || segmentResult) return
+    if (isSubmitting || segmentResult) return;
     setRevealedIndices((prev) => {
-      const next = new Set(prev)
+      const next = new Set(prev);
       wordStatuses.forEach((wordObj, idx) => {
         if (wordObj.status !== 'correct') {
-          next.add(idx)
+          next.add(idx);
         }
-      })
-      return next
-    })
-  }
+      });
+      return next;
+    });
+  };
 
   // Nghe lại đoạn hiện tại
   const handleReplay = () => {
     if (playerRef.current && typeof playerRef.current.replay === 'function') {
-      playerRef.current.replay()
+      playerRef.current.replay();
     }
-  }
+  };
 
   // Nộp bài segment hiện tại
   const handleSubmitSegment = async () => {
-    if (isSubmitting || !currentSegment || !allDone) return
+    if (isSubmitting || !currentSegment || !allDone) return;
 
-    setIsSubmitting(true)
-    setSubmitError('')
+    setIsSubmitting(true);
+    setSubmitError('');
 
-    const hintUsedCount = revealedIndices.size
+    const hintUsedCount = revealedIndices.size;
 
     try {
       const response = await patchDictationProgressApi(slug, currentSegment.id, {
         attemptCount,
         hintUsedCount,
-      })
+      });
 
-      const data = response?.data || response
+      const data = response?.data || response;
 
       // Cập nhật kết quả segment vừa nộp
       setSegmentResult({
@@ -187,7 +187,7 @@ function DictationPage({ slug, onNavigate }) {
         hintUsedCount,
         segmentProgress: data.segmentProgress,
         lessonProgress: data.lessonProgress,
-      })
+      });
 
       // Cập nhật immutably vào danh sách segments để sidebar đồng bộ ngay lập tức
       setSegments((prevSegments) =>
@@ -196,47 +196,47 @@ function DictationPage({ slug, onNavigate }) {
             return {
               ...seg,
               userProgress: data.segmentProgress || seg.userProgress,
-            }
+            };
           }
-          return seg
+          return seg;
         })
-      )
+      );
     } catch (err) {
-      setSubmitError(err?.response?.data?.message || t('dictation.errorLoad'))
+      setSubmitError(err?.response?.data?.message || t('dictation.errorLoad'));
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   // Làm lại đoạn này: tăng attemptCount lên 1, reset ô nhập và gợi ý, quay về trạng thái làm bài
   const handleRetrySegment = () => {
-    setAttemptCount((prev) => prev + 1)
-    setUserInput('')
-    setRevealedIndices(new Set())
-    setSegmentResult(null)
-    setSubmitError('')
+    setAttemptCount((prev) => prev + 1);
+    setUserInput('');
+    setRevealedIndices(new Set());
+    setSegmentResult(null);
+    setSubmitError('');
     if (playerRef.current && typeof playerRef.current.replay === 'function') {
-      playerRef.current.replay()
+      playerRef.current.replay();
     }
     setTimeout(() => {
-      if (textareaRef.current) textareaRef.current.focus()
-    }, 50)
-  }
+      if (textareaRef.current) textareaRef.current.focus();
+    }, 50);
+  };
 
   // Chuyển sang đoạn tiếp theo hoặc hoàn thành bài
   const handleNextSegment = () => {
     if (currentIndex < segments.length - 1) {
-      setCurrentIndex((prev) => prev + 1)
+      setCurrentIndex((prev) => prev + 1);
     } else {
-      setIsCompletedLesson(true)
+      setIsCompletedLesson(true);
     }
-  }
+  };
 
   // Chọn segment từ sidebar
   const handleSelectSegment = (index) => {
-    setIsCompletedLesson(false)
-    setCurrentIndex(index)
-  }
+    setIsCompletedLesson(false);
+    setCurrentIndex(index);
+  };
 
   // ── Màn hình Đang tải ──
   if (loading) {
@@ -247,7 +247,7 @@ function DictationPage({ slug, onNavigate }) {
           <p className="dictation-status-text">{t('dictation.loading')}</p>
         </div>
       </div>
-    )
+    );
   }
 
   // ── Màn hình Lỗi hoặc Không tìm thấy ──
@@ -272,7 +272,7 @@ function DictationPage({ slug, onNavigate }) {
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   // ── Màn hình Bài học rỗng không có segment ──
@@ -280,9 +280,7 @@ function DictationPage({ slug, onNavigate }) {
     return (
       <div className="dictation-page-container">
         <div className="dictation-status-card glass-card">
-          <span className="material-symbols-outlined dictation-status-icon">
-            layers_clear
-          </span>
+          <span className="material-symbols-outlined dictation-status-icon">layers_clear</span>
           <p className="dictation-status-text">{t('dictation.emptySegments')}</p>
           <button
             type="button"
@@ -293,14 +291,14 @@ function DictationPage({ slug, onNavigate }) {
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   // Đếm số segment đạt yêu cầu (bestScore >= passScore)
   const passedSegmentsCount = segments.filter((seg) => {
-    const best = seg?.userProgress?.dictationBestScore
-    return typeof best === 'number' && best >= passScore
-  }).length
+    const best = seg?.userProgress?.dictationBestScore;
+    return typeof best === 'number' && best >= passScore;
+  }).length;
 
   return (
     <div className="dictation-page-container">
@@ -348,12 +346,8 @@ function DictationPage({ slug, onNavigate }) {
                   verified
                 </span>
               </div>
-              <h2 className="dictation-completion-title">
-                {t('dictation.completedTitle')}
-              </h2>
-              <p className="dictation-completion-desc">
-                {t('dictation.completedSubtitle')}
-              </p>
+              <h2 className="dictation-completion-title">{t('dictation.completedTitle')}</h2>
+              <p className="dictation-completion-desc">{t('dictation.completedSubtitle')}</p>
 
               <div className="dictation-completion-stats">
                 <span className="dictation-completion-stats-tag">
@@ -412,11 +406,8 @@ function DictationPage({ slug, onNavigate }) {
                     ),
                   })}
                 </p>
-                {segmentResult.score <
-                  (segmentResult.segmentProgress?.dictationBestScore ?? 0) && (
-                  <p className="dictation-result-notice">
-                    {t('dictation.bestScoreNotice')}
-                  </p>
+                {segmentResult.score < (segmentResult.segmentProgress?.dictationBestScore ?? 0) && (
+                  <p className="dictation-result-notice">{t('dictation.bestScoreNotice')}</p>
                 )}
                 {segmentResult.hintUsedCount > 0 && (
                   <p className="dictation-result-hint-count">
@@ -428,19 +419,11 @@ function DictationPage({ slug, onNavigate }) {
               </div>
 
               <div className="dictation-result-actions">
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={handleRetrySegment}
-                >
+                <button type="button" className="btn-secondary" onClick={handleRetrySegment}>
                   <span className="material-symbols-outlined">refresh</span>
                   <span>{t('dictation.retrySegmentBtn')}</span>
                 </button>
-                <button
-                  type="button"
-                  className="btn-primary"
-                  onClick={handleNextSegment}
-                >
+                <button type="button" className="btn-primary" onClick={handleNextSegment}>
                   <span>
                     {currentIndex < segments.length - 1
                       ? t('lessonStudy.nextSegment')
@@ -454,9 +437,7 @@ function DictationPage({ slug, onNavigate }) {
             /* ── KHU VỰC GÕ CHÍNH TẢ & GỢI Ý ── */
             <div className="dictation-study-card glass-card">
               <div className="dictation-study-header">
-                <h3 className="dictation-study-title">
-                  {t('dictation.typeWhatYouHear')}
-                </h3>
+                <h3 className="dictation-study-title">{t('dictation.typeWhatYouHear')}</h3>
               </div>
 
               {/* Textarea nhập câu */}
@@ -479,14 +460,12 @@ function DictationPage({ slug, onNavigate }) {
 
               {/* Lưới các viên từ so khớp */}
               <div className="dictation-words-section">
-                <div className="dictation-words-title">
-                  {t('dictation.vocabularyHint')}
-                </div>
+                <div className="dictation-words-title">{t('dictation.vocabularyHint')}</div>
                 <div className="dictation-words-grid">
                   {wordStatuses.map((wordObj, idx) => {
-                    const isCorrect = wordObj.status === 'correct'
-                    const isRevealed = wordObj.status === 'revealed'
-                    const canReveal = !isCorrect && !isRevealed
+                    const isCorrect = wordObj.status === 'correct';
+                    const isRevealed = wordObj.status === 'revealed';
+                    const canReveal = !isCorrect && !isRevealed;
 
                     return (
                       <div key={idx} className="dictation-word-wrapper">
@@ -495,12 +474,9 @@ function DictationPage({ slug, onNavigate }) {
                             type="button"
                             className="dictation-eye-btn"
                             onClick={() => handleRevealWord(idx)}
-                            aria-label={t('dictation.revealWordAria')}
-                            title={t('dictation.revealWordAria')}
+                            title={t('dictation.revealWord')}
                           >
-                            <span className="material-symbols-outlined">
-                              visibility
-                            </span>
+                            <span className="material-symbols-outlined">visibility</span>
                           </button>
                         )}
                         <div
@@ -509,7 +485,7 @@ function DictationPage({ slug, onNavigate }) {
                           {wordObj.displayText}
                         </div>
                       </div>
-                    )
+                    );
                   })}
                 </div>
               </div>
@@ -552,9 +528,7 @@ function DictationPage({ slug, onNavigate }) {
                   disabled={!allDone || isSubmitting}
                 >
                   <span>
-                    {isSubmitting
-                      ? t('dictation.submitting')
-                      : t('dictation.completeSegmentBtn')}
+                    {isSubmitting ? t('dictation.submitting') : t('dictation.completeSegmentBtn')}
                   </span>
                   <span className="material-symbols-outlined">check</span>
                 </button>
@@ -575,7 +549,7 @@ function DictationPage({ slug, onNavigate }) {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default DictationPage
+export default DictationPage;

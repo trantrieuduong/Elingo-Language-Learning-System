@@ -3,45 +3,91 @@
    ========================================================================== */
 
 .topic-card {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
+  display: inline-flex;
+  align-items: stretch;
+  min-height: 36px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0;
+  border: 1.5px solid var(--color-outline-variant);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-container-low);
+  color: var(--color-text-body);
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  overflow: hidden;
+  cursor: pointer;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.topic-card:hover {
+  background: var(--color-surface-container);
+  border-color: var(--color-outline);
+}
+
+.topic-card--active {
+  border-color: var(--color-primary);
+  background: var(--color-secondary-container);
+  color: var(--color-on-secondary-container);
+  box-shadow: 0 2px 8px rgba(67, 95, 139, 0.15);
+}
+
+.topic-card--active:hover {
+  background: var(--color-secondary-container);
+  border-color: var(--color-secondary-container);
 }
 
 .topic-card__select {
-  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  flex: 1 1 auto;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: var(--font-size-body-sm);
+  font-weight: 500;
+  padding: var(--spacing-xs) 14px;
+  cursor: pointer;
   min-width: 0;
   max-width: 100%;
+  overflow: hidden;
+  text-align: left;
+}
+
+.topic-card--active .topic-card__select {
+  padding-right: var(--spacing-xs);
+  color: var(--color-on-secondary-container);
+  font-weight: 600;
 }
 
 .topic-card__name {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .topic-card__actions {
-  display: flex;
-  gap: var(--spacing-xs);
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 4px 0 var(--spacing-xs);
+  border-left: 1px solid rgba(0, 54, 112, 0.18);
   flex-shrink: 0;
 }
 
 .topic-card__actions .btn-icon {
-  width: 34px;
-  height: 34px;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  min-height: 26px;
+  padding: 0;
 }
 
-.topic-card__btn-edit {
-  color: var(--color-primary);
-}
-
-.topic-card__btn-delete {
-  color: var(--color-error);
-}
-
-.topic-card__btn-edit:hover,
-.topic-card__btn-delete:hover {
-  transform: scale(1.1);
+.topic-card__actions .btn-icon .material-symbols-outlined {
+  font-size: 16px;
 }
 
 @media (max-width: 600px) {

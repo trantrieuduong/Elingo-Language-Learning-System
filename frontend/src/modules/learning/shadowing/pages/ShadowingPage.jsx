@@ -1,49 +1,46 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
-import { useTranslation } from 'react-i18next'
-import { getLessonDetailApi, getLessonSegmentsApi } from '../../lesson/lessonApi'
-import { patchShadowingProgressApi } from '../shadowingApi'
-import { uploadFileForVerification } from '../../../../services/uploadFile'
-import { getYouTubeVideoId } from '../../lesson/utils/youtube'
-import { splitWords } from '../../lesson/utils/text'
-import { AudioRecorder } from '../utils/audioRecorder'
-import { encodeWav } from '../utils/wav'
-import { scoreShadowing } from '../utils/shadowingScore'
-import { useWhisper } from '../whisper/useWhisper'
-import {
-  pickModelConfig,
-  isMobileDevice,
-} from '../whisper/modelConfig'
-import LessonYoutubePlayer from '../../lesson/components/LessonYoutubePlayer/LessonYoutubePlayer'
-import StudySegmentSidebar from '../../lesson/components/StudySegmentSidebar/StudySegmentSidebar'
-import BackButton from '../../../../components/BackButton/BackButton'
-import './ShadowingPage.css'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import { getLessonDetailApi, getLessonSegmentsApi } from '../../lesson/lessonApi';
+import { patchShadowingProgressApi } from '../shadowingApi';
+import { uploadFileForVerification } from '../../../../services/uploadFile';
+import { getYouTubeVideoId } from '../../lesson/utils/youtube';
+import { splitWords } from '../../lesson/utils/text';
+import { AudioRecorder } from '../utils/audioRecorder';
+import { encodeWav } from '../utils/wav';
+import { scoreShadowing } from '../utils/shadowingScore';
+import { useWhisper } from '../whisper/useWhisper';
+import { pickModelConfig, isMobileDevice } from '../whisper/modelConfig';
+import LessonYoutubePlayer from '../../lesson/components/LessonYoutubePlayer/LessonYoutubePlayer';
+import StudySegmentSidebar from '../../lesson/components/StudySegmentSidebar/StudySegmentSidebar';
+import BackButton from '../../../../components/BackButton/BackButton';
+import './ShadowingPage.css';
 
 function ShadowingPage({ slug, onNavigate }) {
-  const { t } = useTranslation(['learning', 'common'])
+  const { t } = useTranslation(['learning', 'common']);
 
   // Dữ liệu bài học và phân đoạn
-  const [lesson, setLesson] = useState(null)
-  const [segments, setSegments] = useState([])
-  const [currentIndex, setCurrentIndex] = useState(0)
+  const [lesson, setLesson] = useState(null);
+  const [segments, setSegments] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   // Trạng thái tải bài học
-  const [loading, setLoading] = useState(true)
-  const [errorType, setErrorType] = useState(null) // null | 'not_found' | 'general'
-  const [errorMessage, setErrorMessage] = useState('')
+  const [loading, setLoading] = useState(true);
+  const [errorType, setErrorType] = useState(null); // null | 'not_found' | 'general'
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Trạng thái máy của một lượt: 'idle' | 'recording' | 'scoring' | 'uploading' | 'submitting'
-  const [stepState, setStepState] = useState('idle')
-  const [recordingSeconds, setRecordingSeconds] = useState(0)
-  const [statusMessage, setStatusMessage] = useState('')
-  const [statusType, setStatusType] = useState('') // 'recording' | 'processing' | 'warning' | 'error' | 'success'
+  const [stepState, setStepState] = useState('idle');
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const [statusMessage, setStatusMessage] = useState('');
+  const [statusType, setStatusType] = useState(''); // 'recording' | 'processing' | 'warning' | 'error' | 'success'
 
   // Số lần thử của segment hiện tại
-  const [attemptCount, setAttemptCount] = useState(1)
+  const [attemptCount, setAttemptCount] = useState(1);
 
   // Kết quả sau khi nộp (hoặc kết quả BE khi mở lại segment đã làm)
-  const [segmentResult, setSegmentResult] = useState(null)
-  const [localAudioUrl, setLocalAudioUrl] = useState(null)
-  const [savedFileKey, setSavedFileKey] = useState(null) // Lưu verifiedFileKey để gửi lại nếu PATCH lỗi
+  const [segmentResult, setSegmentResult] = useState(null);
+  const [localAudioUrl, setLocalAudioUrl] = useState(null);
+  const [savedFileKey, setSavedFileKey] = useState(null); // Lưu verifiedFileKey để gửi lại nếu PATCH lỗi
 
   // Mô hình AI Whisper & Web Worker
   const {
@@ -52,154 +49,154 @@ function ShadowingPage({ slug, onNavigate }) {
     error: whisperError,
     loadModel,
     transcribe,
-  } = useWhisper()
+  } = useWhisper();
 
-  const [showModelModal, setShowModelModal] = useState(false)
-  const [chosenModelType, setChosenModelType] = useState('standard')
+  const [showModelModal, setShowModelModal] = useState(false);
+  const [chosenModelType, setChosenModelType] = useState('standard');
 
   // Cờ kiểm tra mô hình đã từng được nạp/tải hoàn tất trong các phiên trước hay chưa
   const [modelLoadedBefore] = useState(() => {
     try {
-      return !!localStorage.getItem('el_whisper_loaded')
+      return !!localStorage.getItem('el_whisper_loaded');
     } catch {
-      return false
+      return false;
     }
-  })
+  });
 
   // Màn hình hoàn thành
-  const [isCompletedLesson, setIsCompletedLesson] = useState(false)
+  const [isCompletedLesson, setIsCompletedLesson] = useState(false);
 
   // Refs
-  const playerRef = useRef(null)
-  const recorderRef = useRef(null)
-  const recordingTimerRef = useRef(null)
-  const segmentsRef = useRef([])
+  const playerRef = useRef(null);
+  const recorderRef = useRef(null);
+  const recordingTimerRef = useRef(null);
+  const segmentsRef = useRef([]);
 
   useEffect(() => {
-    segmentsRef.current = segments
-  }, [segments])
+    segmentsRef.current = segments;
+  }, [segments]);
 
   // 1. Khởi tạo chọn loại mô hình và tự động nạp ngầm mô hình nếu người dùng đã đồng ý trước đó
   useEffect(() => {
-    let savedModel = null
-    let hasAgreed = false
+    let savedModel = null;
+    let hasAgreed = false;
 
     try {
-      hasAgreed = !!localStorage.getItem('el_whisper_agreed')
-      savedModel = localStorage.getItem('el_whisper_model')
+      hasAgreed = !!localStorage.getItem('el_whisper_agreed');
+      savedModel = localStorage.getItem('el_whisper_model');
     } catch {
       /* noop */
     }
 
-    const mobile = isMobileDevice()
-    const activeModel = savedModel || (mobile ? 'light' : 'standard')
-    setChosenModelType(activeModel)
+    const mobile = isMobileDevice();
+    const activeModel = savedModel || (mobile ? 'light' : 'standard');
+    setChosenModelType(activeModel);
 
     // Nếu đã đồng ý tải trước đó, nạp ngầm vào RAM ngay khi mount (từ cache trình duyệt)
     if (hasAgreed) {
       const config = pickModelConfig({
         isMobile: mobile,
         userOverride: activeModel,
-      })
-      loadModel(config)
+      });
+      loadModel(config);
     }
-  }, [loadModel])
+  }, [loadModel]);
 
   // 2. Tải bài học và danh sách segment khi slug thay đổi
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'instant' })
-    let isSubscribed = true
-    setLoading(true)
-    setErrorType(null)
-    setErrorMessage('')
-    setIsCompletedLesson(false)
-    setSegmentResult(null)
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    let isSubscribed = true;
+    setLoading(true);
+    setErrorType(null);
+    setErrorMessage('');
+    setIsCompletedLesson(false);
+    setSegmentResult(null);
 
     const fetchData = async () => {
       try {
         const [lessonRes, segmentsRes] = await Promise.all([
           getLessonDetailApi(slug),
           getLessonSegmentsApi(slug),
-        ])
+        ]);
 
-        if (!isSubscribed) return
+        if (!isSubscribed) return;
 
-        const lessonData = lessonRes?.data || lessonRes
-        const rawSegments = segmentsRes?.data || segmentsRes
-        const segmentsList = Array.isArray(rawSegments) ? rawSegments : []
+        const lessonData = lessonRes?.data || lessonRes;
+        const rawSegments = segmentsRes?.data || segmentsRes;
+        const segmentsList = Array.isArray(rawSegments) ? rawSegments : [];
 
-        setLesson(lessonData)
-        setSegments(segmentsList)
+        setLesson(lessonData);
+        setSegments(segmentsList);
 
         // Mở ở segment đầu tiên có shadowingAttemptCount bằng 0 (hoặc 0 nếu đã làm hết)
         const firstIncompleteIdx = segmentsList.findIndex((seg) => {
-          const count = seg?.userProgress?.shadowingAttemptCount
-          return typeof count !== 'number' || count <= 0
-        })
+          const count = seg?.userProgress?.shadowingAttemptCount;
+          return typeof count !== 'number' || count <= 0;
+        });
 
-        setCurrentIndex(firstIncompleteIdx !== -1 ? firstIncompleteIdx : 0)
+        setCurrentIndex(firstIncompleteIdx !== -1 ? firstIncompleteIdx : 0);
       } catch (err) {
-        if (!isSubscribed) return
-        const errorCode = err?.response?.data?.code
+        if (!isSubscribed) return;
+        const errorCode = err?.response?.data?.code;
         if (errorCode === 'LESSON_NOT_FOUND' || err?.response?.status === 404) {
-          setErrorType('not_found')
+          setErrorType('not_found');
         } else {
-          setErrorType('general')
-          setErrorMessage(err?.response?.data?.message || t('shadowing.loadError'))
+          setErrorType('general');
+          setErrorMessage(err?.response?.data?.message || t('shadowing.loadError'));
         }
       } finally {
-        if (isSubscribed) setLoading(false)
+        if (isSubscribed) setLoading(false);
       }
-    }
+    };
 
     if (slug) {
-      fetchData()
+      fetchData();
     }
 
     return () => {
-      isSubscribed = false
-    }
-  }, [slug, t])
+      isSubscribed = false;
+    };
+  }, [slug, t]);
 
-  const currentSegment = segments[currentIndex]
-  const passScore = lesson?.shadowingPassScore ?? 60
-  const videoId = lesson ? getYouTubeVideoId(lesson.sourceUrl) : ''
-  const currentSegmentId = currentSegment?.id
+  const currentSegment = segments[currentIndex];
+  const passScore = lesson?.shadowingPassScore ?? 60;
+  const videoId = lesson ? getYouTubeVideoId(lesson.sourceUrl) : '';
+  const currentSegmentId = currentSegment?.id;
 
   // 3. Reset trạng thái CHỈ KHI chuyển sang segment khác (theo currentSegmentId)
   useEffect(() => {
-    if (!currentSegmentId) return
+    if (!currentSegmentId) return;
 
     setLocalAudioUrl((prevUrl) => {
-      if (prevUrl) URL.revokeObjectURL(prevUrl)
-      return null
-    })
+      if (prevUrl) URL.revokeObjectURL(prevUrl);
+      return null;
+    });
 
-    setSavedFileKey(null)
-    setStatusMessage('')
-    setStatusType('')
-    setStepState('idle')
-    setRecordingSeconds(0)
+    setSavedFileKey(null);
+    setStatusMessage('');
+    setStatusType('');
+    setStepState('idle');
+    setRecordingSeconds(0);
 
     if (recordingTimerRef.current) {
-      clearInterval(recordingTimerRef.current)
-      recordingTimerRef.current = null
+      clearInterval(recordingTimerRef.current);
+      recordingTimerRef.current = null;
     }
     if (recorderRef.current) {
-      recorderRef.current.cleanup()
-      recorderRef.current = null
+      recorderRef.current.cleanup();
+      recorderRef.current = null;
     }
 
-    const currentSeg = segmentsRef.current.find((s) => s.id === currentSegmentId)
+    const currentSeg = segmentsRef.current.find((s) => s.id === currentSegmentId);
     if (currentSeg) {
       // Số lần thử = userProgress.shadowingAttemptCount nếu > 0, ngược lại 1
-      const savedAttempts = currentSeg.userProgress?.shadowingAttemptCount
-      setAttemptCount(savedAttempts && savedAttempts > 0 ? savedAttempts : 1)
+      const savedAttempts = currentSeg.userProgress?.shadowingAttemptCount;
+      setAttemptCount(savedAttempts && savedAttempts > 0 ? savedAttempts : 1);
 
       // Nếu segment này đã làm trước đó, nạp dữ liệu kết quả từ BE
       if (currentSeg.userProgress && currentSeg.userProgress.shadowingAttemptCount > 0) {
-        const bestScore = currentSeg.userProgress.shadowingBestScore ?? 0
-        const isPassed = bestScore >= passScore
+        const bestScore = currentSeg.userProgress.shadowingBestScore ?? 0;
+        const isPassed = bestScore >= passScore;
         setSegmentResult({
           score: bestScore,
           bestScore,
@@ -207,193 +204,189 @@ function ShadowingPage({ slug, onNavigate }) {
           wordsAccuracy: currentSeg.userProgress.wordsAccuracy || [],
           isHistorical: true,
           audioUrl: currentSeg.userProgress.shadowingLatestAudioUrl,
-        })
+        });
       } else {
-        setSegmentResult(null)
+        setSegmentResult(null);
       }
     }
-  }, [currentSegmentId, passScore])
+  }, [currentSegmentId, passScore]);
 
   // Dọn dẹp URL Blob và recorder khi unmount trang
   useEffect(() => {
     return () => {
       if (recorderRef.current) {
-        recorderRef.current.cleanup()
+        recorderRef.current.cleanup();
       }
       if (recordingTimerRef.current) {
-        clearInterval(recordingTimerRef.current)
+        clearInterval(recordingTimerRef.current);
       }
-    }
-  }, [])
+    };
+  }, []);
 
   // Dọn dẹp localAudioUrl khi unmount trang
   useEffect(() => {
     return () => {
       if (localAudioUrl) {
-        URL.revokeObjectURL(localAudioUrl)
+        URL.revokeObjectURL(localAudioUrl);
       }
-    }
-  }, [localAudioUrl])
+    };
+  }, [localAudioUrl]);
 
   // Lắng nghe thay đổi trạng thái của Whisper để cập nhật thông báo
   useEffect(() => {
     if (whisperStatus === 'ready') {
-      let isLoaded = false
+      let isLoaded = false;
       try {
-        isLoaded = !!localStorage.getItem('el_whisper_loaded')
+        isLoaded = !!localStorage.getItem('el_whisper_loaded');
       } catch {
         /* noop */
       }
 
       // Chỉ hiển thị "Mô hình đã sẵn sàng" ở lần tải đầu tiên
       if (!isLoaded) {
-        setStatusMessage(t('shadowing.modelReady'))
-        setStatusType('success')
+        setStatusMessage(t('shadowing.modelReady'));
+        setStatusType('success');
         try {
-          localStorage.setItem('el_whisper_loaded', 'true')
+          localStorage.setItem('el_whisper_loaded', 'true');
         } catch {
           /* noop */
         }
       }
     } else if (whisperStatus === 'error') {
-      setStatusType('error')
+      setStatusType('error');
       if (whisperError?.message?.includes('120s')) {
-        setStatusMessage(t('shadowing.modelTimeout'))
+        setStatusMessage(t('shadowing.modelTimeout'));
       } else {
-        setStatusMessage(whisperError?.message || t('shadowing.modelLoadFailed'))
+        setStatusMessage(whisperError?.message || t('shadowing.modelLoadFailed'));
       }
     }
-  }, [whisperStatus, whisperError, t])
+  }, [whisperStatus, whisperError, t]);
 
   // Danh sách từ tham chiếu để hiển thị và so khớp
   const refWords = useMemo(() => {
-    return splitWords(currentSegment?.transcriptNormalized || '')
-  }, [currentSegment])
+    return splitWords(currentSegment?.transcriptNormalized || '');
+  }, [currentSegment]);
 
   const origWords = useMemo(() => {
-    return (currentSegment?.transcriptOriginal || '').trim().split(/\s+/).filter(Boolean)
-  }, [currentSegment])
+    return (currentSegment?.transcriptOriginal || '').trim().split(/\s+/).filter(Boolean);
+  }, [currentSegment]);
 
   // Nút Nghe lại đoạn: phát lại video và tăng attemptCount +1
   const handleReplay = () => {
     if (playerRef.current && typeof playerRef.current.replay === 'function') {
-      playerRef.current.replay()
-      setAttemptCount((prev) => Math.min(1000, prev + 1))
+      playerRef.current.replay();
+      setAttemptCount((prev) => Math.min(1000, prev + 1));
     }
-  }
+  };
 
-  const toggleRecordingRef = useRef(null)
+  const toggleRecordingRef = useRef(null);
 
   // Tự động dừng ghi âm khi hết thời lượng tối đa
   const handleAutoStopRecording = useCallback(() => {
     if (toggleRecordingRef.current) {
-      toggleRecordingRef.current()
+      toggleRecordingRef.current();
     }
-  }, [])
+  }, []);
 
   // Bấm nút Ghi âm / Dừng ghi âm
   const handleToggleRecording = async () => {
     // Nếu đang trong các bước xử lý/chấm điểm, chặn bấm trùng
     if (stepState !== 'idle' && stepState !== 'recording') {
-      return
+      return;
     }
 
     // ── ĐANG GHI ÂM -> BẤM DỪNG VÀ XỬ LÝ ──
     if (stepState === 'recording') {
       if (recordingTimerRef.current) {
-        clearInterval(recordingTimerRef.current)
-        recordingTimerRef.current = null
+        clearInterval(recordingTimerRef.current);
+        recordingTimerRef.current = null;
       }
 
-      setStepState('scoring')
-      setStatusType('processing')
-      setStatusMessage(t('shadowing.statusScoring'))
+      setStepState('scoring');
+      setStatusType('processing');
+      setStatusMessage(t('shadowing.statusScoring'));
 
       try {
         if (!recorderRef.current) {
-          throw new Error(t('shadowing.recorderNotFound'))
+          throw new Error(t('shadowing.recorderNotFound'));
         }
 
-        const { audio16k, durationSec } = await recorderRef.current.stop()
-        recorderRef.current = null
+        const { audio16k, durationSec } = await recorderRef.current.stop();
+        recorderRef.current = null;
 
         // 1. Kiểm tra thời lượng quá ngắn (< 0.5s) hoặc rỗng
         if (durationSec < 0.5 || audio16k.length === 0) {
-          setStepState('idle')
-          setStatusType('warning')
-          setStatusMessage(t('shadowing.tooShort'))
-          return
+          setStepState('idle');
+          setStatusType('warning');
+          setStatusMessage(t('shadowing.tooShort'));
+          return;
         }
 
         // Tạo WAV blob trước để sẵn sàng upload
-        const wavBlob = encodeWav(audio16k, 16000)
-        const blobUrl = URL.createObjectURL(wavBlob)
-        setLocalAudioUrl(blobUrl)
+        const wavBlob = encodeWav(audio16k, 16000);
+        const blobUrl = URL.createObjectURL(wavBlob);
+        setLocalAudioUrl(blobUrl);
 
         // 2. Chạy Whisper nhận dạng
-        let recognizedText = ''
+        let recognizedText = '';
         try {
-          recognizedText = await transcribe(audio16k)
+          recognizedText = await transcribe(audio16k);
         } catch (whisperErr) {
           // Lỗi Whisper -> báo lỗi rõ ràng
-          setStepState('idle')
-          setStatusType('error')
-          setStatusMessage(whisperErr.message || t('shadowing.recognizeError'))
-          return
+          setStepState('idle');
+          setStatusType('error');
+          setStatusMessage(whisperErr.message || t('shadowing.recognizeError'));
+          return;
         }
 
         if (!recognizedText || !recognizedText.trim()) {
-          setStepState('idle')
-          setStatusType('warning')
-          setStatusMessage(t('shadowing.tooShort'))
-          return
+          setStepState('idle');
+          setStatusType('warning');
+          setStatusMessage(t('shadowing.tooShort'));
+          return;
         }
 
         // 3. Tính điểm bằng hàm thuần scoreShadowing
         const { score: rawScore, wordsAccuracy } = scoreShadowing(
           currentSegment?.transcriptNormalized || '',
           recognizedText
-        )
+        );
 
         // 4. Upload file WAV lên storage
-        setStepState('uploading')
-        setStatusType('processing')
-        setStatusMessage(t('shadowing.statusUploading'))
+        setStepState('uploading');
+        setStatusType('processing');
+        setStatusMessage(t('shadowing.statusUploading'));
 
-        let verifiedFileKey = savedFileKey
+        let verifiedFileKey = savedFileKey;
         if (!verifiedFileKey) {
-          verifiedFileKey = await uploadFileForVerification(wavBlob, 'audio/wav')
-          setSavedFileKey(verifiedFileKey)
+          verifiedFileKey = await uploadFileForVerification(wavBlob, 'audio/wav');
+          setSavedFileKey(verifiedFileKey);
         }
 
         // 5. Nộp kết quả chấm điểm lên backend
-        setStepState('submitting')
-        setStatusType('processing')
-        setStatusMessage(t('shadowing.statusSubmitting'))
+        setStepState('submitting');
+        setStatusType('processing');
+        setStatusMessage(t('shadowing.statusSubmitting'));
 
         const payload = {
           attemptCount: Math.min(1000, attemptCount),
           score: rawScore,
           wordsAccuracy,
           audioUrl: verifiedFileKey,
-        }
+        };
 
-        const resultRes = await patchShadowingProgressApi(
-          slug,
-          currentSegment.id,
-          payload
-        )
-        const resultData = resultRes?.data || resultRes
+        const resultRes = await patchShadowingProgressApi(slug, currentSegment.id, payload);
+        const resultData = resultRes?.data || resultRes;
 
         // Nộp thành công: xóa savedFileKey, cập nhật immutably
-        setSavedFileKey(null)
-        setStepState('idle')
-        setStatusMessage('')
-        setStatusType('')
+        setSavedFileKey(null);
+        setStepState('idle');
+        setStatusMessage('');
+        setStatusType('');
 
         // Điểm trừ phạt theo số lần thử: penalty = (attemptCount - 1) * 10
-        const penalty = Math.max(0, (attemptCount - 1) * 10)
-        const bestScore = resultData.segmentProgress?.shadowingBestScore ?? resultData.score
+        const penalty = Math.max(0, (attemptCount - 1) * 10);
+        const bestScore = resultData.segmentProgress?.shadowingBestScore ?? resultData.score;
 
         setSegmentResult({
           score: resultData.score,
@@ -405,11 +398,11 @@ function ShadowingPage({ slug, onNavigate }) {
           wordsAccuracy,
           isHistorical: false,
           segmentProgress: resultData.segmentProgress,
-        })
+        });
 
         // Cập nhật segments list immutably (dùng shadowingLatestAudioUrl từ BE, không dùng blobUrl)
         setSegments((prevList) => {
-          const nextList = [...prevList]
+          const nextList = [...prevList];
           nextList[currentIndex] = {
             ...nextList[currentIndex],
             userProgress: {
@@ -417,48 +410,49 @@ function ShadowingPage({ slug, onNavigate }) {
               shadowingAttemptCount: attemptCount,
               shadowingBestScore: bestScore,
               wordsAccuracy,
-              shadowingLatestAudioUrl: resultData.segmentProgress?.shadowingLatestAudioUrl || verifiedFileKey,
+              shadowingLatestAudioUrl:
+                resultData.segmentProgress?.shadowingLatestAudioUrl || verifiedFileKey,
             },
-          }
-          return nextList
-        })
+          };
+          return nextList;
+        });
 
         // Tăng attemptCount +1 cho lần ghi kế tiếp
-        setAttemptCount((prev) => Math.min(1000, prev + 1))
+        setAttemptCount((prev) => Math.min(1000, prev + 1));
       } catch (err) {
-        setStepState('idle')
-        setStatusType('error')
-        const errCode = err?.response?.data?.code
-        const errMsg = err?.response?.data?.message || err.message || t('shadowing.submitError')
+        setStepState('idle');
+        setStatusType('error');
+        const errCode = err?.response?.data?.code;
+        const errMsg = err?.response?.data?.message || err.message || t('shadowing.submitError');
 
         // Nếu file key bị lỗi truy cập thì cần xóa để lần tới upload lại
         if (errCode === 'FILE_NOT_FOUND' || errCode === 'FILE_ACCESS_DENIED') {
-          setSavedFileKey(null)
+          setSavedFileKey(null);
         }
 
-        setStatusMessage(errMsg)
+        setStatusMessage(errMsg);
       }
-      return
+      return;
     }
 
     // ── ĐANG RẢNH -> BẤM ĐỂ BẮT ĐẦU GHI ÂM ──
     // 1. Nếu đang trong quá trình tải model, không gọi loadModel nữa
     if (whisperStatus === 'downloading') {
       if (!modelLoadedBefore) {
-        setStatusType('processing')
-        setStatusMessage(t('shadowing.modelPreparing'))
+        setStatusType('processing');
+        setStatusMessage(t('shadowing.modelPreparing'));
       }
-      return
+      return;
     }
 
     // 2. Kiểm tra xem mô hình Whisper đã sẵn sàng chưa, nếu chưa thì hỏi tải
     if (whisperStatus !== 'ready') {
-      let hasAgreed = false
+      let hasAgreed = false;
       try {
-        hasAgreed = !!localStorage.getItem('el_whisper_agreed')
+        hasAgreed = !!localStorage.getItem('el_whisper_agreed');
         if (!hasAgreed) {
-          setShowModelModal(true)
-          return
+          setShowModelModal(true);
+          return;
         }
       } catch {
         /* noop */
@@ -468,95 +462,95 @@ function ShadowingPage({ slug, onNavigate }) {
       const config = pickModelConfig({
         isMobile: isMobileDevice(),
         userOverride: chosenModelType,
-      })
-      loadModel(config)
+      });
+      loadModel(config);
 
       // Nếu chưa từng nạp model trước đó thì mới hiện thông báo đang chuẩn bị
       if (!modelLoadedBefore) {
-        setStatusType('processing')
-        setStatusMessage(t('shadowing.modelPreparing'))
+        setStatusType('processing');
+        setStatusMessage(t('shadowing.modelPreparing'));
       }
-      return
+      return;
     }
 
     // 3. Whisper đã sẵn sàng -> Xóa statusMessage cũ và bắt đầu ghi âm
-    setStatusMessage('')
-    setStatusType('')
+    setStatusMessage('');
+    setStatusType('');
 
     try {
-      const segDurationSec = ((currentSegment?.endMs || 0) - (currentSegment?.startMs || 0)) / 1000
-      const maxDurationSec = Math.max(10, Math.min(60, Math.round(segDurationSec * 3) || 30))
+      const segDurationSec = ((currentSegment?.endMs || 0) - (currentSegment?.startMs || 0)) / 1000;
+      const maxDurationSec = Math.max(10, Math.min(60, Math.round(segDurationSec * 3) || 30));
 
       const recorder = new AudioRecorder({
         maxDurationSec,
         onAutoStop: handleAutoStopRecording,
-      })
+      });
 
-      await recorder.start()
-      recorderRef.current = recorder
-      setStepState('recording')
-      setStatusType('recording')
-      setStatusMessage(t('shadowing.statusRecording'))
-      setRecordingSeconds(0)
+      await recorder.start();
+      recorderRef.current = recorder;
+      setStepState('recording');
+      setStatusType('recording');
+      setStatusMessage(t('shadowing.statusRecording'));
+      setRecordingSeconds(0);
 
       recordingTimerRef.current = setInterval(() => {
-        setRecordingSeconds((prev) => prev + 1)
-      }, 1000)
+        setRecordingSeconds((prev) => prev + 1);
+      }, 1000);
     } catch (err) {
-      setStepState('idle')
-      setStatusType('error')
+      setStepState('idle');
+      setStatusType('error');
       if (err.code === 'PERMISSION_DENIED') {
-        setStatusMessage(t('shadowing.micPermissionDenied'))
+        setStatusMessage(t('shadowing.micPermissionDenied'));
       } else if (err.code === 'NOT_SUPPORTED') {
-        setStatusMessage(t('shadowing.micNotSupported'))
+        setStatusMessage(t('shadowing.micNotSupported'));
       } else {
-        setStatusMessage(err.message || t('shadowing.cannotStartRecording'))
+        setStatusMessage(err.message || t('shadowing.cannotStartRecording'));
       }
     }
-  }
+  };
 
   useEffect(() => {
-    toggleRecordingRef.current = handleToggleRecording
-  })
+    toggleRecordingRef.current = handleToggleRecording;
+  });
 
   // Xác nhận tải mô hình từ modal
   const handleConfirmDownloadModel = () => {
     try {
-      localStorage.setItem('el_whisper_agreed', 'true')
-      localStorage.setItem('el_whisper_model', chosenModelType)
+      localStorage.setItem('el_whisper_agreed', 'true');
+      localStorage.setItem('el_whisper_model', chosenModelType);
     } catch {
       /* noop */
     }
-    setShowModelModal(false)
+    setShowModelModal(false);
 
     const config = pickModelConfig({
       isMobile: isMobileDevice(),
       userOverride: chosenModelType,
-    })
-    loadModel(config)
-    setStatusType('processing')
-    setStatusMessage(t('shadowing.modelPreparing'))
-  }
+    });
+    loadModel(config);
+    setStatusType('processing');
+    setStatusMessage(t('shadowing.modelPreparing'));
+  };
 
   // Chuyển sang đoạn tiếp theo
   const handleNextSegment = () => {
     if (currentIndex < segments.length - 1) {
-      setCurrentIndex((prev) => prev + 1)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+      setCurrentIndex((prev) => prev + 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      setIsCompletedLesson(true)
+      setIsCompletedLesson(true);
     }
-  }
+  };
 
   // Chọn segment từ Sidebar
   const handleSelectSegment = (index) => {
-    if (stepState !== 'idle') return
+    if (stepState !== 'idle') return;
     if (index >= 0 && index < segments.length) {
-      setCurrentIndex(index)
-      setIsCompletedLesson(false)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+      setCurrentIndex(index);
+      setIsCompletedLesson(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }
+  };
 
   // ── RENDER CÁC TRẠNG THÁI TẢI / LỖI ──
   if (loading) {
@@ -567,7 +561,7 @@ function ShadowingPage({ slug, onNavigate }) {
           <p>{t('shadowing.loading')}</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (errorType === 'not_found') {
@@ -586,7 +580,7 @@ function ShadowingPage({ slug, onNavigate }) {
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   if (errorType || !lesson) {
@@ -605,7 +599,7 @@ function ShadowingPage({ slug, onNavigate }) {
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   if (segments.length === 0) {
@@ -623,20 +617,18 @@ function ShadowingPage({ slug, onNavigate }) {
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   // Tính số đoạn đã đạt yêu cầu để hiển thị thống kê (shadowingBestScore >= passScore)
   const passedSegmentsCount = segments.filter((s) => {
-    const best = s.userProgress?.shadowingBestScore
-    return typeof best === 'number' && best >= passScore
-  }).length
+    const best = s.userProgress?.shadowingBestScore;
+    return typeof best === 'number' && best >= passScore;
+  }).length;
 
   // Quyết định danh sách từ hiển thị trong kết quả
   const displayWordsList =
-    origWords.length === (segmentResult?.wordsAccuracy?.length || 0)
-      ? origWords
-      : refWords
+    origWords.length === (segmentResult?.wordsAccuracy?.length || 0) ? origWords : refWords;
 
   return (
     <div className="shadowing-page-container">
@@ -685,12 +677,8 @@ function ShadowingPage({ slug, onNavigate }) {
                   verified
                 </span>
               </div>
-              <h2 className="shadowing-completion-title">
-                {t('shadowing.completedTitle')}
-              </h2>
-              <p className="shadowing-completion-desc">
-                {t('shadowing.completedSubtitle')}
-              </p>
+              <h2 className="shadowing-completion-title">{t('shadowing.completedTitle')}</h2>
+              <p className="shadowing-completion-desc">{t('shadowing.completedSubtitle')}</p>
 
               <div className="dictation-completion-stats">
                 <span className="dictation-completion-stats-tag">
@@ -713,8 +701,7 @@ function ShadowingPage({ slug, onNavigate }) {
                   type="button"
                   className="btn-primary"
                   onClick={() =>
-                    onNavigate &&
-                    onNavigate(`/learning/dictation/${encodeURIComponent(slug)}`)
+                    onNavigate && onNavigate(`/learning/dictation/${encodeURIComponent(slug)}`)
                   }
                 >
                   <span className="material-symbols-outlined">edit_note</span>
@@ -726,9 +713,7 @@ function ShadowingPage({ slug, onNavigate }) {
             /* ── KHU VỰC LUYỆN NÓI & KẾT QUẢ ĐOẠN ── */
             <div className="shadowing-study-card glass-card">
               <div className="shadowing-study-header">
-                <h3 className="shadowing-study-title">
-                  {t('shadowing.speakPrompt')}
-                </h3>
+                <h3 className="shadowing-study-title">{t('shadowing.speakPrompt')}</h3>
                 <span className="shadowing-attempts-info">
                   {t('shadowing.attemptsCount', { count: attemptCount })}
                 </span>
@@ -745,8 +730,9 @@ function ShadowingPage({ slug, onNavigate }) {
               <div className="shadowing-controls-row">
                 <button
                   type="button"
-                  className={`btn-primary shadowing-record-btn ${stepState === 'recording' ? 'shadowing-record-btn--recording' : ''
-                    }`}
+                  className={`btn-primary shadowing-record-btn ${
+                    stepState === 'recording' ? 'shadowing-record-btn--recording' : ''
+                  }`}
                   onClick={handleToggleRecording}
                   disabled={stepState !== 'idle' && stepState !== 'recording'}
                 >
@@ -783,16 +769,12 @@ function ShadowingPage({ slug, onNavigate }) {
               {whisperStatus === 'downloading' && !modelLoadedBefore && (
                 <div className="shadowing-status-banner shadowing-status-banner--processing">
                   <span className="material-symbols-outlined spinning">sync</span>
-                  <span>
-                    {t('shadowing.downloadProgress', { progress: downloadProgress })}
-                  </span>
+                  <span>{t('shadowing.downloadProgress', { progress: downloadProgress })}</span>
                 </div>
               )}
 
               {statusMessage && (
-                <div
-                  className={`shadowing-status-banner shadowing-status-banner--${statusType}`}
-                >
+                <div className={`shadowing-status-banner shadowing-status-banner--${statusType}`}>
                   <span className="material-symbols-outlined">
                     {statusType === 'error'
                       ? 'error'
@@ -815,19 +797,15 @@ function ShadowingPage({ slug, onNavigate }) {
                     {/* Vòng tròn điểm số SVG */}
                     <div className="shadowing-score-circle-wrapper">
                       <svg className="shadowing-score-svg" viewBox="0 0 100 100">
+                        <circle className="shadowing-score-circle-bg" cx="50" cy="50" r="42" />
                         <circle
-                          className="shadowing-score-circle-bg"
-                          cx="50"
-                          cy="50"
-                          r="42"
-                        />
-                        <circle
-                          className={`shadowing-score-circle-val ${segmentResult.score >= passScore
-                            ? segmentResult.score >= 80
-                              ? 'shadowing-score-circle-val--pass'
-                              : 'shadowing-score-circle-val--warning'
-                            : 'shadowing-score-circle-val--fail'
-                            }`}
+                          className={`shadowing-score-circle-val ${
+                            segmentResult.score >= passScore
+                              ? segmentResult.score >= 80
+                                ? 'shadowing-score-circle-val--pass'
+                                : 'shadowing-score-circle-val--warning'
+                              : 'shadowing-score-circle-val--fail'
+                          }`}
                           cx="50"
                           cy="50"
                           r="42"
@@ -838,9 +816,7 @@ function ShadowingPage({ slug, onNavigate }) {
                         />
                       </svg>
                       <div className="shadowing-score-text-overlay">
-                        <span className="shadowing-score-number">
-                          {segmentResult.score}
-                        </span>
+                        <span className="shadowing-score-number">{segmentResult.score}</span>
                         <span className="shadowing-score-unit">/ 100</span>
                       </div>
                     </div>
@@ -849,10 +825,9 @@ function ShadowingPage({ slug, onNavigate }) {
                     <div className="shadowing-result-meta">
                       <div className="shadowing-result-badge-row">
                         <span
-                          className={`shadowing-badge ${segmentResult.passed
-                            ? 'shadowing-badge--pass'
-                            : 'shadowing-badge--fail'
-                            }`}
+                          className={`shadowing-badge ${
+                            segmentResult.passed ? 'shadowing-badge--pass' : 'shadowing-badge--fail'
+                          }`}
                         >
                           {segmentResult.passed
                             ? t('lessonStudy.passedBadge')
@@ -912,15 +887,15 @@ function ShadowingPage({ slug, onNavigate }) {
 
                       <div className="shadowing-words-flow">
                         {segmentResult.wordsAccuracy.map((wordItem, idx) => {
-                          const acc = wordItem.accuracy ?? 0
+                          const acc = wordItem.accuracy ?? 0;
                           const chipClass =
                             acc >= 80
                               ? 'shadowing-word-chip--good'
                               : acc >= 50
                                 ? 'shadowing-word-chip--medium'
-                                : 'shadowing-word-chip--poor'
+                                : 'shadowing-word-chip--poor';
 
-                          const textToShow = displayWordsList[idx] || wordItem.word
+                          const textToShow = displayWordsList[idx] || wordItem.word;
 
                           return (
                             <span
@@ -930,7 +905,7 @@ function ShadowingPage({ slug, onNavigate }) {
                             >
                               {textToShow}
                             </span>
-                          )
+                          );
                         })}
                       </div>
 
@@ -974,13 +949,8 @@ function ShadowingPage({ slug, onNavigate }) {
         <div
           className="shadowing-model-modal-overlay"
           onClick={() => setShowModelModal(false)}
-          role="dialog"
-          aria-modal="true"
         >
-          <div
-            className="shadowing-model-modal glass-capsule"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="shadowing-model-modal glass-capsule" onClick={(e) => e.stopPropagation()}>
             <div className="shadowing-model-modal-header">
               <div className="shadowing-model-modal-title-group">
                 <h2 className="shadowing-model-modal-title">
@@ -996,7 +966,6 @@ function ShadowingPage({ slug, onNavigate }) {
                 type="button"
                 className="btn-icon"
                 onClick={() => setShowModelModal(false)}
-                aria-label={t('common:close')}
               >
                 <span className="material-symbols-outlined">close</span>
               </button>
@@ -1046,11 +1015,7 @@ function ShadowingPage({ slug, onNavigate }) {
               >
                 {t('common:cancel')}
               </button>
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={handleConfirmDownloadModel}
-              >
+              <button type="button" className="btn-primary" onClick={handleConfirmDownloadModel}>
                 {t('shadowing.btnDownload')}
               </button>
             </div>
@@ -1058,7 +1023,7 @@ function ShadowingPage({ slug, onNavigate }) {
         </div>
       )}
     </div>
-  )
+  );
 }
 
-export default ShadowingPage
+export default ShadowingPage;
