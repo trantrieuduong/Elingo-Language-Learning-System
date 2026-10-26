@@ -40,10 +40,10 @@ class CefrLevelServiceTest {
         @Test
         @DisplayName("Get all CEFR levels successfully: maps every entity")
         void getAllCefrLevels_Success() {
-            CefrLevel a1 = CefrLevel.builder().id(1L).code("A1").label("Beginner").build();
-            CefrLevel b2 = CefrLevel.builder().id(2L).code("B2").label("Upper-Intermediate").build();
-            CefrLevelResponse a1Response = new CefrLevelResponse(1L, "A1", "Beginner");
-            CefrLevelResponse b2Response = new CefrLevelResponse(2L, "B2", "Upper-Intermediate");
+            CefrLevel a1 = CefrLevel.builder().id(1L).label("Beginner").build();
+            CefrLevel b2 = CefrLevel.builder().id(2L).label("Upper-Intermediate").build();
+            CefrLevelResponse a1Response = new CefrLevelResponse(1L, "Beginner");
+            CefrLevelResponse b2Response = new CefrLevelResponse(2L, "Upper-Intermediate");
 
             when(cefrLevelRepository.findAll()).thenReturn(List.of(a1, b2));
             when(cefrLevelMapper.toCefrLevelResponse(a1)).thenReturn(a1Response);

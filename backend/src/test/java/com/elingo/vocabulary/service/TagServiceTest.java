@@ -39,10 +39,10 @@ class TagServiceTest {
         @Test
         @DisplayName("Get all tags successfully: maps every entity")
         void getAllTags_Success() {
-            Tag travel = Tag.builder().id(1L).code("TRAVEL").label("Travel").build();
-            Tag food = Tag.builder().id(2L).code("FOOD").label("Food").build();
-            TagResponse travelResponse = new TagResponse(1L, "TRAVEL", "Travel");
-            TagResponse foodResponse = new TagResponse(2L, "FOOD", "Food");
+            Tag travel = Tag.builder().id(1L).label("Travel").build();
+            Tag food = Tag.builder().id(2L).label("Food").build();
+            TagResponse travelResponse = new TagResponse(1L, "Travel");
+            TagResponse foodResponse = new TagResponse(2L, "Food");
 
             when(tagRepository.findAll()).thenReturn(List.of(travel, food));
             when(tagMapper.toTagResponse(travel)).thenReturn(travelResponse);
