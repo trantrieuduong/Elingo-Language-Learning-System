@@ -14,7 +14,7 @@ import EmptyState from '../../../../components/EmptyState/EmptyState';
 import PageLoading from '../../../../components/PageLoading/PageLoading';
 import ProgressBar from '../../../../components/ProgressBar/ProgressBar';
 import Toast from '../../../../components/Toast/Toast';
-import './FlashcardSessionPage.css';
+import './FlashcardSessionItems.css';
 import './FlashcardStudyPage.css';
 
 function FlashcardStudyPage({ deckSlug, returnTo, onNavigate }) {

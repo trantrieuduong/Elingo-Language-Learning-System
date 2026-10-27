@@ -1,6 +1,6 @@
 {
   "deckList": {
-    "cardStats": "{{topicCount}} chủ đề - {{cardCount}} từ",
+    "cardStats": "{{topicCount}} chủ đề - {{cardCount}} thẻ",
     "emptyDefault": "Hiện chưa có bộ từ vựng nào.",
     "emptyFilter": "Không có bộ từ vựng nào phù hợp với bộ lọc hiện tại.",
     "emptyTitle": "Không tìm thấy bộ từ vựng",

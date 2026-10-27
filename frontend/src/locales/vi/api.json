@@ -52,7 +52,7 @@
     "CARD_LIMIT_EXCEEDED": "Chủ đề này đã đạt số lượng từ tối đa cho phép.",
     "DECK_SLUG_EXISTED": "Tên đường dẫn (slug) bộ từ đã tồn tại, vui lòng đổi tên khác.",
     "TOPIC_SLUG_EXISTED": "Tên đường dẫn (slug) chủ đề đã tồn tại trong bộ từ này.",
-    "DECK_EMPTY": "Bộ từ vựng này hiện chưa có từ vựng nào để học.",
+    "DECK_EMPTY": "Không thể công khai bộ từ không có từ vựng.",
     "CARD_NOT_AVAILABLE": "Thẻ từ vựng hiện không khả dụng.",
     "CARD_ACCESS_DENIED": "Bạn không có quyền chỉnh sửa thẻ từ vựng này.",
     "INVALID_SRS_GRADE": "Mức đánh giá ôn tập không hợp lệ.",

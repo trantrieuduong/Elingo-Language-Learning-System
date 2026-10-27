@@ -52,7 +52,7 @@
     "CARD_LIMIT_EXCEEDED": "You have reached the maximum cards per topic.",
     "DECK_SLUG_EXISTED": "Deck slug already exists. Please choose another title.",
     "TOPIC_SLUG_EXISTED": "Topic slug already exists in this deck.",
-    "DECK_EMPTY": "This vocabulary deck currently contains no cards to study.",
+    "DECK_EMPTY": "Cannot publish a vocabulary deck with no cards.",
     "CARD_NOT_AVAILABLE": "Vocabulary card is no longer available.",
     "CARD_ACCESS_DENIED": "You do not have permission to modify this card.",
     "INVALID_SRS_GRADE": "Review grade is invalid.",

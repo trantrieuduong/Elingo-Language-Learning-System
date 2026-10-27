@@ -63,7 +63,6 @@ function Input({
             type="button"
             className="input-toggle-password"
             onClick={() => setShowPassword((prev) => !prev)}
-            tabIndex={-1}
           >
             <span className="material-symbols-outlined">
               {showPassword ? 'visibility_off' : 'visibility'}
@@ -75,9 +74,7 @@ function Input({
         {!isPassword && rightElement && <div className="input-right-element">{rightElement}</div>}
       </div>
 
-      {error && (
-        <p className="input-error">{error}</p>
-      )}
+      {error && <p className="input-error">{error}</p>}
     </div>
   );
 }

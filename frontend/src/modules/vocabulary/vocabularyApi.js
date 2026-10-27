@@ -5,7 +5,7 @@ import apiClient from '../../services/apiClient';
  */
 export const getDecksApi = async (params = {}) => {
   const queryParams = {
-    page: params.page,
+    page: params.page ?? 1,
     size: params.limit,
     sort: params.sort,
     ownerType: params.ownerType,
