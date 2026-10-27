@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   getCardsForReviewApi,
@@ -24,6 +24,11 @@ import './FlashcardReviewPage.css';
  */
 function FlashcardReviewPage({ onNavigate }) {
   const { t } = useTranslation(['learning', 'api', 'common']);
+  const translationRef = useRef(t);
+  useEffect(() => {
+    translationRef.current = t;
+  }, [t]);
+
   const [reviewCards, setReviewCards] = useState([]);
   const [initialReviewTotal, setInitialReviewTotal] = useState(0);
 
@@ -62,16 +67,16 @@ function FlashcardReviewPage({ onNavigate }) {
           setInitialReviewTotal(formattedCards.length);
         } else {
           setError({
-            message: t('common:loadError'),
-            actionLabel: t('flashcard.backToDecks'),
+            message: translationRef.current('common:loadError'),
+            actionLabel: translationRef.current('flashcard.backToDecks'),
             actionPath: '/decks',
           });
         }
       } catch (err) {
         console.error('Lỗi khi tải flashcard đến hạn ôn tập:', err);
         setError({
-          message: t('common:loadError'),
-          actionLabel: t('flashcard.backToDecks'),
+          message: translationRef.current('common:loadError'),
+          actionLabel: translationRef.current('flashcard.backToDecks'),
           actionPath: '/decks',
         });
       } finally {
@@ -80,7 +85,7 @@ function FlashcardReviewPage({ onNavigate }) {
     };
 
     fetchDueReviewCards();
-  }, [t]);
+  }, []);
 
   const [toastMessage, setToastMessage] = useState('');
   const handleToastDismiss = useCallback(() => setToastMessage(''), []);

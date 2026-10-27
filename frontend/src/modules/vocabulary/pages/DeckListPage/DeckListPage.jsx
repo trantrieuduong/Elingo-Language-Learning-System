@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../context/AuthContext';
 import {
@@ -32,6 +32,11 @@ const getInitialTab = () => {
 
 function DeckListPage({ onNavigate }) {
   const { t } = useTranslation(['learning', 'common']);
+  const translationRef = useRef(t);
+  useEffect(() => {
+    translationRef.current = t;
+  }, [t]);
+
   const { user } = useAuth();
   const [selectedTab, setSelectedTab] = useState(getInitialTab);
   const activeTab = selectedTab === 'my-decks' && !user ? 'system-decks' : selectedTab;
@@ -148,12 +153,12 @@ function DeckListPage({ onNavigate }) {
           setDecks(Array.isArray(fetchedDecks) ? fetchedDecks : []);
           setTotalPages(response.data.totalPages);
         } else {
-          setError(t('common:loadError'));
+          setError(translationRef.current('common:loadError'));
         }
       } catch (err) {
         if (!isActive) return;
         console.error('Failed to fetch decks:', err);
-        setError(t('common:loadError'));
+        setError(translationRef.current('common:loadError'));
       } finally {
         if (isActive) setLoading(false);
       }
@@ -164,7 +169,7 @@ function DeckListPage({ onNavigate }) {
     return () => {
       isActive = false;
     };
-  }, [activeTab, debouncedQuery, selectedTagIds, selectedCefrLevelIds, page, retryCount, t]);
+  }, [activeTab, debouncedQuery, selectedTagIds, selectedCefrLevelIds, page, retryCount]);
 
   useEffect(() => {
     if (activeTab !== 'my-decks') return;
@@ -190,12 +195,12 @@ function DeckListPage({ onNavigate }) {
           setUserDecks(content);
           setUserDeckTotalPages(response.data.totalPages);
         } else {
-          setUserDecksError(t('common:loadError'));
+          setUserDecksError(translationRef.current('common:loadError'));
         }
       } catch (err) {
         if (!isActive) return;
         console.error('Failed to fetch user decks:', err);
-        setUserDecksError(t('common:loadError'));
+        setUserDecksError(translationRef.current('common:loadError'));
       } finally {
         if (isActive) setUserDecksLoading(false);
       }
@@ -206,7 +211,7 @@ function DeckListPage({ onNavigate }) {
     return () => {
       isActive = false;
     };
-  }, [activeTab, debouncedQuery, userDeckStatusFilter, userDeckPage, userDeckRefreshTrigger, t]);
+  }, [activeTab, debouncedQuery, userDeckStatusFilter, userDeckPage, userDeckRefreshTrigger]);
 
   const handleOpenCreateModal = () => {
     setFormModalMode('create');

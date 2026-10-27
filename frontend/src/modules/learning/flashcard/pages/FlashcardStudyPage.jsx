@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   getTopicsByDeckSlugApi,
@@ -19,6 +19,10 @@ import './FlashcardStudyPage.css';
 
 function FlashcardStudyPage({ deckSlug, returnTo, onNavigate }) {
   const { t } = useTranslation(['learning', 'api', 'common']);
+  const translationRef = useRef(t);
+  useEffect(() => {
+    translationRef.current = t;
+  }, [t]);
   const backPath =
     typeof returnTo === 'string' && /^\/decks(?:\/|\?|$)/.test(returnTo) ? returnTo : '/decks';
   const [topics, setTopics] = useState([]);
@@ -60,8 +64,8 @@ function FlashcardStudyPage({ deckSlug, returnTo, onNavigate }) {
           }
         } else {
           setError({
-            message: t('common:loadError'),
-            actionLabel: t('flashcard.backToDecks'),
+            message: translationRef.current('common:loadError'),
+            actionLabel: translationRef.current('flashcard.backToDecks'),
             actionPath: backPath,
           });
         }
@@ -69,18 +73,19 @@ function FlashcardStudyPage({ deckSlug, returnTo, onNavigate }) {
         console.error('Lỗi khi tải topics:', err);
         const errorCode = err.response?.data?.code;
         const errorMessage =
-          (errorCode && t(`api:error.${errorCode}`, { defaultValue: '' })) || t('common:loadError');
+          (errorCode && translationRef.current(`api:error.${errorCode}`, { defaultValue: '' })) ||
+          translationRef.current('common:loadError');
 
         if (errorCode === 'PREMIUM_REQUIRED') {
           setError({
             message: errorMessage,
-            actionLabel: t('flashcard.backToDecks'),
+            actionLabel: translationRef.current('flashcard.backToDecks'),
             actionPath: backPath,
           });
         } else {
           setError({
             message: errorMessage,
-            actionLabel: t('flashcard.backToDecks'),
+            actionLabel: translationRef.current('flashcard.backToDecks'),
             actionPath: backPath,
           });
         }
@@ -92,7 +97,7 @@ function FlashcardStudyPage({ deckSlug, returnTo, onNavigate }) {
     if (deckSlug) {
       fetchTopics();
     }
-  }, [deckSlug, backPath, t]);
+  }, [deckSlug, backPath]);
 
   useEffect(() => {
     if (!selectedTopicId) return;
@@ -123,18 +128,19 @@ function FlashcardStudyPage({ deckSlug, returnTo, onNavigate }) {
         console.error('Lỗi khi tải danh sách thẻ cho topic:', err);
         const errorCode = err.response?.data?.code;
         const errorMessage =
-          (errorCode && t(`api:error.${errorCode}`, { defaultValue: '' })) || t('common:loadError');
+          (errorCode && translationRef.current(`api:error.${errorCode}`, { defaultValue: '' })) ||
+          translationRef.current('common:loadError');
 
         if (errorCode === 'PREMIUM_REQUIRED') {
           setError({
             message: errorMessage,
-            actionLabel: t('flashcard.backToDecks'),
+            actionLabel: translationRef.current('flashcard.backToDecks'),
             actionPath: backPath,
           });
         } else if (errorCode === 'DECK_NOT_FOUND') {
           setError({
             message: errorMessage,
-            actionLabel: t('flashcard.backToDecks'),
+            actionLabel: translationRef.current('flashcard.backToDecks'),
             actionPath: backPath,
           });
         } else {
@@ -144,7 +150,7 @@ function FlashcardStudyPage({ deckSlug, returnTo, onNavigate }) {
     };
 
     fetchCards();
-  }, [selectedTopicId, unlearnedCardsByTopic, backPath, t]);
+  }, [selectedTopicId, unlearnedCardsByTopic, backPath]);
 
   const removeCurrentCardAndUpdateProgress = () => {
     setUnlearnedCardsByTopic((prev) => {

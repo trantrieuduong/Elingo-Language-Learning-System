@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   getDeckByIdApi,
@@ -40,6 +40,10 @@ const getApiErrorMessage = (error, fallback, t) => {
 
 function TopicListPage({ deckId, onNavigate }) {
   const { t } = useTranslation(['learning', 'api', 'common']);
+  const translationRef = useRef(t);
+  useEffect(() => {
+    translationRef.current = t;
+  }, [t]);
 
   // States dữ liệu
   const [deck, setDeck] = useState(null);
@@ -106,14 +110,14 @@ function TopicListPage({ deckId, onNavigate }) {
 
         if (!response?.success || !response.data) {
           setDeck(null);
-          setDeckLoadError(t('common:loadError'));
+          setDeckLoadError(translationRef.current('common:loadError'));
           return;
         }
         setDeck(response.data);
       } catch {
         if (!isActive) return;
         setDeck(null);
-        setDeckLoadError(t('common:loadError'));
+        setDeckLoadError(translationRef.current('common:loadError'));
       } finally {
         if (isActive) setDeckLoading(false);
       }
@@ -124,7 +128,7 @@ function TopicListPage({ deckId, onNavigate }) {
     return () => {
       isActive = false;
     };
-  }, [deckId, refreshTrigger, t]);
+  }, [deckId, refreshTrigger]);
 
   useEffect(() => {
     let isActive = true;
@@ -145,11 +149,11 @@ function TopicListPage({ deckId, onNavigate }) {
               : (fetchedTopics[0]?.id ?? null)
           );
         } else {
-          setError(t('common:loadError'));
+          setError(translationRef.current('common:loadError'));
         }
       } catch {
         if (!isActive) return;
-        setError(t('common:loadError'));
+        setError(translationRef.current('common:loadError'));
       } finally {
         if (isActive) setLoading(false);
       }
@@ -159,7 +163,7 @@ function TopicListPage({ deckId, onNavigate }) {
     return () => {
       isActive = false;
     };
-  }, [deckId, refreshTrigger, t]);
+  }, [deckId, refreshTrigger]);
 
   // ── Fetch cards của selected topic từ BE ──
   useEffect(() => {
@@ -186,14 +190,14 @@ function TopicListPage({ deckId, onNavigate }) {
           if (isCurrentRequest) {
             setTopicCards([]);
             setLoadedCardsRequestKey(requestKey);
-            setCardsLoadError(t('common:loadError'));
+            setCardsLoadError(translationRef.current('common:loadError'));
           }
         }
       } catch {
         if (isCurrentRequest) {
           setTopicCards([]);
           setLoadedCardsRequestKey(requestKey);
-          setCardsLoadError(t('common:loadError'));
+          setCardsLoadError(translationRef.current('common:loadError'));
         }
       } finally {
         if (isCurrentRequest) {
@@ -206,7 +210,7 @@ function TopicListPage({ deckId, onNavigate }) {
     return () => {
       isCurrentRequest = false;
     };
-  }, [selectedTopicId, cardRefreshTrigger, t]);
+  }, [selectedTopicId, cardRefreshTrigger]);
 
   const currentCardsRequestKey = selectedTopicId
     ? `${selectedTopicId}:${cardRefreshTrigger}`
