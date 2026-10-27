@@ -1,6 +1,6 @@
 # Quy tắc đặt tên - Elingo
 
-Áp dụng cho `ai-service` (Python), `backend` (Java Spring Boot), `frontend` (React + JS).
+Áp dụng cho `backend` (Java Spring Boot), `frontend` (React + JS).
 
 ## 1. Quy tắc chung
 
@@ -10,18 +10,18 @@
 
 ## 2. Bảng tra nhanh
 
-| Thành phần | Python | Java | React/JS |
-|---|---|---|---|
-| Thư mục | `snake_case` | `lowercase` | `camelCase` (module) / `PascalCase` (shared component) |
-| File | `snake_case.py` | `PascalCase.java` | `PascalCase.jsx` (component) / `camelCase.js` |
-| Class / Component | `PascalCase` | `PascalCase` | `PascalCase` |
-| Hàm / phương thức | `snake_case` | `camelCase` | `camelCase` |
-| Biến | `snake_case` | `camelCase` | `camelCase` |
-| Constant | `SCREAMING_SNAKE_CASE` | `SCREAMING_SNAKE_CASE` | `SCREAMING_SNAKE_CASE` |
-| CSS class | - | - | `kebab-case` |
-| REST endpoint / route | `kebab-case`, danh từ số nhiều | `kebab-case`, danh từ số nhiều | - |
+| Thành phần | Java | React/JS |
+|---|---|---|
+| Thư mục | `lowercase` | `camelCase` (module) / `PascalCase` (shared component) |
+| File | `PascalCase.java` | `PascalCase.jsx` (component) / `camelCase.js` |
+| Class / Component | `PascalCase` | `PascalCase` |
+| Hàm / phương thức | `camelCase` | `camelCase` |
+| Biến | `camelCase` | `camelCase` |
+| Constant | `SCREAMING_SNAKE_CASE` | `SCREAMING_SNAKE_CASE` |
+| CSS class | - | `kebab-case` |
+| REST endpoint / route | `kebab-case`, danh từ số nhiều | - |
 
-- **Boolean**: `is_` / `has_` / `can_` (Python), `is` / `has` / `can` (Java/JS).
+- **Boolean**: `is` / `has` / `can`.
 - **State React**: `[noun, setNoun]`. **Handler**: tiền tố `handle` hoặc `on`.
 - **Env var Vite**: `VITE_` + `SCREAMING_SNAKE_CASE`.
 
@@ -58,13 +58,7 @@ Không dùng DTO chung chung (`AuthDTO`, `LessonDTO`) — luôn tách `Request` 
 ### Cấu trúc module
 `com/elingo/<module>/` gồm: `controller/`, `service/` (interface + impl), `repository/`, `entity/`, `dto/` (`request/` + `response/`).
 
-## 4. AI Service (Python)
-
-- Route: `kebab-case`, danh từ số nhiều (`/speaking-assessments`, `/prosody-scores/{session_id}`).
-- Class có hậu tố vai trò (`ProsodyScorer`, `SpeechOrchestrator`); hàm bắt đầu bằng động từ (`extract_features`).
-- Constant cấp module: `MAX_AUDIO_DURATION`, `DEFAULT_SAMPLE_RATE`.
-
-## 5. Frontend (React + JS)
+## 4. Frontend (React + JS)
 
 ### File không phải component
 
