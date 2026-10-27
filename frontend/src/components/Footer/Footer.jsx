@@ -24,11 +24,11 @@ function Footer({ onNavigate }) {
           <div className="footer__nav-group">
             <span className="footer__nav-heading text-label-md">{t('footer.learningGroup')}</span>
             <a
-              href="/learning"
+              href="/lessons"
               className="footer__nav-link"
               onClick={(e) => {
                 e.preventDefault();
-                handleNav('/learning');
+                handleNav('/lessons');
               }}
             >
               {t('footer.lessons')}

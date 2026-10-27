@@ -47,9 +47,9 @@ public class DictationServiceImpl implements DictationService {
 
     @Override
     @Transactional
-    public SegmentSubmitResponse updateProgress(Long userId, String slug, Long segmentId, UpdateDictationProgressRequest request) {
+    public SegmentSubmitResponse updateProgress(Long userId, Long lessonId, Long segmentId, UpdateDictationProgressRequest request) {
         // 1. Kiểm tra quyền truy cập
-        Lesson lesson = lessonAccessService.validateLessonAccess(userId, slug);
+        Lesson lesson = lessonAccessService.validateLessonAccess(userId, lessonId);
 
         // 2. Tìm segment thuộc đúng lesson
         LessonSegment segment = lessonSegmentRepository.findByIdAndLessonId(segmentId, lesson.getId())
@@ -67,11 +67,12 @@ public class DictationServiceImpl implements DictationService {
         int score = scoringService.calculateScore(request.attemptCount(), hint, totalWords);
 
         // 6. Ghi vào progress: attemptCount = max(cũ, request)
+        boolean isFirstAttempt = progress.getDictationAttemptCount() == 0;
         progress.setDictationAttemptCount(Math.max(progress.getDictationAttemptCount(), request.attemptCount()));
 
-        // 7. Chỉ ghi hint khi điểm lần này > bestScore cũ
+        // 7. Ghi bestScore & hintUsedCount khi điểm lần này > bestScore cũ hoặc là lần nộp đầu tiên
         BigDecimal scoreDecimal = BigDecimal.valueOf(score).setScale(2, RoundingMode.HALF_UP);
-        if (scoreDecimal.compareTo(previousBest) > 0) {
+        if (scoreDecimal.compareTo(previousBest) > 0 || isFirstAttempt) {
             progress.setDictationBestScore(scoreDecimal);
             progress.setDictationHintUsedCount(hint);
         }

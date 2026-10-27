@@ -57,7 +57,7 @@ function Header({ onNavigate, currentPath }) {
       key: 'learning',
       label: t('learning'),
       children: [
-        { key: 'lessons', label: t('lessons'), path: '/learning', icon: 'menu_book' },
+        { key: 'lessons', label: t('lessons'), path: '/lessons', icon: 'menu_book' },
         { key: 'vocabulary', label: t('vocabulary'), path: '/decks', icon: 'style' },
         { key: 'review', label: t('review'), path: '/review', icon: 'replay' },
       ],

@@ -8,10 +8,11 @@ import { getWordStatuses, isAllDone } from '../utils/dictation';
 import LessonYoutubePlayer from '../../lesson/components/LessonYoutubePlayer/LessonYoutubePlayer';
 import StudySegmentSidebar from '../../lesson/components/StudySegmentSidebar/StudySegmentSidebar';
 import BackButton from '../../../../components/BackButton/BackButton';
+import EmptyState from '../../../../components/EmptyState/EmptyState';
 import './DictationPage.css';
 
 function DictationPage({ slug, onNavigate }) {
-  const { t } = useTranslation(['learning', 'common']);
+  const { t } = useTranslation(['learning', 'api', 'common']);
 
   // Dữ liệu bài học và danh sách phân đoạn
   const [lesson, setLesson] = useState(null);
@@ -20,7 +21,7 @@ function DictationPage({ slug, onNavigate }) {
 
   // Trạng thái tải và lỗi
   const [loading, setLoading] = useState(true);
-  const [errorType, setErrorType] = useState(null); // null | 'not_found' | 'general'
+  const [errorType, setErrorType] = useState(null); // null | 'not_found' | 'premium' | 'general'
   const [errorMessage, setErrorMessage] = useState('');
 
   // Trạng thái học tập của segment hiện tại
@@ -76,7 +77,14 @@ function DictationPage({ slug, onNavigate }) {
       } catch (err) {
         if (!isSubscribed) return;
         const errorCode = err?.response?.data?.code;
-        if (errorCode === 'LESSON_NOT_FOUND' || err?.response?.status === 404) {
+        if (errorCode === 'PREMIUM_REQUIRED') {
+          setErrorType('premium');
+          setErrorMessage(
+            t('api:error.PREMIUM_REQUIRED', {
+              defaultValue: t('common:loadError'),
+            })
+          );
+        } else if (errorCode === 'LESSON_NOT_FOUND' || err?.response?.status === 404) {
           setErrorType('not_found');
         } else {
           setErrorType('general');
@@ -165,7 +173,7 @@ function DictationPage({ slug, onNavigate }) {
 
   // Nộp bài segment hiện tại
   const handleSubmitSegment = async () => {
-    if (isSubmitting || !currentSegment || !allDone) return;
+    if (isSubmitting || !currentSegment || !allDone || !lesson?.id) return;
 
     setIsSubmitting(true);
     setSubmitError('');
@@ -173,7 +181,7 @@ function DictationPage({ slug, onNavigate }) {
     const hintUsedCount = revealedIndices.size;
 
     try {
-      const response = await patchDictationProgressApi(slug, currentSegment.id, {
+      const response = await patchDictationProgressApi(lesson.id, currentSegment.id, {
         attemptCount,
         hintUsedCount,
       });
@@ -252,25 +260,23 @@ function DictationPage({ slug, onNavigate }) {
 
   // ── Màn hình Lỗi hoặc Không tìm thấy ──
   if (errorType || !lesson) {
+    const isPremium = errorType === 'premium';
     return (
       <div className="dictation-page-container">
-        <div className="dictation-status-card glass-card">
-          <span className="material-symbols-outlined dictation-status-icon dictation-status-icon--error">
-            error
-          </span>
-          <p className="dictation-status-text">
-            {errorType === 'not_found'
-              ? t('dictation.notFound')
-              : errorMessage || t('dictation.errorLoad')}
-          </p>
-          <button
-            type="button"
-            className="btn-primary"
-            onClick={() => onNavigate && onNavigate('/learning')}
-          >
-            {t('common:back')}
-          </button>
-        </div>
+        <EmptyState
+          icon="error"
+          isError
+          description={
+            isPremium
+              ? errorMessage
+              : errorType === 'not_found'
+                ? t('dictation.notFound')
+                : errorMessage || t('dictation.errorLoad')
+          }
+          actionLabel={t('lessonStudy.backToLessons')}
+          actionVariant="primary"
+          onAction={() => onNavigate && onNavigate('/lessons')}
+        />
       </div>
     );
   }
@@ -279,17 +285,13 @@ function DictationPage({ slug, onNavigate }) {
   if (segments.length === 0) {
     return (
       <div className="dictation-page-container">
-        <div className="dictation-status-card glass-card">
-          <span className="material-symbols-outlined dictation-status-icon">layers_clear</span>
-          <p className="dictation-status-text">{t('dictation.emptySegments')}</p>
-          <button
-            type="button"
-            className="btn-primary"
-            onClick={() => onNavigate && onNavigate('/learning')}
-          >
-            {t('common:back')}
-          </button>
-        </div>
+        <EmptyState
+          icon="layers_clear"
+          description={t('lessonStudy.noSegments')}
+          actionLabel={t('lessonStudy.backToLessons')}
+          actionVariant="primary"
+          onAction={() => onNavigate && onNavigate('/lessons')}
+        />
       </div>
     );
   }
@@ -306,7 +308,7 @@ function DictationPage({ slug, onNavigate }) {
       <div className="dictation-top-bar">
         <BackButton
           label={t('common:back')}
-          onClick={() => onNavigate && onNavigate('/learning')}
+          onClick={() => onNavigate && onNavigate('/lessons')}
         />
       </div>
 
@@ -362,7 +364,7 @@ function DictationPage({ slug, onNavigate }) {
                 <button
                   type="button"
                   className="btn-secondary"
-                  onClick={() => onNavigate && onNavigate('/learning')}
+                  onClick={() => onNavigate && onNavigate('/lessons')}
                 >
                   {t('common:back')}
                 </button>
@@ -370,7 +372,7 @@ function DictationPage({ slug, onNavigate }) {
                   type="button"
                   className="btn-primary"
                   onClick={() =>
-                    onNavigate && onNavigate(`/learning/shadowing/${encodeURIComponent(slug)}`)
+                    onNavigate && onNavigate(`/lessons/shadowing/${encodeURIComponent(slug)}`)
                   }
                 >
                   <span className="material-symbols-outlined">record_voice_over</span>
@@ -383,11 +385,10 @@ function DictationPage({ slug, onNavigate }) {
             <div className="dictation-result-card glass-card">
               <div className="dictation-result-header">
                 <span
-                  className={`dictation-result-badge ${
-                    segmentResult.passed
+                  className={`dictation-result-badge ${segmentResult.passed
                       ? 'dictation-result-badge--pass'
                       : 'dictation-result-badge--fail'
-                  }`}
+                    }`}
                 >
                   {segmentResult.passed
                     ? t('lessonStudy.passedBadge')
@@ -521,9 +522,8 @@ function DictationPage({ slug, onNavigate }) {
 
                 <button
                   type="button"
-                  className={`btn-primary dictation-submit-btn ${
-                    allDone ? 'dictation-submit-btn--ready' : ''
-                  }`}
+                  className={`btn-primary dictation-submit-btn ${allDone ? 'dictation-submit-btn--ready' : ''
+                    }`}
                   onClick={handleSubmitSegment}
                   disabled={!allDone || isSubmitting}
                 >

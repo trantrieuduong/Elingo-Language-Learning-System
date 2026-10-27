@@ -87,9 +87,33 @@ public class LessonServiceImpl implements LessonService {
 
     @Override
     @Transactional(readOnly = true)
+    public LessonDetailResponse getLessonById(Long userId, Long lessonId) {
+        Lesson lesson = lessonAccessService.validateLessonAccess(userId, lessonId);
+        return buildLessonDetail(userId, lesson);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public LessonDetailResponse getLessonBySlug(Long userId, String slug) {
         Lesson lesson = lessonAccessService.validateLessonAccess(userId, slug);
+        return buildLessonDetail(userId, lesson);
+    }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<LessonSegmentResponse> getSegmentsByLessonId(Long userId, Long lessonId) {
+        Lesson lesson = lessonAccessService.validateLessonAccess(userId, lessonId);
+        return buildSegments(userId, lesson);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<LessonSegmentResponse> getSegmentsByLessonSlug(Long userId, String slug) {
+        Lesson lesson = lessonAccessService.validateLessonAccess(userId, slug);
+        return buildSegments(userId, lesson);
+    }
+
+    private LessonDetailResponse buildLessonDetail(Long userId, Lesson lesson) {
         long segmentCount = lessonSegmentRepository.countByLessonId(lesson.getId());
 
         LessonProgressSummaryResponse progress = userLessonProgressRepository
@@ -106,11 +130,7 @@ public class LessonServiceImpl implements LessonService {
         );
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<LessonSegmentResponse> getSegmentsByLesson(Long userId, String slug) {
-        Lesson lesson = lessonAccessService.validateLessonAccess(userId, slug);
-
+    private List<LessonSegmentResponse> buildSegments(Long userId, Lesson lesson) {
         List<LessonSegment> segments = lessonSegmentRepository
                 .findAllByLessonIdOrderByStartMsAsc(lesson.getId());
 

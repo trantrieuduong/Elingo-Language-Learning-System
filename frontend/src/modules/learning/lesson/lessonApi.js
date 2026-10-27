@@ -28,24 +28,24 @@ export const getLessonsApi = async (params = {}) => {
 
 /**
  * Lấy thông tin chi tiết một bài học theo slug.
- * Endpoint: GET /lessons/{slug}
+ * Endpoint: GET /lessons/slug/{slug}
  *
  * @param {string} slug - Slug định danh của bài học
  * @returns {Promise<Object>} Object chứa response.data ({ id, title, slug, description, ... })
  */
 export const getLessonDetailApi = async (slug) => {
-  const response = await apiClient.get(`/lessons/${encodeURIComponent(slug)}`);
+  const response = await apiClient.get(`/lessons/slug/${encodeURIComponent(slug)}`);
   return response.data;
 };
 
 /**
  * Lấy danh sách các phân đoạn (segments) kèm tiến độ học của bài học theo slug.
- * Endpoint: GET /lessons/{slug}/segments
+ * Endpoint: GET /lessons/slug/{slug}/segments
  *
  * @param {string} slug - Slug định danh của bài học
  * @returns {Promise<Object>} Object chứa response.data (mảng các Segment)
  */
 export const getLessonSegmentsApi = async (slug) => {
-  const response = await apiClient.get(`/lessons/${encodeURIComponent(slug)}/segments`);
+  const response = await apiClient.get(`/lessons/slug/${encodeURIComponent(slug)}/segments`);
   return response.data;
 };

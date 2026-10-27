@@ -17,7 +17,6 @@
     "completedSubtitle": "You have transcribed all segments in this dictation practice lesson.",
     "completedTitle": "Congratulations! You completed this lesson!",
     "currentScore": "Current score: {{score}}",
-    "emptySegments": "This lesson does not have any segments for practice yet.",
     "errorLoad": "Unable to load lesson. Please try again later.",
     "hintWarning": "Using hints will reduce your score for this segment.",
     "hintsUsedInfo": "Hints used: {{count}}",
@@ -92,7 +91,9 @@
     "nextSegment": "Next segment",
     "passedBadge": "Passed",
     "passedSegmentsStats": "Passed segments: {{passed}} / {{total}}",
-    "replaySegment": "Replay this segment"
+    "replaySegment": "Replay this segment",
+    "backToLessons": "Back to lessons",
+    "noSegments": "This lesson does not have any segments for practice yet."
   },
   "shadowing": {
     "askDownloadModelDesc": "To grade your pronunciation locally, Elingo needs to download the Whisper speech recognition model (approx. {{size}}). The model is downloaded only once and cached in your browser.",
@@ -116,7 +117,6 @@
     "modelReady": "Model is ready, click to start recording.",
     "modelStandard": "Standard Model (More accurate)",
     "modelTimeout": "Whisper model loading timed out (120s). Please try again.",
-    "noSegments": "This lesson does not have any segments yet.",
     "notFoundDesc": "This lesson does not exist or has been deleted.",
     "notFoundTitle": "Lesson Not Found",
     "originalScoreNotice": "Raw score {{raw}}, minus {{penalty}} penalty for attempt #{{attempts}}",

@@ -11,7 +11,9 @@ import java.util.List;
 public interface LessonService {
     PageResponse<LessonResponse> getAllPublishedLessons(Long userId, GetPublishedLessonsRequest request);
 
+    LessonDetailResponse getLessonById(Long userId, Long lessonId);
     LessonDetailResponse getLessonBySlug(Long userId, String slug);
 
-    List<LessonSegmentResponse> getSegmentsByLesson(Long userId, String slug);
+    List<LessonSegmentResponse> getSegmentsByLessonId(Long userId, Long lessonId);
+    List<LessonSegmentResponse> getSegmentsByLessonSlug(Long userId, String slug);
 }

@@ -17,7 +17,6 @@
     "completedSubtitle": "Bạn đã hoàn thành tất cả các đoạn trong bài luyện Dictation này.",
     "completedTitle": "Chúc mừng bạn đã hoàn thành bài học!",
     "currentScore": "Điểm lần này: {{score}}",
-    "emptySegments": "Bài học này hiện chưa có nội dung phân đoạn để luyện tập.",
     "errorLoad": "Không thể tải bài học. Vui lòng thử lại sau.",
     "hintWarning": "Dùng gợi ý sẽ bị trừ điểm cho phân đoạn này.",
     "hintsUsedInfo": "Số từ dùng gợi ý: {{count}}",
@@ -92,7 +91,9 @@
     "nextSegment": "Đoạn tiếp theo",
     "passedBadge": "Đạt",
     "passedSegmentsStats": "Đoạn đạt yêu cầu: {{passed}} / {{total}}",
-    "replaySegment": "Nghe lại đoạn này"
+    "replaySegment": "Nghe lại đoạn này",
+    "backToLessons": "Quay lại danh sách bài học",
+    "noSegments": "Bài học này hiện chưa có phân đoạn nào để luyện tập."
   },
   "shadowing": {
     "askDownloadModelDesc": "Để chấm điểm trực tiếp trên máy, Elingo cần tải mô hình nhận dạng giọng nói Whisper (khoảng {{size}}). Mô hình chỉ tải một lần duy nhất và lưu vào bộ nhớ đệm trình duyệt.",
@@ -116,7 +117,6 @@
     "modelReady": "Mô hình đã sẵn sàng, bấm để ghi âm.",
     "modelStandard": "Mô hình chuẩn (chính xác hơn)",
     "modelTimeout": "Tải mô hình Whisper quá thời gian chờ (120s). Vui lòng thử lại.",
-    "noSegments": "Bài học này hiện chưa có phân đoạn nào.",
     "notFoundDesc": "Bài học này không tồn tại hoặc đã bị xóa.",
     "notFoundTitle": "Không tìm thấy bài học",
     "originalScoreNotice": "Điểm gốc {{raw}}, trừ {{penalty}} do lần thử thứ {{attempts}}",

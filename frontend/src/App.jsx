@@ -20,11 +20,10 @@ import './App.css';
 const PUBLIC_PATHS = ['/login', '/signup', '/account-verification', '/reset-password'];
 
 // Các public route có thể xem cả khi chưa đăng nhập và khi đã đăng nhập (không redirect về /dashboard nếu đã đăng nhập)
-const SHARED_PUBLIC_PATHS = ['/', '/decks'];
+const SHARED_PUBLIC_PATHS = ['/', '/decks', '/lessons'];
 
 const PRIVATE_USER_PATHS = [
   '/dashboard',
-  '/learning',
   '/review',
   '/battle',
   '/speaking',
@@ -56,8 +55,8 @@ function App() {
   }, []);
 
   const flashcardStudyMatch = currentPath.match(/^\/decks\/([a-z0-9]+(?:-[a-z0-9]+)*)$/);
-  const dictationMatch = currentPath.match(/^\/learning\/dictation\/([^/]+)$/);
-  const shadowingMatch = currentPath.match(/^\/learning\/shadowing\/([^/]+)$/);
+  const dictationMatch = currentPath.match(/^\/lessons\/dictation\/([^/]+)$/);
+  const shadowingMatch = currentPath.match(/^\/lessons\/shadowing\/([^/]+)$/);
   const deckListMatch = currentPath === '/decks';
   const deckTopicsMatch = currentPath.match(/^\/decks\/([^/]+)\/topics$/);
   const topicCardsMatch = currentPath.match(/^\/decks\/([^/]+)\/topics\/([^/]+)\/cards$/);
@@ -67,7 +66,9 @@ function App() {
     }) ||
     !!flashcardStudyMatch ||
     !!deckTopicsMatch ||
-    !!topicCardsMatch;
+    !!topicCardsMatch ||
+    !!dictationMatch ||
+    !!shadowingMatch;
 
   useEffect(() => {
     if (loading) return;
@@ -169,7 +170,7 @@ function App() {
         return <AccountVerificationPage email={verificationEmail} onNavigate={navigate} />;
       case '/dashboard':
         return <PlaceholderPage title="Dashboard" path={currentPath} />;
-      case '/learning':
+      case '/lessons':
         return <LessonListPage onNavigate={navigate} />;
       case '/review':
         return <FlashcardReviewPage onNavigate={navigate} />;

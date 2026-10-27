@@ -330,7 +330,7 @@ describe('Header', () => {
     })
 
     it('active link khớp đúng path của dropdown sub-item và kích hoạt active trên parent button', () => {
-      const { rerender } = render(<Header onNavigate={mockNavigate} currentPath="/learning" />)
+      const { rerender } = render(<Header onNavigate={mockNavigate} currentPath="/lessons" />)
       const nav = getDesktopNav()
 
       expect(within(nav).getByRole('button', { name: new RegExp(tr('nav:learning')) })).toHaveClass(ACTIVE_NAV)
@@ -489,7 +489,7 @@ describe('Header', () => {
 
       it('mobile nav có các mục và nhóm dropdown, đánh dấu active và click thì điều hướng + đóng menu', async () => {
         const user = userEvent.setup()
-        render(<Header onNavigate={mockNavigate} currentPath="/learning" />)
+        render(<Header onNavigate={mockNavigate} currentPath="/lessons" />)
 
         await user.click(getHeaderButton('.header__hamburger'))
         const mobileNav = getMobileNav()
@@ -506,7 +506,7 @@ describe('Header', () => {
 
       it('tự đóng mobile menu khi currentPath thay đổi', async () => {
         const user = userEvent.setup()
-        const { rerender } = render(<Header onNavigate={mockNavigate} currentPath="/learning" />)
+        const { rerender } = render(<Header onNavigate={mockNavigate} currentPath="/lessons" />)
 
         await user.click(getHeaderButton('.header__hamburger'))
         expect(getMobileNav()).toBeInTheDocument()

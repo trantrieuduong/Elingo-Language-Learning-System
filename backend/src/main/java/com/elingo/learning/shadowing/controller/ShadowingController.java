@@ -8,6 +8,7 @@ import com.elingo.learning.shadowing.service.ShadowingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,14 +20,14 @@ public class ShadowingController {
 
     private final ShadowingService shadowingService;
 
-    @PatchMapping("/{slug}/segments/{segmentId}/shadowing-progress")
+    @PatchMapping("/{lessonId}/segments/{segmentId}/shadowing-progress")
     @Operation(summary = "Submit shadowing result of a segment")
     public ApiResponse<SegmentSubmitResponse> updateProgress(
-            @PathVariable String slug,
+            @PathVariable @Positive(message = "INVALID_REQUEST") Long lessonId,
             @PathVariable Long segmentId,
             @Valid @RequestBody UpdateShadowingProgressRequest request,
             @CurrentUserId Long userId) {
-        SegmentSubmitResponse response = shadowingService.updateProgress(userId, slug, segmentId, request);
+        SegmentSubmitResponse response = shadowingService.updateProgress(userId, lessonId, segmentId, request);
         return ApiResponse.<SegmentSubmitResponse>builder()
                 .success(true)
                 .data(response)

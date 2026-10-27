@@ -13,10 +13,11 @@ import { pickModelConfig, isMobileDevice } from '../whisper/modelConfig';
 import LessonYoutubePlayer from '../../lesson/components/LessonYoutubePlayer/LessonYoutubePlayer';
 import StudySegmentSidebar from '../../lesson/components/StudySegmentSidebar/StudySegmentSidebar';
 import BackButton from '../../../../components/BackButton/BackButton';
+import EmptyState from '../../../../components/EmptyState/EmptyState';
 import './ShadowingPage.css';
 
 function ShadowingPage({ slug, onNavigate }) {
-  const { t } = useTranslation(['learning', 'common']);
+  const { t } = useTranslation(['learning', 'api', 'common']);
 
   // Dữ liệu bài học và phân đoạn
   const [lesson, setLesson] = useState(null);
@@ -25,7 +26,7 @@ function ShadowingPage({ slug, onNavigate }) {
 
   // Trạng thái tải bài học
   const [loading, setLoading] = useState(true);
-  const [errorType, setErrorType] = useState(null); // null | 'not_found' | 'general'
+  const [errorType, setErrorType] = useState(null); // null | 'not_found' | 'premium' | 'general'
   const [errorMessage, setErrorMessage] = useState('');
 
   // Trạng thái máy của một lượt: 'idle' | 'recording' | 'scoring' | 'uploading' | 'submitting'
@@ -138,7 +139,14 @@ function ShadowingPage({ slug, onNavigate }) {
       } catch (err) {
         if (!isSubscribed) return;
         const errorCode = err?.response?.data?.code;
-        if (errorCode === 'LESSON_NOT_FOUND' || err?.response?.status === 404) {
+        if (errorCode === 'PREMIUM_REQUIRED') {
+          setErrorType('premium');
+          setErrorMessage(
+            t('api:error.PREMIUM_REQUIRED', {
+              defaultValue: t('common:loadError'),
+            })
+          );
+        } else if (errorCode === 'LESSON_NOT_FOUND' || err?.response?.status === 404) {
           setErrorType('not_found');
         } else {
           setErrorType('general');
@@ -364,6 +372,13 @@ function ShadowingPage({ slug, onNavigate }) {
         }
 
         // 5. Nộp kết quả chấm điểm lên backend
+        if (!lesson?.id) {
+          setStepState('idle');
+          setStatusType('error');
+          setStatusMessage(t('shadowing.submitError'));
+          return;
+        }
+
         setStepState('submitting');
         setStatusType('processing');
         setStatusMessage(t('shadowing.statusSubmitting'));
@@ -375,7 +390,7 @@ function ShadowingPage({ slug, onNavigate }) {
           audioUrl: verifiedFileKey,
         };
 
-        const resultRes = await patchShadowingProgressApi(slug, currentSegment.id, payload);
+        const resultRes = await patchShadowingProgressApi(lesson.id, currentSegment.id, payload);
         const resultData = resultRes?.data || resultRes;
 
         // Nộp thành công: xóa savedFileKey, cập nhật immutably
@@ -564,40 +579,25 @@ function ShadowingPage({ slug, onNavigate }) {
     );
   }
 
-  if (errorType === 'not_found') {
-    return (
-      <div className="shadowing-page-container">
-        <div className="dictation-error-state glass-card">
-          <span className="material-symbols-outlined dictation-error-icon">error</span>
-          <h2>{t('shadowing.notFoundTitle')}</h2>
-          <p>{t('shadowing.notFoundDesc')}</p>
-          <button
-            type="button"
-            className="btn-primary"
-            onClick={() => onNavigate && onNavigate('/learning')}
-          >
-            {t('common:back')}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   if (errorType || !lesson) {
+    const isPremium = errorType === 'premium';
     return (
       <div className="shadowing-page-container">
-        <div className="dictation-error-state glass-card">
-          <span className="material-symbols-outlined dictation-error-icon">cloud_off</span>
-          <h2>{t('shadowing.loadError')}</h2>
-          <p>{errorMessage}</p>
-          <button
-            type="button"
-            className="btn-primary"
-            onClick={() => onNavigate && onNavigate('/learning')}
-          >
-            {t('common:back')}
-          </button>
-        </div>
+        <EmptyState
+          icon="error"
+          isError
+          title={errorType === 'not_found' ? t('shadowing.notFoundTitle') : undefined}
+          description={
+            isPremium
+              ? errorMessage
+              : errorType === 'not_found'
+                ? t('shadowing.notFoundDesc')
+                : errorMessage || t('shadowing.loadError')
+          }
+          actionLabel={t('lessonStudy.backToLessons')}
+          actionVariant="primary"
+          onAction={() => onNavigate && onNavigate('/lessons')}
+        />
       </div>
     );
   }
@@ -605,17 +605,13 @@ function ShadowingPage({ slug, onNavigate }) {
   if (segments.length === 0) {
     return (
       <div className="shadowing-page-container">
-        <div className="dictation-error-state glass-card">
-          <span className="material-symbols-outlined dictation-error-icon">info</span>
-          <h2>{t('shadowing.noSegments')}</h2>
-          <button
-            type="button"
-            className="btn-primary"
-            onClick={() => onNavigate && onNavigate('/learning')}
-          >
-            {t('common:back')}
-          </button>
-        </div>
+        <EmptyState
+          icon="layers_clear"
+          description={t('lessonStudy.noSegments')}
+          actionLabel={t('lessonStudy.backToLessons')}
+          actionVariant="primary"
+          onAction={() => onNavigate && onNavigate('/lessons')}
+        />
       </div>
     );
   }
@@ -636,7 +632,7 @@ function ShadowingPage({ slug, onNavigate }) {
       <div className="shadowing-top-bar">
         <BackButton
           label={t('common:back')}
-          onClick={() => onNavigate && onNavigate('/learning')}
+          onClick={() => onNavigate && onNavigate('/lessons')}
         />
       </div>
 
@@ -693,7 +689,7 @@ function ShadowingPage({ slug, onNavigate }) {
                 <button
                   type="button"
                   className="btn-secondary"
-                  onClick={() => onNavigate && onNavigate('/learning')}
+                  onClick={() => onNavigate && onNavigate('/lessons')}
                 >
                   {t('common:back')}
                 </button>
@@ -701,7 +697,7 @@ function ShadowingPage({ slug, onNavigate }) {
                   type="button"
                   className="btn-primary"
                   onClick={() =>
-                    onNavigate && onNavigate(`/learning/dictation/${encodeURIComponent(slug)}`)
+                    onNavigate && onNavigate(`/lessons/dictation/${encodeURIComponent(slug)}`)
                   }
                 >
                   <span className="material-symbols-outlined">edit_note</span>

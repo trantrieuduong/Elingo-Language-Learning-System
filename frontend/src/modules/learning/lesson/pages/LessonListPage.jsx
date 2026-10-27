@@ -158,7 +158,7 @@ function LessonListPage({ onNavigate }) {
     if (!lesson) return;
     const slug = encodeURIComponent(lesson.slug);
     setSelectedLesson(null);
-    onNavigate?.(`/learning/${mode}/${slug}`);
+    onNavigate?.(`/lessons/${mode}/${slug}`);
   };
 
   const isFiltering = !!(
