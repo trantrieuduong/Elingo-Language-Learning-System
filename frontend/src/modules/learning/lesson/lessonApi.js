@@ -6,16 +6,20 @@ import apiClient from '../../../services/apiClient';
  *
  * @param {Object} [params={}] - Tham số tìm kiếm và lọc
  * @param {string} [params.keyword] - Từ khóa tìm kiếm theo tiêu đề bài học
- * @param {string} [params.cefrCode] - CEFR code
- * @param {string} [params.tagCode] - Tag code
+ * @param {number[]} [params.cefrLevelIds] - Danh sách id CEFR level
+ * @param {number[]} [params.tagIds] - Danh sách id tag
  * @param {number} [params.page=1] - Số trang (1-based index)
  * @returns {Promise<Object>} Object chứa response.data ({ content, page, size, totalElements, totalPages, isLast })
  */
 export const getLessonsApi = async (params = {}) => {
   const cleanParams = {};
   if (params.keyword !== undefined && params.keyword !== '') cleanParams.keyword = params.keyword;
-  if (params.cefrCode !== undefined && params.cefrCode !== '') cleanParams.cefrCode = params.cefrCode;
-  if (params.tagCode !== undefined && params.tagCode !== '') cleanParams.tagCode = params.tagCode;
+  if (Array.isArray(params.cefrLevelIds) && params.cefrLevelIds.length > 0) {
+    cleanParams.cefrLevelIds = params.cefrLevelIds;
+  }
+  if (Array.isArray(params.tagIds) && params.tagIds.length > 0) {
+    cleanParams.tagIds = params.tagIds;
+  }
   if (params.page !== undefined) cleanParams.page = params.page;
 
   const response = await apiClient.get('/lessons', { params: cleanParams });

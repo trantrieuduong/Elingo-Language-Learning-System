@@ -25,8 +25,8 @@ function LessonListPage({ onNavigate }) {
   // State bộ lọc và tìm kiếm
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
-  const [selectedCefrId, setSelectedCefrId] = useState(null);
-  const [selectedTagId, setSelectedTagId] = useState(null);
+  const [selectedCefrLevelIds, setSelectedCefrLevelIds] = useState([]);
+  const [selectedTagIds, setSelectedTagIds] = useState([]);
 
   // State trạng thái tải & lỗi
   const [loading, setLoading] = useState(true);
@@ -90,7 +90,7 @@ function LessonListPage({ onNavigate }) {
   // Đổi từ khóa hoặc bộ lọc -> reset về trang 1
   useEffect(() => {
     setPage(1);
-  }, [debouncedQuery, selectedCefrId, selectedTagId]);
+  }, [debouncedQuery, selectedCefrLevelIds, selectedTagIds]);
 
   // Tải danh sách bài học mỗi khi query, filter, page hoặc retryCount thay đổi
   useEffect(() => {
@@ -104,6 +104,8 @@ function LessonListPage({ onNavigate }) {
       try {
         const res = await getLessonsApi({
           keyword: debouncedQuery || undefined,
+          cefrLevelIds: selectedCefrLevelIds,
+          tagIds: selectedTagIds,
           page,
         });
 
@@ -134,7 +136,7 @@ function LessonListPage({ onNavigate }) {
     return () => {
       isMounted = false;
     };
-  }, [debouncedQuery, selectedCefrId, selectedTagId, page, retryCount, t]);
+  }, [debouncedQuery, selectedCefrLevelIds, selectedTagIds, page, retryCount, t]);
 
   // Xử lý chuyển trang và cuộn mượt lên đầu danh sách
   const handlePageChange = (newPage) => {
@@ -146,8 +148,8 @@ function LessonListPage({ onNavigate }) {
   const handleClearFilters = () => {
     setSearchQuery('');
     setDebouncedQuery('');
-    setSelectedCefrId(null);
-    setSelectedTagId(null);
+    setSelectedCefrLevelIds([]);
+    setSelectedTagIds([]);
     setPage(1);
   };
 
@@ -159,7 +161,11 @@ function LessonListPage({ onNavigate }) {
     onNavigate?.(`/learning/${mode}/${slug}`);
   };
 
-  const isFiltering = !!(debouncedQuery || selectedCefrId || selectedTagId);
+  const isFiltering = !!(
+    debouncedQuery ||
+    selectedCefrLevelIds.length > 0 ||
+    selectedTagIds.length > 0
+  );
 
   return (
     <main className="lessons-container">
@@ -170,10 +176,10 @@ function LessonListPage({ onNavigate }) {
         searchPlaceholder={t('lessonList.searchPlaceholder')}
         cefrLevels={cefrLevels}
         tags={tags}
-        selectedCefrLevelId={selectedCefrId}
-        selectedTagId={selectedTagId}
-        onCefrChange={setSelectedCefrId}
-        onTagChange={setSelectedTagId}
+        selectedCefrLevelIds={selectedCefrLevelIds}
+        selectedTagIds={selectedTagIds}
+        onCefrChange={setSelectedCefrLevelIds}
+        onTagChange={setSelectedTagIds}
         hasActiveFilters={isFiltering}
         onClearFilters={handleClearFilters}
       />
