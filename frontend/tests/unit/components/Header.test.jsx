@@ -98,12 +98,12 @@ describe('Header', () => {
   // Chưa đăng nhập
   // ─────────────────────────────────────────────────────────────
   describe('Chưa đăng nhập', () => {
-    it('hiển thị nút login/signup, không có hamburger/chuông/user menu', () => {
+    it('hiển thị nút login/signup, có hamburger khi ở các trang ngoài landing page, không có chuông/user menu', () => {
       render(<Header onNavigate={mockNavigate} currentPath="/login" />)
 
       expect(screen.getByRole('button', { name: tr('nav:login') })).toBeInTheDocument()
       expect(screen.getByRole('button', { name: tr('nav:signup') })).toBeInTheDocument()
-      expect(getHeaderButton('.header__hamburger')).not.toBeInTheDocument()
+      expect(getHeaderButton('.header__hamburger')).toBeInTheDocument()
       expect(getHeaderButton('.header__avatar')).not.toBeInTheDocument()
     })
 
@@ -128,11 +128,13 @@ describe('Header', () => {
       expect(screen.getByRole('button', { name: tr('nav:login') })).toHaveClass('btn-secondary')
     })
 
-    it('không hiển thị nav link khi không phải trang chủ', () => {
+    it('hiển thị đầy đủ nav link khi chưa đăng nhập ở trang auth (/login)', () => {
       render(<Header onNavigate={mockNavigate} currentPath="/login" />)
 
       const nav = getDesktopNav()
-      expect(within(nav).queryAllByRole('link')).toHaveLength(0)
+      expect(within(nav).getByRole('link', { name: tr('nav:home') })).toBeInTheDocument()
+      expect(within(nav).getByRole('button', { name: new RegExp(tr('nav:learning')) })).toBeInTheDocument()
+      expect(within(nav).getByRole('button', { name: new RegExp(tr('nav:features')) })).toBeInTheDocument()
     })
 
     it('không gắn scroll listener khi không ở trang chủ', () => {
@@ -152,141 +154,18 @@ describe('Header', () => {
       // không có expect lỗi => không throw
       expect(screen.getByRole('button', { name: tr('nav:login') })).toBeInTheDocument()
     })
-  })
 
-  // ─────────────────────────────────────────────────────────────
-  // Landing nav ở "/" (scroll-spy + click cuộn tới section)
-  // ─────────────────────────────────────────────────────────────
-  describe('Landing navigation (chưa đăng nhập, ở "/")', () => {
-    const SECTION_IDS = ['hero', 'features', 'learning', 'community', 'pricing']
-    let tops
-    let sections
-    let rafCallback
-    const originalRaf = window.requestAnimationFrame
-    const originalCaf = window.cancelAnimationFrame
-
-    const linkOf = (key) => screen.getByRole('link', { name: tr(`nav:${key}`) })
-
-    const scrollAndFlush = () => {
-      window.dispatchEvent(new Event('scroll'))
-      act(() => rafCallback())
-    }
-
-    beforeEach(() => {
-      // hero đang ở đầu trang, các section còn lại nằm dưới (> headerOffset 130)
-      tops = { hero: 0, features: 500, learning: 900, community: 1300, pricing: 1700 }
-      sections = SECTION_IDS.map((id) => {
-        const el = document.createElement('section')
-        el.id = id
-        el.getBoundingClientRect = () => ({ top: tops[id] })
-        el.scrollIntoView = vi.fn()
-        document.body.appendChild(el)
-        return el
-      })
-
-      // rAF không chạy ngay: lưu callback để test tự flush
-      rafCallback = null
-      window.requestAnimationFrame = vi.fn((cb) => {
-        rafCallback = cb
-        return 42
-      })
-      window.cancelAnimationFrame = vi.fn()
-    })
-
-    afterEach(() => {
-      sections.forEach((el) => el.remove())
-      window.requestAnimationFrame = originalRaf
-      window.cancelAnimationFrame = originalCaf
-    })
-
-    it('hiển thị 5 link landing và mặc định active "home"', () => {
+    it('ở trang chủ "/" khi chưa đăng nhập, nav vẫn đồng bộ và click home link dẫn về "/"', async () => {
+      const user = userEvent.setup()
       render(<Header onNavigate={mockNavigate} currentPath="/" />)
 
       const nav = getDesktopNav()
-      expect(within(nav).getAllByRole('link')).toHaveLength(5)
-      expect(linkOf('home')).toHaveClass(ACTIVE_NAV)
-      expect(linkOf('features')).not.toHaveClass(ACTIVE_NAV)
-    })
+      const homeLink = within(nav).getByRole('link', { name: tr('nav:home') })
+      expect(homeLink).toBeInTheDocument()
+      expect(homeLink).toHaveClass(ACTIVE_NAV)
 
-    it('scroll tới section nào thì link tương ứng được active', () => {
-      render(<Header onNavigate={mockNavigate} currentPath="/" />)
-
-      tops.features = 50 // features đã chạm đỉnh (<= 130)
-      scrollAndFlush()
-
-      expect(linkOf('features')).toHaveClass(ACTIVE_NAV)
-      expect(linkOf('home')).not.toHaveClass(ACTIVE_NAV)
-
-      tops.learning = 10
-      tops.community = 20
-      scrollAndFlush()
-
-      expect(linkOf('community')).toHaveClass(ACTIVE_NAV) // section cuối cùng thoả điều kiện
-      expect(linkOf('features')).not.toHaveClass(ACTIVE_NAV)
-    })
-
-    it('scroll nhưng section không đổi thì giữ nguyên active', () => {
-      render(<Header onNavigate={mockNavigate} currentPath="/" />)
-
-      scrollAndFlush()
-      expect(linkOf('home')).toHaveClass(ACTIVE_NAV)
-    })
-
-    it('nhiều sự kiện scroll liên tiếp chỉ đặt 1 requestAnimationFrame', () => {
-      render(<Header onNavigate={mockNavigate} currentPath="/" />)
-
-      window.dispatchEvent(new Event('scroll'))
-      window.dispatchEvent(new Event('scroll'))
-      window.dispatchEvent(new Event('scroll'))
-
-      expect(window.requestAnimationFrame).toHaveBeenCalledTimes(1)
-    })
-
-    it('unmount khi còn frame đang chờ thì hủy bằng cancelAnimationFrame và gỡ listener', () => {
-      const removeSpy = vi.spyOn(window, 'removeEventListener')
-      const { unmount } = render(<Header onNavigate={mockNavigate} currentPath="/" />)
-
-      window.dispatchEvent(new Event('scroll'))
-      unmount()
-
-      expect(window.cancelAnimationFrame).toHaveBeenCalledWith(42)
-      expect(removeSpy.mock.calls.some(([type]) => type === 'scroll')).toBe(true)
-      removeSpy.mockRestore()
-    })
-
-    it('click link landing: chặn điều hướng mặc định, cuộn mượt tới section và đổi active', async () => {
-      const user = userEvent.setup()
-      render(<Header onNavigate={mockNavigate} currentPath="/" />)
-
-      await user.click(linkOf('pricing'))
-
-      const pricing = sections.find((s) => s.id === 'pricing')
-      expect(pricing.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' })
-      expect(linkOf('pricing')).toHaveClass(ACTIVE_NAV)
-      expect(linkOf('home')).not.toHaveClass(ACTIVE_NAV)
-      expect(mockNavigate).not.toHaveBeenCalled()
-    })
-
-    it('click link đang active vẫn cuộn tới section', async () => {
-      const user = userEvent.setup()
-      render(<Header onNavigate={mockNavigate} currentPath="/" />)
-
-      await user.click(linkOf('home'))
-
-      const hero = sections.find((s) => s.id === 'hero')
-      expect(hero.scrollIntoView).toHaveBeenCalledTimes(1)
-      expect(linkOf('home')).toHaveClass(ACTIVE_NAV)
-    })
-
-    it('không lỗi khi section không tồn tại trong DOM', async () => {
-      sections.forEach((el) => el.remove())
-      const user = userEvent.setup()
-      render(<Header onNavigate={mockNavigate} currentPath="/" />)
-
-      expect(linkOf('home')).toHaveClass(ACTIVE_NAV) // fallback 'hero'
-
-      await user.click(linkOf('features'))
-      expect(linkOf('features')).toHaveClass(ACTIVE_NAV)
+      await user.click(homeLink)
+      expect(mockNavigate).toHaveBeenCalledWith('/')
     })
   })
 

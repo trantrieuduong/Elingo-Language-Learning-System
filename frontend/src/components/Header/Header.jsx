@@ -17,28 +17,17 @@ function Header({ onNavigate, currentPath }) {
   const { isDark, toggleTheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
-  const [activeLandingSection, setActiveLandingSection] = useState('hero');
   const dropdownRef = useRef(null);
-  const activeLandingSectionRef = useRef('hero');
-
   const [openDropdownKey, setOpenDropdownKey] = useState(null);
   const [mobileExpandedKeys, setMobileExpandedKeys] = useState({});
   const navContainerRef = useRef(null);
   const closeTimeoutRef = useRef(null);
 
-  const LANDING_NAV_ITEMS = [
-    { key: 'home', label: t('home'), path: '#hero', sectionId: 'hero' },
-    { key: 'features', label: t('features'), path: '#features', sectionId: 'features' },
-    { key: 'learning', label: t('learning'), path: '#learning', sectionId: 'learning' },
-    { key: 'community', label: t('community'), path: '#community', sectionId: 'community' },
-    { key: 'pricing', label: t('pricing'), path: '#pricing', sectionId: 'pricing' },
-  ];
-
   const USER_NAV_ITEMS = [
     {
       key: 'home',
       label: t('home'),
-      path: '/dashboard',
+      path: user ? '/dashboard' : '/',
     },
     {
       key: 'features',
@@ -129,41 +118,6 @@ function Header({ onNavigate, currentPath }) {
     };
   }, []);
 
-  useEffect(() => {
-    if (user || currentPath !== '/') return undefined;
-
-    let animationFrameId = null;
-
-    const updateActiveSection = () => {
-      animationFrameId = null;
-      const headerOffset = 130;
-      const activeItem = [...LANDING_NAV_ITEMS].reverse().find((item) => {
-        const section = document.getElementById(item.sectionId);
-        return section && section.getBoundingClientRect().top <= headerOffset;
-      });
-      const nextSection = activeItem?.sectionId ?? 'hero';
-
-      if (nextSection !== activeLandingSectionRef.current) {
-        activeLandingSectionRef.current = nextSection;
-        setActiveLandingSection(nextSection);
-      }
-    };
-
-    const handleScroll = () => {
-      if (animationFrameId === null) {
-        animationFrameId = window.requestAnimationFrame(updateActiveSection);
-      }
-    };
-
-    updateActiveSection();
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (animationFrameId !== null) window.cancelAnimationFrame(animationFrameId);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPath, user]);
-
   const handleLogout = async () => {
     setIsUserDropdownOpen(false);
     setOpenDropdownKey(null);
@@ -175,15 +129,6 @@ function Header({ onNavigate, currentPath }) {
     setIsMenuOpen(false);
     setOpenDropdownKey(null);
     if (onNavigate) onNavigate(path);
-  };
-
-  const handleLandingNav = (e, item) => {
-    e.preventDefault();
-    if (activeLandingSectionRef.current !== item.sectionId) {
-      activeLandingSectionRef.current = item.sectionId;
-      setActiveLandingSection(item.sectionId);
-    }
-    document.getElementById(item.sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const isSubItemActive = (subPath, allSiblingPaths = []) => {
@@ -268,85 +213,72 @@ function Header({ onNavigate, currentPath }) {
 
         {/* Desktop Navigation */}
         <nav className="header__nav" ref={navContainerRef}>
-          {user
-            ? USER_NAV_ITEMS.map((item) => {
-                const itemIsActive = isItemActive(item);
-                if (item.children) {
-                  const isOpen = openDropdownKey === item.key;
-                  return (
-                    <div
-                      key={item.key}
-                      className="header__nav-item"
-                      onMouseEnter={() => handleItemMouseEnter(item.key)}
-                      onMouseLeave={handleItemMouseLeave}
+          {USER_NAV_ITEMS.map((item) => {
+            const itemIsActive = isItemActive(item);
+            if (item.children) {
+              const isOpen = openDropdownKey === item.key;
+              return (
+                <div
+                  key={item.key}
+                  className="header__nav-item"
+                  onMouseEnter={() => handleItemMouseEnter(item.key)}
+                  onMouseLeave={handleItemMouseLeave}
+                >
+                  <button
+                    type="button"
+                    className={`header__nav-link header__nav-btn ${itemIsActive ? 'header__nav-link--active' : ''}`}
+                    onClick={() => toggleDropdown(item.key)}
+                  >
+                    <span>{item.label}</span>
+                    <span
+                      className={`material-symbols-outlined header__nav-arrow ${isOpen ? 'header__nav-arrow--open' : ''}`}
                     >
-                      <button
-                        type="button"
-                        className={`header__nav-link header__nav-btn ${itemIsActive ? 'header__nav-link--active' : ''}`}
-                        onClick={() => toggleDropdown(item.key)}
-                      >
-                        <span>{item.label}</span>
-                        <span
-                          className={`material-symbols-outlined header__nav-arrow ${isOpen ? 'header__nav-arrow--open' : ''}`}
-                        >
-                          keyboard_arrow_down
-                        </span>
-                      </button>
+                      keyboard_arrow_down
+                    </span>
+                  </button>
 
-                      {isOpen && (
-                        <div className="header__nav-dropdown-menu glass-card">
-                          {item.children.map((sub) => {
-                            const siblingPaths = item.children.map((c) => c.path);
-                            const subIsActive = isSubItemActive(sub.path, siblingPaths);
-                            return (
-                              <a
-                                key={sub.key}
-                                href={sub.path}
-                                className={`header__dropdown-item ${subIsActive ? 'header__dropdown-item--active' : ''}`}
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  handleNav(sub.path);
-                                }}
-                              >
-                                {sub.icon && (
-                                  <span className="material-symbols-outlined">{sub.icon}</span>
-                                )}
-                                <span>{sub.label}</span>
-                              </a>
-                            );
-                          })}
-                        </div>
-                      )}
+                  {isOpen && (
+                    <div className="header__nav-dropdown-menu glass-card">
+                      {item.children.map((sub) => {
+                        const siblingPaths = item.children.map((c) => c.path);
+                        const subIsActive = isSubItemActive(sub.path, siblingPaths);
+                        return (
+                          <a
+                            key={sub.key}
+                            href={sub.path}
+                            className={`header__dropdown-item ${subIsActive ? 'header__dropdown-item--active' : ''}`}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleNav(sub.path);
+                            }}
+                          >
+                            {sub.icon && (
+                              <span className="material-symbols-outlined">{sub.icon}</span>
+                            )}
+                            <span>{sub.label}</span>
+                          </a>
+                        );
+                      })}
                     </div>
-                  );
-                }
+                  )}
+                </div>
+              );
+            }
 
-                return (
-                  <a
-                    key={item.key}
-                    href={item.path}
-                    className={`header__nav-link ${itemIsActive ? 'header__nav-link--active' : ''}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleNav(item.path);
-                    }}
-                  >
-                    {item.label}
-                  </a>
-                );
-              })
-            : currentPath === '/'
-              ? LANDING_NAV_ITEMS.map((item) => (
-                  <a
-                    key={item.key}
-                    href={item.path}
-                    className={`header__nav-link ${item.sectionId === activeLandingSection ? 'header__nav-link--active' : ''}`}
-                    onClick={(e) => handleLandingNav(e, item)}
-                  >
-                    {item.label}
-                  </a>
-                ))
-              : null}
+            return (
+              <a
+                key={item.key}
+                href={item.path}
+                className={`header__nav-link ${itemIsActive ? 'header__nav-link--active' : ''}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleNav(item.path);
+                }}
+              >
+                {item.label}
+              </a>
+            );
+          })}
         </nav>
 
         {/* Right side */}
@@ -486,20 +418,18 @@ function Header({ onNavigate, currentPath }) {
           )}
 
           {/* Mobile hamburger */}
-          {user && (
-            <button
-              type="button"
-              className="header__hamburger btn-icon"
-              onClick={() => setIsMenuOpen((prev) => !prev)}
-            >
-              <span className="material-symbols-outlined">{isMenuOpen ? 'close' : 'menu'}</span>
-            </button>
-          )}
+          <button
+            type="button"
+            className="header__hamburger btn-icon"
+            onClick={() => setIsMenuOpen((prev) => !prev)}
+          >
+            <span className="material-symbols-outlined">{isMenuOpen ? 'close' : 'menu'}</span>
+          </button>
         </div>
       </div>
 
       {/* Mobile Navigation */}
-      {user && isMenuOpen && (
+      {isMenuOpen && (
         <nav className="header__mobile-nav glass-capsule">
           {USER_NAV_ITEMS.map((item) => {
             const itemIsActive = isItemActive(item);
