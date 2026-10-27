@@ -70,10 +70,7 @@ function UserDeckCard({ deck, onEdit, onDelete, onToggleStatus, onManageTopics }
           (deck.tags && deck.tags.length > 0)) && (
           <div className="user-deck-card__tags">
             {deck.cefrLevels?.map((cefr) => (
-              <span
-                key={cefr.id}
-                className="badge badge--soft-blue user-deck-card__cefr-tag"
-              >
+              <span key={cefr.id} className="badge badge--soft-blue user-deck-card__cefr-tag">
                 {cefr.label}
               </span>
             ))}

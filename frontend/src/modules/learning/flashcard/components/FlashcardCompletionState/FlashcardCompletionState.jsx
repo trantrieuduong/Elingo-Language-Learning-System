@@ -6,9 +6,7 @@ export default function FlashcardCompletionState({ message }) {
 
   return (
     <div className="flashcard-completion-state">
-      <span
-        className="material-symbols-outlined flashcard-completion-state__icon flashcard-completion-state__icon--success"
-      >
+      <span className="material-symbols-outlined flashcard-completion-state__icon flashcard-completion-state__icon--success">
         task_alt
       </span>
       <h2 className="text-title-md">{t('flashcard.completeTitle')}</h2>

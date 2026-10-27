@@ -14,9 +14,7 @@ function BackButton({ label, onClick, className = '' }) {
       className={`btn-secondary back-button ${className}`.trim()}
       onClick={onClick}
     >
-      <span className="material-symbols-outlined">
-        arrow_back
-      </span>
+      <span className="material-symbols-outlined">arrow_back</span>
       {label}
     </button>
   );

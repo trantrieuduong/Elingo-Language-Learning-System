@@ -102,7 +102,6 @@
   gap: var(--spacing-lg);
 }
 
-
 /* ── Slug helpers ── */
 .topic-form-slug-field {
   display: none;

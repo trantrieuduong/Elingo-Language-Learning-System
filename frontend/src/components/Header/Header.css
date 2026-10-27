@@ -509,8 +509,8 @@
     font-size: 12px;
   }
 
-  .header__right>.btn-icon,
-  .header__right>.header__hamburger {
+  .header__right > .btn-icon,
+  .header__right > .header__hamburger {
     width: 34px;
     height: 34px;
   }
@@ -521,7 +521,7 @@
 }
 
 @media (max-width: 360px) {
-  .header__right>.btn-icon:first-child {
+  .header__right > .btn-icon:first-child {
     display: none;
   }
 

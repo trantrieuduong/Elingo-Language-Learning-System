@@ -9,11 +9,7 @@ function TopicCard({ topic, isSelected = false, onSelect, onEdit, onDelete }) {
 
   return (
     <div className={`topic-card${isSelected ? ' topic-card--active' : ''}`}>
-      <button
-        type="button"
-        className="topic-card__select"
-        onClick={() => onSelect?.(topic)}
-      >
+      <button type="button" className="topic-card__select" onClick={() => onSelect?.(topic)}>
         <span className="topic-card__name" title={topic.name}>
           {topic.name}
         </span>

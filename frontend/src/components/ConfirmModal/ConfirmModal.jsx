@@ -31,10 +31,7 @@ function ConfirmModal({
   if (!isOpen) return null;
 
   return createPortal(
-    <div
-      className="confirm-modal-overlay"
-      onClick={() => !isLoading && onCancel?.()}
-    >
+    <div className="confirm-modal-overlay" onClick={() => !isLoading && onCancel?.()}>
       <div
         className="confirm-modal-container glass-capsule"
         onClick={(event) => event.stopPropagation()}
@@ -58,11 +55,7 @@ function ConfirmModal({
             onClick={onConfirm}
             disabled={isLoading}
           >
-            {isLoading ? (
-              <span className="confirm-modal-spinner" />
-            ) : (
-              confirmText
-            )}
+            {isLoading ? <span className="confirm-modal-spinner" /> : confirmText}
           </button>
         </div>
       </div>

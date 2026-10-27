@@ -1,13 +1,7 @@
 import { useState } from 'react';
 import './FlipCard.css';
 
-function FlipCard({
-  front,
-  back,
-  className = '',
-  frontClassName = '',
-  backClassName = '',
-}) {
+function FlipCard({ front, back, className = '', frontClassName = '', backClassName = '' }) {
   const [isFlipped, setIsFlipped] = useState(false);
 
   const handleKeyDown = (event) => {

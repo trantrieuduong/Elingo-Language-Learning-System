@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../../../../context/AuthContext';
 import {
   getDecksApi,
   getUserDecksApi,
@@ -31,7 +32,9 @@ const getInitialTab = () => {
 
 function DeckListPage({ onNavigate }) {
   const { t } = useTranslation(['learning', 'common']);
-  const [activeTab, setActiveTab] = useState(getInitialTab);
+  const { user } = useAuth();
+  const [selectedTab, setSelectedTab] = useState(getInitialTab);
+  const activeTab = selectedTab === 'my-decks' && !user ? 'system-decks' : selectedTab;
 
   // States danh mục dùng chung
   const [tags, setTags] = useState([]);
@@ -169,6 +172,7 @@ function DeckListPage({ onNavigate }) {
     let isActive = true;
 
     const fetchUserDecks = async () => {
+      setUserDecks([]);
       setUserDecksLoading(true);
       setUserDecksError(null);
       try {
@@ -273,8 +277,7 @@ function DeckListPage({ onNavigate }) {
         showToast(res?.message || t('userDeck.deleteError'), 'error');
       }
     } catch (err) {
-      const errorMessage =
-        err.response?.data?.message || err.message || t('userDeck.deleteError');
+      const errorMessage = err.response?.data?.message || err.message || t('userDeck.deleteError');
       showToast(errorMessage, 'error');
     } finally {
       setIsDeleting(false);
@@ -335,7 +338,7 @@ function DeckListPage({ onNavigate }) {
             <button
               type="button"
               className={`deck-tab-btn ${activeTab === 'system-decks' ? 'deck-tab-btn--active' : ''}`}
-              onClick={() => setActiveTab('system-decks')}
+              onClick={() => setSelectedTab('system-decks')}
             >
               <span className="material-symbols-outlined">auto_stories</span>
               {t('userDeck.tabs.systemDecks')}
@@ -343,19 +346,21 @@ function DeckListPage({ onNavigate }) {
             <button
               type="button"
               className={`deck-tab-btn ${activeTab === 'community-decks' ? 'deck-tab-btn--active' : ''}`}
-              onClick={() => setActiveTab('community-decks')}
+              onClick={() => setSelectedTab('community-decks')}
             >
               <span className="material-symbols-outlined">explore</span>
               {t('userDeck.tabs.explore')}
             </button>
-            <button
-              type="button"
-              className={`deck-tab-btn ${activeTab === 'my-decks' ? 'deck-tab-btn--active' : ''}`}
-              onClick={() => setActiveTab('my-decks')}
-            >
-              <span className="material-symbols-outlined">folder_shared</span>
-              {t('userDeck.tabs.myDecks')}
-            </button>
+            {user && (
+              <button
+                type="button"
+                className={`deck-tab-btn ${activeTab === 'my-decks' ? 'deck-tab-btn--active' : ''}`}
+                onClick={() => setSelectedTab('my-decks')}
+              >
+                <span className="material-symbols-outlined">folder_shared</span>
+                {t('userDeck.tabs.myDecks')}
+              </button>
+            )}
           </div>
 
           {/* Nút tạo bộ từ mới khi ở tab Bộ từ của tôi */}

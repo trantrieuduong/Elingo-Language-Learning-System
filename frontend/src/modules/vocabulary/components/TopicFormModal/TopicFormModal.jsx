@@ -99,10 +99,7 @@ function TopicFormModal({
   const isCreate = mode === 'create';
 
   return createPortal(
-    <div
-      className="topic-form-overlay"
-      onClick={handleOverlayClick}
-    >
+    <div className="topic-form-overlay" onClick={handleOverlayClick}>
       <div className="topic-form-modal glass-capsule">
         {/* Header */}
         <div className="topic-form-header">
@@ -117,11 +114,7 @@ function TopicFormModal({
               {isCreate ? t('topic.createSubtitle') : t('topic.editSubtitle')}
             </p>
           </div>
-          <button
-            type="button"
-            className="btn-icon topic-form-close"
-            onClick={onClose}
-          >
+          <button type="button" className="btn-icon topic-form-close" onClick={onClose}>
             <span className="material-symbols-outlined">close</span>
           </button>
         </div>

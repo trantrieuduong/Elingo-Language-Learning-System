@@ -75,7 +75,9 @@ function DeckFormModal({
       if (response && !response.success) {
         const hasFieldErrors = applyServerFieldErrors(response);
         const translated = response.code && t(`api:error.${response.code}`, { defaultValue: '' });
-        setGeneralError(hasFieldErrors ? '' : translated || response.message || t('userDeck.form.saveError'));
+        setGeneralError(
+          hasFieldErrors ? '' : translated || response.message || t('userDeck.form.saveError')
+        );
       }
     } catch (error) {
       const responseData = error.response?.data;
@@ -93,10 +95,7 @@ function DeckFormModal({
   if (!isOpen) return null;
 
   return createPortal(
-    <div
-      className="deck-form-overlay"
-      onClick={() => !isLoading && onClose?.()}
-    >
+    <div className="deck-form-overlay" onClick={() => !isLoading && onClose?.()}>
       <div className="deck-form-modal glass-capsule" onClick={(event) => event.stopPropagation()}>
         <header className="deck-form-header">
           <div className="deck-form-header__info">
@@ -156,9 +155,7 @@ function DeckFormModal({
               }}
               disabled={isLoading}
             />
-            {errors.description && (
-              <p className="input-error">{errors.description}</p>
-            )}
+            {errors.description && <p className="input-error">{errors.description}</p>}
           </div>
           <footer className="deck-form-actions">
             <button
@@ -177,9 +174,7 @@ function DeckFormModal({
                 </>
               ) : (
                 <>
-                  <span className="material-symbols-outlined">
-                    {isEdit ? 'save' : 'add'}
-                  </span>
+                  <span className="material-symbols-outlined">{isEdit ? 'save' : 'add'}</span>
                   {t(isEdit ? 'common:saveChanges' : 'userDeck.form.createDeck')}
                 </>
               )}

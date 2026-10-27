@@ -458,12 +458,8 @@ function TopicListPage({ deckId, onNavigate }) {
                     </button>
                   </div>
                   <div className="topic-list-page__stats">
-                    <span>
-                      {t('userCards.deckCardCount', { count: deck.cardCount ?? 0 })}
-                    </span>
-                    <span>
-                      {t('userCards.deckTopicCount', { count: topics.length })}
-                    </span>
+                    <span>{t('userCards.deckCardCount', { count: deck.cardCount ?? 0 })}</span>
+                    <span>{t('userCards.deckTopicCount', { count: topics.length })}</span>
                     <button
                       type="button"
                       className="btn-primary topic-list-page__learn-btn"
@@ -645,11 +641,7 @@ function TopicListPage({ deckId, onNavigate }) {
           if (!isDeletingCard) setCardToDelete(null);
         }}
       />
-      <Toast
-        message={toastMessage}
-        variant={toastVariant}
-        onDismiss={handleToastDismiss}
-      />
+      <Toast message={toastMessage} variant={toastVariant} onDismiss={handleToastDismiss} />
     </main>
   );
 }

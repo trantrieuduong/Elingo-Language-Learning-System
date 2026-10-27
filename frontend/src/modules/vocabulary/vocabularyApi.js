@@ -63,16 +63,12 @@ export const getUserDecksApi = async (params = {}) => {
 
   // Filter theo tag ID
   if (params.tagId) {
-    decks = decks.filter((d) =>
-      d.tags?.some((tag) => tag.id === params.tagId)
-    );
+    decks = decks.filter((d) => d.tags?.some((tag) => tag.id === params.tagId));
   }
 
   // Filter theo CEFR ID
   if (params.cefrLevelId) {
-    decks = decks.filter((d) =>
-      d.cefrLevels?.some((cefr) => cefr.id === params.cefrLevelId)
-    );
+    decks = decks.filter((d) => d.cefrLevels?.some((cefr) => cefr.id === params.cefrLevelId));
   }
 
   const page = params.page || 1;

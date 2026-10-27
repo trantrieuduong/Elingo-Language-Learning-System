@@ -27,9 +27,7 @@ function Toast({ message, variant = 'success', onDismiss, duration = 3000 }) {
 
   return createPortal(
     <div className={`toast ${toastVariant.className} glass-card`} role="alert">
-      <span className="material-symbols-outlined toast__icon">
-        {toastVariant.icon}
-      </span>
+      <span className="material-symbols-outlined toast__icon">{toastVariant.icon}</span>
       <span className="toast__message">{message}</span>
     </div>,
     document.body

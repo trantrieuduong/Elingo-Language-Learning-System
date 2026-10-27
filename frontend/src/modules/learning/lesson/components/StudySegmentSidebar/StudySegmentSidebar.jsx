@@ -71,9 +71,7 @@ function StudySegmentSidebar({
         <span className="study-segment-sidebar__progress-pct">{progressPct}%</span>
       </div>
 
-      <div
-        className="study-segment-sidebar__progress-track"
-      >
+      <div className="study-segment-sidebar__progress-track">
         <div
           className="study-segment-sidebar__progress-fill"
           style={{ width: `${progressPct}%` }}
@@ -138,9 +136,7 @@ function StudySegmentSidebar({
                     {seg.transcriptOriginal || seg.transcriptNormalized}
                   </p>
                 ) : (
-                  <div className="study-segment-sidebar__masked">
-                    ••••••••••••••••••••••••
-                  </div>
+                  <div className="study-segment-sidebar__masked">••••••••••••••••••••••••</div>
                 )}
               </div>
             </button>

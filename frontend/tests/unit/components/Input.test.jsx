@@ -21,16 +21,16 @@ describe('Input Component', () => {
     expect(screen.getByRole('button', { name: 'Search' })).toBeInTheDocument()
   })
 
-    it('should toggle password visibility', async () => {
-      const user = userEvent.setup()
-      render(<Input id="test-pass" label="Password" type="password" value="secret" onChange={() => {}} />)
+  it('should toggle password visibility', async () => {
+    const user = userEvent.setup()
+    render(<Input id="test-pass" label="Password" type="password" value="secret" onChange={() => {}} />)
 
-      const input = screen.getByLabelText('Password')
-      expect(input).toHaveAttribute('type', 'password')
+    const input = screen.getByLabelText('Password')
+    expect(input).toHaveAttribute('type', 'password')
 
-      const toggleButton = screen.getByRole('button', { name: 'visibility' })
-      await user.click(toggleButton)
-      expect(input).toHaveAttribute('type', 'text')
-      expect(toggleButton).toHaveTextContent('visibility_off')
-    })
+    const toggleButton = screen.getByRole('button', { name: 'visibility' })
+    await user.click(toggleButton)
+    expect(input).toHaveAttribute('type', 'text')
+    expect(toggleButton).toHaveTextContent('visibility_off')
   })
+})

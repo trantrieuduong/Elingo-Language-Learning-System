@@ -29,9 +29,7 @@ function SearchInput({ id, placeholder, value, onChange, onClear, clearLabel, cl
           onClick={onClear}
           title={clearLabel}
         >
-          <span className="material-symbols-outlined">
-            close
-          </span>
+          <span className="material-symbols-outlined">close</span>
         </button>
       )}
     </div>

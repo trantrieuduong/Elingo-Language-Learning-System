@@ -946,10 +946,7 @@ function ShadowingPage({ slug, onNavigate }) {
 
       {/* ── MODAL HỎI ĐỒNG Ý TẢI MÔ HÌNH AI ── */}
       {showModelModal && (
-        <div
-          className="shadowing-model-modal-overlay"
-          onClick={() => setShowModelModal(false)}
-        >
+        <div className="shadowing-model-modal-overlay" onClick={() => setShowModelModal(false)}>
           <div className="shadowing-model-modal glass-capsule" onClick={(e) => e.stopPropagation()}>
             <div className="shadowing-model-modal-header">
               <div className="shadowing-model-modal-title-group">
@@ -962,11 +959,7 @@ function ShadowingPage({ slug, onNavigate }) {
                   })}
                 </p>
               </div>
-              <button
-                type="button"
-                className="btn-icon"
-                onClick={() => setShowModelModal(false)}
-              >
+              <button type="button" className="btn-icon" onClick={() => setShowModelModal(false)}>
                 <span className="material-symbols-outlined">close</span>
               </button>
             </div>

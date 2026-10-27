@@ -61,6 +61,13 @@ function App() {
   const deckListMatch = currentPath === '/decks';
   const deckTopicsMatch = currentPath.match(/^\/decks\/([^/]+)\/topics$/);
   const topicCardsMatch = currentPath.match(/^\/decks\/([^/]+)\/topics\/([^/]+)\/cards$/);
+  const isPrivateUserPath =
+    PRIVATE_USER_PATHS.some((path) => {
+      return currentPath === path || currentPath.startsWith(`${path}/`);
+    }) ||
+    !!flashcardStudyMatch ||
+    !!deckTopicsMatch ||
+    !!topicCardsMatch;
 
   useEffect(() => {
     if (loading) return;
@@ -68,10 +75,6 @@ function App() {
     const isAuthOnlyPath = PUBLIC_PATHS.includes(currentPath);
     const isAdmin = user?.role === 'ADMIN';
     const isAdminPath = currentPath.startsWith('/admin');
-    const isPrivateUserPath =
-      PRIVATE_USER_PATHS.some((path) => {
-        return currentPath === path || currentPath.startsWith(`${path}/`);
-      }) || !!flashcardStudyMatch; // Trang học flashcard (/decks/:deckSlug) bắt buộc đăng nhập
 
     if (!user && (isAdminPath || isPrivateUserPath)) {
       navigate('/login');
@@ -91,7 +94,7 @@ function App() {
     if (user && isAdmin && !isAdminPath) {
       navigate('/admin');
     }
-  }, [currentPath, user, loading]);
+  }, [currentPath, user, loading, isPrivateUserPath]);
 
   const navigate = (path, param) => {
     const stateObj = param && typeof param === 'object' ? param : {};
@@ -140,7 +143,9 @@ function App() {
     }
 
     if (deckTopicsMatch) {
-      return <TopicListPage deckId={decodeURIComponent(deckTopicsMatch[1])} onNavigate={navigate} />;
+      return (
+        <TopicListPage deckId={decodeURIComponent(deckTopicsMatch[1])} onNavigate={navigate} />
+      );
     }
 
     if (dictationMatch) {

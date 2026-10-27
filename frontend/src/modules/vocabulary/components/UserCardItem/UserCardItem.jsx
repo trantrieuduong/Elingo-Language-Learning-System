@@ -35,9 +35,7 @@ function UserCardItem({ card, onEdit, onDelete, onToggleStar, isStarProcessing =
           onClick={() => onEdit?.(card)}
           title={t('common:edit')}
         >
-          <span className="material-symbols-outlined">
-            edit
-          </span>
+          <span className="material-symbols-outlined">edit</span>
         </button>
         <button
           type="button"
@@ -45,9 +43,7 @@ function UserCardItem({ card, onEdit, onDelete, onToggleStar, isStarProcessing =
           onClick={() => onDelete?.(card)}
           title={t('common:delete')}
         >
-          <span className="material-symbols-outlined">
-            delete
-          </span>
+          <span className="material-symbols-outlined">delete</span>
         </button>
       </div>
     </article>

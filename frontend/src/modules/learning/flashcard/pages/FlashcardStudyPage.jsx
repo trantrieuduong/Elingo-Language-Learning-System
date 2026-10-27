@@ -69,8 +69,7 @@ function FlashcardStudyPage({ deckSlug, returnTo, onNavigate }) {
         console.error('Lỗi khi tải topics:', err);
         const errorCode = err.response?.data?.code;
         const errorMessage =
-          (errorCode && t(`api:error.${errorCode}`, { defaultValue: '' })) ||
-          t('common:loadError');
+          (errorCode && t(`api:error.${errorCode}`, { defaultValue: '' })) || t('common:loadError');
 
         if (errorCode === 'PREMIUM_REQUIRED') {
           setError({
@@ -124,8 +123,7 @@ function FlashcardStudyPage({ deckSlug, returnTo, onNavigate }) {
         console.error('Lỗi khi tải danh sách thẻ cho topic:', err);
         const errorCode = err.response?.data?.code;
         const errorMessage =
-          (errorCode && t(`api:error.${errorCode}`, { defaultValue: '' })) ||
-          t('common:loadError');
+          (errorCode && t(`api:error.${errorCode}`, { defaultValue: '' })) || t('common:loadError');
 
         if (errorCode === 'PREMIUM_REQUIRED') {
           setError({

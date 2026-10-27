@@ -366,22 +366,14 @@ function Header({ onNavigate, currentPath }) {
           </button>
 
           {/* Theme toggle */}
-          <button
-            type="button"
-            className="btn-icon"
-            onClick={toggleTheme}
-          >
+          <button type="button" className="btn-icon" onClick={toggleTheme}>
             <span className="material-symbols-outlined">{isDark ? 'light_mode' : 'dark_mode'}</span>
           </button>
 
           {user ? (
             <>
               {/* Notification bell */}
-              <button
-                type="button"
-                className="btn-icon"
-                onClick={() => handleNav('/notification')}
-              >
+              <button type="button" className="btn-icon" onClick={() => handleNav('/notification')}>
                 <span className="material-symbols-outlined">notifications</span>
               </button>
 

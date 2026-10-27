@@ -54,9 +54,7 @@ function LessonCard({ lesson, onClick }) {
           {mode === 'dictation' ? t('lessonList.dictation') : t('lessonList.shadowing')}
         </span>
         {isCompleted && (
-          <span className="material-symbols-outlined lesson-card__mode-check">
-            check_circle
-          </span>
+          <span className="material-symbols-outlined lesson-card__mode-check">check_circle</span>
         )}
         {isInProgress && <span className="lesson-card__mode-pct">{roundedPct}%</span>}
       </span>
@@ -90,11 +88,7 @@ function LessonCard({ lesson, onClick }) {
         {/* Thời lượng */}
         {durationText && (
           <span className="lesson-card__duration-badge">
-            <span
-              className="material-symbols-outlined lesson-card__duration-icon"
-            >
-              schedule
-            </span>
+            <span className="material-symbols-outlined lesson-card__duration-icon">schedule</span>
             {durationText}
           </span>
         )}
@@ -102,9 +96,7 @@ function LessonCard({ lesson, onClick }) {
         {/* Huy hiệu Premium */}
         {isPremium && (
           <span className="lesson-card__premium-badge">
-            <span
-              className="material-symbols-outlined lesson-card__premium-icon"
-            >
+            <span className="material-symbols-outlined lesson-card__premium-icon">
               workspace_premium
             </span>
             {t('lessonList.premium')}
@@ -117,10 +109,7 @@ function LessonCard({ lesson, onClick }) {
         {/* Tags & CEFR */}
         <div className="lesson-card__tags">
           {cefrLevels.map((cefr) => (
-            <span
-              key={cefr.id}
-              className="badge badge--soft-blue lesson-card__cefr-tag"
-            >
+            <span key={cefr.id} className="badge badge--soft-blue lesson-card__cefr-tag">
               {cefr.label}
             </span>
           ))}

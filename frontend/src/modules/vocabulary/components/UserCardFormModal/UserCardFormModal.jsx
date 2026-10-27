@@ -167,10 +167,7 @@ function UserCardFormModal({
   };
 
   return createPortal(
-    <div
-      className="user-card-form-overlay"
-      onClick={() => !isSubmitting && onClose?.()}
-    >
+    <div className="user-card-form-overlay" onClick={() => !isSubmitting && onClose?.()}>
       <div
         className="user-card-form-modal glass-capsule glass-sheen"
         onClick={(event) => event.stopPropagation()}
@@ -187,12 +184,7 @@ function UserCardFormModal({
               <p className="text-body-sm">{t('userCards.formSubtitle')}</p>
             </div>
           </div>
-          <button
-            type="button"
-            className="btn-icon"
-            onClick={onClose}
-            disabled={isSubmitting}
-          >
+          <button type="button" className="btn-icon" onClick={onClose} disabled={isSubmitting}>
             <span className="material-symbols-outlined">close</span>
           </button>
         </header>
@@ -257,7 +249,6 @@ function UserCardFormModal({
             </div>
 
             <div className="user-card-form-modal__grid user-card-form-modal__grid--textareas">
-
               <div className="user-card-form-modal__field">
                 <label className="input-label" htmlFor="user-card-explanation-vi">
                   {t('userCards.explanationVi')}
@@ -300,7 +291,6 @@ function UserCardFormModal({
                 )}
               </div>
 
-  
               <div className="user-card-form-modal__field">
                 <label className="input-label" htmlFor="user-card-example-vi">
                   {t('userCards.examplesVi')}
@@ -362,9 +352,7 @@ function UserCardFormModal({
                 </>
               ) : (
                 <>
-                  <span className="material-symbols-outlined">
-                    {isEdit ? 'save' : 'add'}
-                  </span>
+                  <span className="material-symbols-outlined">{isEdit ? 'save' : 'add'}</span>
                   {isEdit ? t('common:saveChanges') : t('userCards.createCard')}
                 </>
               )}

@@ -118,9 +118,7 @@ function VocabularyFlashCard({
           <div className="flashcard-details">
             {card.explanationVi && (
               <div className="flashcard-section">
-                <span className="material-symbols-outlined">
-                  menu_book
-                </span>
+                <span className="material-symbols-outlined">menu_book</span>
                 <div>
                   <p className="flashcard-section-label">{t('flashcard.card.definitionVi')}</p>
                   <p className="flashcard-explanation-text">{card.explanationVi}</p>
@@ -130,9 +128,7 @@ function VocabularyFlashCard({
 
             {card.explanationEn && (
               <div className="flashcard-section">
-                <span className="material-symbols-outlined">
-                  menu_book
-                </span>
+                <span className="material-symbols-outlined">menu_book</span>
                 <div>
                   <p className="flashcard-section-label">{t('flashcard.card.definitionEn')}</p>
                   <p className="flashcard-explanation-text">{card.explanationEn}</p>
@@ -142,9 +138,7 @@ function VocabularyFlashCard({
 
             {(card.examplesEn || card.examplesVi) && (
               <div className="flashcard-section">
-                <span className="material-symbols-outlined">
-                  format_quote
-                </span>
+                <span className="material-symbols-outlined">format_quote</span>
                 <div>
                   <p className="flashcard-section-label">{t('flashcard.card.examples')}</p>
                   {card.examplesEn && <p className="flashcard-example-en">"{card.examplesEn}"</p>}

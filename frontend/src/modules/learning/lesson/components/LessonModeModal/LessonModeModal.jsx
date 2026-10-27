@@ -56,10 +56,7 @@ function LessonModeModal({ isOpen, lesson, onSelectMode, onClose }) {
   );
 
   return createPortal(
-    <div
-      className="lesson-mode-modal-overlay"
-      onClick={onClose}
-    >
+    <div className="lesson-mode-modal-overlay" onClick={onClose}>
       <div className="lesson-mode-modal glass-capsule" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="lesson-mode-modal__header">
@@ -69,11 +66,7 @@ function LessonModeModal({ isOpen, lesson, onSelectMode, onClose }) {
             </h2>
             <p className="lesson-mode-modal__subtitle">{title}</p>
           </div>
-          <button
-            type="button"
-            className="btn-icon"
-            onClick={onClose}
-          >
+          <button type="button" className="btn-icon" onClick={onClose}>
             <span className="material-symbols-outlined">close</span>
           </button>
         </div>

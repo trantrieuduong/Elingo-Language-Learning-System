@@ -11,7 +11,9 @@ function EmptyState({
   className = '',
 }) {
   const btnClass = actionVariant === 'primary' ? 'btn-primary' : 'btn-secondary';
-  const iconStateClass = isError ? 'empty-state__icon--error text-error' : 'empty-state__icon--default text-disabled';
+  const iconStateClass = isError
+    ? 'empty-state__icon--error text-error'
+    : 'empty-state__icon--default text-disabled';
   const descClass = isError ? 'text-error' : 'text-disabled';
 
   return (
@@ -25,9 +27,7 @@ function EmptyState({
       {title && <h2 className="text-headline-sm empty-state__title">{title}</h2>}
 
       {description && (
-        <p className={`text-body-lg empty-state__description ${descClass}`}>
-          {description}
-        </p>
+        <p className={`text-body-lg empty-state__description ${descClass}`}>{description}</p>
       )}
 
       {actionLabel && onAction && (
@@ -37,7 +37,6 @@ function EmptyState({
           </button>
         </div>
       )}
-
     </div>
   );
 }
