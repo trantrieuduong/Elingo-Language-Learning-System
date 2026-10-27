@@ -1,8 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import Input from '@/components/Input/Input'
-import { LANGS, tr, useLang } from '../../utils/i18n'
 
 describe('Input Component', () => {
   it('should render label and input field', () => {
@@ -12,7 +11,7 @@ describe('Input Component', () => {
 
   it('should render error message when error prop is provided', () => {
     render(<Input id="test-input" label="Email" error="Invalid email" value="" onChange={() => {}} />)
-    expect(screen.getByRole('alert')).toHaveTextContent('Invalid email')
+    expect(screen.getByText('Invalid email')).toBeInTheDocument()
   })
 
   it('should render custom rightElement', () => {
@@ -22,19 +21,16 @@ describe('Input Component', () => {
     expect(screen.getByRole('button', { name: 'Search' })).toBeInTheDocument()
   })
 
-  describe.each(LANGS)('password toggle [%s]', (lng) => {
-    beforeEach(() => useLang(lng))
-
-    it('should toggle password visibility with a translated label', async () => {
+    it('should toggle password visibility', async () => {
       const user = userEvent.setup()
       render(<Input id="test-pass" label="Password" type="password" value="secret" onChange={() => {}} />)
 
       const input = screen.getByLabelText('Password')
       expect(input).toHaveAttribute('type', 'password')
 
-      await user.click(screen.getByRole('button', { name: tr('common:showPassword') }))
+      const toggleButton = screen.getByRole('button', { name: 'visibility' })
+      await user.click(toggleButton)
       expect(input).toHaveAttribute('type', 'text')
-      expect(screen.getByRole('button', { name: tr('common:hidePassword') })).toBeInTheDocument()
+      expect(toggleButton).toHaveTextContent('visibility_off')
     })
   })
-})

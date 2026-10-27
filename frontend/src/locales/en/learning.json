@@ -1,6 +1,6 @@
 {
   "deckList": {
-    "cardStats": "{{topicCount}} topics - {{cardCount}} words",
+    "cardStats": "{{topicCount}} topics - {{cardCount}} cards",
     "emptyDefault": "There are no vocabulary decks available right now.",
     "emptyFilter": "No vocabulary decks matched your current filter criteria.",
     "emptyTitle": "No vocabulary decks found",
