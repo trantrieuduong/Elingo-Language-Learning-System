@@ -5,6 +5,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
@@ -18,11 +19,18 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "comment_likes")
+@Table(
+        name = "comment_likes",
+        indexes = {
+                @Index(name = "idx_comment_like_user", columnList = "user_id")
+        }
+)
 @Data
 @Builder
 @AllArgsConstructor
@@ -35,6 +43,7 @@ public class CommentLike {
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("commentId")
     @JoinColumn(name = "comment_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     Comment comment;

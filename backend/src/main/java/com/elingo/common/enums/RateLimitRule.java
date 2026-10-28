@@ -22,12 +22,20 @@ public enum RateLimitRule {
 
     // BR-05: nhập OTP xác thực tài khoản
     OTP_VERIFY_IP("otp-verify", Scope.IP, 5, Duration.ofMinutes(10)),
-    OTP_VERIFY_EMAIL("otp-verify", Scope.EMAIL, 5, Duration.ofMinutes(10));
+    OTP_VERIFY_EMAIL("otp-verify", Scope.EMAIL, 5, Duration.ofMinutes(10)),
+
+    // BR-06: Comment bài viết
+    COMMENT_POST("comment-post", Scope.USERID, 10, Duration.ofMinutes(10)),
+
+    // BR-07: Đăng bài viết
+    CREATE_POST("create-post", Scope.USERID, 5, Duration.ofHours(1)),
+    ;
 
     public enum Scope {
         IP,
         EMAIL,
-        USERNAME
+        USERNAME,
+        USERID
     }
 
     private final String bucket;

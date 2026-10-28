@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
-import java.util.Set;
+import java.util.List;
 
 public record CreatePostRequest(
         @NotNull(message = "INVALID_REQUEST")
@@ -22,11 +22,11 @@ public record CreatePostRequest(
         String content,
         @BuildMediaKey
         @Size(max = 5, message = "INVALID_REQUEST")
-        Set<@NotBlank @AllowedMediaKind({MediaKind.IMAGE, MediaKind.VIDEO}) String> mediaUrls
+        List<@NotBlank @AllowedMediaKind({MediaKind.IMAGE, MediaKind.VIDEO}) String> mediaUrls
 ) {
     public CreatePostRequest {
         title = title == null ? null : title.strip();
         content = content == null ? null : content.strip();
-        mediaUrls = mediaUrls == null ? Set.of() : mediaUrls;
+        mediaUrls = mediaUrls == null ? List.of() : mediaUrls.stream().distinct().toList();
     }
 }

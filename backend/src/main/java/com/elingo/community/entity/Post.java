@@ -33,7 +33,8 @@ import java.util.List;
         name = "posts",
         indexes = {
                 @Index(name = "idx_post_status_time", columnList = "status, created_at"),
-                @Index(name = "idx_post_group_status_time", columnList = "group_id, status, created_at")
+                @Index(name = "idx_post_group_status_time", columnList = "group_id, status, created_at"),
+                @Index(name = "idx_post_user_status_time", columnList = "user_id, status, created_at")
         }
 )
 @Data
