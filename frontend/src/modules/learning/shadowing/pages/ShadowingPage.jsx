@@ -630,10 +630,7 @@ function ShadowingPage({ slug, onNavigate }) {
     <div className="shadowing-page-container">
       {/* Top Bar */}
       <div className="shadowing-top-bar">
-        <BackButton
-          label={t('common:back')}
-          onClick={() => onNavigate && onNavigate('/lessons')}
-        />
+        <BackButton label={t('common:back')} onClick={() => onNavigate && onNavigate('/lessons')} />
       </div>
 
       {/* 3-Column Layout */}

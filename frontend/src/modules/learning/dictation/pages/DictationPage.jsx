@@ -306,10 +306,7 @@ function DictationPage({ slug, onNavigate }) {
     <div className="dictation-page-container">
       {/* Thanh điều hướng quay lại danh sách */}
       <div className="dictation-top-bar">
-        <BackButton
-          label={t('common:back')}
-          onClick={() => onNavigate && onNavigate('/lessons')}
-        />
+        <BackButton label={t('common:back')} onClick={() => onNavigate && onNavigate('/lessons')} />
       </div>
 
       {/* Layout 3 cột: Player | Khu học tập / Kết quả | Sidebar tiến độ */}
@@ -385,10 +382,11 @@ function DictationPage({ slug, onNavigate }) {
             <div className="dictation-result-card glass-card">
               <div className="dictation-result-header">
                 <span
-                  className={`dictation-result-badge ${segmentResult.passed
+                  className={`dictation-result-badge ${
+                    segmentResult.passed
                       ? 'dictation-result-badge--pass'
                       : 'dictation-result-badge--fail'
-                    }`}
+                  }`}
                 >
                   {segmentResult.passed
                     ? t('lessonStudy.passedBadge')
@@ -522,8 +520,9 @@ function DictationPage({ slug, onNavigate }) {
 
                 <button
                   type="button"
-                  className={`btn-primary dictation-submit-btn ${allDone ? 'dictation-submit-btn--ready' : ''
-                    }`}
+                  className={`btn-primary dictation-submit-btn ${
+                    allDone ? 'dictation-submit-btn--ready' : ''
+                  }`}
                   onClick={handleSubmitSegment}
                   disabled={!allDone || isSubmitting}
                 >
