@@ -1,5 +1,6 @@
 package com.elingo;
 
+import com.elingo.battle.config.BattleProperties;
 import com.elingo.vocabulary.config.FlashcardProperties;
 import com.elingo.gamification.config.GamificationProperties;
 import com.elingo.learning.lesson.config.LessonProperties;
@@ -13,7 +14,8 @@ import java.util.TimeZone;
 @EnableConfigurationProperties({
         FlashcardProperties.class,
         GamificationProperties.class,
-        LessonProperties.class
+        LessonProperties.class,
+        BattleProperties.class
 })
 public class ElingoApplication {
 

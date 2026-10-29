@@ -126,6 +126,7 @@ public enum AppError {
     // ==========================================
     // 6. Battle (Đấu trường từ vựng 1vs1)
     // ==========================================
+    BATTLE_MODE_INVALID("BATTLE_MODE_INVALID", "Battle mode must be MULTIPLE_CHOICE or TYPING", HttpStatus.BAD_REQUEST),
     BATTLE_MATCH_NOT_FOUND("BATTLE_MATCH_NOT_FOUND", "Battle match not found", HttpStatus.NOT_FOUND),
     BATTLE_ROOM_NOT_FOUND("BATTLE_ROOM_NOT_FOUND", "Battle room code not found", HttpStatus.NOT_FOUND),
     BATTLE_ROOM_FULL("BATTLE_ROOM_FULL", "Battle room has already reached maximum participants", HttpStatus.BAD_REQUEST),

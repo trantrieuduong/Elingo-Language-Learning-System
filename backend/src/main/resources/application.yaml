@@ -59,3 +59,13 @@ app:
     shadowing-pass-score: 55
     dictation-attempt-penalty: 5
     shadowing-attempt-penalty: 10
+  battle:
+    total-rounds: 10
+    question-time-ms: 15000
+    countdown-ms: 3000
+    round-gap-ms: 2500
+    queue-timeout-ms: 60000
+    reconnect-grace-ms: 15000
+    room-ttl-ms: 600000
+    min-correct-for-xp: 3
+    min-cards-required: 10
