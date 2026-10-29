@@ -2,8 +2,11 @@ package com.elingo.user.controller;
 
 import com.elingo.common.annotation.CurrentUserId;
 import com.elingo.common.dto.ApiResponse;
+import com.elingo.common.dto.CursorResponse;
 import com.elingo.common.enums.RateLimitRule;
 import com.elingo.common.service.RateLimiterService;
+import com.elingo.community.dto.response.PostResponse;
+import com.elingo.community.service.PostService;
 import com.elingo.user.dto.request.ChangePasswordRequest;
 import com.elingo.user.dto.request.SendOTPUpdateEmailRequest;
 import com.elingo.user.dto.request.SetPasswordRequest;
@@ -29,6 +32,7 @@ public class UserController {
 
     private final UserService userService;
     private final DeckService deckService;
+    private final PostService postService;
     private final RateLimiterService limiter;
 
     @GetMapping("/me")
@@ -47,6 +51,19 @@ public class UserController {
         return ApiResponse.<List<DeckResponse>>builder()
                 .success(true)
                 .data(deckService.getUserDecks(userId))
+                .build();
+    }
+
+    @GetMapping("/{id}/posts")
+    @Operation(summary = "Get users posts by id")
+    public ApiResponse<CursorResponse<PostResponse>> getUserPosts(
+            @PathVariable Long id,
+            @RequestParam(required = false) String cursor,
+            @RequestParam(defaultValue = "20") int limit,
+            @CurrentUserId Long currentUserId) {
+        return ApiResponse.<CursorResponse<PostResponse>>builder()
+                .success(true)
+                .data(postService.getUserPosts(id, cursor, limit, currentUserId))
                 .build();
     }
 
