@@ -2,10 +2,18 @@
   background-color: transparent;
   width: 100% !important;
   max-width: 100% !important;
-  height: 70vh;
-  min-height: 520px;
-  max-height: 800px;
+  height: clamp(280px, 70vh, 800px);
+  min-height: 0;
   margin: 0 auto;
+}
+
+.vocabulary-flashcard:not(.vocabulary-flashcard--compact) .flip-card__inner {
+  height: 100%;
+  min-height: 0;
+}
+
+.vocabulary-flashcard:not(.vocabulary-flashcard--compact) .flip-card__inner {
+  grid-template-rows: minmax(0, 1fr);
 }
 
 .vocabulary-flashcard__meta {
@@ -23,24 +31,47 @@
 .flashcard-back {
   position: relative;
   height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   padding: var(--spacing-xl);
-  overflow-y: auto;
+  overflow: hidden;
   border-radius: var(--radius-apple, 26px);
   -webkit-tap-highlight-color: transparent;
 }
 
 .flashcard-front {
-  justify-content: center;
-  align-items: center;
   padding-bottom: calc(var(--spacing-xl) + 20px);
 }
 
 .flashcard-back {
-  justify-content: flex-start;
-  align-items: center;
   padding-bottom: calc(var(--spacing-xl) + 20px);
+}
+
+.flashcard-face-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.vocabulary-flashcard:not(.vocabulary-flashcard--compact) .flashcard-face-content {
+  height: 100%;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.flashcard-front-content {
+  justify-content: safe center;
+}
+
+.flashcard-back-content {
+  justify-content: flex-start;
 }
 
 .vocabulary-flashcard--compact {
@@ -58,6 +89,11 @@
   height: auto;
   min-height: 230px;
   padding: calc(var(--spacing-xl) + var(--spacing-md)) var(--spacing-lg) var(--spacing-lg);
+}
+
+.vocabulary-flashcard--compact .flashcard-face-content {
+  height: auto;
+  overflow: visible;
 }
 
 .vocabulary-flashcard--compact .flashcard-front {
@@ -166,6 +202,7 @@
 
 /* ── Từ vựng chính ── */
 .flashcard-term {
+  max-width: 100%;
   font-family: var(--font-display);
   font-size: var(--font-size-headline-lg);
   font-weight: 700;
@@ -173,13 +210,17 @@
   margin-bottom: var(--spacing-xs);
   margin-top: 0;
   letter-spacing: -0.015em;
-  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 /* ── Từ loại (POS) ── */
 .flashcard-pos {
+  max-width: 100%;
   margin-bottom: var(--spacing-md);
   text-transform: lowercase;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: center;
 }
 
 /* ── Nhóm phiên âm & Nút Audio ── */
@@ -328,6 +369,10 @@
   gap: var(--spacing-md);
 }
 
+.vocabulary-flashcard:not(.vocabulary-flashcard--compact) .flashcard-details {
+  flex: 0 0 auto;
+}
+
 .flashcard-section {
   display: flex;
   align-items: flex-start;
@@ -338,6 +383,10 @@
   padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--radius-sm, 8px);
   border: 1px solid var(--color-outline-variant);
+}
+
+.flashcard-section > div {
+  min-width: 0;
 }
 
 .flashcard-section .material-symbols-outlined {
@@ -362,6 +411,7 @@
   color: var(--color-text-body);
   font-size: var(--font-size-body-lg);
   line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 
 .flashcard-example-en {
@@ -371,6 +421,7 @@
   line-height: 1.5;
   margin: 0 0 4px 0;
   color: var(--color-text-high);
+  overflow-wrap: anywhere;
 }
 
 .flashcard-example-vi {
@@ -378,13 +429,14 @@
   color: var(--color-text-body);
   font-size: var(--font-size-body-lg);
   line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 
 /* ── Responsive Mobile (<= 640px) ── */
 @media (max-width: 640px) {
   .vocabulary-flashcard:not(.vocabulary-flashcard--compact) {
-    height: 68vh;
-    min-height: 480px;
+    height: clamp(260px, 68svh, 640px);
+    min-height: 0;
   }
 
   .flashcard-front,

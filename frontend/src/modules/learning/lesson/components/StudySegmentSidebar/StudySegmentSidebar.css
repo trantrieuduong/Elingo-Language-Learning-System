@@ -84,7 +84,11 @@
   border: 1px solid transparent;
   text-align: left;
   cursor: pointer;
-  transition: transform var(--transition-base), background var(--transition-base), border-color var(--transition-base), box-shadow var(--transition-base);
+  transition:
+    transform var(--transition-base),
+    background var(--transition-base),
+    border-color var(--transition-base),
+    box-shadow var(--transition-base);
   width: 100%;
   font-family: inherit;
 }

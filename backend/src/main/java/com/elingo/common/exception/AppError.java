@@ -71,7 +71,6 @@ public enum AppError {
     DECK_NOT_FOUND("DECK_NOT_FOUND", "Vocabulary deck not found or has not been published", HttpStatus.NOT_FOUND),
     DECK_SLUG_EXISTED("DECK_SLUG_EXISTED", "Deck slug already exists", HttpStatus.BAD_REQUEST),
     DECK_ACCESS_DENIED("DECK_ACCESS_DENIED", "You do not have permission to access this deck", HttpStatus.FORBIDDEN),
-    DECK_PREMIUM_REQUIRED("DECK_PREMIUM_REQUIRED", "This deck requires a premium subscription. Please upgrade your subscription to continue learning", HttpStatus.FORBIDDEN),
     DECK_EMPTY("DECK_EMPTY", "Deck contains no cards", HttpStatus.BAD_REQUEST),
     TOPIC_NOT_FOUND("TOPIC_NOT_FOUND", "Topic not found", HttpStatus.NOT_FOUND),
     TOPIC_SLUG_EXISTED("TOPIC_SLUG_EXISTED", "Topic slug already exists in this deck", HttpStatus.BAD_REQUEST),

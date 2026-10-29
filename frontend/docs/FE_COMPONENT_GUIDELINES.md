@@ -21,7 +21,7 @@
 | Component | Vị trí | Lý do |
 |---|---|---|
 | `Input` | `src/components/Input/` | Dùng ở auth, profile, admin, community... |
-| `Modal` | `src/components/Modal/` | Dùng ở mọi nơi cần confirm |
+| `ConfirmModal` | `src/components/ConfirmModal/` | Dùng để xác nhận hành động |
 | `Pagination` | `src/components/Pagination/` | Dùng ở mọi trang list |
 | `Filter` | `src/components/Filter/` | Dùng ở lesson list, flashcard list, vocabulary... |
 | `Header` | `src/components/Header/` | App-level, dùng ở tất cả public routes |
@@ -65,7 +65,7 @@ LessonCard/
 |---|---|---|
 | Page | `PascalCase + Page` | `LoginPage`, `LessonListPage` |
 | Layout | `PascalCase + Layout` | `AdminLayout` |
-| Shared (no business) | `PascalCase` | `Input`, `Modal`, `Pagination` |
+| Shared (no business) | `PascalCase` | `Input`, `ConfirmModal`, `Pagination` |
 | Feature component | `PascalCase` mô tả rõ vai trò | `LessonCard`, `FlashCard`, `BattleTimer` |
 | Context | `PascalCase + Context` | `BattleSocketContext` |
 
@@ -112,7 +112,6 @@ export default ComponentName
 | Prop | Kiểu | Dùng khi |
 |---|---|---|
 | `onNavigate` | `Function` | Component cần navigate đến trang khác |
-| `id` | `string` | Tất cả `<Input>` — bắt buộc cho a11y |
 
 ### 5.2 Default values
 
@@ -132,7 +131,7 @@ if (onNavigate) onNavigate('/path')
 ### 5.4 Không pass props thừa xuống DOM
 
 ```jsx
-// BAD — aria-* và data-* spread xuống DOM element có thể gây warning
+// BAD — spread toàn bộ props xuống DOM element có thể gây warning
 function Input({ id, label, error, ...props }) {
   return <input {...props} />  // props có thể chứa thứ không phải DOM attribute
 }
@@ -216,10 +215,10 @@ function Input({ id, label, type, value, onChange, error, disabled, autoFocus, .
 />
 ```
 
-### 7.2 `<Modal>` — `src/components/Modal/`
+### 7.2 `<ConfirmModal>` — `src/components/ConfirmModal/`
 
 ```jsx
-<Modal
+<ConfirmModal
   isOpen={isDeleteModalOpen}
   title="Xác nhận xóa"
   message="Bạn có chắc muốn xóa bài học này không?"
@@ -267,7 +266,47 @@ function Input({ id, label, type, value, onChange, error, disabled, autoFocus, .
 <Footer onNavigate={navigate} />
 ```
 
-### 7.7 Header, footer và active state
+### 7.7 `<EmptyState>` — `src/components/EmptyState/`
+
+```jsx
+// Trạng thái lỗi tải dữ liệu
+<EmptyState
+  icon="error"
+  isError={true}
+  description={error}
+  actionLabel={t('common:retry')}
+  onAction={handleRetry}
+/>
+
+// Trạng thái danh sách rỗng
+<EmptyState
+  icon="inbox"
+  title="Chưa có dữ liệu"
+  description="Hiện tại chưa có mục nào trong danh sách."
+  actionLabel="Tạo mới"
+  actionVariant="primary"
+  onAction={handleCreate}
+/>
+```
+
+### 7.8 `<PageLoading>` — `src/components/PageLoading/`
+
+```jsx
+<PageLoading />
+```
+
+Dùng cho trạng thái tải toàn trang hoặc một vùng nội dung.
+
+### 7.9 `<Toast>` — `src/components/Toast/`
+
+```jsx
+<Toast message={message} onDismiss={handleDismiss} />
+<Toast message={error} variant="error" onDismiss={handleDismiss} />
+```
+
+Toast dùng chung vị trí cố định phía trên bên phải, ngay dưới Header, tự ẩn sau 3 giây và hỗ trợ biến thể `success`/`error`.
+
+### 7.10 Header, footer và active state
 
 - `Header` và `Footer` được render từ `App.jsx` cho public/user routes; page không tự render thêm bản sao.
 - `Header` nhận `currentPath` để thể hiện route hiện tại. Với cặp action đăng nhập/đăng ký, action của route đang mở dùng `.btn-primary`, action còn lại dùng `.btn-secondary`.

@@ -1,1 +1,23 @@
-@import './FlashcardStudyPage.css';
+.flashcard-review-item {
+  cursor: default;
+}
+
+@media (min-width: 1024px) {
+  .flashcard-review-layout {
+    grid-template-columns: 320px minmax(0, 1fr);
+    width: 100%;
+  }
+
+  .flashcard-review-layout .flashcard-header-bar {
+    grid-column: 1;
+  }
+
+  .flashcard-review-layout .flashcard-global-progress {
+    grid-column: 2;
+  }
+
+  .flashcard-review-layout .flashcard-main-content {
+    grid-column: 2;
+    width: 100%;
+  }
+}

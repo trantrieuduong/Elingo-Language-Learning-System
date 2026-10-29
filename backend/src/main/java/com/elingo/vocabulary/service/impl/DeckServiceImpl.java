@@ -33,7 +33,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -70,6 +69,18 @@ public class DeckServiceImpl implements DeckService {
         return PageResponse.of(page.map(deck -> deckMapper.toDeckResponse(deck,
                 userId == null ? null : learned.getOrDefault(deck.getId(), 0)))
         );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public DeckResponse getDeckById(Long deckId, Long userId) {
+        DeckRepository.DeckAccessView deckAccess = deckRepository.findAccessViewById(deckId)
+                .orElseThrow(() -> new AppException(AppError.DECK_NOT_FOUND));
+        accessPolicy.assertCanView(deckAccess, userId);
+
+        Deck deck = deckRepository.findById(deckId)
+                .orElseThrow(() -> new AppException(AppError.DECK_NOT_FOUND));
+        return deckMapper.toDeckResponse(deck);
     }
 
     @Override

@@ -44,9 +44,9 @@ frontend/src/
 │   ├── Input/
 │   │   ├── Input.jsx
 │   │   └── Input.css
-│   ├── Modal/
-│   │   ├── Modal.jsx
-│   │   └── Modal.css
+│   ├── ConfirmModal/
+│   │   ├── ConfirmModal.jsx
+│   │   └── ConfirmModal.css
 │   ├── Pagination/
 │   │   ├── Pagination.jsx
 │   │   └── Pagination.css
@@ -152,7 +152,7 @@ frontend/src/
 |---|---|---|
 | Page component | `PascalCase + Page` suffix | `LoginPage`, `LessonListPage` |
 | Layout component | `PascalCase + Layout` suffix | `AdminLayout` |
-| Shared component | `PascalCase` không suffix | `Input`, `Modal`, `Pagination` |
+| Shared component | `PascalCase` không suffix | `Input`, `ConfirmModal`, `Pagination` |
 | Feature component | `PascalCase` mô tả vai trò | `LessonCard`, `FlashCard`, `BattleScoreBoard` |
 
 ### 3.3 Function & Variable

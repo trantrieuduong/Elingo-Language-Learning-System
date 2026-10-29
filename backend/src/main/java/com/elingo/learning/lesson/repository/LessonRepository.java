@@ -8,5 +8,6 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import java.util.Optional;
 
 public interface LessonRepository extends JpaRepository<Lesson, Long>, JpaSpecificationExecutor<Lesson> {
+    Optional<Lesson> findByIdAndStatus(Long id, LessonStatus status);
     Optional<Lesson> findBySlugAndStatus(String slug, LessonStatus status);
 }

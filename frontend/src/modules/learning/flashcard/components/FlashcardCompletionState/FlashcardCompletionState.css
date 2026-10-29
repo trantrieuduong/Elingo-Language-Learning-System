@@ -1,0 +1,15 @@
+.flashcard-completion-state {
+  color: var(--color-text-disabled);
+}
+
+.flashcard-completion-state__icon {
+  margin-bottom: var(--spacing-md);
+  font-size: 48px;
+}
+
+.flashcard-completion-state__icon--success {
+  color: var(--color-success);
+}
+.flashcard-completion-state__message {
+  margin-top: var(--spacing-sm);
+}

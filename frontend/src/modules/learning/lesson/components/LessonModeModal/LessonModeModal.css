@@ -112,7 +112,10 @@
   text-align: left;
   cursor: pointer;
   width: 100%;
-  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+  transition:
+    transform var(--transition-base),
+    box-shadow var(--transition-base),
+    border-color var(--transition-base);
   outline: none;
 }
 
@@ -122,7 +125,9 @@
 }
 
 .lesson-mode-card:focus-visible {
-  box-shadow: 0 0 0 3px var(--color-primary-container), var(--shadow-card-hover);
+  box-shadow:
+    0 0 0 3px var(--color-primary-container),
+    var(--shadow-card-hover);
 }
 
 .lesson-mode-card__icon-wrapper {

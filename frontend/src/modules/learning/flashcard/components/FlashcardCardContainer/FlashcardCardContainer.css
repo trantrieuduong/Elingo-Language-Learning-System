@@ -1,0 +1,77 @@
+.flashcard-card-container {
+  position: relative;
+  width: 100%;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+.flashcard-card-actions {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  pointer-events: auto;
+}
+
+.flashcard-card-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  backdrop-filter: var(--blur-md);
+  -webkit-backdrop-filter: var(--blur-md);
+  color: var(--color-on-surface-variant);
+  cursor: pointer;
+  transition: var(--transition-base);
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+.flashcard-card-btn:focus {
+  outline: none;
+}
+
+.flashcard-card-btn:hover:not(:disabled) {
+  transform: scale(1.08);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  color: var(--color-on-surface);
+}
+
+.flashcard-card-btn-learned {
+  color: var(--color-success);
+}
+
+.flashcard-card-btn-learned:hover:not(:disabled) {
+  background: rgba(220, 252, 231, 0.9);
+  color: var(--color-pastel-mint-text);
+}
+
+[data-theme='dark'] .flashcard-card-btn-learned {
+  color: var(--color-success);
+}
+
+[data-theme='dark'] .flashcard-card-btn-learned:hover:not(:disabled) {
+  background: rgba(20, 83, 45, 0.8);
+  color: var(--color-pastel-mint-text);
+}
+
+[data-theme='dark'] .flashcard-card-btn {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(30, 48, 71, 0.85);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  color: var(--color-on-surface-variant);
+}
+
+[data-theme='dark'] .flashcard-card-btn:hover:not(:disabled) {
+  background: rgba(43, 68, 99, 0.95);
+  color: var(--color-on-surface);
+}

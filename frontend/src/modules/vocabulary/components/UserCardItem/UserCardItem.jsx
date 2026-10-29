@@ -1,27 +1,17 @@
-import { useTranslation } from 'react-i18next'
-import VocabularyFlashCard from '../../../../components/VocabularyFlashCard/VocabularyFlashCard'
-import './UserCardItem.css'
+import { useTranslation } from 'react-i18next';
+import VocabularyFlashCard from '../../../../components/VocabularyFlashCard/VocabularyFlashCard';
+import FlashcardStarButton from '../../../../components/FlashcardStarButton/FlashcardStarButton';
+import './UserCardItem.css';
 
-function UserCardItem({ card, onEdit, onDelete }) {
-  const { t } = useTranslation(['learning', 'common'])
+function UserCardItem({ card, onEdit, onDelete, onToggleStar, isStarProcessing = false }) {
+  const { t } = useTranslation(['learning', 'common']);
+  const isStarred = Boolean(card.state?.starred);
 
-  const frontMeta = (
-    <>
-      <span className="badge badge--default">{card.topicName}</span>
-      <span className="user-card-item__meta-trailing">
-        <span className="user-card-item__order text-body-sm">
-          {t('userCards.cardOrder', { order: card.order })}
-        </span>
-        {(card.state?.starred || card.flagsStarred) && (
-          <span className="user-card-item__star" aria-label={t('userCards.starred')}>
-            <span className="material-symbols-outlined" aria-hidden="true">
-              star
-            </span>
-          </span>
-        )}
-      </span>
-    </>
-  )
+  const frontMeta = isStarred ? (
+    <span className="user-card-item__star">
+      <span className="material-symbols-outlined">star</span>
+    </span>
+  ) : null;
 
   return (
     <article className="user-card-item glass-card">
@@ -33,31 +23,31 @@ function UserCardItem({ card, onEdit, onDelete }) {
       />
 
       <div className="user-card-item__actions">
+        <FlashcardStarButton
+          isStarred={isStarred}
+          isProcessing={isStarProcessing}
+          onToggle={() => onToggleStar?.(card)}
+          className="user-card-item__star-toggle"
+        />
         <button
           type="button"
           className="btn-icon"
           onClick={() => onEdit?.(card)}
-          aria-label={t('userCards.editCard', { term: card.term })}
           title={t('common:edit')}
         >
-          <span className="material-symbols-outlined" aria-hidden="true">
-            edit
-          </span>
+          <span className="material-symbols-outlined">edit</span>
         </button>
         <button
           type="button"
           className="btn-icon user-card-item__delete"
           onClick={() => onDelete?.(card)}
-          aria-label={t('userCards.deleteCard', { term: card.term })}
           title={t('common:delete')}
         >
-          <span className="material-symbols-outlined" aria-hidden="true">
-            delete
-          </span>
+          <span className="material-symbols-outlined">delete</span>
         </button>
       </div>
     </article>
-  )
+  );
 }
 
-export default UserCardItem
+export default UserCardItem;

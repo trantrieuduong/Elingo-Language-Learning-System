@@ -88,7 +88,7 @@ function LandingPage({ onNavigate }) {
                 <i />
                 {t('hero.preview.chip')}
               </span>
-              <button className="btn-icon" aria-label={t('hero.preview.saveLesson')}>
+              <button className="btn-icon">
                 <span className="material-symbols-outlined">bookmark</span>
               </button>
             </div>
@@ -103,7 +103,9 @@ function LandingPage({ onNavigate }) {
                   <span className="material-symbols-outlined">volume_up</span>
                   {t('hero.preview.listenBtn')}
                 </button>
-                <button className="landing-page__small-button glass-thumb">{t('hero.preview.exampleBtn')}</button>
+                <button className="landing-page__small-button glass-thumb">
+                  {t('hero.preview.exampleBtn')}
+                </button>
               </div>
             </div>
             <div className="landing-hero__metrics">
@@ -123,7 +125,7 @@ function LandingPage({ onNavigate }) {
       </section>
 
       {/* ── MODE SWITCHER ── */}
-      <section className="landing-mode container" aria-label={t('modes.ariaLabel')}>
+      <section className="landing-mode container">
         <div className="landing-mode__switcher glass-capsule">
           {MODES.map((mode) => (
             <button
@@ -292,13 +294,16 @@ function LandingPage({ onNavigate }) {
           </button>
           <div className="landing-final-cta__benefits">
             <span className="glass-thumb">
-              <i className="material-symbols-outlined">verified</i>{t('cta.benefit1')}
+              <i className="material-symbols-outlined">verified</i>
+              {t('cta.benefit1')}
             </span>
             <span className="glass-thumb">
-              <i className="material-symbols-outlined">credit_card_off</i>{t('cta.benefit2')}
+              <i className="material-symbols-outlined">credit_card_off</i>
+              {t('cta.benefit2')}
             </span>
             <span className="glass-thumb">
-              <i className="material-symbols-outlined">lock_reset</i>{t('cta.benefit3')}
+              <i className="material-symbols-outlined">lock_reset</i>
+              {t('cta.benefit3')}
             </span>
           </div>
         </div>
@@ -441,9 +446,21 @@ function CommunityPost({ initials, name, time, text, likes, comments, commentsLa
   );
 }
 
-function PlanCard({ name, price, period, description, features, popularLabel, buttonLabel, isPro = false, onClick }) {
+function PlanCard({
+  name,
+  price,
+  period,
+  description,
+  features,
+  popularLabel,
+  buttonLabel,
+  isPro = false,
+  onClick,
+}) {
   return (
-    <article className={`landing-plan ${isPro ? 'landing-plan--pro glass-pro glass-sheen' : 'glass-card'}`}>
+    <article
+      className={`landing-plan ${isPro ? 'landing-plan--pro glass-pro glass-sheen' : 'glass-card'}`}
+    >
       <span className="landing-plan__popular glass-thumb">{popularLabel}</span>
       <div>
         <div className="landing-plan__title">
@@ -455,12 +472,15 @@ function PlanCard({ name, price, period, description, features, popularLabel, bu
         </div>
         <p>{description}</p>
         <ul>
-          {Array.isArray(features) && features.map((feature) => (
-            <li key={feature}>
-              <span className="material-symbols-outlined">{isPro ? 'check_circle' : 'check'}</span>
-              {feature}
-            </li>
-          ))}
+          {Array.isArray(features) &&
+            features.map((feature) => (
+              <li key={feature}>
+                <span className="material-symbols-outlined">
+                  {isPro ? 'check_circle' : 'check'}
+                </span>
+                {feature}
+              </li>
+            ))}
         </ul>
       </div>
       <button className={isPro ? 'btn-primary' : 'btn-secondary'} onClick={onClick}>

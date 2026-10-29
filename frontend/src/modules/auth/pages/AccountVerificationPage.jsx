@@ -1,89 +1,89 @@
-import { useEffect, useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import Input from '../../../components/Input/Input'
-import { useAuth } from '../../../context/AuthContext'
-import './AuthPages.css'
+import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import Input from '../../../components/Input/Input';
+import { useAuth } from '../../../context/AuthContext';
+import './AuthPages.css';
 
-const OTP_RESEND_COOLDOWN = Number(import.meta.env.VITE_OTP_RESEND_COOLDOWN) || 60
+const OTP_RESEND_COOLDOWN = Number(import.meta.env.VITE_OTP_RESEND_COOLDOWN) || 60;
 
 function AccountVerificationPage({ email: initialEmail = '', onNavigate }) {
-  const { t } = useTranslation('auth')
-  const { verifyAccount, resendVerificationOtp } = useAuth()
-  const [otp, setOtp] = useState('')
-  const [otpError, setOtpError] = useState('')
-  const [error, setError] = useState('')
-  const [successMsg, setSuccessMsg] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isResending, setIsResending] = useState(false)
-  const [resendCooldown, setResendCooldown] = useState(0)
-  const redirectTimerRef = useRef(null)
+  const { t } = useTranslation('auth');
+  const { verifyAccount, resendVerificationOtp } = useAuth();
+  const [otp, setOtp] = useState('');
+  const [otpError, setOtpError] = useState('');
+  const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const redirectTimerRef = useRef(null);
 
   useEffect(() => {
-    if (resendCooldown <= 0) return undefined
-    const timer = setTimeout(() => setResendCooldown((seconds) => seconds - 1), 1000)
-    return () => clearTimeout(timer)
-  }, [resendCooldown])
+    if (resendCooldown <= 0) return undefined;
+    const timer = setTimeout(() => setResendCooldown((seconds) => seconds - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
 
-  useEffect(() => () => clearTimeout(redirectTimerRef.current), [])
+  useEffect(() => () => clearTimeout(redirectTimerRef.current), []);
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError('')
-    setSuccessMsg('')
+    e.preventDefault();
+    setError('');
+    setSuccessMsg('');
 
     if (!otp.trim()) {
-      setOtpError(t('otpRequired'))
-      return
+      setOtpError(t('otpRequired'));
+      return;
     }
 
     if (!initialEmail) {
-      setError(t('verifyError'))
-      return
+      setError(t('verifyError'));
+      return;
     }
 
-    setIsSubmitting(true)
-    const result = await verifyAccount(initialEmail, otp.trim())
-    setIsSubmitting(false)
+    setIsSubmitting(true);
+    const result = await verifyAccount(initialEmail, otp.trim());
+    setIsSubmitting(false);
 
     if (result.success) {
-      setSuccessMsg(result.message)
+      setSuccessMsg(result.message);
       redirectTimerRef.current = setTimeout(() => {
-        if (onNavigate) onNavigate('/login')
-      }, 800)
-      return
+        if (onNavigate) onNavigate('/login');
+      }, 800);
+      return;
     }
 
     // Xử lý lỗi field-specific
     if (result.code === 'OTP_INVALID') {
-      setOtpError(result.message)
+      setOtpError(result.message);
     } else {
-      setError(result.message)
+      setError(result.message);
     }
-  }
+  };
 
   const handleResendOtp = async () => {
-    if (!initialEmail || resendCooldown > 0) return
+    if (!initialEmail || resendCooldown > 0) return;
 
-    setError('')
-    setSuccessMsg('')
-    setIsResending(true)
-    const result = await resendVerificationOtp(initialEmail)
-    setIsResending(false)
+    setError('');
+    setSuccessMsg('');
+    setIsResending(true);
+    const result = await resendVerificationOtp(initialEmail);
+    setIsResending(false);
 
     if (result.success) {
-      setSuccessMsg(result.message)
-      setResendCooldown(OTP_RESEND_COOLDOWN)
-      return
+      setSuccessMsg(result.message);
+      setResendCooldown(OTP_RESEND_COOLDOWN);
+      return;
     }
 
-    setError(result.message)
-  }
+    setError(result.message);
+  };
 
   const formatCooldown = () => {
-    const minutes = Math.floor(resendCooldown / 60)
-    const seconds = resendCooldown % 60
-    return `${minutes}:${String(seconds).padStart(2, '0')}`
-  }
+    const minutes = Math.floor(resendCooldown / 60);
+    const seconds = resendCooldown % 60;
+    return `${minutes}:${String(seconds).padStart(2, '0')}`;
+  };
 
   return (
     <main className="auth-page">
@@ -108,9 +108,9 @@ function AccountVerificationPage({ email: initialEmail = '', onNavigate }) {
             placeholder="123456"
             value={otp}
             onChange={(e) => {
-              setOtp(e.target.value)
-              if (otpError) setOtpError('')
-              if (error) setError('')
+              setOtp(e.target.value);
+              if (otpError) setOtpError('');
+              if (error) setError('');
             }}
             disabled={isSubmitting}
             error={otpError}
@@ -119,7 +119,11 @@ function AccountVerificationPage({ email: initialEmail = '', onNavigate }) {
             autoFocus
           />
 
-          <button type="submit" className="btn-primary auth-submit" disabled={isSubmitting || !initialEmail}>
+          <button
+            type="submit"
+            className="btn-primary auth-submit"
+            disabled={isSubmitting || !initialEmail}
+          >
             {isSubmitting ? t('submittingVerify') : t('submitVerify')}
             {!isSubmitting && <span className="material-symbols-outlined">check_circle</span>}
           </button>
@@ -139,7 +143,7 @@ function AccountVerificationPage({ email: initialEmail = '', onNavigate }) {
         </button>
       </section>
     </main>
-  )
+  );
 }
 
-export default AccountVerificationPage
+export default AccountVerificationPage;
