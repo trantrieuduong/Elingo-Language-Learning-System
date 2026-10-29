@@ -11,6 +11,7 @@ import com.elingo.learning.lesson.service.LessonService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,7 +26,7 @@ public class LessonController {
     private final LessonService lessonService;
 
     @GetMapping
-    @Operation(summary = "Get all published lessons with optional filters (cefrLevelId, tagId, keyword) and pagination (9 items/page)")
+    @Operation(summary = "Get all published lessons with optional filters (cefrLevelIds, tagIds, keyword) and pagination (9 items/page)")
     public ApiResponse<PageResponse<LessonResponse>> getAllPublishedLessons(
             @ModelAttribute @Valid GetPublishedLessonsRequest request,
             @CurrentUserId Long userId) {
@@ -36,7 +37,31 @@ public class LessonController {
                 .build();
     }
 
-    @GetMapping("/{slug}")
+    @GetMapping("/{lessonId}")
+    @Operation(summary = "Get lesson detail by id (requires PUBLISHED status)")
+    public ApiResponse<LessonDetailResponse> getLessonById(
+            @PathVariable @Positive(message = "INVALID_REQUEST") Long lessonId,
+            @CurrentUserId Long userId) {
+        LessonDetailResponse response = lessonService.getLessonById(userId, lessonId);
+        return ApiResponse.<LessonDetailResponse>builder()
+                .success(true)
+                .data(response)
+                .build();
+    }
+
+    @GetMapping("/{lessonId}/segments")
+    @Operation(summary = "Get all segments of a lesson by id, ordered by startMs ascending")
+    public ApiResponse<List<LessonSegmentResponse>> getSegmentsByLessonId(
+            @PathVariable @Positive(message = "INVALID_REQUEST") Long lessonId,
+            @CurrentUserId Long userId) {
+        List<LessonSegmentResponse> response = lessonService.getSegmentsByLessonId(userId, lessonId);
+        return ApiResponse.<List<LessonSegmentResponse>>builder()
+                .success(true)
+                .data(response)
+                .build();
+    }
+
+    @GetMapping("/slug/{slug}")
     @Operation(summary = "Get lesson detail by slug (requires PUBLISHED status)")
     public ApiResponse<LessonDetailResponse> getLessonBySlug(
             @PathVariable String slug,
@@ -48,12 +73,12 @@ public class LessonController {
                 .build();
     }
 
-    @GetMapping("/{slug}/segments")
-    @Operation(summary = "Get all segments of a lesson ordered by startMs ascending")
-    public ApiResponse<List<LessonSegmentResponse>> getSegmentsByLesson(
+    @GetMapping("/slug/{slug}/segments")
+    @Operation(summary = "Get all segments of a lesson by slug, ordered by startMs ascending")
+    public ApiResponse<List<LessonSegmentResponse>> getSegmentsByLessonSlug(
             @PathVariable String slug,
             @CurrentUserId Long userId) {
-        List<LessonSegmentResponse> response = lessonService.getSegmentsByLesson(userId, slug);
+        List<LessonSegmentResponse> response = lessonService.getSegmentsByLessonSlug(userId, slug);
         return ApiResponse.<List<LessonSegmentResponse>>builder()
                 .success(true)
                 .data(response)

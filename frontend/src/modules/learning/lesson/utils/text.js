@@ -11,9 +11,9 @@
  * @returns {string[]} Mảng các từ đã tách
  */
 export const splitWords = (text) => {
-  if (!text || typeof text !== 'string') return []
-  return text.trim().split(/\s+/).filter(Boolean)
-}
+  if (!text || typeof text !== 'string') return [];
+  return text.trim().split(/\s+/).filter(Boolean);
+};
 
 /**
  * Làm sạch một từ: chuyển thành chữ thường, chỉ giữ lại các ký tự a-z và 0-9.
@@ -22,6 +22,6 @@ export const splitWords = (text) => {
  * @returns {string} Từ chỉ chứa ký tự chữ thường và số
  */
 export const cleanWord = (word) => {
-  if (!word || typeof word !== 'string') return ''
-  return word.toLowerCase().replace(/[^a-z0-9]/g, '')
-}
+  if (!word || typeof word !== 'string') return '';
+  return word.toLowerCase().replace(/[^a-z0-9]/g, '');
+};

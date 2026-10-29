@@ -16,7 +16,9 @@
     "test:unit": "vitest run tests/unit",
     "test:integration": "vitest run tests/integration",
     "test:coverage": "vitest run --coverage",
-    "test:watch": "vitest watch"
+    "test:watch": "vitest watch",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@huggingface/transformers": "^3.8.1",
@@ -39,6 +41,16 @@
     "oxlint": "^1.79.0",
     "prettier": "^3.9.6",
     "vite": "^8.2.2",
-    "vitest": "^5.0.2"
+    "vitest": "^5.0.2",
+    "storybook": "^10.6.3",
+    "@storybook/react-vite": "^10.6.3",
+    "@chromatic-com/storybook": "latest",
+    "@storybook/addon-vitest": "^10.6.3",
+    "@storybook/addon-a11y": "^10.6.3",
+    "@storybook/addon-docs": "^10.6.3",
+    "@storybook/addon-mcp": "^10.6.3",
+    "prop-types": "latest",
+    "@vitest/browser-playwright": "5.0.2",
+    "playwright": "latest"
   }
 }

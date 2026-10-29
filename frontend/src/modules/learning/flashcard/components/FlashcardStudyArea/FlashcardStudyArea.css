@@ -1,0 +1,5 @@
+.flashcard-study-area {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}

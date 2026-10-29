@@ -9,7 +9,10 @@
   cursor: pointer;
   padding: 0;
   border-radius: var(--radius-card);
-  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+  transition:
+    transform var(--transition-base),
+    box-shadow var(--transition-base),
+    border-color var(--transition-base);
   text-align: left;
   outline: none;
 }
@@ -20,7 +23,9 @@
 }
 
 .lesson-card:focus-visible {
-  box-shadow: 0 0 0 3px var(--color-primary-container), var(--shadow-card-hover);
+  box-shadow:
+    0 0 0 3px var(--color-primary-container),
+    var(--shadow-card-hover);
 }
 
 /* ── Thumbnail ── */

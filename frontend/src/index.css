@@ -143,7 +143,7 @@ ol {
   --color-glass-border-strong: rgba(255, 255, 255, 0.88);
   --color-glass-border-standard: rgba(255, 255, 255, 0.75);
   --color-glass-border-subtle: rgba(255, 255, 255, 0.65);
-  --color-glass-border-faint: rgba(255, 255, 255, 0.40);
+  --color-glass-border-faint: rgba(255, 255, 255, 0.4);
 
   /* ── Status Colors ── */
   --color-success: #1f5e4b;
@@ -215,20 +215,20 @@ ol {
   --space-16: 64px;
 
   /* ── Semantic Spacing ── */
-  --spacing-xs: var(--space-1);     /* 4px */
-  --spacing-sm: var(--space-2);     /* 8px */
-  --spacing-md: var(--space-4);     /* 16px */
-  --spacing-lg: var(--space-6);     /* 24px */
-  --spacing-xl: var(--space-8);     /* 32px */
-  --spacing-2xl: var(--space-10);   /* 40px */
-  --spacing-3xl: var(--space-12);   /* 48px */
+  --spacing-xs: var(--space-1); /* 4px */
+  --spacing-sm: var(--space-2); /* 8px */
+  --spacing-md: var(--space-4); /* 16px */
+  --spacing-lg: var(--space-6); /* 24px */
+  --spacing-xl: var(--space-8); /* 32px */
+  --spacing-2xl: var(--space-10); /* 40px */
+  --spacing-3xl: var(--space-12); /* 48px */
 
   /* ── Layout ── */
   --container-max: 1200px;
   --container-wide: 1480px;
-  --gutter: var(--space-8);         /* 32px desktop */
+  --gutter: var(--space-8); /* 32px desktop */
   --margin-desktop: var(--space-12); /* 48px */
-  --margin-mobile: var(--space-4);   /* 16px */
+  --margin-mobile: var(--space-4); /* 16px */
 
   /* ============================================================
      5. DESIGN TOKENS — Border Radius
@@ -240,11 +240,11 @@ ol {
   --radius-full: 9999px;
 
   /* ── Semantic Radius ── */
-  --radius-input: var(--radius-md);       /* Form inputs */
-  --radius-card: var(--radius-apple);     /* Standard cards */
+  --radius-input: var(--radius-md); /* Form inputs */
+  --radius-card: var(--radius-apple); /* Standard cards */
   --radius-card-lg: var(--radius-apple-lg); /* Large panels */
-  --radius-pill: var(--radius-full);      /* Buttons, pills, badges */
-  --radius-badge: var(--radius-full);     /* Chips, tags */
+  --radius-pill: var(--radius-full); /* Buttons, pills, badges */
+  --radius-badge: var(--radius-full); /* Chips, tags */
 
   /* ============================================================
      6. DESIGN TOKENS — Glass / Backdrop
@@ -256,6 +256,7 @@ ol {
   --glass-pill-bg: rgba(255, 255, 255, 0.52);
   --glass-card-bg: rgba(255, 255, 255, 0.48);
   --glass-capsule-bg: rgba(255, 255, 255, 0.42);
+  --glass-modal-bg: rgba(255, 255, 255, 0.88);
 
   /* ── Glass Blur ── */
   --blur-sm: blur(12px);
@@ -266,47 +267,43 @@ ol {
   --blur-3xl: blur(34px);
 
   /* ── Glass Shadows ── */
-  --shadow-well: inset 0 1.5px 3px rgba(155, 183, 232, 0.15),
-    inset 0 -1px 2px rgba(255, 255, 255, 0.8),
+  --shadow-well:
+    inset 0 1.5px 3px rgba(155, 183, 232, 0.15), inset 0 -1px 2px rgba(255, 255, 255, 0.8),
     0 2px 8px rgba(0, 0, 0, 0.02);
 
-  --shadow-thumb: inset 0 1.5px 2px #ffffff,
-    inset 0 -1.5px 2px rgba(155, 183, 232, 0.25),
-    0 4px 12px rgba(95, 125, 175, 0.24),
-    0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-thumb:
+    inset 0 1.5px 2px #ffffff, inset 0 -1.5px 2px rgba(155, 183, 232, 0.25),
+    0 4px 12px rgba(95, 125, 175, 0.24), 0 1px 3px rgba(0, 0, 0, 0.05);
 
-  --shadow-pill: inset 0 1.5px 2.5px rgba(255, 255, 255, 0.95),
-    inset 0 -1.5px 2px rgba(155, 183, 232, 0.2),
+  --shadow-pill:
+    inset 0 1.5px 2.5px rgba(255, 255, 255, 0.95), inset 0 -1.5px 2px rgba(155, 183, 232, 0.2),
     0 8px 24px -4px rgba(147, 168, 206, 0.25);
 
-  --shadow-pill-hover: inset 0 2px 3px rgba(255, 255, 255, 1),
-    0 12px 28px -4px rgba(135, 160, 205, 0.32);
+  --shadow-pill-hover:
+    inset 0 2px 3px rgba(255, 255, 255, 1), 0 12px 28px -4px rgba(135, 160, 205, 0.32);
 
-  --shadow-card: inset 0 2px 3px rgba(255, 255, 255, 0.95),
-    inset 0 -2px 4px rgba(155, 183, 232, 0.22),
-    inset 2px 0 3px rgba(255, 255, 255, 0.6),
-    inset -2px 0 3px rgba(255, 255, 255, 0.6),
-    0 14px 34px -6px rgba(147, 168, 206, 0.26),
-    0 4px 12px rgba(0, 0, 0, 0.03);
+  --shadow-card:
+    inset 0 2px 3px rgba(255, 255, 255, 0.95), inset 0 -2px 4px rgba(155, 183, 232, 0.22),
+    inset 2px 0 3px rgba(255, 255, 255, 0.6), inset -2px 0 3px rgba(255, 255, 255, 0.6),
+    0 14px 34px -6px rgba(147, 168, 206, 0.26), 0 4px 12px rgba(0, 0, 0, 0.03);
 
-  --shadow-card-hover: inset 0 2.5px 4px rgba(255, 255, 255, 1),
-    inset 0 -2px 4px rgba(155, 183, 232, 0.28),
-    0 22px 45px -8px rgba(130, 158, 206, 0.38),
-    0 6px 18px rgba(0, 0, 0, 0.05);
+  --shadow-card-hover:
+    inset 0 2.5px 4px rgba(255, 255, 255, 1), inset 0 -2px 4px rgba(155, 183, 232, 0.28),
+    0 22px 45px -8px rgba(130, 158, 206, 0.38), 0 6px 18px rgba(0, 0, 0, 0.05);
 
-  --shadow-capsule: inset 0 2.5px 3.5px rgba(255, 255, 255, 0.98),
-    inset 0 -2.5px 4px rgba(155, 183, 232, 0.28),
-    inset 2px 0 3px rgba(255, 255, 255, 0.7),
-    inset -2px 0 3px rgba(255, 255, 255, 0.7),
-    0 16px 36px -6px rgba(135, 160, 205, 0.32),
-    0 4px 14px rgba(0, 0, 0, 0.04);
+  --shadow-capsule:
+    inset 0 2.5px 3.5px rgba(255, 255, 255, 0.98), inset 0 -2.5px 4px rgba(155, 183, 232, 0.28),
+    inset 2px 0 3px rgba(255, 255, 255, 0.7), inset -2px 0 3px rgba(255, 255, 255, 0.7),
+    0 16px 36px -6px rgba(135, 160, 205, 0.32), 0 4px 14px rgba(0, 0, 0, 0.04);
 
-  --shadow-btn-primary: inset 0 2px 2px rgba(255, 255, 255, 0.5),
-    inset 0 -2px 3px rgba(0, 20, 50, 0.3),
+  --shadow-modal: 0 24px 64px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+
+  --shadow-btn-primary:
+    inset 0 2px 2px rgba(255, 255, 255, 0.5), inset 0 -2px 3px rgba(0, 20, 50, 0.3),
     0 12px 28px -5px rgba(58, 86, 128, 0.42);
 
-  --shadow-btn-primary-hover: inset 0 2.5px 3px rgba(255, 255, 255, 0.65),
-    0 16px 32px -5px rgba(58, 86, 128, 0.52);
+  --shadow-btn-primary-hover:
+    inset 0 2.5px 3px rgba(255, 255, 255, 0.65), 0 16px 32px -5px rgba(58, 86, 128, 0.52);
 
   /* ── Transition ── */
   --transition-fast: all 0.15s ease;
@@ -388,6 +385,7 @@ ol {
   --glass-pill-bg: rgba(29, 45, 66, 0.76);
   --glass-card-bg: rgba(24, 39, 59, 0.75);
   --glass-capsule-bg: rgba(24, 39, 59, 0.72);
+  --glass-modal-bg: rgba(24, 39, 59, 0.88);
   --shadow-well: inset 0 1px 2px rgba(161, 191, 232, 0.08), 0 2px 10px rgba(0, 0, 0, 0.2);
   --shadow-thumb: inset 0 1px 1px rgba(218, 231, 250, 0.12), 0 4px 12px rgba(0, 0, 0, 0.24);
   --shadow-pill: inset 0 1px 1px rgba(218, 231, 250, 0.12), 0 8px 24px rgba(0, 0, 0, 0.22);
@@ -395,8 +393,12 @@ ol {
   --shadow-card: inset 0 1px 2px rgba(218, 231, 250, 0.12), 0 14px 34px rgba(0, 0, 0, 0.28);
   --shadow-card-hover: inset 0 1px 2px rgba(218, 231, 250, 0.16), 0 22px 45px rgba(0, 0, 0, 0.36);
   --shadow-capsule: inset 0 1px 2px rgba(218, 231, 250, 0.13), 0 16px 36px rgba(0, 0, 0, 0.3);
-  --shadow-btn-primary: inset 0 1px 2px rgba(255, 255, 255, 0.26), inset 0 -2px 3px rgba(0, 16, 40, 0.35), 0 10px 24px rgba(0, 0, 0, 0.26);
-  --shadow-btn-primary-hover: inset 0 1px 2px rgba(255, 255, 255, 0.34), 0 14px 30px rgba(0, 0, 0, 0.34);
+  --shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+  --shadow-btn-primary:
+    inset 0 1px 2px rgba(255, 255, 255, 0.26), inset 0 -2px 3px rgba(0, 16, 40, 0.35),
+    0 10px 24px rgba(0, 0, 0, 0.26);
+  --shadow-btn-primary-hover:
+    inset 0 1px 2px rgba(255, 255, 255, 0.34), 0 14px 30px rgba(0, 0, 0, 0.34);
 }
 
 /* ── Mobile token overrides ── */
@@ -489,7 +491,8 @@ ol {
   backdrop-filter: var(--blur-3xl) saturate(210%);
   -webkit-backdrop-filter: var(--blur-3xl) saturate(210%);
   border: 1.8px solid rgba(255, 255, 255, 0.95);
-  box-shadow: inset 0 3px 4px rgba(255, 255, 255, 1),
+  box-shadow:
+    inset 0 3px 4px rgba(255, 255, 255, 1),
     inset 0 -3px 5px rgba(67, 95, 139, 0.25),
     inset 2.5px 0 3px rgba(255, 255, 255, 0.8),
     inset -2.5px 0 3px rgba(255, 255, 255, 0.8),
@@ -510,7 +513,12 @@ ol {
   left: -50%;
   width: 200%;
   height: 200%;
-  background: linear-gradient(60deg, transparent 42%, rgba(255, 255, 255, 0.38) 50%, transparent 58%);
+  background: linear-gradient(
+    60deg,
+    transparent 42%,
+    rgba(255, 255, 255, 0.38) 50%,
+    transparent 58%
+  );
   pointer-events: none;
   opacity: 0.75;
 }
@@ -618,6 +626,32 @@ ol {
   cursor: not-allowed;
 }
 
+/* Icon Button Modifiers */
+.btn-icon--edit {
+  color: var(--color-text-mid);
+}
+
+.btn-icon--edit:hover:not(:disabled) {
+  color: var(--color-on-surface);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.btn-icon--delete,
+.btn-icon--danger {
+  color: var(--color-error);
+}
+
+.btn-icon--delete:hover:not(:disabled),
+.btn-icon--danger:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--color-error);
+}
+
+[data-theme='dark'] .btn-icon--delete:hover:not(:disabled),
+[data-theme='dark'] .btn-icon--danger:hover:not(:disabled) {
+  background: rgba(255, 180, 171, 0.16);
+}
+
 /* ============================================================
    11. TYPOGRAPHY UTILITY CLASSES
    ============================================================ */
@@ -712,11 +746,21 @@ ol {
 }
 
 /* ── Semantic color helpers ── */
-.text-primary { color: var(--color-primary); }
-.text-on-surface { color: var(--color-on-surface); }
-.text-on-surface-variant { color: var(--color-on-surface-variant); }
-.text-error { color: var(--color-error); }
-.text-disabled { color: var(--color-text-disabled); }
+.text-primary {
+  color: var(--color-primary);
+}
+.text-on-surface {
+  color: var(--color-on-surface);
+}
+.text-on-surface-variant {
+  color: var(--color-on-surface-variant);
+}
+.text-error {
+  color: var(--color-error);
+}
+.text-disabled {
+  color: var(--color-text-disabled);
+}
 
 /* ============================================================
    12. AMBIENT ORB BACKGROUND SYSTEM
@@ -789,11 +833,26 @@ ol {
   background: linear-gradient(135deg, #101a29 0%, #15263b 52%, #20223b 100%);
 }
 
-[data-theme='dark'] .ambient-bg__orb--blue { background: #31547f; opacity: 0.34; }
-[data-theme='dark'] .ambient-bg__orb--lavender { background: #4a3d72; opacity: 0.3; }
-[data-theme='dark'] .ambient-bg__orb--mint { background: #285a54; opacity: 0.26; }
-[data-theme='dark'] .ambient-bg__orb--pink { background: #633d59; opacity: 0.24; }
-[data-theme='dark'] .ambient-bg__orb--ambient { background: #335b90; opacity: 0.22; }
+[data-theme='dark'] .ambient-bg__orb--blue {
+  background: #31547f;
+  opacity: 0.34;
+}
+[data-theme='dark'] .ambient-bg__orb--lavender {
+  background: #4a3d72;
+  opacity: 0.3;
+}
+[data-theme='dark'] .ambient-bg__orb--mint {
+  background: #285a54;
+  opacity: 0.26;
+}
+[data-theme='dark'] .ambient-bg__orb--pink {
+  background: #633d59;
+  opacity: 0.24;
+}
+[data-theme='dark'] .ambient-bg__orb--ambient {
+  background: #335b90;
+  opacity: 0.22;
+}
 
 /* ============================================================
    13. BADGE / CHIP UTILITY CLASSES
@@ -910,7 +969,11 @@ ol {
    16. MATERIAL SYMBOLS
    ============================================================ */
 .material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
   user-select: none;
 }
 

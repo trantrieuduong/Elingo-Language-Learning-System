@@ -153,6 +153,8 @@ background: linear-gradient(135deg, #f0f4fc 0%, #e8edf8 50%, #edeaf7 100%);
 | `.glass-capsule` | rgba(255,255,255,0.42) | 32px | Navbar, large panels, hero wrapper |
 | `.glass-pro` | gradient (white → #e1eeff) | 34px | Premium/featured cards |
 
+Modal dùng `--glass-modal-bg`, `--color-glass-border-strong` và `--shadow-modal` để có bề mặt glass rõ hơn và tự đổi theo dark theme.
+
 ### 6.2 Glass Layering Rules
 
 - **KHÔNG** đặt `.glass-capsule` bên trong `.glass-capsule` — dùng `.glass-well` cho inner content
@@ -163,7 +165,7 @@ background: linear-gradient(135deg, #f0f4fc 0%, #e8edf8 50%, #edeaf7 100%);
 
 Đặt `<div class="ambient-bg">` với 5 orbs cố định ở App level:
 ```jsx
-<div className="ambient-bg" aria-hidden="true">
+<div className="ambient-bg">
   <div className="ambient-bg__orb ambient-bg__orb--blue" />
   <div className="ambient-bg__orb ambient-bg__orb--lavender" />
   <div className="ambient-bg__orb ambient-bg__orb--mint" />

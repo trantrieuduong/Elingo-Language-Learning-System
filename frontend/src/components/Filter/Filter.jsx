@@ -1,26 +1,23 @@
-import { useTranslation } from 'react-i18next'
-import './Filter.css'
+import { useTranslation } from 'react-i18next';
+import './Filter.css';
 
-/**
- * Filter component — pill buttons cho lọc theo CEFR level và tag/category.
- * Dùng chung cho các trang có danh sách cần lọc.
- *
- * @param {Array} cefrLevels - [{_id, name}] — danh sách CEFR levels
- * @param {Array} tags - [{_id, name}] — danh sách tags/topics
- * @param {string|null} selectedCefrLevelId - ID CEFR đang chọn
- * @param {string|null} selectedTagId - ID tag đang chọn
- * @param {Function} onCefrChange - (id: string|null) => void
- * @param {Function} onTagChange - (id: string|null) => void
- */
 function Filter({
   cefrLevels = [],
   tags = [],
-  selectedCefrLevelId,
-  selectedTagId,
+  selectedCefrLevelIds = [],
+  selectedTagIds = [],
   onCefrChange,
   onTagChange,
 }) {
-  const { t } = useTranslation()
+  const { t } = useTranslation();
+
+  const handleToggle = (selectedIds, id, onChange) => {
+    onChange(
+      selectedIds.includes(id)
+        ? selectedIds.filter((selectedValue) => selectedValue !== id)
+        : [...selectedIds, id]
+    );
+  };
 
   return (
     <div className="filter-bar">
@@ -31,8 +28,8 @@ function Filter({
           <div className="filter-group__pills">
             <button
               type="button"
-              className={`filter-pill ${!selectedCefrLevelId ? 'filter-pill--active' : ''}`}
-              onClick={() => onCefrChange(null)}
+              className={`filter-pill ${selectedCefrLevelIds.length === 0 ? 'filter-pill--active' : ''}`}
+              onClick={() => onCefrChange([])}
             >
               {t('all')}
             </button>
@@ -40,8 +37,8 @@ function Filter({
               <button
                 key={level._id}
                 type="button"
-                className={`filter-pill ${selectedCefrLevelId === level._id ? 'filter-pill--active' : ''}`}
-                onClick={() => onCefrChange(level._id)}
+                className={`filter-pill ${selectedCefrLevelIds.includes(level._id) ? 'filter-pill--active' : ''}`}
+                onClick={() => handleToggle(selectedCefrLevelIds, level._id, onCefrChange)}
               >
                 {level.name}
               </button>
@@ -57,8 +54,8 @@ function Filter({
           <div className="filter-group__pills">
             <button
               type="button"
-              className={`filter-pill ${!selectedTagId ? 'filter-pill--active' : ''}`}
-              onClick={() => onTagChange(null)}
+              className={`filter-pill ${selectedTagIds.length === 0 ? 'filter-pill--active' : ''}`}
+              onClick={() => onTagChange([])}
             >
               {t('all')}
             </button>
@@ -66,8 +63,8 @@ function Filter({
               <button
                 key={tag._id}
                 type="button"
-                className={`filter-pill ${selectedTagId === tag._id ? 'filter-pill--active' : ''}`}
-                onClick={() => onTagChange(tag._id)}
+                className={`filter-pill ${selectedTagIds.includes(tag._id) ? 'filter-pill--active' : ''}`}
+                onClick={() => handleToggle(selectedTagIds, tag._id, onTagChange)}
               >
                 {tag.name}
               </button>
@@ -76,7 +73,7 @@ function Filter({
         </div>
       )}
     </div>
-  )
+  );
 }
 
-export default Filter
+export default Filter;

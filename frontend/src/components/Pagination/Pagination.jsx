@@ -1,5 +1,5 @@
-import { useTranslation } from 'react-i18next'
-import './Pagination.css'
+import { useTranslation } from 'react-i18next';
+import './Pagination.css';
 
 /**
  * Pagination component dùng chung toàn project.
@@ -11,49 +11,44 @@ import './Pagination.css'
  * @param {Function} onPageChange - Callback (page: number) => void
  */
 function Pagination({ currentPage, totalPages, onPageChange }) {
-  const { t } = useTranslation()
+  const { t } = useTranslation();
 
   // Không render nếu chỉ có 1 trang
-  if (!totalPages || totalPages <= 1) return null
+  if (!totalPages || totalPages <= 1) return null;
 
   const handleJump = (e) => {
     if (e.key === 'Enter') {
-      const page = parseInt(e.target.value, 10)
+      const page = parseInt(e.target.value, 10);
       if (page >= 1 && page <= totalPages) {
-        onPageChange(page)
-        e.target.value = ''
+        onPageChange(page);
+        e.target.value = '';
       }
     }
-  }
+  };
 
   // Tạo danh sách page numbers với ellipsis
   const getPages = () => {
-    const pages = []
-    const delta = 1 // Số trang hiển thị xung quanh currentPage
+    const pages = [];
+    const delta = 1; // Số trang hiển thị xung quanh currentPage
 
     for (let i = 1; i <= totalPages; i++) {
-      if (
-        i === 1 ||
-        i === totalPages ||
-        (i >= currentPage - delta && i <= currentPage + delta)
-      ) {
-        pages.push(i)
+      if (i === 1 || i === totalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
+        pages.push(i);
       } else if (pages[pages.length - 1] !== '...') {
-        pages.push('...')
+        pages.push('...');
       }
     }
-    return pages
-  }
+    return pages;
+  };
 
   return (
-    <nav className="pagination" aria-label={t('pagination.goTo')}>
+    <nav className="pagination">
       {/* Nút Previous */}
       <button
         type="button"
         className="pagination__btn btn-icon"
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage <= 1}
-        aria-label={t('pagination.prev')}
       >
         <span className="material-symbols-outlined">chevron_left</span>
       </button>
@@ -71,8 +66,6 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
               type="button"
               className={`pagination__page ${page === currentPage ? 'pagination__page--active' : ''}`}
               onClick={() => onPageChange(page)}
-              aria-label={t('pagination.page', { page })}
-              aria-current={page === currentPage ? 'page' : undefined}
             >
               {page}
             </button>
@@ -86,7 +79,6 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
         className="pagination__btn btn-icon"
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage >= totalPages}
-        aria-label={t('pagination.next')}
       >
         <span className="material-symbols-outlined">chevron_right</span>
       </button>
@@ -101,12 +93,11 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
             max={totalPages}
             placeholder={t('pagination.goTo')}
             onKeyDown={handleJump}
-            aria-label={t('pagination.goTo')}
           />
         </div>
       )}
     </nav>
-  )
+  );
 }
 
-export default Pagination
+export default Pagination;

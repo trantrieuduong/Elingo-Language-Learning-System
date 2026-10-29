@@ -27,8 +27,7 @@
   "modes": {
     "vocabulary": "Vocabulary",
     "dictation": "Dictation",
-    "shadowing": "Shadowing",
-    "ariaLabel": "Learning mode"
+    "shadowing": "Shadowing"
   },
   "overview": {
     "badge": "About ELINGO",

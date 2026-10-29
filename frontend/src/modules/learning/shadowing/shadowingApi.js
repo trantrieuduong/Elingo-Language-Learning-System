@@ -1,9 +1,10 @@
-import apiClient from '../../../services/apiClient'
+import apiClient from '../../../services/apiClient';
 
 /**
  * Cập nhật tiến độ Shadowing cho 1 segment trong bài học.
+ * Endpoint: PATCH /lessons/{lessonId}/segments/{segmentId}/shadowing-progress
  *
- * @param {string} slug - Slug của bài học (ví dụ: 'rick-astley-never-gonna-give-you-up')
+ * @param {number} lessonId - ID của bài học
  * @param {string|number} segmentId - ID của phân đoạn cần nộp điểm
  * @param {Object} payload - Dữ liệu chấm điểm Shadowing
  * @param {number} payload.attemptCount - Số lần thử hiện tại (1..1000)
@@ -12,10 +13,10 @@ import apiClient from '../../../services/apiClient'
  * @param {string} payload.audioUrl - verifiedFileKey nhận từ uploadFileForVerification
  * @returns {Promise<Object>} response.data chứa { score, passed, segmentProgress, lessonProgress }
  */
-export async function patchShadowingProgressApi(slug, segmentId, payload) {
+export async function patchShadowingProgressApi(lessonId, segmentId, payload) {
   const response = await apiClient.patch(
-    `/lessons/${encodeURIComponent(slug)}/segments/${encodeURIComponent(segmentId)}/shadowing-progress`,
+    `/lessons/${encodeURIComponent(lessonId)}/segments/${encodeURIComponent(segmentId)}/shadowing-progress`,
     payload
-  )
-  return response.data
+  );
+  return response.data;
 }

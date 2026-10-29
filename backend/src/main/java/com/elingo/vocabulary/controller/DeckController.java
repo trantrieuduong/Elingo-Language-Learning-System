@@ -33,13 +33,24 @@ public class DeckController {
     @Operation(summary = "Get all published decks with optional filters and pagination")
     public ApiResponse<PageResponse<DeckResponse>> getPublishedDecks(
             @ModelAttribute @Valid DeckSearchRequest request,
-            @PageableDefault(size = 20, sort = "publishedAt", direction = Sort.Direction.DESC) Pageable pageable,
+            @PageableDefault(size = 20, sort = {"publishedAt", "id"}, direction = Sort.Direction.DESC) Pageable pageable,
             @CurrentUserId Long currentUserId
     ) {
         PageResponse<DeckResponse> decks = deckService.getPublishedDecks(request, pageable, currentUserId);
         return ApiResponse.<PageResponse<DeckResponse>>builder()
                 .success(true)
                 .data(decks)
+                .build();
+    }
+
+    @GetMapping("/{deckId}")
+    @Operation(summary = "Get a deck by id")
+    public ApiResponse<DeckResponse> getDeckById(
+            @PathVariable @Positive(message = "INVALID_REQUEST") Long deckId,
+            @CurrentUserId Long currentUserId) {
+        return ApiResponse.<DeckResponse>builder()
+                .success(true)
+                .data(deckService.getDeckById(deckId, currentUserId))
                 .build();
     }
 

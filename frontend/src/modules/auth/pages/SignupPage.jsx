@@ -1,8 +1,8 @@
-import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import Input from '../../../components/Input/Input'
-import { useAuth } from '../../../context/AuthContext'
-import './AuthPages.css'
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import Input from '../../../components/Input/Input';
+import { useAuth } from '../../../context/AuthContext';
+import './AuthPages.css';
 
 const initialForm = {
   username: '',
@@ -10,82 +10,82 @@ const initialForm = {
   fullName: '',
   password: '',
   confirmPassword: '',
-}
+};
 
-const USERNAME_PATTERN = /^[A-Za-z0-9]{3,15}$/
+const USERNAME_PATTERN = /^[A-Za-z0-9]{3,15}$/;
 
 function SignupPage({ onNavigate }) {
-  const { t } = useTranslation('auth')
-  const { signup } = useAuth()
-  const [form, setForm] = useState(initialForm)
-  const [errors, setErrors] = useState({})
-  const [generalError, setGeneralError] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { t } = useTranslation('auth');
+  const { signup } = useAuth();
+  const [form, setForm] = useState(initialForm);
+  const [errors, setErrors] = useState({});
+  const [generalError, setGeneralError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validate = () => {
-    const newErrors = {}
-    if (!form.fullName.trim()) newErrors.fullName = t('fullNameRequired')
+    const newErrors = {};
+    if (!form.fullName.trim()) newErrors.fullName = t('fullNameRequired');
     if (!form.username.trim()) {
-      newErrors.username = t('usernameSignupRequired')
+      newErrors.username = t('usernameSignupRequired');
     } else if (!USERNAME_PATTERN.test(form.username)) {
-      newErrors.username = t('usernameSignupInvalid')
+      newErrors.username = t('usernameSignupInvalid');
     }
     if (!form.email.trim()) {
-      newErrors.email = t('emailRequired')
+      newErrors.email = t('emailRequired');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      newErrors.email = t('emailInvalid')
+      newErrors.email = t('emailInvalid');
     }
     if (!form.password) {
-      newErrors.password = t('passwordSignupRequired')
+      newErrors.password = t('passwordSignupRequired');
     } else if (!getPasswordRequirements(form.password).every((r) => r.isMet)) {
-      newErrors.password = t('passwordSignupInvalid')
+      newErrors.password = t('passwordSignupInvalid');
     }
     if (form.confirmPassword !== form.password) {
-      newErrors.confirmPassword = t('confirmPasswordMismatch')
+      newErrors.confirmPassword = t('confirmPasswordMismatch');
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleChange = (field, value) => {
-    setForm((prev) => ({ ...prev, [field]: value }))
+    setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: '' }))
+      setErrors((prev) => ({ ...prev, [field]: '' }));
     }
-    if (generalError) setGeneralError('')
-  }
+    if (generalError) setGeneralError('');
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setGeneralError('')
-    if (!validate()) return
+    e.preventDefault();
+    setGeneralError('');
+    if (!validate()) return;
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     const result = await signup({
       username: form.username.trim(),
       email: form.email.trim(),
       fullName: form.fullName.trim(),
       password: form.password,
-    })
-    setIsSubmitting(false)
+    });
+    setIsSubmitting(false);
 
     if (result.success) {
-      if (onNavigate) onNavigate('/account-verification', { email: form.email.trim() })
-      return
+      if (onNavigate) onNavigate('/account-verification', { email: form.email.trim() });
+      return;
     }
 
     // Xử lý validation errors từ backend
     if (result.errors && Array.isArray(result.errors)) {
-      const newErrors = {}
+      const newErrors = {};
       result.errors.forEach((err) => {
         if (err.field && err.message) {
-          newErrors[err.field] = err.message
+          newErrors[err.field] = err.message;
         }
-      })
+      });
       if (Object.keys(newErrors).length > 0) {
-        setErrors((prev) => ({ ...prev, ...newErrors }))
-        return
+        setErrors((prev) => ({ ...prev, ...newErrors }));
+        return;
       }
     }
 
@@ -93,20 +93,20 @@ function SignupPage({ onNavigate }) {
     const fieldErrorMap = {
       USERNAME_EXISTED: 'username',
       EMAIL_EXISTED: 'email',
-    }
+    };
 
-    const field = fieldErrorMap[result.code]
+    const field = fieldErrorMap[result.code];
     if (field) {
-      setErrors((prev) => ({ ...prev, [field]: result.message }))
+      setErrors((prev) => ({ ...prev, [field]: result.message }));
     } else {
-      setGeneralError(result.message)
+      setGeneralError(result.message);
     }
-  }
+  };
 
   const handleLoginClick = (e) => {
-    e.preventDefault()
-    if (onNavigate) onNavigate('/login')
-  }
+    e.preventDefault();
+    if (onNavigate) onNavigate('/login');
+  };
 
   return (
     <main className="auth-page">
@@ -199,7 +199,7 @@ function SignupPage({ onNavigate }) {
         </p>
       </section>
     </main>
-  )
+  );
 }
 
 function getPasswordRequirements(password) {
@@ -208,30 +208,32 @@ function getPasswordRequirements(password) {
     { key: 'case', isMet: /[A-Z]/.test(password) && /[a-z]/.test(password) },
     { key: 'number', isMet: /\d/.test(password) },
     { key: 'special', isMet: /[^A-Za-z0-9]/.test(password) },
-  ]
+  ];
 }
 
 function PasswordRequirements({ password, t }) {
-  const hasPasswordInput = password.length > 0
-  const requirements = getPasswordRequirements(password)
+  const hasPasswordInput = password.length > 0;
+  const requirements = getPasswordRequirements(password);
 
   return (
-    <ul className="auth-password-requirements" aria-label={t('passwordRequirements.title')}>
+    <ul className="auth-password-requirements">
       {requirements.map((req) => {
         const statusClass = !hasPasswordInput
           ? 'auth-password-requirements__item--neutral'
           : req.isMet
             ? 'auth-password-requirements__item--met'
-            : 'auth-password-requirements__item--unmet'
+            : 'auth-password-requirements__item--unmet';
         return (
           <li className={statusClass} key={req.key}>
-            <span className="material-symbols-outlined">{req.isMet ? 'check_circle' : 'cancel'}</span>
+            <span className="material-symbols-outlined">
+              {req.isMet ? 'check_circle' : 'cancel'}
+            </span>
             {t(`passwordRequirements.${req.key}`)}
           </li>
-        )
+        );
       })}
     </ul>
-  )
+  );
 }
 
-export default SignupPage
+export default SignupPage;

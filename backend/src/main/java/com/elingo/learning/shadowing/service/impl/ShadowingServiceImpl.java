@@ -52,9 +52,9 @@ public class ShadowingServiceImpl implements ShadowingService {
 
     @Override
     @Transactional
-    public SegmentSubmitResponse updateProgress(Long userId, String slug, Long segmentId, UpdateShadowingProgressRequest request) {
+    public SegmentSubmitResponse updateProgress(Long userId, Long lessonId, Long segmentId, UpdateShadowingProgressRequest request) {
         // 1. Kiểm tra quyền truy cập
-        Lesson lesson = lessonAccessService.validateLessonAccess(userId, slug);
+        Lesson lesson = lessonAccessService.validateLessonAccess(userId, lessonId);
 
         // 2. Tìm segment thuộc đúng lesson
         LessonSegment segment = lessonSegmentRepository.findByIdAndLessonId(segmentId, lesson.getId())

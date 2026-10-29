@@ -4,5 +4,5 @@ import com.elingo.learning.dictation.dto.request.UpdateDictationProgressRequest;
 import com.elingo.learning.lesson.dto.response.SegmentSubmitResponse;
 
 public interface DictationService {
-    SegmentSubmitResponse updateProgress(Long userId, String slug, Long segmentId, UpdateDictationProgressRequest request);
+    SegmentSubmitResponse updateProgress(Long userId, Long lessonId, Long segmentId, UpdateDictationProgressRequest request);
 }

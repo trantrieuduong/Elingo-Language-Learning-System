@@ -9,16 +9,16 @@
  */
 export class AudioRecorder {
   constructor({ maxDurationSec = 30, onAutoStop } = {}) {
-    this.maxDurationSec = Math.max(10, Math.min(60, maxDurationSec))
-    this.onAutoStop = onAutoStop
-    this.stream = null
-    this.audioContext = null
-    this.source = null
-    this.processor = null
-    this.recordedChunks = []
-    this.isRecording = false
-    this.timer = null
-    this.startTime = 0
+    this.maxDurationSec = Math.max(10, Math.min(60, maxDurationSec));
+    this.onAutoStop = onAutoStop;
+    this.stream = null;
+    this.audioContext = null;
+    this.source = null;
+    this.processor = null;
+    this.recordedChunks = [];
+    this.isRecording = false;
+    this.timer = null;
+    this.startTime = 0;
   }
 
   /**
@@ -26,12 +26,12 @@ export class AudioRecorder {
    * @returns {Promise<void>}
    */
   async start() {
-    if (this.isRecording) return
+    if (this.isRecording) return;
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      const err = new Error('NOT_SUPPORTED')
-      err.code = 'NOT_SUPPORTED'
-      throw err
+      const err = new Error('NOT_SUPPORTED');
+      err.code = 'NOT_SUPPORTED';
+      throw err;
     }
 
     try {
@@ -42,44 +42,44 @@ export class AudioRecorder {
           noiseSuppression: true,
           autoGainControl: true,
         },
-      })
+      });
     } catch (err) {
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-        const pErr = new Error('PERMISSION_DENIED')
-        pErr.code = 'PERMISSION_DENIED'
-        throw pErr
+        const pErr = new Error('PERMISSION_DENIED');
+        pErr.code = 'PERMISSION_DENIED';
+        throw pErr;
       }
-      throw err
+      throw err;
     }
 
-    const AudioContextClass = window.AudioContext || window.webkitAudioContext
-    this.audioContext = new AudioContextClass()
-    this.source = this.audioContext.createMediaStreamSource(this.stream)
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    this.audioContext = new AudioContextClass();
+    this.source = this.audioContext.createMediaStreamSource(this.stream);
 
     // Dùng buffer 4096 samples để thu thập PCM ở sampleRate hiện tại
-    this.processor = this.audioContext.createScriptProcessor(4096, 1, 1)
-    this.recordedChunks = []
-    this.isRecording = true
-    this.startTime = Date.now()
+    this.processor = this.audioContext.createScriptProcessor(4096, 1, 1);
+    this.recordedChunks = [];
+    this.isRecording = true;
+    this.startTime = Date.now();
 
     this.processor.onaudioprocess = (e) => {
-      if (!this.isRecording) return
-      const input = e.inputBuffer.getChannelData(0)
-      this.recordedChunks.push(new Float32Array(input))
-    }
+      if (!this.isRecording) return;
+      const input = e.inputBuffer.getChannelData(0);
+      this.recordedChunks.push(new Float32Array(input));
+    };
 
-    this.source.connect(this.processor)
-    this.processor.connect(this.audioContext.destination)
+    this.source.connect(this.processor);
+    this.processor.connect(this.audioContext.destination);
 
     // Tự động dừng khi vượt quá thời lượng tối đa
-    if (this.timer) clearTimeout(this.timer)
+    if (this.timer) clearTimeout(this.timer);
     this.timer = setTimeout(() => {
       if (this.isRecording) {
         if (typeof this.onAutoStop === 'function') {
-          this.onAutoStop()
+          this.onAutoStop();
         }
       }
-    }, this.maxDurationSec * 1000)
+    }, this.maxDurationSec * 1000);
   }
 
   /**
@@ -88,78 +88,78 @@ export class AudioRecorder {
    */
   async stop() {
     if (this.timer) {
-      clearTimeout(this.timer)
-      this.timer = null
+      clearTimeout(this.timer);
+      this.timer = null;
     }
 
-    this.isRecording = false
-    const durationSec = (Date.now() - this.startTime) / 1000
+    this.isRecording = false;
+    const durationSec = (Date.now() - this.startTime) / 1000;
 
-    const currentContextSampleRate = this.audioContext ? this.audioContext.sampleRate : 44100
-    const rawChunks = [...this.recordedChunks]
-    this.recordedChunks = []
+    const currentContextSampleRate = this.audioContext ? this.audioContext.sampleRate : 44100;
+    const rawChunks = [...this.recordedChunks];
+    this.recordedChunks = [];
 
-    this.cleanup()
+    this.cleanup();
 
     // Ghép các chunk lại thành một mảng Float32Array duy nhất
-    const totalLength = rawChunks.reduce((acc, c) => acc + c.length, 0)
-    const merged = new Float32Array(totalLength)
-    let offset = 0
+    const totalLength = rawChunks.reduce((acc, c) => acc + c.length, 0);
+    const merged = new Float32Array(totalLength);
+    let offset = 0;
     for (const chunk of rawChunks) {
-      merged.set(chunk, offset)
-      offset += chunk.length
+      merged.set(chunk, offset);
+      offset += chunk.length;
     }
 
     // Nếu thời lượng quá ngắn (< 0.5s), coi như không có âm thanh
     if (durationSec < 0.5 || totalLength === 0) {
-      return { audio16k: new Float32Array(0), durationSec }
+      return { audio16k: new Float32Array(0), durationSec };
     }
 
     // Resample về chuẩn 16000 Hz nếu sampleRate khác 16000
-    const audio16k = await resampleAudio(merged, currentContextSampleRate, 16000)
-    return { audio16k, durationSec }
+    const audio16k = await resampleAudio(merged, currentContextSampleRate, 16000);
+    return { audio16k, durationSec };
   }
 
   /**
    * Dọn dẹp tài nguyên phần cứng & AudioContext
    */
   cleanup() {
-    this.isRecording = false
+    this.isRecording = false;
     if (this.timer) {
-      clearTimeout(this.timer)
-      this.timer = null
+      clearTimeout(this.timer);
+      this.timer = null;
     }
 
     if (this.processor) {
       try {
-        this.processor.disconnect()
+        this.processor.disconnect();
       } catch {
         /* noop */
       }
-      this.processor = null
+      this.processor = null;
     }
 
     if (this.source) {
       try {
-        this.source.disconnect()
+        this.source.disconnect();
       } catch {
         /* noop */
       }
-      this.source = null
+      this.source = null;
     }
 
     if (this.stream) {
-      this.stream.getTracks().forEach((track) => track.stop())
-      this.stream = null
+      this.stream.getTracks().forEach((track) => track.stop());
+      this.stream = null;
     }
 
     if (this.audioContext && this.audioContext.state !== 'closed') {
       try {
-        this.audioContext.close()
+        this.audioContext.close();
       } catch {
         /* noop */
       }
-      this.audioContext = null
+      this.audioContext = null;
     }
   }
 }
@@ -173,21 +173,21 @@ export class AudioRecorder {
  */
 async function resampleAudio(audioData, origSampleRate, targetSampleRate = 16000) {
   if (origSampleRate === targetSampleRate) {
-    return audioData
+    return audioData;
   }
 
-  const OfflineCtxClass = window.OfflineAudioContext || window.webkitOfflineAudioContext
-  const targetLength = Math.round((audioData.length * targetSampleRate) / origSampleRate)
-  const offlineCtx = new OfflineCtxClass(1, targetLength, targetSampleRate)
+  const OfflineCtxClass = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+  const targetLength = Math.round((audioData.length * targetSampleRate) / origSampleRate);
+  const offlineCtx = new OfflineCtxClass(1, targetLength, targetSampleRate);
 
-  const buffer = offlineCtx.createBuffer(1, audioData.length, origSampleRate)
-  buffer.copyToChannel(audioData, 0)
+  const buffer = offlineCtx.createBuffer(1, audioData.length, origSampleRate);
+  buffer.copyToChannel(audioData, 0);
 
-  const source = offlineCtx.createBufferSource()
-  source.buffer = buffer
-  source.connect(offlineCtx.destination)
-  source.start(0)
+  const source = offlineCtx.createBufferSource();
+  source.buffer = buffer;
+  source.connect(offlineCtx.destination);
+  source.start(0);
 
-  const renderedBuffer = await offlineCtx.startRendering()
-  return renderedBuffer.getChannelData(0)
+  const renderedBuffer = await offlineCtx.startRendering();
+  return renderedBuffer.getChannelData(0);
 }

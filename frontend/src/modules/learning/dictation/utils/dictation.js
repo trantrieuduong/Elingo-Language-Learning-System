@@ -1,4 +1,4 @@
-import { cleanWord } from '../../lesson/utils/text'
+import { cleanWord } from '../../lesson/utils/text';
 
 /**
  * Tính toán trạng thái hiển thị của từng từ tham chiếu theo dữ liệu người dùng gõ.
@@ -18,8 +18,8 @@ import { cleanWord } from '../../lesson/utils/text'
  * @returns {Array<{ displayText: string, status: 'empty' | 'incorrect' | 'correct' | 'revealed' }>}
  */
 export const getWordStatuses = ({ refWords = [], userInput = '', revealedIndices = new Set() }) => {
-  const revealedSet = revealedIndices instanceof Set ? revealedIndices : new Set(revealedIndices)
-  const userWords = userInput.trim().split(/\s+/).filter(Boolean)
+  const revealedSet = revealedIndices instanceof Set ? revealedIndices : new Set(revealedIndices);
+  const userWords = userInput.trim().split(/\s+/).filter(Boolean);
 
   return refWords.map((refWord, index) => {
     // 1. Nếu từ đã được tiết lộ bằng nút gợi ý
@@ -27,28 +27,28 @@ export const getWordStatuses = ({ refWords = [], userInput = '', revealedIndices
       return {
         displayText: refWord,
         status: 'revealed',
-      }
+      };
     }
 
-    const cleanRef = cleanWord(refWord)
+    const cleanRef = cleanWord(refWord);
 
     // 2. Nếu từ tham chiếu toàn ký tự đặc biệt / rỗng sau khi làm sạch
     if (cleanRef.length === 0) {
       return {
         displayText: refWord,
         status: 'correct',
-      }
+      };
     }
 
-    const userWord = userWords[index] || ''
-    const cleanUser = cleanWord(userWord)
+    const userWord = userWords[index] || '';
+    const cleanUser = cleanWord(userWord);
 
     // 3. Người dùng chưa gõ tới từ này
     if (cleanUser.length === 0) {
       return {
         displayText: '*'.repeat(cleanRef.length),
         status: 'empty',
-      }
+      };
     }
 
     // 4. Người dùng gõ khớp chính xác hoàn toàn
@@ -56,28 +56,28 @@ export const getWordStatuses = ({ refWords = [], userInput = '', revealedIndices
       return {
         displayText: refWord,
         status: 'correct',
-      }
+      };
     }
 
     // 5. Người dùng đang gõ dở hoặc gõ sai: tìm độ dài chuỗi ký tự đầu khớp liên tục
-    let matchedLength = 0
+    let matchedLength = 0;
     for (let j = 0; j < cleanRef.length; j++) {
       if (j < cleanUser.length && cleanUser[j] === cleanRef[j]) {
-        matchedLength++
+        matchedLength++;
       } else {
-        break
+        break;
       }
     }
 
-    const visiblePart = cleanRef.slice(0, matchedLength)
-    const starredPart = '*'.repeat(cleanRef.length - matchedLength)
+    const visiblePart = cleanRef.slice(0, matchedLength);
+    const starredPart = '*'.repeat(cleanRef.length - matchedLength);
 
     return {
       displayText: visiblePart + starredPart,
       status: 'incorrect',
-    }
-  })
-}
+    };
+  });
+};
 
 /**
  * Kiểm tra xem tất cả các từ trong phân đoạn đã hoàn thành hay chưa.
@@ -87,6 +87,6 @@ export const getWordStatuses = ({ refWords = [], userInput = '', revealedIndices
  * @returns {boolean} true nếu toàn bộ từ đã đúng hoặc đã tiết lộ
  */
 export const isAllDone = (statuses = []) => {
-  if (!statuses || statuses.length === 0) return false
-  return statuses.every((w) => w.status === 'correct' || w.status === 'revealed')
-}
+  if (!statuses || statuses.length === 0) return false;
+  return statuses.every((w) => w.status === 'correct' || w.status === 'revealed');
+};
