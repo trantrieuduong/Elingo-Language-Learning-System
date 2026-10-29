@@ -1,6 +1,12 @@
 package com.elingo.user.controller;
 
+import com.elingo.common.annotation.CurrentUserId;
+import com.elingo.common.dto.CursorResponse;
 import com.elingo.common.service.RateLimiterService;
+import com.elingo.community.dto.response.AuthorResponse;
+import com.elingo.community.dto.response.PostResponse;
+import com.elingo.community.entity.PostStatus;
+import com.elingo.community.service.PostService;
 import com.elingo.user.dto.request.ChangePasswordRequest;
 import com.elingo.user.dto.request.SendOTPUpdateEmailRequest;
 import com.elingo.user.dto.request.SetPasswordRequest;
@@ -9,6 +15,10 @@ import com.elingo.user.dto.request.UpdateProfileRequest;
 import com.elingo.user.dto.response.UserMeResponse;
 import com.elingo.user.entity.Role;
 import com.elingo.user.service.UserService;
+import com.elingo.vocabulary.dto.response.DeckResponse;
+import com.elingo.vocabulary.entity.DeckStatus;
+import com.elingo.vocabulary.entity.OwnerType;
+import com.elingo.vocabulary.service.DeckService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,7 +37,10 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
-import com.elingo.common.annotation.CurrentUserId;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -41,6 +54,12 @@ class UserControllerTest {
 
     @Mock
     private UserService userService;
+
+    @Mock
+    private DeckService deckService;
+
+    @Mock
+    private PostService postService;
 
     @Mock
     private RateLimiterService limiter;
@@ -84,6 +103,120 @@ class UserControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.username").value("testuser"));
+        }
+    }
+
+    @Nested
+    @DisplayName("getMyDecks")
+    class GetMyDecksTests {
+
+        private DeckResponse buildDeckResponse(Long id, String title) {
+            return new DeckResponse(
+                    id,
+                    title,
+                    "deck-slug",
+                    "Deck description",
+                    false,
+                    null,
+                    DeckStatus.DRAFT,
+                    OwnerType.USER,
+                    USER_ID,
+                    0,
+                    0,
+                    0,
+                    null,
+                    Set.of(),
+                    Set.of()
+            );
+        }
+
+        @Test
+        @DisplayName("Get my decks successfully")
+        void getMyDecks_Success() throws Exception {
+            DeckResponse deck = buildDeckResponse(10L, "My Vocabulary Deck");
+            when(deckService.getUserDecks(USER_ID)).thenReturn(List.of(deck));
+
+            mockMvc.perform(get("/users/me/decks"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.length()").value(1))
+                    .andExpect(jsonPath("$.data[0].id").value(10))
+                    .andExpect(jsonPath("$.data[0].title").value("My Vocabulary Deck"));
+
+            verify(deckService).getUserDecks(USER_ID);
+        }
+
+        @Test
+        @DisplayName("Get my decks successfully when empty")
+        void getMyDecks_Success_Empty() throws Exception {
+            when(deckService.getUserDecks(USER_ID)).thenReturn(List.of());
+
+            mockMvc.perform(get("/users/me/decks"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.length()").value(0));
+
+            verify(deckService).getUserDecks(USER_ID);
+        }
+    }
+
+    @Nested
+    @DisplayName("getUserPosts")
+    class GetUserPostsTests {
+
+        private PostResponse buildPostResponse(Long id) {
+            return new PostResponse(
+                    id,
+                    1L,
+                    "Post Title",
+                    "Post Content",
+                    PostStatus.PUBLISHED,
+                    0,
+                    0,
+                    false,
+                    new AuthorResponse(USER_ID, "testuser", "Test User", null),
+                    List.of(),
+                    LocalDateTime.now(),
+                    LocalDateTime.now()
+            );
+        }
+
+        @Test
+        @DisplayName("Get user posts successfully with default parameters")
+        void getUserPosts_Success_DefaultParams() throws Exception {
+            PostResponse post = buildPostResponse(100L);
+            CursorResponse<PostResponse> responseMock = new CursorResponse<>(List.of(post), "cursorNext", true);
+
+            when(postService.getUserPosts(USER_ID, null, 20, USER_ID)).thenReturn(responseMock);
+
+            mockMvc.perform(get("/users/{id}/posts", USER_ID))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.items.length()").value(1))
+                    .andExpect(jsonPath("$.data.items[0].id").value(100))
+                    .andExpect(jsonPath("$.data.nextCursor").value("cursorNext"))
+                    .andExpect(jsonPath("$.data.hasMore").value(true));
+
+            verify(postService).getUserPosts(USER_ID, null, 20, USER_ID);
+        }
+
+        @Test
+        @DisplayName("Get user posts successfully with custom query parameters")
+        void getUserPosts_Success_CustomParams() throws Exception {
+            Long targetUserId = 2L;
+            CursorResponse<PostResponse> responseMock = new CursorResponse<>(List.of(), null, false);
+
+            when(postService.getUserPosts(targetUserId, "cursor123", 10, USER_ID)).thenReturn(responseMock);
+
+            mockMvc.perform(get("/users/{id}/posts", targetUserId)
+                            .param("cursor", "cursor123")
+                            .param("limit", "10"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.items.length()").value(0))
+                    .andExpect(jsonPath("$.data.hasMore").value(false));
+
+            verify(postService).getUserPosts(targetUserId, "cursor123", 10, USER_ID);
         }
     }
 
