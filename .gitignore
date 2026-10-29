@@ -60,8 +60,5 @@ dist-ssr
 *.sln
 *.sw?
 
-# Python
-__pycache__
-
 # Environment file
 .env
