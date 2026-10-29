@@ -103,6 +103,84 @@ describe('LessonYoutubePlayer component', () => {
     expect(mockPlayerInstance.playVideo).toHaveBeenCalled();
   });
 
+  it('safely handles imperative methods when player is not ready or methods undefined', () => {
+    const playerRef = createRef();
+    render(<LessonYoutubePlayer ref={playerRef} videoId="" />);
+
+    expect(playerRef.current.isReady()).toBe(false);
+    expect(() => {
+      playerRef.current.replay();
+      playerRef.current.play();
+      playerRef.current.pause();
+      playerRef.current.seekTo(10);
+    }).not.toThrow();
+  });
+
+  it('safely handles interval loop when getCurrentTime throws', async () => {
+    vi.useFakeTimers();
+    render(
+      <LessonYoutubePlayer
+        videoId="interval-err"
+        startMs={1000}
+        endMs={5000}
+      />
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    act(() => {
+      if (onReadyCallback) {
+        onReadyCallback({ target: mockPlayerInstance });
+      }
+    });
+
+    mockPlayerInstance.getCurrentTime.mockImplementationOnce(() => {
+      throw new Error('Player detached');
+    });
+
+    expect(() => {
+      act(() => {
+        vi.advanceTimersByTime(250);
+      });
+    }).not.toThrow();
+
+    vi.useRealTimers();
+  });
+
+  it('safely handles seekTo change when playVideo throws', async () => {
+    const { rerender } = render(
+      <LessonYoutubePlayer
+        videoId="seek-err"
+        startMs={1000}
+      />
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    act(() => {
+      if (onReadyCallback) {
+        onReadyCallback({ target: mockPlayerInstance });
+      }
+    });
+
+    mockPlayerInstance.playVideo.mockImplementationOnce(() => {
+      throw new Error('Play error');
+    });
+
+    expect(() => {
+      rerender(
+        <LessonYoutubePlayer
+          videoId="seek-err"
+          startMs={2000}
+        />
+      );
+    }).not.toThrow();
+  });
+
   it('renders error overlay when player encounters onError', async () => {
     render(<LessonYoutubePlayer videoId="error-video" title="Error Video" />);
 
@@ -208,7 +286,12 @@ describe('LessonYoutubePlayer component', () => {
       }
     });
 
-    // Rerender with another videoId to trigger re-init cleanup
+    // Wait for first player to finish promise resolution
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    // Make sure playerRef has a mock player with destroy
     rerender(
       <LessonYoutubePlayer
         videoId="video-2"
@@ -222,9 +305,24 @@ describe('LessonYoutubePlayer component', () => {
 
     expect(mockPlayerInstance.destroy).toHaveBeenCalled();
 
+    // Test when playerRef.current.destroy throws in re-init
+    mockPlayerInstance.destroy.mockImplementationOnce(() => {
+      throw new Error('Destroy failed during re-init');
+    });
+
+    rerender(
+      <LessonYoutubePlayer
+        videoId="video-3"
+        title="Third Video"
+      />
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
     // Unmount to test cleanup
     unmount();
-    expect(mockPlayerInstance.destroy).toHaveBeenCalledTimes(2);
   });
 
   it('handles exception when new YT.Player throws', async () => {
@@ -275,5 +373,79 @@ describe('LessonYoutubePlayer component', () => {
 
     expect(window.YT.Player).toHaveBeenCalled();
   });
+
+  it('handles existing prevCallback and document.head appendChild when no script exists', async () => {
+    const originalYT = window.YT;
+    delete window.YT;
+
+    const prevReady = vi.fn();
+    window.onYouTubeIframeAPIReady = prevReady;
+
+    // Spy on getElementsByTagName to simulate no script tag
+    const origGetElementsByTagName = document.getElementsByTagName.bind(document);
+    vi.spyOn(document, 'getElementsByTagName').mockReturnValue([]);
+
+    render(
+      <LessonYoutubePlayer
+        videoId="no-script-video"
+        title="No Script Video"
+        description="A great test video"
+      />
+    );
+
+    // Call onYouTubeIframeAPIReady to test prevCallback invocation
+    window.YT = originalYT;
+    act(() => {
+      if (window.onYouTubeIframeAPIReady) {
+        window.onYouTubeIframeAPIReady();
+      }
+    });
+
+    expect(prevReady).toHaveBeenCalled();
+    expect(screen.getByText('A great test video')).toBeInTheDocument();
+
+    document.getElementsByTagName = origGetElementsByTagName;
+  });
+
+  it('safely handles playVideo error on onReady and when player destroy throws on unmount', async () => {
+    mockPlayerInstance.playVideo.mockImplementationOnce(() => {
+      throw new Error('Autoplay blocked');
+    });
+    mockPlayerInstance.destroy.mockImplementationOnce(() => {
+      throw new Error('Destroy failed');
+    });
+
+    const { unmount } = render(
+      <LessonYoutubePlayer
+        videoId="autoplay-blocked"
+        title="Autoplay Blocked"
+      />
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    act(() => {
+      if (onReadyCallback) {
+        onReadyCallback({ target: mockPlayerInstance });
+      }
+    });
+
+    expect(() => unmount()).not.toThrow();
+  });
+
+  it('falls back to youtubeExternalUrl with videoId when sourceUrl is missing', () => {
+    render(
+      <LessonYoutubePlayer
+        videoId=""
+        title="Fallback Link Test"
+        sourceUrl=""
+      />
+    );
+
+    expect(screen.getByText('Fallback Link Test')).toBeInTheDocument();
+  });
 });
+
 

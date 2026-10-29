@@ -79,7 +79,7 @@ describe('LessonModeModal component', () => {
     expect(onClose).toHaveBeenCalledTimes(2);
   });
 
-  it('handles not started progress state appropriately', () => {
+  it('handles not started progress state and IN_PROGRESS with non-number pct', () => {
     const unstartedLesson = {
       id: 2,
       title: 'New lesson',
@@ -87,5 +87,53 @@ describe('LessonModeModal component', () => {
     };
     render(<LessonModeModal isOpen={true} lesson={unstartedLesson} />);
     expect(screen.getAllByText(/chưa học/i).length).toBeGreaterThan(0);
+
+    const inProgressWithoutPct = {
+      id: 3,
+      title: 'In progress lesson',
+      userProgress: {
+        dictationStatus: 'IN_PROGRESS',
+        dictationProgressPct: null,
+      },
+    };
+    render(<LessonModeModal isOpen={true} lesson={inProgressWithoutPct} />);
+    expect(screen.getByText(/0%/)).toBeInTheDocument();
+  });
+
+  it('handles overlay click and prevents close when modal dialog is clicked', async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+
+    render(<LessonModeModal isOpen={true} lesson={mockLesson} onClose={onClose} />);
+
+    // Click modal container inside overlay -> stopPropagation
+    const dialog = screen.getByRole('heading', { level: 2, name: /chọn chế độ học/i }).closest('.lesson-mode-modal');
+    await user.click(dialog);
+    expect(onClose).not.toHaveBeenCalled();
+
+    // Click modal overlay
+    const overlay = document.querySelector('.lesson-mode-modal-overlay');
+    await user.click(overlay);
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('supports keyboard navigation (Enter and Space) on dictation card', async () => {
+    const user = userEvent.setup();
+    const onSelectMode = vi.fn();
+
+    render(<LessonModeModal isOpen={true} lesson={mockLesson} onSelectMode={onSelectMode} />);
+
+    const dictationCard = screen.getByText('Dictation').closest('.lesson-mode-card');
+    dictationCard.focus();
+    await user.keyboard('{Enter}');
+    expect(onSelectMode).toHaveBeenCalledWith('dictation', mockLesson);
+
+    await user.keyboard(' ');
+    expect(onSelectMode).toHaveBeenCalledTimes(2);
+
+    // Other keys do nothing
+    await user.keyboard('{ArrowDown}');
+    expect(onSelectMode).toHaveBeenCalledTimes(2);
   });
 });
+

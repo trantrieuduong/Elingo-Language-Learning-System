@@ -27,9 +27,51 @@ describe('shadowing/whisper/modelConfig.js', () => {
       });
       expect(isMobileDevice()).toBe(true);
     });
+
+    it('detects navigator.userAgentData.mobile if defined', () => {
+      Object.defineProperty(navigator, 'userAgentData', {
+        value: { mobile: true },
+        configurable: true,
+      });
+      expect(isMobileDevice()).toBe(true);
+
+      Object.defineProperty(navigator, 'userAgentData', {
+        value: { mobile: false },
+        configurable: true,
+      });
+      expect(isMobileDevice()).toBe(false);
+
+      delete navigator.userAgentData;
+    });
+
+    it('detects mobile via matchMedia and small screen', () => {
+      window.matchMedia = vi.fn().mockImplementation((query) => ({
+        matches: query === '(pointer: coarse)',
+      }));
+      window.innerWidth = 500;
+
+      expect(isMobileDevice()).toBe(true);
+
+      window.innerWidth = 1024;
+      expect(isMobileDevice()).toBe(false);
+    });
+
+    it('handles missing userAgent fallback', () => {
+      Object.defineProperty(navigator, 'userAgent', {
+        value: '',
+        configurable: true,
+      });
+      window.matchMedia = undefined;
+      expect(isMobileDevice()).toBe(false);
+    });
   });
 
   describe('pickModelConfig', () => {
+    it('handles call with no arguments', () => {
+      const config = pickModelConfig();
+      expect(config.modelType).toBe('standard');
+      expect(config.modelId).toBe(MODEL_OPTIONS.STANDARD);
+    });
     it('picks standard model by default on desktop', () => {
       const config = pickModelConfig({ isMobile: false });
       expect(config.modelType).toBe('standard');
