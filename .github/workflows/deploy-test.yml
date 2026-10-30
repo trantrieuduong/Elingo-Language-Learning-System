@@ -77,10 +77,10 @@ jobs:
       - name: Sync compose + nginx config lên VPS
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          password: ${{ secrets.SERVER_PASSWORD }}
-          port: ${{ secrets.SERVER_PORT || 22 }}
+          host: ${{ secrets.PROD_SERVER_HOST }}
+          username: ${{ secrets.PROD_SERVER_USER }}
+          password: ${{ secrets.PROD_SERVER_PASSWORD }}
+          port: ${{ secrets.PROD_SERVER_PORT || 22 }}
           source: "backend/docker-compose.yml,backend/nginx/default.conf"
           target: /opt/elingo
           strip_components: 1
