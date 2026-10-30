@@ -5,6 +5,7 @@ import com.elingo.battle.entity.BattleMode;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
@@ -22,12 +23,17 @@ public class LiveMatch {
     private final int totalRounds;
     private final Long userAId;
     private final Long userBId;
-    private final Map<Long, Long> participantIds;       
-    private final List<LiveQuestion> questions;          
+    private final Map<Long, Long> participantIds;
+    private final List<LiveQuestion> questions;
     private final ReentrantLock lock = new ReentrantLock();
 
+    // Điểm số tích lũy - truy cập chỉ trong lock
+    private final Map<Long, Integer> scores = new HashMap<>();
+    private final Map<Long, Integer> correctCounts = new HashMap<>();
+
     @Setter private volatile BattleMatchStatus status = BattleMatchStatus.IN_PROGRESS;
-    @Setter private volatile ScheduledFuture<?> pendingFuture;   // timer đang chờ
+    @Setter private volatile ScheduledFuture<?> pendingFuture;
+    @Setter private LiveRound currentRound;
 
     public LiveMatch(Long matchId, BattleMode mode, int totalRounds,
                      Long userAId, Long userBId,
@@ -39,10 +45,19 @@ public class LiveMatch {
         this.userBId = userBId;
         this.participantIds = participantIds;
         this.questions = questions;
+        scores.put(userAId, 0);
+        scores.put(userBId, 0);
+        correctCounts.put(userAId, 0);
+        correctCounts.put(userBId, 0);
     }
 
-    public void lock() { lock.lock(); }
-    public void unlock() { lock.unlock(); }
+    public void lock() {
+        lock.lock();
+    }
+
+    public void unlock() {
+        lock.unlock();
+    }
 
     public boolean hasUser(Long userId) {
         return userAId.equals(userId) || userBId.equals(userId);
@@ -56,5 +71,19 @@ public class LiveMatch {
 
     public Long getParticipantId(Long userId) {
         return participantIds.get(userId);
+    }
+
+    // Cộng điểm cho userId (gọi trong lock)
+    public void addScore(Long userId, int points, boolean correct) {
+        scores.merge(userId, points, Integer::sum);
+        if (correct) correctCounts.merge(userId, 1, Integer::sum);
+    }
+
+    public int getScore(Long userId) {
+        return scores.getOrDefault(userId, 0);
+    }
+
+    public int getCorrectCount(Long userId) {
+        return correctCounts.getOrDefault(userId, 0);
     }
 }

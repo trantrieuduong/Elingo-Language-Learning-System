@@ -1,16 +1,12 @@
 package com.elingo.battle.service.impl;
 
 import com.elingo.battle.config.BattleProperties;
+import com.elingo.battle.dto.request.RoundAnswerRecord;
 import com.elingo.battle.dto.response.CreatedMatchResult;
 import com.elingo.battle.dto.response.PlayerResponse;
-import com.elingo.battle.entity.BattleMatch;
-import com.elingo.battle.entity.BattleMatchStatus;
-import com.elingo.battle.entity.BattleMatchType;
-import com.elingo.battle.entity.BattleMode;
-import com.elingo.battle.entity.BattleParticipant;
+import com.elingo.battle.entity.*;
 import com.elingo.battle.mapper.BattleMapper;
-import com.elingo.battle.repository.BattleMatchRepository;
-import com.elingo.battle.repository.BattleParticipantRepository;
+import com.elingo.battle.repository.*;
 import com.elingo.battle.service.BattleMatchPersistenceService;
 import com.elingo.battle.service.BattleQuestionService;
 import com.elingo.battle.state.LiveQuestion;
@@ -34,6 +30,9 @@ public class BattleMatchPersistenceServiceImpl implements BattleMatchPersistence
 
     private final BattleMatchRepository matchRepository;
     private final BattleParticipantRepository participantRepository;
+    private final BattleAnswerRepository answerRepository;
+    private final BattleQuestionRepository questionRepository;
+    private final BattleQuestionOptionRepository optionRepository;
     private final UserRepository userRepository;
     private final BattleMapper battleMapper;
     private final BattleProperties battleProperties;
@@ -81,5 +80,40 @@ public class BattleMatchPersistenceServiceImpl implements BattleMatchPersistence
             m.setStatus(status);
             matchRepository.save(m);
         });
+    }
+
+    @Override
+    @Transactional
+    public void saveRoundAnswers(List<RoundAnswerRecord> records) {
+        List<BattleAnswer> answers = new java.util.ArrayList<>();
+        for (RoundAnswerRecord r : records) {
+            answers.add(BattleAnswer.builder()
+                    .question(questionRepository.getReferenceById(r.questionId()))
+                    .participant(participantRepository.getReferenceById(r.participantId()))
+                    .selectedOption(r.selectedOptionId() == null ? null
+                            : optionRepository.getReferenceById(r.selectedOptionId()))
+                    .typedAnswer(r.typedAnswer())
+                    .isCorrect(r.correct())
+                    .responseTimeMs(r.responseTimeMs())
+                    .build());
+        }
+        answerRepository.saveAll(answers);
+    }
+
+    @Override
+    @Transactional
+    public void finishMatch(Long matchId, Long winnerUserId,
+                            Map<Long, Integer> scores, Map<Long, Integer> correctCounts) {
+        BattleMatch match = matchRepository.findById(matchId)
+                .orElseThrow(() -> new AppException(AppError.BATTLE_MATCH_NOT_FOUND));
+        for (BattleParticipant p : participantRepository.findByMatchIdWithUser(matchId)) {
+            Long uid = p.getUser().getId();
+            p.setScore(scores.getOrDefault(uid, 0));
+            p.setCorrectCount(correctCounts.getOrDefault(uid, 0));
+            p.setIsWinner(uid.equals(winnerUserId));
+        }
+        match.setStatus(BattleMatchStatus.FINISHED);
+        match.setFinishedAt(LocalDateTime.now());
+        if (winnerUserId != null) match.setWinner(userRepository.getReferenceById(winnerUserId));
     }
 }

@@ -12,6 +12,7 @@ public record BattleProperties(
         long reconnectGraceMs,
         long roomTtlMs,
         int minCorrectForXp,
-        int minCardsRequired
+        int minCardsRequired,
+        long answerGraceMs
 ) {
 }

@@ -69,3 +69,4 @@ app:
     room-ttl-ms: 600000
     min-correct-for-xp: 3
     min-cards-required: 10
+    answer-grace-ms: 300

@@ -11,7 +11,6 @@ import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Service;
 
@@ -32,8 +31,6 @@ public class BattleQueueServiceImpl implements BattleQueueService {
     private final BattleEventPublisher eventPublisher;
     private final BattleMatchService battleMatchService;
     private final BattleProperties battleProperties;
-
-    @Qualifier("battleScheduler")
     private final ThreadPoolTaskScheduler battleScheduler;
 
     // Hàng đợi FIFO theo mode
@@ -129,6 +126,9 @@ public class BattleQueueServiceImpl implements BattleQueueService {
         }
     }
 
+    /**
+     * Private helper methods
+     */
     private Queue<QueueEntry> getQueue(BattleMode mode) {
         return queues.computeIfAbsent(mode, m -> new LinkedList<>());
     }
