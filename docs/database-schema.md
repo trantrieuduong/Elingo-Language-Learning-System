@@ -437,15 +437,18 @@ CREATE TABLE posts (
   group_id BIGINT UNSIGNED NOT NULL,
   title VARCHAR(255) NOT NULL,
   content TEXT NOT NULL,
-  status ENUM('PENDING','NEEDS_REVIEW','PUBLISHED','HIDDEN','REJECTED') NOT NULL DEFAULT 'PENDING',
+  status ENUM('PENDING','NEEDS_REVIEW','PUBLISHED','REJECTED','DELETED') NOT NULL DEFAULT 'PENDING',
   like_count INT UNSIGNED NOT NULL DEFAULT 0,
   comment_count INT UNSIGNED NOT NULL DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (group_id) REFERENCES post_groups(id) ON DELETE RESTRICT,
-  INDEX idx_post_status_time (status, created_at) -- cần tối ưu lại
+  INDEX idx_post_status_time (status, created_at),
+  INDEX idx_post_group_status_time (group_id, status, created_at),
+  INDEX idx_post_user_status_time (user_id, status, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- Bài viết áp dụng xóa mềm (soft delete) bằng cách cập nhật status = 'DELETED'. Khi xóa mềm bài viết, tệp đính kèm trên R2 không bị xóa để bảo toàn lịch sử phục vụ kiểm toán.
 
 CREATE TABLE post_moderation_logs (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -469,6 +472,8 @@ CREATE TABLE post_media (
   media_type ENUM('IMAGE','VIDEO') NOT NULL,
   media_url VARCHAR(500) NOT NULL,
   `order` INT UNSIGNED NOT NULL DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -485,8 +490,10 @@ CREATE TABLE comments (
   FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (parent_comment_id) REFERENCES comments(id) ON DELETE CASCADE,
-  INDEX idx_comment_post (post_id, created_at)
+  INDEX idx_comment_post_parent_time (post_id, parent_comment_id, created_at),
+  INDEX idx_comment_parent_time (parent_comment_id, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- Bình luận áp dụng xóa cứng (hard delete). Khi xóa bình luận, tệp đính kèm trên R2 sẽ bị xóa theo.
 
 -- Like cho comment
 CREATE TABLE comment_likes (
@@ -495,7 +502,8 @@ CREATE TABLE comment_likes (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (comment_id, user_id),
   FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_comment_like_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE post_likes (
@@ -504,7 +512,8 @@ CREATE TABLE post_likes (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (post_id, user_id),
   FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_post_like_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 ```
 

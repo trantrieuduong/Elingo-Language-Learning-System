@@ -52,7 +52,10 @@ public class SecurityConfig {
             Map.entry("/decks",             GET_ONLY),
             Map.entry("/lessons",           GET_ONLY),
             Map.entry("/tags",              GET_ONLY),
-            Map.entry("/cefr-levels",       GET_ONLY)
+            Map.entry("/cefr-levels",       GET_ONLY),
+            Map.entry("/post-groups",       GET_ONLY),
+            Map.entry("/posts",             GET_ONLY),
+            Map.entry("/users/*/posts",     GET_ONLY)
     );
 
     public SecurityConfig(CustomUserDetailsService customUserDetailsService,
