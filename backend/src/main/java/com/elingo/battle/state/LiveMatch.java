@@ -1,43 +1,45 @@
 package com.elingo.battle.state;
 
-import com.elingo.battle.entity.BattleMode;
 import com.elingo.battle.entity.BattleMatchStatus;
+import com.elingo.battle.entity.BattleMode;
+import lombok.Getter;
+import lombok.Setter;
 
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * POJO lưu trong RAM, đại diện một trận đang diễn ra.
- * Mọi thay đổi phải đi qua lock() / unlock().
+ * Mọi thay đổi state phải đi qua lock() / unlock().
  */
+@Getter
 public class LiveMatch {
 
     private final Long matchId;
     private final BattleMode mode;
+    private final int totalRounds;
     private final Long userAId;
     private final Long userBId;
-    private volatile BattleMatchStatus status;
+    private final Map<Long, Long> participantIds;       
+    private final List<LiveQuestion> questions;          
     private final ReentrantLock lock = new ReentrantLock();
 
-    // Scheduler future của countdown / round hiện tại — hủy khi không cần
-    private volatile ScheduledFuture<?> pendingFuture;
+    @Setter private volatile BattleMatchStatus status = BattleMatchStatus.IN_PROGRESS;
+    @Setter private volatile ScheduledFuture<?> pendingFuture;   // timer đang chờ
 
-    public LiveMatch(Long matchId, BattleMode mode, Long userAId, Long userBId) {
+    public LiveMatch(Long matchId, BattleMode mode, int totalRounds,
+                     Long userAId, Long userBId,
+                     Map<Long, Long> participantIds, List<LiveQuestion> questions) {
         this.matchId = matchId;
         this.mode = mode;
+        this.totalRounds = totalRounds;
         this.userAId = userAId;
         this.userBId = userBId;
-        this.status = BattleMatchStatus.IN_PROGRESS;
+        this.participantIds = participantIds;
+        this.questions = questions;
     }
-
-    public Long getMatchId() { return matchId; }
-    public BattleMode getMode() { return mode; }
-    public Long getUserAId() { return userAId; }
-    public Long getUserBId() { return userBId; }
-    public BattleMatchStatus getStatus() { return status; }
-    public void setStatus(BattleMatchStatus status) { this.status = status; }
-    public ScheduledFuture<?> getPendingFuture() { return pendingFuture; }
-    public void setPendingFuture(ScheduledFuture<?> pendingFuture) { this.pendingFuture = pendingFuture; }
 
     public void lock() { lock.lock(); }
     public void unlock() { lock.unlock(); }
@@ -50,5 +52,9 @@ public class LiveMatch {
         if (userAId.equals(userId)) return userBId;
         if (userBId.equals(userId)) return userAId;
         return null;
+    }
+
+    public Long getParticipantId(Long userId) {
+        return participantIds.get(userId);
     }
 }

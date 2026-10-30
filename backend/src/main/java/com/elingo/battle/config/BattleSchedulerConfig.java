@@ -6,7 +6,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 @Configuration
 public class BattleSchedulerConfig {
-
     @Bean(name = "battleScheduler")
     public ThreadPoolTaskScheduler battleScheduler() {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();

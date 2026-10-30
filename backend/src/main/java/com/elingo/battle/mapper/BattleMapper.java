@@ -7,7 +7,6 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface BattleMapper {
-
     @Mapping(target = "userId", source = "id")
     @Mapping(target = "displayName", source = "fullName")
     @Mapping(target = "avatarUrl", source = "avatarUrl")

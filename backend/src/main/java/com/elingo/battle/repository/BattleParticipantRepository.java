@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BattleParticipantRepository extends JpaRepository<BattleParticipant, Long> {
-
     @Query("SELECT p FROM BattleParticipant p JOIN FETCH p.user WHERE p.match.id = :matchId")
     List<BattleParticipant> findByMatchIdWithUser(@Param("matchId") Long matchId);
 

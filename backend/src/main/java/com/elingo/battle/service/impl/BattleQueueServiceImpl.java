@@ -52,7 +52,7 @@ public class BattleQueueServiceImpl implements BattleQueueService {
             throw new AppException(AppError.BATTLE_ALREADY_PARTICIPATED);
         }
 
-        // Idempotent: đã trong hàng đợi → trả mode thật đang chờ, không đổi hàng đợi
+        // Idempotent: đã trong hàng đợi -> trả mode thật đang chờ, không đổi hàng đợi
         BattleMode currentMode = userQueueMode.get(userId);
         if (currentMode != null) {
             eventPublisher.sendToUser(userId, "queue:joined", new QueueJoinedResponse(currentMode));
@@ -95,7 +95,7 @@ public class BattleQueueServiceImpl implements BattleQueueService {
     public void leave(Long userId) {
         synchronized (this) {
             BattleMode mode = userQueueMode.remove(userId);
-            if (mode == null) return; // không trong hàng đợi → bỏ qua
+            if (mode == null) return; // không trong hàng đợi -> bỏ qua
             getQueue(mode).removeIf(e -> e.userId().equals(userId));
             cancelTimeout(userId);
         }
