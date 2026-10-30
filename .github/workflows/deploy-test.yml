@@ -60,14 +60,13 @@ jobs:
           cache-to: type=gha,mode=max
 
   # ---------------------------------------------------------------------------
-  # 6. AUTO-DEPLOY (Deploy to Server via SSH Password)
+  # 2. AUTO-DEPLOY (Deploy to Server via SSH Password)
   # ---------------------------------------------------------------------------
   deploy:
-    name: 6. Auto-Deploy
+    name: 2. Auto-Deploy
     needs: package
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
       contents: read
       packages: read
