@@ -1,0 +1,160 @@
+name: Deploy Test - feat/deploy-setup
+
+on:
+  push:
+    branches: [ feat/deploy-setup ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-test.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-test
+  cancel-in-progress: true
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # 1. PACKAGING (Docker Build & Push)
+  # ---------------------------------------------------------------------------
+  package:
+    name: 1. Packaging (Docker Build & Push)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/backend
+          tags: |
+            type=sha,format=short,prefix=
+            type=raw,value=latest
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ---------------------------------------------------------------------------
+  # 6. AUTO-DEPLOY (Deploy to Server via SSH Password)
+  # ---------------------------------------------------------------------------
+  deploy:
+    name: 6. Auto-Deploy
+    needs: package
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout (lấy compose + nginx conf)
+        uses: actions/checkout@v4
+
+      - name: Sync compose + nginx config lên VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          source: "backend/docker-compose.yml,backend/nginx/default.conf"
+          target: /opt/elingo
+          strip_components: 1
+          overwrite: true
+
+      - name: Deploy to Server via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          REPO: ${{ github.repository }}
+          PROD_DDL_AUTO: ${{ vars.PROD_DDL_AUTO || 'validate' }}
+          MYSQL_ROOT_PASSWORD: ${{ secrets.PROD_MYSQL_ROOT_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.PROD_MYSQL_DATABASE }}
+          MYSQL_USER: ${{ secrets.PROD_MYSQL_USER }}
+          MYSQL_PASSWORD: ${{ secrets.PROD_MYSQL_PASSWORD }}
+          PROD_FRONT_END_DOMAIN: ${{ secrets.PROD_FRONT_END_DOMAIN }}
+          PROD_JWT_SIGNER_KEY: ${{ secrets.PROD_JWT_SIGNER_KEY }}
+          PROD_GOOGLE_CLIENT_ID: ${{ secrets.PROD_GOOGLE_CLIENT_ID }}
+          PROD_MAIL_HOST: ${{ secrets.PROD_MAIL_HOST }}
+          PROD_MAIL_PORT: ${{ secrets.PROD_MAIL_PORT }}
+          PROD_MAIL_USERNAME: ${{ secrets.PROD_MAIL_USERNAME }}
+          PROD_MAIL_PASSWORD: ${{ secrets.PROD_MAIL_PASSWORD }}
+          PROD_R2_ACCOUNT_ID: ${{ secrets.PROD_R2_ACCOUNT_ID }}
+          PROD_R2_ACCESS_KEY: ${{ secrets.PROD_R2_ACCESS_KEY }}
+          PROD_R2_SECRET_KEY: ${{ secrets.PROD_R2_SECRET_KEY }}
+          PROD_R2_BUCKET: ${{ secrets.PROD_R2_BUCKET }}
+          PROD_R2_PUBLIC_URL: ${{ secrets.PROD_R2_PUBLIC_URL }}
+        with:
+          host: ${{ secrets.PROD_SERVER_HOST }}
+          username: ${{ secrets.PROD_SERVER_USER }}
+          password: ${{ secrets.PROD_SERVER_PASSWORD }}
+          port: ${{ secrets.PROD_SERVER_PORT || 22 }}
+          envs: REPO,PROD_DDL_AUTO,MYSQL_ROOT_PASSWORD,MYSQL_DATABASE,MYSQL_USER,MYSQL_PASSWORD,PROD_FRONT_END_DOMAIN,PROD_JWT_SIGNER_KEY,PROD_GOOGLE_CLIENT_ID,PROD_MAIL_HOST,PROD_MAIL_PORT,PROD_MAIL_USERNAME,PROD_MAIL_PASSWORD,PROD_R2_ACCOUNT_ID,PROD_R2_ACCESS_KEY,PROD_R2_SECRET_KEY,PROD_R2_BUCKET,PROD_R2_PUBLIC_URL
+          script: |
+            set -e
+            echo "Đăng nhập vào GHCR trên VPS..."
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            echo "Chuyển vào thư mục triển khai..."
+            cd /opt/elingo
+
+            echo "Tạo file .env từ GitHub Secrets..."
+            umask 077
+            cat > .env <<ENVEOF
+            GITHUB_REPOSITORY=$(echo "$REPO" | tr 'A-Z' 'a-z')
+            PROD_DDL_AUTO=$PROD_DDL_AUTO
+            MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
+            MYSQL_DATABASE=$MYSQL_DATABASE
+            MYSQL_USER=$MYSQL_USER
+            MYSQL_PASSWORD=$MYSQL_PASSWORD
+            PROD_FRONT_END_DOMAIN=$PROD_FRONT_END_DOMAIN
+            PROD_JWT_SIGNER_KEY=$PROD_JWT_SIGNER_KEY
+            PROD_GOOGLE_CLIENT_ID=$PROD_GOOGLE_CLIENT_ID
+            PROD_MAIL_HOST=$PROD_MAIL_HOST
+            PROD_MAIL_PORT=$PROD_MAIL_PORT
+            PROD_MAIL_USERNAME=$PROD_MAIL_USERNAME
+            PROD_MAIL_PASSWORD=$PROD_MAIL_PASSWORD
+            PROD_R2_ACCOUNT_ID=$PROD_R2_ACCOUNT_ID
+            PROD_R2_ACCESS_KEY=$PROD_R2_ACCESS_KEY
+            PROD_R2_SECRET_KEY=$PROD_R2_SECRET_KEY
+            PROD_R2_BUCKET=$PROD_R2_BUCKET
+            PROD_R2_PUBLIC_URL=$PROD_R2_PUBLIC_URL
+            ENVEOF
+
+            echo "Kéo image backend mới nhất..."
+            docker compose pull backend
+
+            echo "Khởi động / cập nhật toàn bộ stack..."
+            docker compose up -d
+
+            echo "Reload Nginx để nhận IP mới của backend..."
+            docker compose exec -T nginx nginx -s reload || echo "Nginx chưa chạy, bỏ qua reload"
+
+            echo "Dọn dẹp image cũ không dùng..."
+            docker image prune -f
+
+            echo "Triển khai backend hoàn tất!"
