@@ -1,0 +1,134 @@
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  # ---------------------------------------------------------------------------
+  # 1. Database: MySQL
+  # ---------------------------------------------------------------------------
+  mysql:
+    image: mysql:9.3.0
+    container_name: elingo-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --innodb-buffer-pool-size=256M
+      - --max-connections=50
+      - --performance-schema=OFF
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - elingo-network
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    mem_limit: 600m
+    logging: *default-logging
+
+  # ---------------------------------------------------------------------------
+  # 2. In-Memory Cache: Redis
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: elingo-redis
+    restart: always
+    command: >
+      redis-server
+      --protected-mode no
+      --maxmemory 128mb
+      --maxmemory-policy allkeys-lru
+      --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - elingo-network
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    mem_limit: 192m
+    logging: *default-logging
+
+  # ---------------------------------------------------------------------------
+  # 3. Backend: Spring Boot Application
+  # ---------------------------------------------------------------------------
+  backend:
+    image: ghcr.io/${GITHUB_REPOSITORY}/backend:latest
+    container_name: elingo-backend
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=65.0 -XX:+UseSerialGC"
+      PROD_MYSQL_CONNECTION_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?useSSL=false&allowPublicKeyRetrieval=true&connectionTimeZone=Asia/Ho_Chi_Minh&forceConnectionTimeZoneToSession=true
+      PROD_MYSQL_USERNAME: ${MYSQL_USER}
+      PROD_MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      PROD_DDL_AUTO: ${PROD_DDL_AUTO:-validate}
+      # Redis
+      PROD_REDIS_HOST: redis
+      PROD_REDIS_PORT: 6379
+      # Frontend
+      PROD_FRONT_END_DOMAIN: ${PROD_FRONT_END_DOMAIN}
+      # JWT & Google OAuth
+      PROD_JWT_SIGNER_KEY: ${PROD_JWT_SIGNER_KEY}
+      PROD_GOOGLE_CLIENT_ID: ${PROD_GOOGLE_CLIENT_ID}
+      # Email Service
+      PROD_MAIL_HOST: ${PROD_MAIL_HOST}
+      PROD_MAIL_PORT: ${PROD_MAIL_PORT}
+      PROD_MAIL_USERNAME: ${PROD_MAIL_USERNAME}
+      PROD_MAIL_PASSWORD: ${PROD_MAIL_PASSWORD}
+      # Cloudflare R2 Storage
+      PROD_R2_ACCOUNT_ID: ${PROD_R2_ACCOUNT_ID}
+      PROD_R2_ACCESS_KEY: ${PROD_R2_ACCESS_KEY}
+      PROD_R2_SECRET_KEY: ${PROD_R2_SECRET_KEY}
+      PROD_R2_BUCKET: ${PROD_R2_BUCKET}
+      PROD_R2_PUBLIC_URL: ${PROD_R2_PUBLIC_URL}
+    networks:
+      - elingo-network
+    mem_limit: 768m
+    logging: *default-logging
+
+  # ---------------------------------------------------------------------------
+  # 4. Reverse Proxy: Nginx
+  # ---------------------------------------------------------------------------
+  nginx:
+    image: nginx:alpine
+    container_name: elingo-nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - backend
+    networks:
+      - elingo-network
+    mem_limit: 64m
+    logging: *default-logging
+
+networks:
+  elingo-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  redis_data:
+  certbot_certs:
