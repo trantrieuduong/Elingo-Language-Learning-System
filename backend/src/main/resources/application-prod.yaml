@@ -2,7 +2,7 @@ server:
   forward-headers-strategy: framework
 
 app:
-  front-end-domain: "https://production-domain.com"
+  front-end-domain: "https://elingo.pro"
   google:
     client-id: ${PROD_GOOGLE_CLIENT_ID}
 

@@ -79,7 +79,7 @@ jobs:
         with:
           host: ${{ secrets.PROD_SERVER_HOST }}
           username: ${{ secrets.PROD_SERVER_USER }}
-          password: ${{ secrets.PROD_SERVER_PASSWORD }}
+          key: ${{ secrets.PROD_SERVER_SSH_KEY }}
           port: ${{ secrets.PROD_SERVER_PORT || 22 }}
           source: "backend/docker-compose.yml,backend/nginx/default.conf"
           target: /opt/elingo
@@ -110,7 +110,7 @@ jobs:
         with:
           host: ${{ secrets.PROD_SERVER_HOST }}
           username: ${{ secrets.PROD_SERVER_USER }}
-          password: ${{ secrets.PROD_SERVER_PASSWORD }}
+          key: ${{ secrets.PROD_SERVER_SSH_KEY }}
           port: ${{ secrets.PROD_SERVER_PORT || 22 }}
           envs: REPO,PROD_DDL_AUTO,MYSQL_ROOT_PASSWORD,MYSQL_DATABASE,MYSQL_USER,MYSQL_PASSWORD,PROD_FRONT_END_DOMAIN,PROD_JWT_SIGNER_KEY,PROD_GOOGLE_CLIENT_ID,PROD_MAIL_HOST,PROD_MAIL_PORT,PROD_MAIL_USERNAME,PROD_MAIL_PASSWORD,PROD_R2_ACCOUNT_ID,PROD_R2_ACCESS_KEY,PROD_R2_SECRET_KEY,PROD_R2_BUCKET,PROD_R2_PUBLIC_URL
           script: |
