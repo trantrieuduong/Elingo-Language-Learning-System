@@ -12,6 +12,9 @@ spring:
     username: ${PROD_MYSQL_USERNAME}
     password: ${PROD_MYSQL_PASSWORD}
   data:
+    redis:
+      host: ${PROD_REDIS_HOST:redis}
+      port: ${PROD_REDIS_PORT:6379}
     web:
       pageable:
         one-indexed-parameters: true
