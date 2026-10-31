@@ -20,5 +20,9 @@ public record LiveQuestion(
     public boolean isCorrectOption(Long optionId) {
         return options.stream().anyMatch(o -> o.id().equals(optionId) && o.correct());
     }
+
+    public boolean isTyping() {
+        return options == null || options.isEmpty();
+    }
 }
 

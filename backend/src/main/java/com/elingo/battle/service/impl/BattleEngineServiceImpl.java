@@ -9,6 +9,7 @@ import com.elingo.battle.service.BattleEngineService;
 import com.elingo.battle.service.BattleMatchPersistenceService;
 import com.elingo.battle.state.*;
 import com.elingo.battle.util.BattleScoring;
+import com.elingo.battle.util.BattleTyping;
 import com.elingo.battle.websocket.BattleEventPublisher;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
@@ -58,14 +59,26 @@ public class BattleEngineServiceImpl implements BattleEngineService {
                 throw new AppException(AppError.BATTLE_QUESTION_TIMEOUT);
 
             LiveQuestion q = r.getQuestion();
-            Long optionId = req.selectedOptionId();
-            if (optionId == null || !q.hasOption(optionId))
-                throw new AppException(AppError.BATTLE_ANSWER_INVALID);
-
-            boolean correct = q.isCorrectOption(optionId);
             long responseMs = Math.min(Math.max(0, now - r.getStartedAt()), q.timeLimitMs());
+            boolean correct;
+            Long optionId = null;
+            String typed = null;
+
+            if (q.isTyping()) {
+                typed = req.typedAnswer();
+                if (typed == null || typed.isBlank() || typed.length() > BattleTyping.MAX_ANSWER_LENGTH)
+                    throw new AppException(AppError.BATTLE_ANSWER_INVALID);
+                typed = typed.trim();
+                correct = BattleTyping.normalize(typed).equals(q.correctAnswer());
+            } else {
+                optionId = req.selectedOptionId();
+                if (optionId == null || !q.hasOption(optionId))
+                    throw new AppException(AppError.BATTLE_ANSWER_INVALID);
+                correct = q.isCorrectOption(optionId);
+            }
+
             int points = BattleScoring.points(correct, responseMs, q.timeLimitMs());
-            r.putAnswer(new LiveAnswer(userId, optionId, null, correct, (int) responseMs, points));
+            r.putAnswer(new LiveAnswer(userId, optionId, typed, correct, (int) responseMs, points));
 
             // Báo đối thủ biết người kia đã trả lời
             publisher.sendToUser(m.opponentOf(userId), "match:opponent-answered",
@@ -93,10 +106,17 @@ public class BattleEngineServiceImpl implements BattleEngineService {
             LiveRound r = new LiveRound(roundNo, q, now, now + q.timeLimitMs());
             m.setCurrentRound(r);
 
+            boolean typing = q.isTyping();
+            List<OptionResponse> options = typing ? null
+                    : q.options().stream().map(o -> new OptionResponse(o.id(), o.text())).toList();
+            Integer answerLength = typing ? q.correctAnswer().length() : null;
+            List<Integer> pattern = typing ? BattleTyping.pattern(q.correctAnswer()) : null;
+            String firstChar = typing ? BattleTyping.firstChar(q.correctAnswer()) : null;
+
             MatchQuestionResponse payload = new MatchQuestionResponse(
                     m.getMatchId(), q.questionId(), roundNo, m.getTotalRounds(), q.term(),
-                    q.options().stream().map(o -> new OptionResponse(o.id(), o.text())).toList(), // Không kèm correct
-                    m.getMode(), q.timeLimitMs(), now, r.getDeadlineAt());
+                    options, m.getMode(), q.timeLimitMs(), now, r.getDeadlineAt(),
+                    answerLength, pattern, firstChar);
             publisher.sendToUser(m.getUserAId(), "match:question", payload);
             publisher.sendToUser(m.getUserBId(), "match:question", payload);
 

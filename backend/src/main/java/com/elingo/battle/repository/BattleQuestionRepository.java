@@ -16,4 +16,16 @@ public interface BattleQuestionRepository extends JpaRepository<BattleQuestion, 
               and c.translation is not null and trim(c.translation) <> ''
             """)
     List<Long> findBattleEligibleCardIds();
+
+    @Query("""
+            select c.id from Card c
+            join c.deck d
+            where d.status = com.elingo.vocabulary.entity.DeckStatus.PUBLISHED
+              and d.ownerType = com.elingo.vocabulary.entity.OwnerType.SYSTEM
+              and c.term is not null and trim(c.term) <> ''
+              and c.translation is not null and trim(c.translation) <> ''
+              and length(c.term) <= 40
+              and c.term not like '%/%' and c.term not like '%;%' and c.term not like '%,%'
+            """)
+    List<Long> findBattleTypingEligibleCardIds();
 }
