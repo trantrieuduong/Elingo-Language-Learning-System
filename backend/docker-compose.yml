@@ -9,7 +9,7 @@ services:
   # 1. Database: MySQL
   # ---------------------------------------------------------------------------
   mysql:
-    image: mysql:9.3.0
+    image: mysql:9.7.2
     container_name: elingo-mysql
     restart: always
     environment:
@@ -23,6 +23,10 @@ services:
       - --innodb-buffer-pool-size=256M
       - --max-connections=50
       - --performance-schema=OFF
+      - --binlog-expire-logs-seconds=259200
+      - --slow-query-log=ON
+      - --slow-query-log-file=/var/lib/mysql/slow.log
+      - --long-query-time=1
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
@@ -75,7 +79,8 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=65.0 -XX:+UseSerialGC"
+      JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=50.0 -XX:+UseSerialGC -XX:+ExitOnOutOfMemoryError"
+      # MySQL
       PROD_MYSQL_CONNECTION_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?useSSL=false&allowPublicKeyRetrieval=true&connectionTimeZone=Asia/Ho_Chi_Minh&forceConnectionTimeZoneToSession=true
       PROD_MYSQL_USERNAME: ${MYSQL_USER}
       PROD_MYSQL_PASSWORD: ${MYSQL_PASSWORD}
@@ -131,4 +136,3 @@ networks:
 volumes:
   mysql_data:
   redis_data:
-  certbot_certs:
