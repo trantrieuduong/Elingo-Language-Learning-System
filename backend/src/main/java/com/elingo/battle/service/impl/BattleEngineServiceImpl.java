@@ -185,10 +185,28 @@ public class BattleEngineServiceImpl implements BattleEngineService {
         int sa = m.getScore(m.getUserAId());
         int sb = m.getScore(m.getUserBId());
         Long winnerId = sa > sb ? m.getUserAId() : (sb > sa ? m.getUserBId() : null); // null = hòa
+        conclude(m, winnerId, "COMPLETED");
+    }
 
+    @Override
+    public void forfeit(LiveMatch m, Long loserId) {
+        m.lock();
+        try {
+            if (m.getStatus() != BattleMatchStatus.IN_PROGRESS) return;
+            cancelPending(m); // dừng vòng đang chạy
+            conclude(m, m.opponentOf(loserId), "FORFEIT");
+        } finally {
+            m.unlock();
+        }
+    }
+
+    private void conclude(LiveMatch m, Long winnerId, String reason) {
         persistence.finishMatch(m.getMatchId(), winnerId, m.getScores(), m.getCorrectCounts());
         m.setStatus(BattleMatchStatus.FINISHED);
+        m.cancelAllGraces();
 
+        int sa = m.getScore(m.getUserAId());
+        int sb = m.getScore(m.getUserBId());
         List<PlayerFinalResultResponse> players = List.of(
                 new PlayerFinalResultResponse(m.getUserAId(), sa,
                         m.getCorrectCount(m.getUserAId()), m.getUserAId().equals(winnerId)),
@@ -196,13 +214,13 @@ public class BattleEngineServiceImpl implements BattleEngineService {
                         m.getCorrectCount(m.getUserBId()), m.getUserBId().equals(winnerId)));
 
         MatchFinishedResponse payload =
-                new MatchFinishedResponse(m.getMatchId(), winnerId, "COMPLETED", players);
+                new MatchFinishedResponse(m.getMatchId(), winnerId, reason, players);
         publisher.sendToUser(m.getUserAId(), "match:finished", payload);
         publisher.sendToUser(m.getUserBId(), "match:finished", payload);
         registry.remove(m);
 
-        log.info("Match finished matchId={} winnerId={} scoreA={} scoreB={}",
-                m.getMatchId(), winnerId, sa, sb);
+        log.info("Match finished matchId={} winnerId={} scoreA={} scoreB={} reason={}",
+                m.getMatchId(), winnerId, sa, sb, reason);
     }
 
     /**
@@ -225,16 +243,18 @@ public class BattleEngineServiceImpl implements BattleEngineService {
             task.run();
         } catch (Exception ex) {
             log.error("Battle engine error matchId={}", m.getMatchId(), ex);
-            abortMatch(m, "INTERNAL_ERROR");
+            cancel(m, "INTERNAL_ERROR");
         }
     }
 
-    private void abortMatch(LiveMatch m, String reason) {
+    @Override
+    public void cancel(LiveMatch m, String reason) {
         m.lock();
         try {
             if (m.getStatus() != BattleMatchStatus.IN_PROGRESS) return;
             m.setStatus(BattleMatchStatus.CANCELLED);
             cancelPending(m);
+            m.cancelAllGraces();
             try {
                 persistence.updateMatchStatus(m.getMatchId(), BattleMatchStatus.CANCELLED);
             } catch (Exception ex) {

@@ -97,6 +97,9 @@ public class BattleMatchPersistenceServiceImpl implements BattleMatchPersistence
     public void updateMatchStatus(Long matchId, BattleMatchStatus status) {
         matchRepository.findById(matchId).ifPresent(m -> {
             m.setStatus(status);
+            if (status == BattleMatchStatus.CANCELLED || status == BattleMatchStatus.FINISHED) {
+                m.setFinishedAt(LocalDateTime.now());
+            }
             matchRepository.save(m);
         });
     }

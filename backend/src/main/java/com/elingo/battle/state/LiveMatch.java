@@ -7,8 +7,10 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -32,6 +34,10 @@ public class LiveMatch {
     // Điểm số tích lũy - truy cập chỉ trong lock
     private final Map<Long, Integer> scores = new HashMap<>();
     private final Map<Long, Integer> correctCounts = new HashMap<>();
+
+    // Mất kết nối & thời gian chờ (grace period)
+    private final Set<Long> disconnected = new HashSet<>();
+    private final Map<Long, ScheduledFuture<?>> graceFutures = new HashMap<>();
 
     @Setter private volatile BattleMatchStatus status = BattleMatchStatus.IN_PROGRESS;
     @Setter private volatile ScheduledFuture<?> pendingFuture;
@@ -88,5 +94,28 @@ public class LiveMatch {
 
     public int getCorrectCount(Long userId) {
         return correctCounts.getOrDefault(userId, 0);
+    }
+
+    public boolean markDisconnected(Long userId) {
+        return disconnected.add(userId);
+    }
+
+    public boolean isDisconnected(Long userId) {
+        return disconnected.contains(userId);
+    }
+
+    public void putGrace(Long userId, ScheduledFuture<?> f) {
+        cancelGrace(userId);
+        graceFutures.put(userId, f);
+    }
+
+    public void cancelGrace(Long userId) {
+        ScheduledFuture<?> f = graceFutures.remove(userId);
+        if (f != null) f.cancel(false);
+    }
+
+    public void cancelAllGraces() {
+        graceFutures.values().forEach(f -> f.cancel(false));
+        graceFutures.clear();
     }
 }
