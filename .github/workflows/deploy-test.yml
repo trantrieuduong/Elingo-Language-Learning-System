@@ -86,6 +86,18 @@ jobs:
           strip_components: 1
           overwrite: true
 
+      - name: Sync ops scripts to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROD_SERVER_HOST }}
+          username: ${{ secrets.PROD_SERVER_USER }}
+          key: ${{ secrets.PROD_SERVER_SSH_KEY }}
+          port: ${{ secrets.PROD_SERVER_PORT || 22 }}
+          source: "backend/ops/*"
+          target: /opt/elingo/ops
+          strip_components: 2
+          overwrite: true
+
       - name: Deploy to Server via SSH
         uses: appleboy/ssh-action@v1.2.0
         env:
@@ -107,12 +119,14 @@ jobs:
           PROD_R2_SECRET_KEY: ${{ secrets.PROD_R2_SECRET_KEY }}
           PROD_R2_BUCKET: ${{ secrets.PROD_R2_BUCKET }}
           PROD_R2_PUBLIC_URL: ${{ secrets.PROD_R2_PUBLIC_URL }}
+          PROD_TG_TOKEN: ${{ secrets.PROD_TG_TOKEN }}
+          PROD_TG_CHAT_ID: ${{ secrets.PROD_TG_CHAT_ID }}
         with:
           host: ${{ secrets.PROD_SERVER_HOST }}
           username: ${{ secrets.PROD_SERVER_USER }}
           key: ${{ secrets.PROD_SERVER_SSH_KEY }}
           port: ${{ secrets.PROD_SERVER_PORT || 22 }}
-          envs: REPO,PROD_DDL_AUTO,MYSQL_ROOT_PASSWORD,MYSQL_DATABASE,MYSQL_USER,MYSQL_PASSWORD,PROD_FRONT_END_DOMAIN,PROD_JWT_SIGNER_KEY,PROD_GOOGLE_CLIENT_ID,PROD_MAIL_HOST,PROD_MAIL_PORT,PROD_MAIL_USERNAME,PROD_MAIL_PASSWORD,PROD_R2_ACCOUNT_ID,PROD_R2_ACCESS_KEY,PROD_R2_SECRET_KEY,PROD_R2_BUCKET,PROD_R2_PUBLIC_URL
+          envs: REPO,PROD_DDL_AUTO,MYSQL_ROOT_PASSWORD,MYSQL_DATABASE,MYSQL_USER,MYSQL_PASSWORD,PROD_FRONT_END_DOMAIN,PROD_JWT_SIGNER_KEY,PROD_GOOGLE_CLIENT_ID,PROD_MAIL_HOST,PROD_MAIL_PORT,PROD_MAIL_USERNAME,PROD_MAIL_PASSWORD,PROD_R2_ACCOUNT_ID,PROD_R2_ACCESS_KEY,PROD_R2_SECRET_KEY,PROD_R2_BUCKET,PROD_R2_PUBLIC_URL,PROD_TG_TOKEN,PROD_TG_CHAT_ID
           script: |
             set -e
             echo "Đăng nhập vào GHCR trên VPS..."
@@ -144,6 +158,15 @@ jobs:
             PROD_R2_PUBLIC_URL=$PROD_R2_PUBLIC_URL
             ENVEOF
 
+            echo "Tự động cấu hình .alert.env từ GitHub Secrets..."
+            if [ -n "$PROD_TG_TOKEN" ] || [ ! -f /opt/elingo/.alert.env ]; then
+              cat > /opt/elingo/.alert.env <<ALERTEOF
+            TG_TOKEN=${PROD_TG_TOKEN:-}
+            TG_CHAT_ID=${PROD_TG_CHAT_ID:-}
+            ALERTEOF
+              chmod 600 /opt/elingo/.alert.env
+            fi
+
             echo "Kéo image backend mới nhất..."
             docker compose pull backend
 
@@ -152,6 +175,9 @@ jobs:
 
             echo "Reload Nginx để nhận IP mới của backend..."
             docker compose exec -T nginx nginx -s reload || echo "Nginx chưa chạy, bỏ qua reload"
+
+            echo "Cài đặt và đồng bộ ops scripts, cron jobs..."
+            bash /opt/elingo/ops/install.sh
 
             echo "Dọn dẹp image cũ không dùng..."
             docker image prune -f
