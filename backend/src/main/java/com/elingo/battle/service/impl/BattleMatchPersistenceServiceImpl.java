@@ -41,6 +41,23 @@ public class BattleMatchPersistenceServiceImpl implements BattleMatchPersistence
     @Override
     @Transactional
     public CreatedMatchResult persistNewRandomMatch(Long userAId, Long userBId, BattleMode mode) {
+        return persistMatch(userAId, userBId, mode, BattleMatchType.RANDOM, null);
+    }
+
+    @Override
+    @Transactional
+    public CreatedMatchResult persistNewRoomMatch(Long hostId, Long guestId, BattleMode mode, String roomCode) {
+        return persistMatch(hostId, guestId, mode, BattleMatchType.ROOM, roomCode);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean roomCodeExists(String roomCode) {
+        return matchRepository.existsByRoomCode(roomCode);
+    }
+
+    private CreatedMatchResult persistMatch(Long userAId, Long userBId, BattleMode mode,
+                                            BattleMatchType matchType, String roomCode) {
         User userA = userRepository.findById(userAId)
                 .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
         User userB = userRepository.findById(userBId)
@@ -48,7 +65,8 @@ public class BattleMatchPersistenceServiceImpl implements BattleMatchPersistence
 
         BattleMatch match = BattleMatch.builder()
                 .mode(mode)
-                .matchType(BattleMatchType.RANDOM)
+                .matchType(matchType)
+                .roomCode(roomCode)
                 .status(BattleMatchStatus.IN_PROGRESS)
                 .startedAt(LocalDateTime.now())
                 .totalRounds((short) battleProperties.totalRounds())
@@ -64,7 +82,8 @@ public class BattleMatchPersistenceServiceImpl implements BattleMatchPersistence
 
         Map<Long, Long> participantIds = Map.of(userAId, partA.getId(), userBId, partB.getId());
 
-        log.info("Match persisted matchId={} mode={} userAId={} userBId={}", match.getId(), mode, userAId, userBId);
+        log.info("Match persisted matchId={} mode={} matchType={} roomCode={} userAId={} userBId={}",
+                match.getId(), mode, matchType, roomCode, userAId, userBId);
 
         PlayerResponse playerA = battleMapper.toPlayerResponse(userA);
         PlayerResponse playerB = battleMapper.toPlayerResponse(userB);

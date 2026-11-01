@@ -110,6 +110,11 @@ public class BattleQueueServiceImpl implements BattleQueueService {
             }
         }
     }
+
+    @Override
+    public boolean isUserInQueue(Long userId) {
+        return userQueueMode.containsKey(userId);
+    }
     
     // Bọc createRandomMatch: nếu lỗi gửi error cho cả hai
     private void tryCreateMatch(Long userId, Long opponentId, BattleMode mode) {

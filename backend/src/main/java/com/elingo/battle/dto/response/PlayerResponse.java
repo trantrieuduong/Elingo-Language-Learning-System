@@ -5,7 +5,6 @@ import com.elingo.common.annotation.BuildMediaUrl;
 public record PlayerResponse(
         Long userId,
         String displayName,
-        @BuildMediaUrl String avatarUrl,
-        Boolean isHost
+        @BuildMediaUrl String avatarUrl
 ) {
 }

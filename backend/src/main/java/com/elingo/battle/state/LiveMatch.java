@@ -1,6 +1,7 @@
 package com.elingo.battle.state;
 
 import com.elingo.battle.entity.BattleMatchStatus;
+import com.elingo.battle.entity.BattleMatchType;
 import com.elingo.battle.entity.BattleMode;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,6 +21,7 @@ public class LiveMatch {
 
     private final Long matchId;
     private final BattleMode mode;
+    private final BattleMatchType matchType;
     private final int totalRounds;
     private final Long userAId;
     private final Long userBId;
@@ -35,11 +37,12 @@ public class LiveMatch {
     @Setter private volatile ScheduledFuture<?> pendingFuture;
     @Setter private LiveRound currentRound;
 
-    public LiveMatch(Long matchId, BattleMode mode, int totalRounds,
+    public LiveMatch(Long matchId, BattleMode mode, BattleMatchType matchType, int totalRounds,
                      Long userAId, Long userBId,
                      Map<Long, Long> participantIds, List<LiveQuestion> questions) {
         this.matchId = matchId;
         this.mode = mode;
+        this.matchType = matchType;
         this.totalRounds = totalRounds;
         this.userAId = userAId;
         this.userBId = userBId;

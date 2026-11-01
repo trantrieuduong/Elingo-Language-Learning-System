@@ -10,6 +10,5 @@ public interface BattleMapper {
     @Mapping(target = "userId", source = "id")
     @Mapping(target = "displayName", source = "fullName")
     @Mapping(target = "avatarUrl", source = "avatarUrl")
-    @Mapping(target = "isHost", constant = "false")
     PlayerResponse toPlayerResponse(User user);
 }

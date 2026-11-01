@@ -26,26 +26,35 @@ public class BattleMatchServiceImpl implements BattleMatchService {
 
     @Override
     public void createRandomMatch(Long userAId, Long userBId, BattleMode mode) {
-        // 1. Lưu DB + sinh câu hỏi
         CreatedMatchResult data = persistenceService.persistNewRandomMatch(userAId, userBId, mode);
+        launch(data, BattleMatchType.RANDOM);
+    }
 
-        // 2. Đưa vào RAM registry
-        LiveMatch live = new LiveMatch(data.matchId(), mode, battleProperties.totalRounds(),
-                userAId, userBId, data.participantIds(), data.questions());
+    @Override
+    public void createRoomMatch(Long hostId, Long guestId, BattleMode mode, String roomCode) {
+        CreatedMatchResult data = persistenceService.persistNewRoomMatch(hostId, guestId, mode, roomCode);
+        launch(data, BattleMatchType.ROOM);
+    }
+
+    private void launch(CreatedMatchResult data, BattleMatchType type) {
+        // Đưa vào RAM registry
+        LiveMatch live = new LiveMatch(data.matchId(), data.mode(), type, battleProperties.totalRounds(),
+                data.userAId(), data.userBId(), data.participantIds(), data.questions());
         registry.register(live);
 
-        // 3. Gửi match:found cho cả hai
+        // Gửi match:found cho cả hai
         MatchFoundResponse found = new MatchFoundResponse(
-                data.matchId(), mode, BattleMatchType.RANDOM,
+                data.matchId(), data.mode(), type,
                 battleProperties.totalRounds(), battleProperties.countdownMs(), data.players());
-        eventPublisher.sendToUser(userAId, "match:found", found);
-        eventPublisher.sendToUser(userBId, "match:found", found);
+        eventPublisher.sendToUser(data.userAId(), "match:found", found);
+        eventPublisher.sendToUser(data.userBId(), "match:found", found);
 
-        // 4. Bắt đầu game loop
+        // Bắt đầu game loop 
         engineService.start(live);
     }
 
     @Override
+    // Kiểm tra user đang trong trận đấu
     public boolean isUserInActiveMatch(Long userId) {
         return registry.isUserInActiveMatch(userId);
     }

@@ -14,7 +14,9 @@ public interface BattleMatchPersistenceService {
      * Trả về dữ liệu cần dùng sau commit (không gửi event bên trong).
      */
     CreatedMatchResult persistNewRandomMatch(Long userAId, Long userBId, BattleMode mode);
-
+    CreatedMatchResult persistNewRoomMatch(Long hostId, Long guestId, BattleMode mode, String roomCode);
+    
+    boolean roomCodeExists(String roomCode);
     void updateMatchStatus(Long matchId, BattleMatchStatus status);
     void saveRoundAnswers(List<RoundAnswerRecord> records);
     void finishMatch(Long matchId, Long winnerUserId,

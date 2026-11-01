@@ -6,4 +6,5 @@ public interface BattleQueueService {
     void join(Long userId, BattleMode mode);
     void leave(Long userId);
     void removeOnDisconnect(Long userId);
+    boolean isUserInQueue(Long userId);
 }
