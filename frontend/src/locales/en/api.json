@@ -1,6 +1,6 @@
 {
   "common": {
-    "UNKNOWN_ERROR": "An unknown error occurred. Please try again later.",
+    "UNKNOWN_ERROR": "A server error occurred. Please try again later.",
     "fallback": "An error occurred. Please try again."
   },
   "error": {

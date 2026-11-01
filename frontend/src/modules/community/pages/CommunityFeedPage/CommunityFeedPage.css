@@ -1,0 +1,145 @@
+.community-feed-page {
+  padding-top: calc(72px + var(--spacing-2xl));
+  padding-bottom: var(--spacing-md);
+  width: calc(100% - 3rem);
+  max-width: 1432px;
+  margin-inline: auto;
+  box-sizing: border-box;
+}
+
+.community-feed-page__alert {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-card);
+  margin-bottom: var(--spacing-lg);
+  animation: feedAlertFadeIn 0.3s ease;
+}
+
+@keyframes feedAlertFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.community-feed-page__alert--success {
+  background: var(--color-pastel-mint);
+  color: #1f5e4b;
+  border: 1px solid rgba(31, 94, 75, 0.25);
+}
+
+.community-feed-page__alert--error {
+  background: var(--color-error-container);
+  color: var(--color-on-error-container);
+  border: 1px solid var(--color-error);
+}
+
+.community-feed-page__alert-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.community-feed-page__alert-text code {
+  font-family: monospace;
+  background: rgba(0, 0, 0, 0.08);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  word-break: break-all;
+}
+
+/* ── Layout 2 cột: Sidebar trái + Feed chính ── */
+.community-feed-page__content-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: var(--spacing-xl);
+  align-items: flex-start;
+  width: 100%;
+}
+
+.community-feed-page__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  width: 100%;
+  min-width: 0;
+}
+
+.community-feed-page__loading-card {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-2xl);
+  min-height: 200px;
+}
+
+.community-feed-page__loading-more {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-md);
+}
+
+.community-feed-page__sentinel {
+  height: 1px;
+}
+
+@media (max-width: 1024px) {
+  .community-feed-page {
+    padding-top: calc(68px + var(--spacing-xl));
+  }
+
+  .community-feed-page__content-layout {
+    grid-template-columns: 240px 1fr;
+    gap: var(--spacing-sm);
+  }
+}
+
+@media (max-width: 820px) {
+  .community-feed-page__content-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .community-feed-page {
+    padding-top: calc(60px + var(--spacing-lg));
+    width: calc(100% - 1.5rem);
+  }
+}
+
+/* ── Cột Sidebar trái chứa nút Tạo bài viết và Bộ lọc ── */
+.community-feed-page__sidebar-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  width: 100%;
+  position: sticky;
+  top: calc(72px + var(--spacing-xl));
+  align-self: flex-start;
+  z-index: 20;
+}
+
+.community-feed-page__create-post-btn {
+  width: 100%;
+}
+
+@media (max-width: 820px) {
+  .community-feed-page__sidebar-col {
+    position: sticky;
+    top: calc(64px + var(--spacing-sm));
+    z-index: 30;
+    gap: var(--spacing-sm);
+  }
+}
+
+@media (max-width: 600px) {
+  .community-feed-page__sidebar-col {
+    top: calc(3.25rem + 0.5rem + var(--spacing-sm));
+  }
+}

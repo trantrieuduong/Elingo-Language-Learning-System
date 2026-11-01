@@ -1,1 +1,71 @@
-{}
+{
+  "createPost": "Create Post",
+  "sidebar": {
+    "title": "Post groups",
+    "allPosts": "All posts"
+  },
+  "status": {
+    "title": "Post status",
+    "all": "All statuses",
+    "published": "Public",
+    "pending": "Pending",
+    "needsReview": "Needs Review",
+    "rejected": "Rejected"
+  },
+  "feed": {
+    "emptyTitle": "No posts yet",
+    "emptyGroup": "There are no posts in this group yet.",
+    "emptyMyFeed": "You have no posts matching this filter.",
+    "myPostAuthor": "Me (Current)",
+    "uploadSuccessKey": "Verified File Key: {{key}}"
+  },
+  "postCard": {
+    "anonymousUser": "User",
+    "collapse": "Collapse",
+    "expand": "See more",
+    "videoBadge": "Video",
+    "likeCount": "{{count}} likes",
+    "commentCount": "{{count}} comments",
+    "like": "Like",
+    "liked": "Liked",
+    "comment": "Comment",
+    "writeComment": "Write a comment...",
+    "cannotInteractUnpublished": "Post is not published yet and cannot be liked or commented on"
+  },
+  "postForm": {
+    "modalTitle": "Create New Post",
+    "modalSubtitle": "Choose the right group so your post reaches the most relevant learners.",
+    "successAlert": "Post created successfully!",
+    "groupLabel": "Group *",
+    "selectGroupPlaceholder": "Select group",
+    "titleLabel": "Title *",
+    "titlePlaceholder": "What do you want to share?",
+    "contentLabel": "Content *",
+    "contentPlaceholder": "Write clear content to encourage peer discussions...",
+    "mediaLabel": "Photos & videos",
+    "browseDevice": "Choose from device",
+    "mediaNote": "Max {{max}} files",
+    "uploadProgress": "Uploading file {{current}}/{{total}}...",
+    "creatingPost": "Creating post...",
+    "processing": "Processing...",
+    "submit": "Post",
+    "cancel": "Cancel",
+    "errors": {
+      "groupRequired": "Please select a group.",
+      "titleRequired": "Title cannot be empty.",
+      "titleMaxLength": "Title cannot exceed {{max}} characters.",
+      "contentRequired": "Content cannot be empty.",
+      "contentMaxLength": "Content cannot exceed {{max}} characters.",
+      "mediaMaxFiles": "You can only upload up to {{max}} files.",
+      "firstFilesSelected": "Selected the first {{slots}} files to stay within the limit.",
+      "uploadFailed": "Unable to upload files or publish the post. Please try again."
+    }
+  },
+  "postGroups": {
+    "title": "Post groups",
+    "postsCount": "{{count}} posts",
+    "viewPosts": "View posts",
+    "emptyTitle": "No discussion groups yet",
+    "emptyDescription": "There are currently no groups created."
+  }
+}

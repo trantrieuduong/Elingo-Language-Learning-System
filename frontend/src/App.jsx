@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
@@ -15,6 +15,9 @@ import FlashcardReviewPage from './modules/learning/flashcard/pages/FlashcardRev
 import LessonListPage from './modules/learning/lesson/pages/LessonListPage';
 import DictationPage from './modules/learning/dictation/pages/DictationPage';
 import ShadowingPage from './modules/learning/shadowing/pages/ShadowingPage';
+import CommunityFeedPage from './modules/community/pages/CommunityFeedPage/CommunityFeedPage';
+import PostGroupPage from './modules/community/pages/PostGroupPage/PostGroupPage';
+import MyFeedPage from './modules/community/pages/MyFeedPage/MyFeedPage';
 import './App.css';
 
 const PUBLIC_PATHS = ['/login', '/signup', '/account-verification', '/reset-password'];
@@ -28,7 +31,7 @@ const PRIVATE_USER_PATHS = [
   '/battle',
   '/speaking',
   '/community',
-  '/community/topics',
+  '/community/groups',
   '/community/my-posts',
   '/progress',
   '/gamification',
@@ -57,16 +60,13 @@ function App() {
   const flashcardStudyMatch = currentPath.match(/^\/decks\/([a-z0-9]+(?:-[a-z0-9]+)*)$/);
   const dictationMatch = currentPath.match(/^\/lessons\/dictation\/([^/]+)$/);
   const shadowingMatch = currentPath.match(/^\/lessons\/shadowing\/([^/]+)$/);
-  const deckListMatch = currentPath === '/decks';
   const deckTopicsMatch = currentPath.match(/^\/decks\/([^/]+)\/topics$/);
-  const topicCardsMatch = currentPath.match(/^\/decks\/([^/]+)\/topics\/([^/]+)\/cards$/);
   const isPrivateUserPath =
     PRIVATE_USER_PATHS.some((path) => {
       return currentPath === path || currentPath.startsWith(`${path}/`);
     }) ||
     !!flashcardStudyMatch ||
     !!deckTopicsMatch ||
-    !!topicCardsMatch ||
     !!dictationMatch ||
     !!shadowingMatch;
 
@@ -179,11 +179,17 @@ function App() {
       case '/speaking':
         return <PlaceholderPage title="Speaking" path={currentPath} />;
       case '/community':
-        return <PlaceholderPage title="Community Feed" path={currentPath} />;
-      case '/community/topics':
-        return <PlaceholderPage title="Community Topics" path={currentPath} />;
+        return (
+          <CommunityFeedPage
+            initialSelectedGroupId={window.history.state?.selectedGroupId}
+            onNavigate={navigate}
+          />
+        );
       case '/community/my-posts':
-        return <PlaceholderPage title="My Posts" path={currentPath} />;
+        return <MyFeedPage onNavigate={navigate} />;
+      case '/community/groups':
+        return <PostGroupPage onNavigate={navigate} />;
+      
       case '/progress':
         return <PlaceholderPage title="Progress" path={currentPath} />;
       case '/gamification':
@@ -218,7 +224,7 @@ function App() {
       </div>
       <Header onNavigate={navigate} currentPath={currentPath} />
       <div
-        className={`app-main ${deckListMatch || deckTopicsMatch || topicCardsMatch ? 'app-main--vocabulary' : ''} ${topicCardsMatch ? 'app-main--card-management' : ''}`}
+        className={"app-main"}
       >
         {renderContent()}
       </div>

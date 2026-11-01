@@ -1,0 +1,72 @@
+.post-card-comment-input {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+}
+
+.post-card-comment-input__avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-pill);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.post-card-comment-input__field {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-xs);
+  flex: 1;
+  min-width: 0;
+  border-radius: var(--radius-input);
+  padding: 6px 6px 6px var(--spacing-md);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.post-card-comment-input__field:focus-within {
+  border-color: var(--color-primary-container);
+  box-shadow: 0 0 0 3px rgba(155, 183, 232, 0.25);
+}
+
+.post-card-comment-input__textarea {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  min-height: 32px;
+  max-height: 96px;
+  padding: 5px 0;
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-md);
+  line-height: 1.4;
+  color: var(--color-text-high);
+}
+
+.post-card-comment-input__textarea::placeholder {
+  color: var(--color-text-disabled);
+}
+
+.post-card-comment-input__submit-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: var(--radius-pill);
+}
+
+.post-card-comment-input__submit-btn .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.post-card-comment-input__submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+

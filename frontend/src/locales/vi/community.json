@@ -1,1 +1,71 @@
-{}
+{
+  "createPost": "Tạo bài viết",
+  "sidebar": {
+    "title": "Nhóm",
+    "allPosts": "Tất cả bài viết"
+  },
+  "status": {
+    "title": "Trạng thái bài viết",
+    "all": "Tất cả trạng thái",
+    "published": "Công khai",
+    "pending": "Chờ duyệt",
+    "needsReview": "Đang được xem xét",
+    "rejected": "Bị từ chối"
+  },
+  "feed": {
+    "emptyTitle": "Chưa có bài viết",
+    "emptyGroup": "Chưa có bài viết nào trong nhóm này.",
+    "emptyMyFeed": "Bạn chưa có bài viết nào phù hợp với bộ lọc.",
+    "myPostAuthor": "Tôi (Hiện tại)",
+    "uploadSuccessKey": "Verified File Key: {{key}}"
+  },
+  "postCard": {
+    "anonymousUser": "Người dùng",
+    "collapse": "Thu gọn",
+    "expand": "Xem thêm",
+    "videoBadge": "Video",
+    "likeCount": "{{count}} lượt thích",
+    "commentCount": "{{count}} bình luận",
+    "like": "Thích",
+    "liked": "Đã thích",
+    "comment": "Bình luận",
+    "writeComment": "Viết bình luận...",
+    "cannotInteractUnpublished": "Bài viết chưa được công khai, không thể thích hoặc bình luận"
+  },
+  "postForm": {
+    "modalTitle": "Tạo bài viết mới",
+    "modalSubtitle": "Chọn đúng nhóm để bài viết tiếp cận những người phù hợp.",
+    "successAlert": "Đăng bài viết thành công!",
+    "groupLabel": "Nhóm *",
+    "selectGroupPlaceholder": "Chọn nhóm",
+    "titleLabel": "Tiêu đề *",
+    "titlePlaceholder": "Bạn muốn chia sẻ điều gì?",
+    "contentLabel": "Nội dung *",
+    "contentPlaceholder": "Viết nội dung rõ ràng để mọi người dễ dàng cùng thảo luận...",
+    "mediaLabel": "Ảnh & video",
+    "browseDevice": "Chọn từ thiết bị",
+    "mediaNote": "Tối đa {{max}} tệp",
+    "uploadProgress": "Đang tải tệp {{current}}/{{total}}...",
+    "creatingPost": "Đang tạo bài viết...",
+    "processing": "Đang xử lý...",
+    "submit": "Đăng bài",
+    "cancel": "Hủy",
+    "errors": {
+      "groupRequired": "Vui lòng chọn một nhóm.",
+      "titleRequired": "Tiêu đề không được để trống.",
+      "titleMaxLength": "Tiêu đề không được vượt quá {{max}} ký tự.",
+      "contentRequired": "Nội dung không được để trống.",
+      "contentMaxLength": "Nội dung không được vượt quá {{max}} ký tự.",
+      "mediaMaxFiles": "Bạn chỉ có thể tải lên tối đa {{max}} tệp.",
+      "firstFilesSelected": "Đã chọn {{slots}} tệp đầu tiên để không vượt quá giới hạn.",
+      "uploadFailed": "Không thể tải tệp lên hoặc đăng bài viết. Vui lòng thử lại."
+    }
+  },
+  "postGroups": {
+    "title": "Nhóm",
+    "postsCount": "{{count}} bài viết",
+    "viewPosts": "Xem bài viết",
+    "emptyTitle": "Chưa có nhóm thảo luận",
+    "emptyDescription": "Hiện tại chưa có nhóm nào được tạo."
+  }
+}

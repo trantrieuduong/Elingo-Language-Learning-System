@@ -1,6 +1,6 @@
 {
   "common": {
-    "UNKNOWN_ERROR": "Đã xảy ra lỗi không xác định. Vui lòng thử lại sau.",
+    "UNKNOWN_ERROR": "Đã xảy ra lỗi từ phía máy chủ. Vui lòng thử lại sau.",
     "fallback": "Đã có lỗi xảy ra. Vui lòng thử lại."
   },
   "error": {
