@@ -1,15 +1,47 @@
+server:
+  forward-headers-strategy: framework
+
 app:
-  front-end-domain: "https://production-domain.com"
+  front-end-domain: "https://elingo.pro"
+  google:
+    client-id: ${PROD_GOOGLE_CLIENT_ID}
 
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/elingo
-    username: ${MYSQL_USERNAME}
-    password: ${MYSQL_PASSWORD}
+    url: ${PROD_MYSQL_CONNECTION_URL} #?connectionTimeZone=Asia/Ho_Chi_Minh&forceConnectionTimeZoneToSession=true
+    username: ${PROD_MYSQL_USERNAME}
+    password: ${PROD_MYSQL_PASSWORD}
+  data:
+    redis:
+      host: ${PROD_REDIS_HOST:redis}
+      port: ${PROD_REDIS_PORT:6379}
+    web:
+      pageable:
+        one-indexed-parameters: true
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: ${PROD_DDL_AUTO:validate}
     show-sql: false
+    properties:
+      hibernate:
+        default_batch_fetch_size: 50
+  mail:
+    host: ${PROD_MAIL_HOST}
+    port: ${PROD_MAIL_PORT}
+    username: ${PROD_MAIL_USERNAME}
+    password: ${PROD_MAIL_PASSWORD}
+
+jwt:
+  signer-key: ${PROD_JWT_SIGNER_KEY}
+
+r2:
+  account-id: ${PROD_R2_ACCOUNT_ID}
+  access-key: ${PROD_R2_ACCESS_KEY}
+  secret-key: ${PROD_R2_SECRET_KEY}
+  bucket: ${PROD_R2_BUCKET}
+  public-url: ${PROD_R2_PUBLIC_URL}   # custom domain trỏ tới R2
+  multipart-min-part-size: 5242880
+  presign-duration-minutes: 30
 
 springdoc:
   swagger-ui:
@@ -18,8 +50,16 @@ springdoc:
     enabled: false
 
 logging:
+  structured:
+    format:
+      console: logstash
+    json:
+      add:
+        service: elingo
+        env: prod
   level:
-    root: WARN
-    com.elingo: INFO
-  file:
-    name: logs/elingo.log
+    root: INFO
+    org.springframework: WARN
+    org.springframework.boot: INFO
+    org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: ERROR
+    org.hibernate: WARN

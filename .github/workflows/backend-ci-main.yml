@@ -1,0 +1,367 @@
+name: Backend CI - main
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci-main.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci-main.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-ci-main-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  JAVA_VERSION: "21"
+
+defaults:
+  run:
+    working-directory: backend
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # 1. BUILD
+  # ---------------------------------------------------------------------------
+  build:
+    name: 1. Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: temurin
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+
+      - name: Make mvnw executable
+        run: chmod +x mvnw
+
+      - name: Resolve Maven dependencies
+        run: ./mvnw -B dependency:go-offline --fail-fast
+
+      - name: Compile
+        run: ./mvnw -B compile
+
+  # ---------------------------------------------------------------------------
+  # 2. TEST
+  # ---------------------------------------------------------------------------
+  test:
+    name: 2. Test (+ JaCoCo coverage)
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: temurin
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+
+      - name: Make mvnw executable
+        run: chmod +x mvnw
+
+      - name: Run unit + integration tests
+        run: ./mvnw -B verify
+        env:
+          SPRING_PROFILES_ACTIVE: test
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: backend/target/surefire-reports
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload JaCoCo coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: backend/target/site/jacoco
+          retention-days: 7
+          if-no-files-found: warn
+
+  # ---------------------------------------------------------------------------
+  # 3. SONARQUBE (SonarCloud)
+  # ---------------------------------------------------------------------------
+  sonar:
+    name: 3. SonarQube (SonarCloud)
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_BACKEND }}
+    steps:
+      - name: Checkout
+        if: ${{ env.SONAR_TOKEN != '' }}
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # Sonar cần full history để blame/new-code
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        if: ${{ env.SONAR_TOKEN != '' }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: temurin
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+
+      - name: Make mvnw executable
+        if: ${{ env.SONAR_TOKEN != '' }}
+        run: chmod +x mvnw
+
+      - name: SonarCloud scan
+        if: ${{ env.SONAR_TOKEN != '' }}
+        run: >
+          ./mvnw -B -ntp verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+          -Dsonar.host.url=https://sonarcloud.io
+          -Dsonar.projectKey=elingo_backend
+          -Dsonar.organization=elingo
+          -Dsonar.projectName="elingo backend"
+          -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+        # -Dsonar.qualitygate.wait=true
+
+      - name: Skip notice
+        if: ${{ env.SONAR_TOKEN == '' }}
+        run: echo "::notice::SONAR_TOKEN_BACKEND không có (PR từ fork hoặc chưa cấu hình) - bỏ qua SonarCloud."
+
+  # ---------------------------------------------------------------------------
+  # 4. SECURITY / DEPENDENCY SCANNING
+  # ---------------------------------------------------------------------------
+  security:
+    name: 4. Security & Dependency Scanning
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ---- 4a. Secret scanning (Gitleaks) ---------------------------------
+      - name: Gitleaks secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ---- 4b. Dependency / source scanning (Trivy) -----------------------
+      - name: Trivy - scan filesystem (source, dependency, config)
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          scan-type: fs
+          scan-ref: backend
+          scanners: vuln,misconfig,secret
+          trivyignores: backend/.trivyignore
+          exit-code: '1'
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          format: sarif
+          output: trivy-fs.sarif
+        env:
+          TRIVY_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-db
+
+      - name: Upload Trivy filesystem SARIF
+        if: always() && hashFiles('backend/trivy-fs.sarif') != ''
+        continue-on-error: true   # repo private không có GHAS thì upload SARIF sẽ lỗi, không chặn pipeline
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: backend/trivy-fs.sarif
+          category: trivy-filesystem
+
+  # ---------------------------------------------------------------------------
+  # 5. PACKAGING (Docker Build & Push)
+  # ---------------------------------------------------------------------------
+  package:
+    name: 5. Packaging (Docker Build & Push)
+    needs: [test, sonar, security]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/backend
+          tags: |
+            type=sha,format=short,prefix=
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ---------------------------------------------------------------------------
+  # 6. AUTO-DEPLOY (Deploy to Server via SSH Password)
+  # ---------------------------------------------------------------------------
+  deploy:
+    name: 6. Auto-Deploy
+    needs: package
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout (lấy compose + nginx conf)
+        uses: actions/checkout@v4
+
+      - name: Sync compose + nginx config lên VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROD_SERVER_HOST }}
+          username: ${{ secrets.PROD_SERVER_USER }}
+          key: ${{ secrets.PROD_SERVER_SSH_KEY }}
+          port: ${{ secrets.PROD_SERVER_PORT || 22 }}
+          source: "backend/docker-compose.yml,backend/nginx/default.conf"
+          target: /opt/elingo
+          strip_components: 1
+          overwrite: true
+
+      - name: Sync ops scripts to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROD_SERVER_HOST }}
+          username: ${{ secrets.PROD_SERVER_USER }}
+          key: ${{ secrets.PROD_SERVER_SSH_KEY }}
+          port: ${{ secrets.PROD_SERVER_PORT || 22 }}
+          source: "backend/ops/*"
+          target: /opt/elingo/ops
+          strip_components: 2
+          overwrite: true
+
+      - name: Deploy to Server via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          REPO: ${{ github.repository }}
+          PROD_DDL_AUTO: ${{ vars.PROD_DDL_AUTO || 'validate' }}
+          MYSQL_ROOT_PASSWORD: ${{ secrets.PROD_MYSQL_ROOT_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.PROD_MYSQL_DATABASE }}
+          MYSQL_USER: ${{ secrets.PROD_MYSQL_USER }}
+          MYSQL_PASSWORD: ${{ secrets.PROD_MYSQL_PASSWORD }}
+          PROD_FRONT_END_DOMAIN: ${{ secrets.PROD_FRONT_END_DOMAIN }}
+          PROD_JWT_SIGNER_KEY: ${{ secrets.PROD_JWT_SIGNER_KEY }}
+          PROD_GOOGLE_CLIENT_ID: ${{ secrets.PROD_GOOGLE_CLIENT_ID }}
+          PROD_MAIL_HOST: ${{ secrets.PROD_MAIL_HOST }}
+          PROD_MAIL_PORT: ${{ secrets.PROD_MAIL_PORT }}
+          PROD_MAIL_USERNAME: ${{ secrets.PROD_MAIL_USERNAME }}
+          PROD_MAIL_PASSWORD: ${{ secrets.PROD_MAIL_PASSWORD }}
+          PROD_R2_ACCOUNT_ID: ${{ secrets.PROD_R2_ACCOUNT_ID }}
+          PROD_R2_ACCESS_KEY: ${{ secrets.PROD_R2_ACCESS_KEY }}
+          PROD_R2_SECRET_KEY: ${{ secrets.PROD_R2_SECRET_KEY }}
+          PROD_R2_BUCKET: ${{ secrets.PROD_R2_BUCKET }}
+          PROD_R2_PUBLIC_URL: ${{ secrets.PROD_R2_PUBLIC_URL }}
+          PROD_TG_TOKEN: ${{ secrets.PROD_TG_TOKEN }}
+          PROD_TG_CHAT_ID: ${{ secrets.PROD_TG_CHAT_ID }}
+        with:
+          host: ${{ secrets.PROD_SERVER_HOST }}
+          username: ${{ secrets.PROD_SERVER_USER }}
+          key: ${{ secrets.PROD_SERVER_SSH_KEY }}
+          port: ${{ secrets.PROD_SERVER_PORT || 22 }}
+          envs: REPO,PROD_DDL_AUTO,MYSQL_ROOT_PASSWORD,MYSQL_DATABASE,MYSQL_USER,MYSQL_PASSWORD,PROD_FRONT_END_DOMAIN,PROD_JWT_SIGNER_KEY,PROD_GOOGLE_CLIENT_ID,PROD_MAIL_HOST,PROD_MAIL_PORT,PROD_MAIL_USERNAME,PROD_MAIL_PASSWORD,PROD_R2_ACCOUNT_ID,PROD_R2_ACCESS_KEY,PROD_R2_SECRET_KEY,PROD_R2_BUCKET,PROD_R2_PUBLIC_URL,PROD_TG_TOKEN,PROD_TG_CHAT_ID
+          script: |
+            set -e
+            echo "Đăng nhập vào GHCR trên VPS..."
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            echo "Chuyển vào thư mục triển khai..."
+            cd /opt/elingo
+
+            echo "Tạo file .env từ GitHub Secrets..."
+            umask 077
+            cat > .env <<ENVEOF
+            GITHUB_REPOSITORY=$(echo "$REPO" | tr 'A-Z' 'a-z')
+            PROD_DDL_AUTO=$PROD_DDL_AUTO
+            MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
+            MYSQL_DATABASE=$MYSQL_DATABASE
+            MYSQL_USER=$MYSQL_USER
+            MYSQL_PASSWORD=$MYSQL_PASSWORD
+            PROD_FRONT_END_DOMAIN=$PROD_FRONT_END_DOMAIN
+            PROD_JWT_SIGNER_KEY=$PROD_JWT_SIGNER_KEY
+            PROD_GOOGLE_CLIENT_ID=$PROD_GOOGLE_CLIENT_ID
+            PROD_MAIL_HOST=$PROD_MAIL_HOST
+            PROD_MAIL_PORT=$PROD_MAIL_PORT
+            PROD_MAIL_USERNAME=$PROD_MAIL_USERNAME
+            PROD_MAIL_PASSWORD=$PROD_MAIL_PASSWORD
+            PROD_R2_ACCOUNT_ID=$PROD_R2_ACCOUNT_ID
+            PROD_R2_ACCESS_KEY=$PROD_R2_ACCESS_KEY
+            PROD_R2_SECRET_KEY=$PROD_R2_SECRET_KEY
+            PROD_R2_BUCKET=$PROD_R2_BUCKET
+            PROD_R2_PUBLIC_URL=$PROD_R2_PUBLIC_URL
+            ENVEOF
+
+            echo "Tự động cấu hình .alert.env từ GitHub Secrets..."
+            if [ -n "$PROD_TG_TOKEN" ] || [ ! -f /opt/elingo/.alert.env ]; then
+              cat > /opt/elingo/.alert.env <<ALERTEOF
+            TG_TOKEN=${PROD_TG_TOKEN:-}
+            TG_CHAT_ID=${PROD_TG_CHAT_ID:-}
+            ALERTEOF
+              chmod 600 /opt/elingo/.alert.env
+            fi
+
+            echo "Kéo image backend mới nhất..."
+            docker compose pull backend
+
+            echo "Khởi động / cập nhật toàn bộ stack..."
+            docker compose up -d
+
+            echo "Reload Nginx để nhận IP mới của backend..."
+            docker compose exec -T nginx nginx -s reload || echo "Nginx chưa chạy, bỏ qua reload"
+
+            echo "Cài đặt và đồng bộ ops scripts, cron jobs..."
+            bash /opt/elingo/ops/install.sh
+
+            echo "Dọn dẹp image cũ không dùng..."
+            docker image prune -f
+
+            echo "Triển khai backend hoàn tất!"

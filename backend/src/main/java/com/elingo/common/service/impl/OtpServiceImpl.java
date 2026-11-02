@@ -4,7 +4,7 @@ import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.common.service.OtpService;
 import com.elingo.common.service.RedisService;
-import com.elingo.common.util.OtpType;
+import com.elingo.common.enums.OtpType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -44,6 +44,6 @@ public class OtpServiceImpl implements OtpService {
     }
 
     private String buildOtpKey(OtpType type, String identifier) {
-        return "otp:" + type.prefix() + ":" + identifier;
+        return "otp:" + type.getPrefix() + ":" + identifier;
     }
 }

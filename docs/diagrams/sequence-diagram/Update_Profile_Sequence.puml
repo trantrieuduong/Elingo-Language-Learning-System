@@ -30,66 +30,73 @@ participant "UserService" as service
 participant "UserRepo" as repo
 database "Database (MySQL)" as DB
 
-User -> client: updateProfile(displayName, avatarURL)
+User -> client: updateProfile(displayName,\navatarURL)
 activate client
 
-client -> fileController: requestUploadAvatar(fileName,\ncontentType)
-activate fileController
+alt Định dạng file không được hỗ trợ
+    client --> User : Thông báo lỗi:"Định dạng file\nkhông được hỗ trợ"
+else File vượt quá kích thước quy định
+    client --> User : Thông báo lỗi:"File vượt quá\nkích thước quy định"
+else Tên hiển thị không hợp lệ
+    client --> User : Thông báo lỗi:"Tên hiển thị không hợp lệ"
+else else
+    client -> fileController: requestUploadAvatar(fileName,\ncontentType)
+    activate fileController
 
-fileController -> fileService: generatePresignedUploadURL(\nfileName, contentType)
-activate fileService
+    fileController -> fileService: generatePresignedURL(fileName,\ncontentType)
+    activate fileService
 
-fileService --> fileController: presignedURL
-deactivate fileService
-
-fileController --> client: apiResponse
-deactivate fileController
-
-client -> controller : updateProfile(displayName,\navatarURL)
-activate controller
-
-controller -> service : validateUpdateProfile(\ndisplayName, avatarURL)
-activate service
-
-service -> fileService : validateS3URL(\ndisplayName, avatarURL)
-activate fileService
-
-alt avatarURL không hợp lệ
-    fileService --> controller : avatarValidationError
+    fileService --> fileController: presignedURL
     deactivate fileService
 
-    controller --> client : apiResponse
-    client --> User : Thông báo lỗi:\n"Ảnh đại diện không hợp lệ"
+    fileController --> client: apiResponse
+    deactivate fileController
 
-else displayName không hợp lệ
-    service --> controller : displayNameValidationError
-    controller --> client : apiResponse
-    client --> User : Thông báo lỗi:\n"Tên hiển thị không hợp lệ"
+    client -> controller : updateProfile(displayName,\navatarURL)
+    activate controller
 
-else dữ liệu hợp lệ
-    service -> repo : updateUser(user.id,\ndisplayName, avatarURL)
-    activate repo
+    controller -> service : validateUpdateProfile(\ndisplayName, avatarURL)
+    activate service
 
-    repo -> DB : updateUser(user.id,\ndisplayName, avatarURL)
-    activate DB
+    service -> fileService : validatePresignedRL(avatarURL)
+    activate fileService
 
-    DB --> repo : result
-    deactivate DB
+    alt avatarURL không hợp lệ
+        fileService --> controller : avatarValidationError
+        deactivate fileService
 
-    repo --> service : result
-    deactivate repo
+        controller --> client : apiResponse
+        client --> User : Thông báo lỗi:\n"Ảnh đại diện không hợp lệ"
 
-    service --> controller : result
-    deactivate service
+    else displayName không hợp lệ
+        service --> controller : displayNameValidationError
+        controller --> client : apiResponse
+        client --> User : Thông báo lỗi:\n"Tên hiển thị không hợp lệ"
 
-    controller --> client : apiResponse
-    deactivate controller
+    else else
+        service -> repo : updateUser(user.id,\ndisplayName, avatarURL)
+        activate repo
 
-    client --> User : Thông báo:\n"Cập nhật thông tin thành công",\nLàm mới giao diện
+        repo -> DB : updateUser(user.id,\ndisplayName, avatarURL)
+        activate DB
 
-    deactivate service
-    deactivate controller
-    deactivate client
+        DB --> repo : result
+        deactivate DB
+
+        repo --> service : result
+        deactivate repo
+
+        service --> controller : result
+        deactivate service
+
+        controller --> client : apiResponse
+        deactivate controller
+
+        client --> User : Thông báo:\n"Cập nhật thông tin thành công",\nLàm mới giao diện
+
+        deactivate service
+        deactivate controller
+        deactivate client
+    end
 end
-
 @enduml

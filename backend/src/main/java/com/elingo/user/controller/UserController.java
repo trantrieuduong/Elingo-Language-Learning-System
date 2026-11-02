@@ -2,32 +2,42 @@ package com.elingo.user.controller;
 
 import com.elingo.common.annotation.CurrentUserId;
 import com.elingo.common.dto.ApiResponse;
+import com.elingo.common.dto.CursorResponse;
+import com.elingo.common.enums.RateLimitRule;
+import com.elingo.common.service.RateLimiterService;
+import com.elingo.community.dto.response.PostResponse;
+import com.elingo.community.service.PostService;
 import com.elingo.user.dto.request.ChangePasswordRequest;
 import com.elingo.user.dto.request.SendOTPUpdateEmailRequest;
 import com.elingo.user.dto.request.SetPasswordRequest;
 import com.elingo.user.dto.request.UpdateEmailRequest;
+import com.elingo.user.dto.request.UpdateProfileRequest;
 import com.elingo.user.dto.response.UserMeResponse;
 import com.elingo.user.service.UserService;
+import com.elingo.vocabulary.dto.response.DeckResponse;
+import com.elingo.vocabulary.service.DeckService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/users")
-@Slf4j(topic = "USER-CONTROLLER")
 @RequiredArgsConstructor
 @Tag(name = "User Controller")
 public class UserController {
 
     private final UserService userService;
+    private final DeckService deckService;
+    private final PostService postService;
+    private final RateLimiterService limiter;
 
     @GetMapping("/me")
     @Operation(summary = "Get current user profile")
     public ApiResponse<UserMeResponse> getMyInfo(@CurrentUserId Long userId) {
-        log.info("Get current user profile request received: userId={}", userId);
         UserMeResponse response = userService.getMyInfo(userId);
         return ApiResponse.<UserMeResponse>builder()
                 .success(true)
@@ -35,13 +45,33 @@ public class UserController {
                 .build();
     }
 
+    @GetMapping("/me/decks")
+    @Operation(summary = "Get current user decks")
+    public ApiResponse<List<DeckResponse>> getMyDecks(@CurrentUserId Long userId) {
+        return ApiResponse.<List<DeckResponse>>builder()
+                .success(true)
+                .data(deckService.getUserDecks(userId))
+                .build();
+    }
+
+    @GetMapping("/{id}/posts")
+    @Operation(summary = "Get users posts by id")
+    public ApiResponse<CursorResponse<PostResponse>> getUserPosts(
+            @PathVariable Long id,
+            @RequestParam(required = false) String cursor,
+            @RequestParam(defaultValue = "20") int limit,
+            @CurrentUserId Long currentUserId) {
+        return ApiResponse.<CursorResponse<PostResponse>>builder()
+                .success(true)
+                .data(postService.getUserPosts(id, cursor, limit, currentUserId))
+                .build();
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Get user profile by id")
-    public ApiResponse<?> getUserById(
+    public ApiResponse<Object> getUserById(
             @PathVariable Long id,
-            @CurrentUserId Long currentUserId
-    ) {
-        log.info("Get user profile by id request received: targetId={}, currentUserId={}", id, currentUserId);
+            @CurrentUserId Long currentUserId) {
         Object response = userService.getUserById(id, currentUserId);
         return ApiResponse.builder()
                 .success(true)
@@ -53,9 +83,7 @@ public class UserController {
     @Operation(summary = "Change current user password")
     public ApiResponse<Void> changePassword(
             @Valid @RequestBody ChangePasswordRequest request,
-            @CurrentUserId Long userId
-    ) {
-        log.info("Change password request received: userId={}", userId);
+            @CurrentUserId Long userId) {
         userService.changePassword(userId, request);
         return ApiResponse.<Void>builder()
                 .success(true)
@@ -66,9 +94,7 @@ public class UserController {
     @Operation(summary = "Set password for Google-authenticated account (first time only)")
     public ApiResponse<Void> setPassword(
             @Valid @RequestBody SetPasswordRequest request,
-            @CurrentUserId Long userId
-    ) {
-        log.info("Set password request received: userId={}", userId);
+            @CurrentUserId Long userId) {
         userService.setPassword(userId, request);
         return ApiResponse.<Void>builder()
                 .success(true)
@@ -80,7 +106,8 @@ public class UserController {
     public ApiResponse<Void> sendOTPUpdateEmail(
             @Valid @RequestBody SendOTPUpdateEmailRequest request,
             @CurrentUserId Long userId) {
-        log.info("Send OTP update email request received: userId={}", userId);
+        limiter.check(RateLimitRule.OTP_SEND_EMAIL, request.newEmail());
+
         userService.sendOTPUpdateEmail(userId, request);
         return ApiResponse.<Void>builder()
                 .success(true)
@@ -92,10 +119,24 @@ public class UserController {
     public ApiResponse<Void> updateEmail(
             @Valid @RequestBody UpdateEmailRequest request,
             @CurrentUserId Long userId) {
-        log.info("Update email request received: userId={}", userId);
+        limiter.check(RateLimitRule.OTP_RESET_EMAIL, request.newEmail());
+
         userService.updateEmail(userId, request);
         return ApiResponse.<Void>builder()
                 .success(true)
+                .build();
+    }
+
+    @PutMapping("/me")
+    @Operation(summary = "Update current user profile")
+    public ApiResponse<UserMeResponse> updateProfile(
+            @Valid @RequestBody UpdateProfileRequest request,
+            @CurrentUserId Long userId) {
+
+        UserMeResponse response = userService.updateProfile(userId, request);
+        return ApiResponse.<UserMeResponse>builder()
+                .success(true)
+                .data(response)
                 .build();
     }
 }

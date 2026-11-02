@@ -1,11 +1,17 @@
 app:
   front-end-domain: "http://localhost:5173"
+  google:
+    client-id: ${DEV_GOOGLE_CLIENT_ID}
 
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/elingo
-    username: ${MYSQL_USERNAME}
-    password: ${MYSQL_PASSWORD}
+    url: ${DEV_MYSQL_CONNECTION_URL:jdbc:mysql://localhost:3306/elingo} #?connectionTimeZone=Asia/Ho_Chi_Minh&forceConnectionTimeZoneToSession=true
+    username: ${DEV_MYSQL_USERNAME}
+    password: ${DEV_MYSQL_PASSWORD}
+  data:
+    web:
+      pageable:
+        one-indexed-parameters: true
   jpa:
     hibernate:
       ddl-auto: update
@@ -13,6 +19,24 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        default_batch_fetch_size: 50
+  mail:
+    host: ${DEV_MAIL_HOST}
+    port: ${DEV_MAIL_PORT}
+    username: ${DEV_MAIL_USERNAME}
+    password: ${DEV_MAIL_PASSWORD}
+
+jwt:
+  signer-key: ${DEV_JWT_SIGNER_KEY}
+
+r2:
+  account-id: ${DEV_R2_ACCOUNT_ID}
+  access-key: ${DEV_R2_ACCESS_KEY}
+  secret-key: ${DEV_R2_SECRET_KEY}
+  bucket: ${DEV_R2_BUCKET}
+  public-url: ${DEV_R2_PUBLIC_URL:http://localhost:8787}
+  multipart-min-part-size: 5242880
+  presign-duration-minutes: 30
 
 springdoc:
   swagger-ui:
@@ -25,3 +49,5 @@ logging:
     root: INFO
     com.elingo: DEBUG
     org.hibernate.SQL: DEBUG
+  pattern:
+    console: "%clr(%d{HH:mm:ss.SSS}){faint} %clr(%-5level) %clr([%X{requestId:-}]){yellow} %clr(%X{userId:-}){magenta} %clr(%-30logger{30}){cyan} : %msg%n%wEx"

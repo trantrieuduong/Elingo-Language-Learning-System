@@ -1,0 +1,97 @@
+{
+  "common": {
+    "UNKNOWN_ERROR": "Đã xảy ra lỗi không xác định. Vui lòng thử lại sau.",
+    "fallback": "Đã có lỗi xảy ra. Vui lòng thử lại."
+  },
+  "error": {
+    "INVALID_CREDENTIALS": "Email/Username hoặc mật khẩu không chính xác.",
+    "AUTH_UNAUTHORIZED": "Bạn cần đăng nhập để thực hiện chức năng này.",
+    "ACCOUNT_NOT_VERIFIED": "Tài khoản chưa được xác thực email.",
+    "USER_NOT_VERIFIED": "Email chưa được xác thực.",
+    "EMAIL_NOT_EXISTED": "Email không tồn tại.",
+    "USER_NOT_FOUND": "Tài khoản hoặc thông tin không tồn tại.",
+    "USERNAME_EXISTED": "Username đã tồn tại.",
+    "EMAIL_EXISTED": "Email đã tồn tại.",
+    "OTP_INVALID": "Mã OTP không chính xác hoặc đã hết hạn.",
+    "TOO_MANY_REQUESTS": "Quá nhiều yêu cầu, vui lòng thử lại sau.",
+    "RATE_LIMIT_EXCEEDED": "Quá nhiều yêu cầu, vui lòng thử lại sau.",
+    "EMAIL_SEND_FAILED": "Gửi email thất bại. Vui lòng thử lại sau.",
+    "UNAUTHENTICATED": "Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.",
+    "UNAUTHORIZED": "Bạn không có quyền thực hiện thao tác này.",
+    "USER_INACTIVE": "Tài khoản hiện đang bị vô hiệu hóa.",
+    "USER_BANNED": "Tài khoản đã bị khóa.",
+    "REFRESH_TOKEN_INVALID": "Phiên đăng nhập hết hạn, vui lòng đăng nhập lại.",
+    "PASSWORD_INCORRECT": "Mật khẩu không chính xác.",
+    "OLD_PASSWORD_INCORRECT": "Mật khẩu cũ không chính xác.",
+    "NEW_PASSWORD_SAME_AS_OLD": "Mật khẩu mới không được trùng với mật khẩu cũ.",
+    "GOOGLE_TOKEN_INVALID": "Thông tin xác thực Google không hợp lệ hoặc đã hết hạn.",
+    "GOOGLE_TOKEN_VERIFICATION_FAILED": "Không thể xác thực tài khoản Google. Vui lòng thử lại.",
+    "USERNAME_COOLDOWN": "Bạn có thể đổi tên người dùng sau {{days}} ngày nữa.",
+    "INTERNAL_SERVER_ERROR": "Lỗi hệ thống. Vui lòng thử lại sau.",
+    "UNCATEGORIZED_EXCEPTION": "Lỗi không xác định. Vui lòng thử lại.",
+    "DECK_NOT_FOUND": "Bộ từ vựng không tồn tại hoặc chưa được công khai.",
+    "DECK_ACCESS_DENIED": "Bạn không có quyền truy cập bộ từ vựng này.",
+    "PREMIUM_REQUIRED": "Nội dung này yêu cầu tài khoản Premium. Vui lòng nâng cấp gói để tiếp tục học.",
+    "TOPIC_NOT_FOUND": "Chủ đề không tồn tại.",
+    "TOPIC_ACCESS_DENIED": "Bạn không có quyền truy cập chủ đề này.",
+    "CARD_NOT_FOUND": "Thẻ từ vựng không tồn tại.",
+    "NO_CARDS_DUE": "Hiện không có thẻ nào đến hạn ôn tập.",
+    "PAGE_INDEX_INVALID": "Số trang không hợp lệ.",
+    "KEYWORD_INVALID": "Từ khóa tìm kiếm không hợp lệ.",
+    "CEFR_LEVEL_CODE_INVALID": "Mã trình độ CEFR không hợp lệ.",
+    "TAG_CODE_INVALID": "Mã chủ đề không hợp lệ.",
+    "LESSON_NOT_FOUND": "Bài học không tồn tại hoặc chưa được công khai.",
+    "LESSON_SEGMENT_NOT_FOUND": "Đoạn bài học không tồn tại.",
+    "LESSON_PREMIUM_REQUIRED": "Bài học này yêu cầu tài khoản Premium. Vui lòng nâng cấp gói để tiếp tục học.",
+    "ATTEMPT_COUNT_INVALID": "Số lần thử không hợp lệ.",
+    "HINT_COUNT_INVALID": "Số lần gợi ý không hợp lệ.",
+    "SHADOWING_SCORE_INVALID": "Điểm luyện nói không hợp lệ.",
+    "WORDS_ACCURACY_INVALID": "Độ chính xác từng từ không hợp lệ.",
+    "DECK_LIMIT_EXCEEDED": "Bạn đã đạt số lượng bộ từ vựng tối đa cho phép.",
+    "TOPIC_LIMIT_EXCEEDED": "Bạn đã đạt số lượng chủ đề tối đa trong bộ từ này.",
+    "CARD_LIMIT_EXCEEDED": "Chủ đề này đã đạt số lượng từ tối đa cho phép.",
+    "DECK_SLUG_EXISTED": "Tên đường dẫn (slug) bộ từ đã tồn tại, vui lòng đổi tên khác.",
+    "TOPIC_SLUG_EXISTED": "Tên đường dẫn (slug) chủ đề đã tồn tại trong bộ từ này.",
+    "DECK_EMPTY": "Không thể công khai bộ từ không có từ vựng.",
+    "CARD_NOT_AVAILABLE": "Thẻ từ vựng hiện không khả dụng.",
+    "CARD_ACCESS_DENIED": "Bạn không có quyền chỉnh sửa thẻ từ vựng này.",
+    "INVALID_SRS_GRADE": "Mức đánh giá ôn tập không hợp lệ.",
+    "USER_CARD_STATE_NOT_FOUND": "Không tìm thấy dữ liệu học của thẻ.",
+    "AUDIO_RECORDING_REQUIRED": "Bắt buộc phải có bản ghi âm.",
+    "INVALID_REQUEST": "Yêu cầu không hợp lệ.",
+    "FILE_TOO_LARGE": "Tệp tin vượt quá dung lượng cho phép.",
+    "INVALID_FILE_TYPE": "Loại tệp tin không hợp lệ.",
+    "FILE_TYPE_MISMATCH": "Định dạng tệp không khớp.",
+    "FILE_ACCESS_DENIED": "Không có quyền truy cập tệp tin.",
+    "FILE_UPLOAD_FAILED": "Tải tệp tin lên thất bại. Vui lòng thử lại."
+  },
+  "validation": {
+    "username": {
+      "REQUIRED": "Username là bắt buộc.",
+      "INVALID_FORMAT": "Username gồm 3-15 chữ cái hoặc chữ số, không có khoảng trắng hay ký tự đặc biệt."
+    },
+    "email": {
+      "REQUIRED": "Email là bắt buộc.",
+      "INVALID_FORMAT": "Email không đúng định dạng."
+    },
+    "password": {
+      "REQUIRED": "Mật khẩu là bắt buộc.",
+      "MIN_LENGTH": "Mật khẩu phải có ít nhất {{min}} ký tự.",
+      "INVALID_FORMAT": "Mật khẩu phải có ít nhất 8 ký tự và bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt."
+    },
+    "otp": {
+      "REQUIRED": "Mã OTP là bắt buộc."
+    }
+  },
+  "success": {
+    "LOGIN_SUCCESS": "Đăng nhập thành công!",
+    "SIGNUP_SUCCESS": "Tạo tài khoản thành công! Vui lòng kiểm tra email để xác thực.",
+    "PROFILE_UPDATED": "Cập nhật thông tin thành công.",
+    "PASSWORD_RESET": "Đặt lại mật khẩu thành công.",
+    "OTP_SENT": "Đã gửi mã OTP thành công. Vui lòng kiểm tra email của bạn.",
+    "ACCOUNT_VERIFIED": "Tài khoản đã được xác thực thành công. Bạn có thể đăng nhập ngay.",
+    "OTP_RESENT": "Mã xác thực mới đã được gửi đến email của bạn.",
+    "LOGOUT_SUCCESS": "Đăng xuất thành công.",
+    "REFRESH_TOKEN_SUCCESS": "Làm mới phiên làm việc thành công."
+  }
+}

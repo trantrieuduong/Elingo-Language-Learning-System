@@ -1,10 +1,8 @@
 package com.elingo.auth.dto.request;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 public record ResendVerificationOtpRequest(
-        @NotBlank(message = "EMAIL_INVALID")
-        @Email(message = "EMAIL_INVALID")
+        @NotBlank(message = "IDENTIFIER_INVALID")
         String email
 ) { }

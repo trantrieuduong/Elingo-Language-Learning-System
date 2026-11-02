@@ -14,6 +14,7 @@ public enum AppError {
     // ==========================================
     UNCATEGORIZED_EXCEPTION("UNCATEGORIZED_EXCEPTION", "Uncategorized exception", HttpStatus.INTERNAL_SERVER_ERROR),
     INVALID_REQUEST("INVALID_REQUEST", "Invalid request parameters or body", HttpStatus.BAD_REQUEST),
+    SLUG_INVALID("SLUG_INVALID", "Slug must contain only lowercase letters, numbers and hyphens", HttpStatus.BAD_REQUEST),
     RESOURCE_NOT_FOUND("RESOURCE_NOT_FOUND", "Requested resource not found", HttpStatus.NOT_FOUND),
     METHOD_NOT_SUPPORTED("METHOD_NOT_SUPPORTED", "HTTP request method is not supported", HttpStatus.METHOD_NOT_ALLOWED),
     MEDIA_TYPE_NOT_SUPPORTED("MEDIA_TYPE_NOT_SUPPORTED", "Request media type is not supported", HttpStatus.UNSUPPORTED_MEDIA_TYPE),
@@ -26,6 +27,10 @@ public enum AppError {
     FILE_UPLOAD_FAILED("FILE_UPLOAD_FAILED", "Failed to upload file", HttpStatus.INTERNAL_SERVER_ERROR),
     FILE_TOO_LARGE("FILE_TOO_LARGE", "Uploaded file size exceeds the allowed limit", HttpStatus.BAD_REQUEST),
     INVALID_FILE_TYPE("INVALID_FILE_TYPE", "File format is not supported", HttpStatus.BAD_REQUEST),
+    FILE_NOT_FOUND("FILE_NOT_FOUND", "File not found", HttpStatus.NOT_FOUND),
+    FILE_ACCESS_DENIED("FILE_ACCESS_DENIED", "You do not own this file", HttpStatus.FORBIDDEN),
+    FILE_TYPE_MISMATCH("FILE_TYPE_MISMATCH", "File content does not match the declared file type", HttpStatus.BAD_REQUEST),
+    RATE_LIMIT_EXCEEDED("RATE_LIMIT_EXCEEDED", "Too many requests, please try again later", HttpStatus.TOO_MANY_REQUESTS),
 
     // ==========================================
     // 2. Auth & User (Xác thực & Người dùng)
@@ -33,6 +38,7 @@ public enum AppError {
     USERNAME_INVALID("USERNAME_INVALID", "Username must be 3-15 characters, letters and numbers only, no spaces", HttpStatus.BAD_REQUEST),
     PASSWORD_INVALID("PASSWORD_INVALID", "Password must be at least 8 characters and include uppercase, lowercase, number, and special character", HttpStatus.BAD_REQUEST),
     EMAIL_INVALID("EMAIL_INVALID", "Email format is invalid", HttpStatus.BAD_REQUEST),
+    IDENTIFIER_INVALID("IDENTIFIER_INVALID", "Email or username must not be blank", HttpStatus.BAD_REQUEST),
     FULL_NAME_INVALID("FULL_NAME_INVALID", "Full name must not be blank and less than 150 characters", HttpStatus.BAD_REQUEST),
     OTP_INVALID("OTP_INVALID", "OTP is incorrect or expired", HttpStatus.BAD_REQUEST),
     USERNAME_EXISTED("USERNAME_EXISTED", "Username already exists", HttpStatus.BAD_REQUEST),
@@ -59,20 +65,33 @@ public enum AppError {
     // ==========================================
     // 3. Vocabulary (Bộ từ vựng, Chủ đề, Thẻ từ)
     // ==========================================
-    DECK_NOT_FOUND("DECK_NOT_FOUND", "Vocabulary deck not found", HttpStatus.NOT_FOUND),
+    DECK_LIMIT_EXCEEDED("DECK_LIMIT_EXCEEDED", "You have reached the maximum decks per user", HttpStatus.BAD_REQUEST),
+    TOPIC_LIMIT_EXCEEDED("TOPIC_LIMIT_EXCEEDED", "You have reached the maximum topics per deck", HttpStatus.BAD_REQUEST),
+    CARD_LIMIT_EXCEEDED("CARD_LIMIT_EXCEEDED", "You have reached the maximum cards per topic", HttpStatus.BAD_REQUEST),
+    DECK_NOT_FOUND("DECK_NOT_FOUND", "Vocabulary deck not found or has not been published", HttpStatus.NOT_FOUND),
     DECK_SLUG_EXISTED("DECK_SLUG_EXISTED", "Deck slug already exists", HttpStatus.BAD_REQUEST),
-    DECK_ACCESS_DENIED("DECK_ACCESS_DENIED", "You do not have permission to modify this deck", HttpStatus.FORBIDDEN),
-    DECK_PREMIUM_REQUIRED("DECK_PREMIUM_REQUIRED", "This deck requires a premium subscription", HttpStatus.FORBIDDEN),
+    DECK_ACCESS_DENIED("DECK_ACCESS_DENIED", "You do not have permission to access this deck", HttpStatus.FORBIDDEN),
     DECK_EMPTY("DECK_EMPTY", "Deck contains no cards", HttpStatus.BAD_REQUEST),
     TOPIC_NOT_FOUND("TOPIC_NOT_FOUND", "Topic not found", HttpStatus.NOT_FOUND),
     TOPIC_SLUG_EXISTED("TOPIC_SLUG_EXISTED", "Topic slug already exists in this deck", HttpStatus.BAD_REQUEST),
+    TOPIC_ORDER_INVALID("TOPIC_ORDER_INVALID", "Topic order must be between 0 and the last position in the deck", HttpStatus.BAD_REQUEST),
+    TOPIC_ACCESS_DENIED("TOPIC_ACCESS_DENIED", "You do not have permission to access this topic", HttpStatus.FORBIDDEN),
+    TOPIC_NOT_IN_DECK("TOPIC_NOT_IN_DECK", "Topic does not belong to this deck", HttpStatus.BAD_REQUEST),
     CARD_NOT_FOUND("CARD_NOT_FOUND", "Vocabulary card not found", HttpStatus.NOT_FOUND),
+    CARD_NOT_AVAILABLE("CARD_NOT_AVAILABLE", "Card is no longer available", HttpStatus.GONE),
+    CARD_ACCESS_DENIED("CARD_ACCESS_DENIED", "You do not have permission to modify this card", HttpStatus.FORBIDDEN),
+    CARD_ORDER_INVALID("CARD_ORDER_INVALID", "Card order must be between 0 and the last position in the topic", HttpStatus.BAD_REQUEST),
     CARD_PHONETIC_NOT_FOUND("CARD_PHONETIC_NOT_FOUND", "Card phonetic not found", HttpStatus.NOT_FOUND),
+    DUPLICATE_CARD_PHONETIC_LOCALE("DUPLICATE_CARD_PHONETIC_LOCALE", "Duplicate phonetic locale in this card", HttpStatus.BAD_REQUEST),
     TAG_NOT_FOUND("TAG_NOT_FOUND", "Tag not found", HttpStatus.NOT_FOUND),
     TAG_CODE_EXISTED("TAG_CODE_EXISTED", "Tag code already exists", HttpStatus.BAD_REQUEST),
+    TAG_CODE_INVALID("TAG_CODE_INVALID", "Tag code must not exceed 100 characters", HttpStatus.BAD_REQUEST),
     CEFR_LEVEL_NOT_FOUND("CEFR_LEVEL_NOT_FOUND", "CEFR level not found", HttpStatus.NOT_FOUND),
     CEFR_LEVEL_CODE_EXISTED("CEFR_LEVEL_CODE_EXISTED", "CEFR level code already exists", HttpStatus.BAD_REQUEST),
+    CEFR_LEVEL_CODE_INVALID("CEFR_LEVEL_CODE_INVALID", "CEFR level code must not exceed 10 characters", HttpStatus.BAD_REQUEST),
     IMPORT_VOCABULARY_FAILED("IMPORT_VOCABULARY_FAILED", "Failed to import vocabulary from file", HttpStatus.BAD_REQUEST),
+    KEYWORD_INVALID("KEYWORD_INVALID", "Keyword must not exceed 255 characters", HttpStatus.BAD_REQUEST),
+    PAGE_INDEX_INVALID("PAGE_INDEX_INVALID", "Page index must be 1 or greater", HttpStatus.BAD_REQUEST),
 
     // ==========================================
     // 4. Learning - Flashcard (Học thẻ SRS SM-2)
@@ -80,6 +99,9 @@ public enum AppError {
     USER_CARD_STATE_NOT_FOUND("USER_CARD_STATE_NOT_FOUND", "User card study state not found", HttpStatus.NOT_FOUND),
     INVALID_SRS_GRADE("INVALID_SRS_GRADE", "Review grade must be between 0 (Again) and 3 (Easy)", HttpStatus.BAD_REQUEST),
     NO_CARDS_DUE("NO_CARDS_DUE", "No flashcards are due for review", HttpStatus.BAD_REQUEST),
+    QUIZ_NOT_ENOUGH_CARDS("QUIZ_NOT_ENOUGH_CARDS", "Not enough cards in deck to generate 4 quiz options", HttpStatus.UNPROCESSABLE_CONTENT),
+    MAX_REVIEW_CARD_LIMIT_INVALID("MAX_REVIEW_CARD_LIMIT_INVALID", "Maximum review card limit must not exceed 200", HttpStatus.BAD_REQUEST),
+    MIN_REVIEW_CARD_LIMIT_INVALID("MIN_REVIEW_CARD_LIMIT_INVALID", "Minimum review card limit must be at least 1", HttpStatus.BAD_REQUEST),
 
     // ==========================================
     // 5. Learning - Lesson (Bài học, Dictation, Shadowing)
@@ -92,6 +114,13 @@ public enum AppError {
     USER_LESSON_PROGRESS_NOT_FOUND("USER_LESSON_PROGRESS_NOT_FOUND", "User lesson progress not found", HttpStatus.NOT_FOUND),
     USER_SEGMENT_PROGRESS_NOT_FOUND("USER_SEGMENT_PROGRESS_NOT_FOUND", "User segment progress not found", HttpStatus.NOT_FOUND),
     AUDIO_RECORDING_REQUIRED("AUDIO_RECORDING_REQUIRED", "Shadowing requires an audio recording file", HttpStatus.BAD_REQUEST),
+    ATTEMPT_COUNT_INVALID("ATTEMPT_COUNT_INVALID", "Attempt count must be between 1 and 1000", HttpStatus.BAD_REQUEST),
+    HINT_COUNT_INVALID("HINT_COUNT_INVALID", "Hint used count must be 0 or greater", HttpStatus.BAD_REQUEST),
+    SHADOWING_SCORE_INVALID("SHADOWING_SCORE_INVALID", "Shadowing score must be between 0 and 100", HttpStatus.BAD_REQUEST),
+    WORDS_ACCURACY_INVALID("WORDS_ACCURACY_INVALID", "Words accuracy list is invalid (size, word or accuracy out of range)", HttpStatus.BAD_REQUEST),
+    PROGRESS_UPDATE_CONFLICT("PROGRESS_UPDATE_CONFLICT", "Progress was updated concurrently, please retry", HttpStatus.CONFLICT),
+    SOURCE_URL_INVALID("SOURCE_URL_INVALID", "Source url must be a valid YouTube link", HttpStatus.BAD_REQUEST),
+    LESSON_PUBLISHED_FAILED("LESSON_PUBLISHED_FAILED", "Cannot publish a lesson without segments", HttpStatus.BAD_REQUEST),
 
     // ==========================================
     // 6. Battle (Đấu trường từ vựng 1vs1)
@@ -159,6 +188,7 @@ public enum AppError {
     // ==========================================
     // 11. Premium & Payment (Gói Premium & Thanh toán)
     // ==========================================
+    PREMIUM_REQUIRED("PREMIUM_REQUIRED", "This resource requires premium plan", HttpStatus.FORBIDDEN),
     PREMIUM_PLAN_NOT_FOUND("PREMIUM_PLAN_NOT_FOUND", "Premium plan not found", HttpStatus.NOT_FOUND),
     PREMIUM_PLAN_INACTIVE("PREMIUM_PLAN_INACTIVE", "This premium plan is currently inactive", HttpStatus.BAD_REQUEST),
     PAYMENT_PROVIDER_NOT_FOUND("PAYMENT_PROVIDER_NOT_FOUND", "Payment provider not found", HttpStatus.NOT_FOUND),

@@ -36,7 +36,7 @@ Dự án dùng [Conventional Commits](https://www.conventionalcommits.org/) đ�
 
 Scope là package/module bị ảnh hưởng, đặt trong ngoặc đơn. Bỏ scope nếu thay đổi trải rộng nhiều nơi.
 
-**Theo package:** `backend`, `frontend`, `ai-service`, `docs`
+**Theo package:** `backend`, `frontend`, `docs`
 
 **Theo module nghiệp vụ** (dùng chung backend & frontend):
 `auth`, `user`, `admin`, `vocabulary`, `learning`, `flashcard`, `lesson`, `dictation`, `shadowing`, `progress`, `battle`, `speaking`, `premium`, `community`, `report`, `notification`, `gamification`
@@ -73,7 +73,7 @@ fix(battle): prevent negative score on timeout
 refactor(backend): split LessonDTO into request and response
 perf(gamification): cache leaderboard with Redis
 test(dictation): cover scoring service edge cases
-docs(readme): add ai-service setup instructions
+docs(readme): add backend setup instructions
 build(frontend): upgrade vite to v8
 chore(deps): bump spring-boot to 4.1.1
 ```

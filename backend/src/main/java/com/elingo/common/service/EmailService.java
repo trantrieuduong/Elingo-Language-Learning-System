@@ -1,6 +1,6 @@
 package com.elingo.common.service;
 
-import com.elingo.common.util.EmailTemplateName;
+import com.elingo.common.enums.EmailTemplateName;
 
 public interface EmailService {
     void sendEmail(

@@ -1,0 +1,315 @@
+.deck-list-page {
+  min-height: calc(100vh - 140px);
+  padding-top: calc(72px + var(--spacing-2xl));
+  padding-bottom: var(--spacing-xl);
+}
+
+.deck-list-container {
+  max-width: var(--container-wide);
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+  position: relative;
+}
+
+/* Tab Switcher */
+.deck-tabs-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.deck-tabs {
+  display: inline-flex;
+  padding: 6px;
+  border-radius: var(--radius-pill);
+  gap: 6px;
+  background: var(--glass-well-bg);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--color-glass-border-standard);
+}
+
+.deck-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  border: none;
+  background: transparent;
+  color: var(--color-text-body);
+  font-family: var(--font-display);
+  font-size: var(--font-size-label-lg);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-base);
+}
+
+.deck-tab-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.deck-tab-btn .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.deck-tab-btn:hover {
+  color: var(--color-text-high);
+  background: var(--glass-thumb-bg);
+}
+
+.deck-tab-btn--active {
+  background: var(--color-secondary-container) !important;
+  color: var(--color-on-secondary-container) !important;
+}
+
+.deck-btn-create-top {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: var(--shadow-btn-primary);
+}
+
+.deck-btn-create-top .material-symbols-outlined {
+  font-size: 20px;
+}
+
+/* Status Filter Pills for My Decks (giữ lại vì là custom cho Deck) */
+.deck-status-filters {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.deck-status-pill {
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-display);
+  font-size: var(--font-size-label-sm);
+  font-weight: 600;
+  border: 1px solid var(--color-outline-variant);
+  background: var(--color-surface);
+  color: var(--color-text-mid);
+  cursor: pointer;
+  transition: var(--transition-base);
+  white-space: nowrap;
+}
+
+.deck-status-pill:hover {
+  background: var(--color-surface-container);
+}
+
+.deck-status-pill--active {
+  background: var(--color-secondary-container) !important;
+  color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+}
+
+/* Content Grid */
+.deck-list-empty-state {
+  min-height: 320px;
+}
+
+.vocabulary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.vocabulary-card {
+  border-radius: var(--radius-card);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.vocabulary-card--premium {
+  border: 1px solid var(--color-primary-container);
+}
+
+.vocabulary-card__premium-badge {
+  position: absolute;
+  top: var(--spacing-sm);
+  left: var(--spacing-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-warning-bg);
+  box-shadow: var(--shadow-thumb);
+  color: var(--color-warning);
+  font-family: var(--font-display);
+  font-size: var(--font-size-label-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--tracking-wider);
+  z-index: 2;
+}
+
+.vocabulary-card__premium-icon {
+  font-size: 14px;
+}
+
+.vocabulary-card__word-count {
+  position: absolute;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  z-index: 2;
+}
+
+.vocabulary-card__cover-image {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-bottom: 1px solid var(--color-outline-variant);
+}
+
+.vocabulary-card__body {
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  flex: 1;
+}
+
+.vocabulary-card:hover {
+  transform: translateY(-3px);
+}
+
+.vocabulary-card__cover-placeholder {
+  width: 100%;
+  height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-surface-variant);
+  background-image: linear-gradient(135deg, var(--color-glass-border-faint), transparent);
+  border-bottom: 1px solid var(--color-outline-variant);
+}
+
+.vocabulary-card__cover-placeholder span {
+  font-size: 48px;
+  color: var(--color-primary);
+  opacity: 0.5;
+}
+
+.vocabulary-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  flex: 1;
+}
+
+.vocabulary-card__info h3 {
+  color: var(--color-on-surface);
+  margin: 0;
+}
+
+.vocabulary-card__info p {
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.vocabulary-card__progress {
+  width: 100%;
+}
+
+.vocabulary-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--color-outline-variant);
+}
+
+.vocabulary-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+}
+
+.vocabulary-card__cefr-tag {
+  font-weight: var(--font-weight-bold);
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 1024px) {
+  .deck-list-page {
+    padding-top: calc(68px + var(--spacing-xl));
+  }
+
+  .vocabulary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .deck-list-page {
+    min-height: auto;
+    padding-top: calc(60px + var(--spacing-lg));
+  }
+
+  .deck-list-container {
+    padding-inline: var(--spacing-md);
+  }
+
+  .deck-status-filters {
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .vocabulary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .deck-tabs-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .deck-tabs {
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+    overflow: visible;
+    border-radius: var(--radius-card);
+  }
+
+  .deck-tab-btn {
+    flex: 1 1 calc(50% - 6px);
+    justify-content: center;
+    min-width: 0;
+    white-space: normal;
+  }
+
+  .deck-btn-create-top {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 360px) {
+  .deck-list-page {
+    padding-top: calc(60px + var(--spacing-md));
+  }
+
+  .deck-list-container {
+    padding-inline: var(--spacing-sm);
+  }
+}

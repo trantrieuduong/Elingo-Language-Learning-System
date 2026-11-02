@@ -1,0 +1,120 @@
+/* ============================================================
+   LessonYoutubePlayer.css
+   ============================================================ */
+
+.lesson-yt-player-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+  border-radius: var(--radius-card);
+}
+
+.lesson-yt-player__media-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background-color: #000000;
+  overflow: hidden;
+}
+
+.lesson-yt-player__iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.lesson-yt-player__fallback {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #0f172a;
+}
+
+.lesson-yt-player__thumbnail {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.4;
+}
+
+.lesson-yt-player__fallback-overlay {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  text-align: center;
+  color: #ffffff;
+}
+
+.lesson-yt-player__fallback-icon {
+  font-size: 36px;
+  color: var(--color-pastel-ambient);
+}
+
+.lesson-yt-player__fallback-text {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-sm);
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+  max-width: 260px;
+}
+
+.lesson-yt-player__external-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 6px 14px;
+  font-size: var(--font-size-label-sm);
+  margin-top: var(--spacing-xs);
+  text-decoration: none;
+}
+
+.lesson-yt-player__info {
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.lesson-yt-player__title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-title-md);
+  font-weight: 700;
+  color: var(--color-text-high);
+  margin: 0;
+  line-height: 1.35;
+}
+
+.lesson-yt-player__desc {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-sm);
+  color: var(--color-text-body);
+  margin: 0;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ============================================================
+   Dark Mode & Responsive
+   ============================================================ */
+[data-theme='dark'] .lesson-yt-player__title {
+  color: #f8fafc;
+}
+
+[data-theme='dark'] .lesson-yt-player__desc {
+  color: #cbd5e1;
+}

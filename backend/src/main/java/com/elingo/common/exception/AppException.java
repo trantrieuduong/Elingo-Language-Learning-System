@@ -1,5 +1,8 @@
 package com.elingo.common.exception;
 
+import lombok.Getter;
+
+@Getter
 public class AppException extends RuntimeException {
     public AppException(AppError appError) {
         super(appError.getMessage());
@@ -7,8 +10,4 @@ public class AppException extends RuntimeException {
     }
 
     private final AppError appError;
-
-    public AppError getAppError() {
-        return appError;
-    }
 }

@@ -4,6 +4,7 @@ import com.elingo.user.dto.request.ChangePasswordRequest;
 import com.elingo.user.dto.request.SendOTPUpdateEmailRequest;
 import com.elingo.user.dto.request.SetPasswordRequest;
 import com.elingo.user.dto.request.UpdateEmailRequest;
+import com.elingo.user.dto.request.UpdateProfileRequest;
 import com.elingo.user.dto.response.UserMeResponse;
 
 public interface UserService {
@@ -13,4 +14,5 @@ public interface UserService {
     void updateEmail(Long userId, UpdateEmailRequest request);
     UserMeResponse getMyInfo(Long userId);
     Object getUserById(Long targetUserId, Long currentUserId);
+    UserMeResponse updateProfile(Long userId, UpdateProfileRequest request);
 }

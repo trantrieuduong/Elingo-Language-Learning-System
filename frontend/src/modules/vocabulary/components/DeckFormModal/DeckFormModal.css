@@ -1,0 +1,123 @@
+.deck-form-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-md);
+  background-color: rgba(15, 23, 42, 0.32);
+  backdrop-filter: blur(8px);
+}
+
+.deck-form-modal {
+  width: min(100%, 640px);
+  max-height: calc(100dvh - 2 * var(--spacing-md));
+  padding: var(--spacing-xl);
+  overflow-y: auto;
+  border: 1.5px solid var(--color-glass-border-strong);
+  border-radius: var(--radius-card-lg);
+  background: var(--glass-modal-bg);
+  backdrop-filter: var(--blur-2xl) saturate(190%);
+  -webkit-backdrop-filter: var(--blur-2xl) saturate(190%);
+  box-shadow: var(--shadow-modal);
+}
+
+.deck-form-header,
+.deck-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
+.deck-form-header {
+  margin-bottom: var(--spacing-lg);
+}
+.deck-form-header__info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+.deck-form-header__icon {
+  padding: var(--spacing-sm);
+  color: var(--color-primary);
+  background: var(--color-secondary-container);
+  border-radius: var(--radius-pill);
+  font-size: 2rem;
+}
+.deck-form-header h2,
+.deck-form-header__subtitle {
+  margin: 0;
+}
+.deck-form-header__subtitle {
+  color: var(--color-text-body);
+}
+.deck-form-body,
+.deck-form-field {
+  display: flex;
+  flex-direction: column;
+}
+.deck-form-body {
+  gap: var(--spacing-lg);
+}
+.deck-form-field {
+  gap: var(--spacing-xs);
+}
+.deck-form-textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 7.5rem;
+  padding: var(--spacing-md);
+  resize: vertical;
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-input);
+  background: var(--color-surface-container-lowest);
+  color: var(--color-text-high);
+  font: inherit;
+}
+.deck-form-modal .input-field {
+  background: var(--color-surface-container-lowest);
+}
+.deck-form-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-container);
+}
+.deck-form-textarea--error {
+  border-color: var(--color-error);
+}
+.deck-form-actions {
+  margin-top: var(--spacing-sm);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-outline-variant);
+  justify-content: flex-end;
+}
+.deck-form-cancel-btn {
+  border-color: var(--color-outline-variant);
+  background: var(--color-surface-container-low);
+  box-shadow: var(--shadow-well);
+}
+.deck-form-cancel-btn:hover:not(:disabled) {
+  background: var(--color-surface-container);
+  box-shadow: var(--shadow-well);
+}
+.deck-form-btn-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+.deck-form-spinner {
+  width: 1rem;
+  height: 1rem;
+  border-width: 2px;
+}
+
+@media (max-width: 600px) {
+  .deck-form-modal {
+    padding: var(--spacing-md);
+  }
+  .deck-form-actions {
+    gap: var(--spacing-sm);
+  }
+}

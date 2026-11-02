@@ -1,0 +1,35 @@
+{
+  "all": "Tất cả",
+  "back": "Quay lại",
+  "backHome": "Về trang chủ",
+  "cancel": "Hủy",
+  "characterCount": "{{count}}/{{max}} ký tự",
+  "clearFilters": "Xóa bộ lọc",
+  "clearSearch": "Xóa tìm kiếm",
+  "close": "Đóng",
+  "confirm": "Xác nhận",
+  "delete": "Xóa",
+  "edit": "Chỉnh sửa",
+  "loadError": "Không thể tải dữ liệu. Vui lòng thử lại.",
+  "filter": {
+    "clearFilters": "Xóa bộ lọc",
+    "level": "Cấp độ",
+    "topic": "Chủ đề"
+  },
+  "hidePassword": "Ẩn mật khẩu",
+  "pageNotFound": "Không tìm thấy trang",
+  "pagination": {
+    "goTo": "Đi đến",
+    "next": "Trang tiếp",
+    "page": "Trang {{page}}",
+    "prev": "Trang trước"
+  },
+  "premium": "Premium",
+  "retry": "Thử lại",
+  "save": "Lưu",
+  "saveChanges": "Lưu thay đổi",
+  "saving": "Đang lưu...",
+  "search": "Tìm kiếm...",
+  "showPassword": "Hiện mật khẩu",
+  "underConstruction": "Tính năng đang được phát triển"
+}

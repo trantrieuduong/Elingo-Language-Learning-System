@@ -4,6 +4,7 @@ import com.elingo.user.service.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -22,6 +23,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
+import java.util.Map;
 
 @Configuration
 @EnableWebSecurity
@@ -29,40 +31,59 @@ import java.util.List;
 public class SecurityConfig {
     private final CustomUserDetailsService customUserDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final IpRateLimitFilter ipRateLimitFilter;
     private final List<String> ALLOW_ORIGINS;
-    private final String[] PUBLIC_ENDPOINTS = {
-            "/auth/login",
-            "/auth/signup",
-            "/auth/google",
-            "/auth/refresh",
-            "/auth/logout",
-            "/auth/password-reset/**",
-            "/auth/account-verifications/**",
-            "/swagger-ui/**",
-            "/swagger-ui.html",
-            "/v3/api-docs/**",
-            "/v3/api-docs*/**",
-            "/ws/**"
-    };
+    private static final HttpMethod[] GET_ONLY = { HttpMethod.GET };
+    private static final HttpMethod[] POST_ONLY = { HttpMethod.POST };
+    private static final HttpMethod[] ALL_METHODS = HttpMethod.values();
+    private static final Map<String, HttpMethod[]> PUBLIC_ENDPOINTS = Map.ofEntries(
+            Map.entry("/auth/login",        POST_ONLY),
+            Map.entry("/auth/signup",       POST_ONLY),
+            Map.entry("/auth/google",       POST_ONLY),
+            Map.entry("/auth/refresh",      POST_ONLY),
+            Map.entry("/auth/logout",       POST_ONLY),
+            Map.entry("/auth/password-reset/**",        POST_ONLY),
+            Map.entry("/auth/account-verifications/**", POST_ONLY),
+            Map.entry("/swagger-ui/**",     ALL_METHODS),
+            Map.entry("/swagger-ui.html",   ALL_METHODS),
+            Map.entry("/v3/api-docs/**",    ALL_METHODS),
+            Map.entry("/v3/api-docs*/**",   ALL_METHODS),
+            Map.entry("/ws/**",             ALL_METHODS),
+            Map.entry("/decks",             GET_ONLY),
+            Map.entry("/lessons",           GET_ONLY),
+            Map.entry("/tags",              GET_ONLY),
+            Map.entry("/cefr-levels",       GET_ONLY),
+            Map.entry("/post-groups",       GET_ONLY),
+            Map.entry("/posts",             GET_ONLY),
+            Map.entry("/users/*/posts",     GET_ONLY)
+    );
 
     public SecurityConfig(CustomUserDetailsService customUserDetailsService,
             JwtAuthenticationFilter jwtAuthenticationFilter,
+            IpRateLimitFilter ipRateLimitFilter,
             @Value("#{'${app.front-end-domain}'.split(',')}") List<String> ALLOW_ORIGINS) {
         this.customUserDetailsService = customUserDetailsService;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.ipRateLimitFilter = ipRateLimitFilter;
         this.ALLOW_ORIGINS = ALLOW_ORIGINS;
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) {
         http.csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-                        .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
-                        .anyRequest().authenticated())
+                .authorizeHttpRequests(auth -> {
+                    PUBLIC_ENDPOINTS.forEach((path, methods) -> {
+                        for (HttpMethod method : methods) {
+                            auth.requestMatchers(method, path).permitAll();
+                        }
+                    });
+                    auth.anyRequest().authenticated();
+                })
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // REST API
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(ipRateLimitFilter, JwtAuthenticationFilter.class)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
         return http.build();
@@ -94,6 +115,7 @@ public class SecurityConfig {
         corsConfiguration.setAllowedMethods(List.of("*"));
         corsConfiguration.setAllowedHeaders(List.of("*"));
         corsConfiguration.setAllowCredentials(true);
+        corsConfiguration.setExposedHeaders(List.of("X-Request-Id"));
 
         UrlBasedCorsConfigurationSource urlBasedCorsConfigurationSource = new UrlBasedCorsConfigurationSource();
         urlBasedCorsConfigurationSource.registerCorsConfiguration("/**", corsConfiguration);
