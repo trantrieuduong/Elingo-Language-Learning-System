@@ -6,6 +6,7 @@ import PostCardMedia from './PostCardMedia/PostCardMedia';
 import PostCardStats from './PostCardStats/PostCardStats';
 import PostCardActions from './PostCardActions/PostCardActions';
 import PostCardCommentInput from './PostCardCommentInput/PostCardCommentInput';
+import PostOptionsModal from '../PostOptionsModal/PostOptionsModal';
 import './PostCard.css';
 
 /**
@@ -13,6 +14,7 @@ import './PostCard.css';
  * @param {Array} media - Danh sách media (ảnh, video)
  */
 function PostCard({
+  postId,
   author,
   group,
   createdAt,
@@ -32,6 +34,7 @@ function PostCard({
   const [isLiked, setIsLiked] = useState(likedByMe);
   const [isCommentOpen, setIsCommentOpen] = useState(false);
   const [isLikePending, setIsLikePending] = useState(false);
+  const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
 
   const isPublished = status === 'PUBLISHED';
 
@@ -85,9 +88,7 @@ function PostCard({
               onNavigate('/community/groups');
             }
           }}
-          onOptionsClick={() => {
-            // Tùy chọn bài viết (báo cáo, sao chép liên kết...)
-          }}
+          onOptionsClick={() => setIsOptionsModalOpen(true)}
         />
 
         <PostCardContent title={title} content={content} onOpenPost={onOpenPost} />
@@ -119,6 +120,13 @@ function PostCard({
           />
         )}
       </div>
+      {isOptionsModalOpen && (
+        <PostOptionsModal
+          postId={postId}
+          isOpen={isOptionsModalOpen}
+          onClose={() => setIsOptionsModalOpen(false)}
+        />
+      )}
     </article>
   );
 }

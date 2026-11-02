@@ -24,6 +24,11 @@
     "collapse": "Collapse",
     "expand": "See more",
     "videoBadge": "Video",
+    "postOptionsTitle": "Post options",
+    "editPost": "Edit post",
+    "copyPostLink": "Copy post link",
+    "postLinkCopied": "Post link copied.",
+    "copyPostLinkFailed": "Could not copy the link. Please try again.",
     "likeCount": "{{count}} likes",
     "commentCount": "{{count}} comments",
     "like": "Like",
@@ -31,6 +36,9 @@
     "comment": "Comment",
     "writeComment": "Write a comment...",
     "cannotInteractUnpublished": "Post is not published yet and cannot be liked or commented on"
+  },
+  "postDetail": {
+    "notFound": "This post could not be found."
   },
   "postForm": {
     "modalTitle": "Create New Post",

@@ -100,13 +100,15 @@ function PostCardHeader({
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={onOptionsClick}
-        className="post-card-header__options-btn btn-icon"
-      >
-        <span className="material-symbols-outlined">more_horiz</span>
-      </button>
+      {onOptionsClick && (
+        <button
+          type="button"
+          onClick={onOptionsClick}
+          className="post-card-header__options-btn btn-icon"
+        >
+          <span className="material-symbols-outlined">more_horiz</span>
+        </button>
+      )}
     </header>
   );
 }

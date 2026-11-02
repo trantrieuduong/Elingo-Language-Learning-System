@@ -24,6 +24,11 @@
     "collapse": "Thu gọn",
     "expand": "Xem thêm",
     "videoBadge": "Video",
+    "postOptionsTitle": "Tùy chọn bài viết",
+    "editPost": "Chỉnh sửa bài viết",
+    "copyPostLink": "Sao chép liên kết bài viết",
+    "postLinkCopied": "Đã sao chép liên kết bài viết.",
+    "copyPostLinkFailed": "Không thể sao chép liên kết. Vui lòng thử lại.",
     "likeCount": "{{count}} lượt thích",
     "commentCount": "{{count}} bình luận",
     "like": "Thích",
@@ -31,6 +36,9 @@
     "comment": "Bình luận",
     "writeComment": "Viết bình luận...",
     "cannotInteractUnpublished": "Bài viết chưa được công khai, không thể thích hoặc bình luận"
+  },
+  "postDetail": {
+    "notFound": "Không tìm thấy bài viết này."
   },
   "postForm": {
     "modalTitle": "Tạo bài viết mới",

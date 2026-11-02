@@ -167,6 +167,7 @@ function CommunityFeedPage({ onNavigate, initialSelectedGroupId = 'ALL' }) {
                 return (
                   <PostCard
                     key={post.id}
+                    postId={post.id}
                     author={mapped.author}
                     group={mapped.groupName}
                     createdAt={post.createdAt}
@@ -179,7 +180,7 @@ function CommunityFeedPage({ onNavigate, initialSelectedGroupId = 'ALL' }) {
                     likedByMe={post.likedByMe}
                     onLike={(nextLiked) => handleLikePost(post.id, nextLiked)}
                     onOpenPost={() => {
-                      if (onNavigate) onNavigate(`/community/post/${post.id}`);
+                      if (onNavigate) onNavigate(`/community/posts/${post.id}`);
                     }}
                     onNavigate={onNavigate}
                   />

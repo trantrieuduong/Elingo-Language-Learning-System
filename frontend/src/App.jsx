@@ -18,6 +18,7 @@ import ShadowingPage from './modules/learning/shadowing/pages/ShadowingPage';
 import CommunityFeedPage from './modules/community/pages/CommunityFeedPage/CommunityFeedPage';
 import PostGroupPage from './modules/community/pages/PostGroupPage/PostGroupPage';
 import MyFeedPage from './modules/community/pages/MyFeedPage/MyFeedPage';
+import PostDetailPage from './modules/community/pages/PostDetailPage/PostDetailPage';
 import './App.css';
 
 const PUBLIC_PATHS = ['/login', '/signup', '/account-verification', '/reset-password'];
@@ -61,6 +62,7 @@ function App() {
   const dictationMatch = currentPath.match(/^\/lessons\/dictation\/([^/]+)$/);
   const shadowingMatch = currentPath.match(/^\/lessons\/shadowing\/([^/]+)$/);
   const deckTopicsMatch = currentPath.match(/^\/decks\/([^/]+)\/topics$/);
+  const postDetailMatch = currentPath.match(/^\/community\/posts\/(\d+)$/);
   const isPrivateUserPath =
     PRIVATE_USER_PATHS.some((path) => {
       return currentPath === path || currentPath.startsWith(`${path}/`);
@@ -98,8 +100,13 @@ function App() {
   }, [currentPath, user, loading, isPrivateUserPath]);
 
   const navigate = (path, param) => {
+    if (path === -1) {
+      window.history.back();
+      return;
+    }
+
     const stateObj = param && typeof param === 'object' ? param : {};
-    window.history.pushState(stateObj, '', path);
+    window.history.pushState({ ...stateObj, previousPath: window.location.pathname }, '', path);
     setCurrentPath(window.location.pathname);
 
     if (path === '/account-verification') {
@@ -133,6 +140,19 @@ function App() {
   };
 
   const renderContent = () => {
+    if (postDetailMatch) {
+      return (
+        <PostDetailPage
+          key={currentPath}
+          postId={postDetailMatch[1]}
+          canGoBack={['/community', '/community/my-posts'].includes(
+            window.history.state?.previousPath
+          )}
+          onNavigate={navigate}
+        />
+      );
+    }
+
     if (flashcardStudyMatch) {
       return (
         <FlashcardStudyPage
