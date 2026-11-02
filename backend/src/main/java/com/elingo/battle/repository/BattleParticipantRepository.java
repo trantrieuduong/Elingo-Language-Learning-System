@@ -13,4 +13,7 @@ public interface BattleParticipantRepository extends JpaRepository<BattlePartici
     List<BattleParticipant> findByMatchIdWithUser(@Param("matchId") Long matchId);
 
     Optional<BattleParticipant> findByMatchIdAndUserId(Long matchId, Long userId);
+
+    @Query("select count(p) from BattleParticipant p where p.user.id = :userId and p.isWinner = true and p.match.status = com.elingo.battle.entity.BattleMatchStatus.FINISHED")
+    long countWins(@Param("userId") Long userId);
 }

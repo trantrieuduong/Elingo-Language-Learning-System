@@ -7,6 +7,7 @@ import com.elingo.battle.dto.response.*;
 import com.elingo.battle.entity.BattleMatchStatus;
 import com.elingo.battle.service.BattleEngineService;
 import com.elingo.battle.service.BattleMatchPersistenceService;
+import com.elingo.battle.service.BattleXpService;
 import com.elingo.battle.state.*;
 import com.elingo.battle.util.BattleScoring;
 import com.elingo.battle.util.BattleTyping;
@@ -33,6 +34,7 @@ public class BattleEngineServiceImpl implements BattleEngineService {
     private final BattleMatchPersistenceService persistence;
     private final BattleProperties props;
     private final ThreadPoolTaskScheduler battleScheduler;
+    private final BattleXpService xpService;
 
     @Override
     public void start(LiveMatch m) {
@@ -228,6 +230,12 @@ public class BattleEngineServiceImpl implements BattleEngineService {
 
         log.info("Match finished matchId={} winnerId={} scoreA={} scoreB={} reason={}",
                 m.getMatchId(), winnerId, sa, sb, reason);
+
+        try {
+            xpService.awardMatchXp(m, winnerId, reason);
+        } catch (Exception ex) {
+            log.warn("Award battle XP failed matchId={}: {}", m.getMatchId(), ex.getMessage());
+        }
     }
 
     /**
