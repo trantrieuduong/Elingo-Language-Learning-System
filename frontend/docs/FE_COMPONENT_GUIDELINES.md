@@ -23,7 +23,7 @@
 | `Input` | `src/components/Input/` | Dùng ở auth, profile, admin, community... |
 | `ConfirmModal` | `src/components/ConfirmModal/` | Dùng để xác nhận hành động |
 | `Pagination` | `src/components/Pagination/` | Dùng ở mọi trang list |
-| `Filter` | `src/components/Filter/` | Dùng ở lesson list, flashcard list, vocabulary... |
+| `Filter` | `src/components/Filter/` | Dùng ở lesson list, deck list, ... |
 | `Header` | `src/components/Header/` | App-level, dùng ở tất cả public routes |
 | `Footer` | `src/components/Footer/` | App-level |
 | `LessonCard` | `src/modules/learning/lesson/components/` | Chỉ dùng trong lesson module |

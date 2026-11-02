@@ -1,73 +1,73 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { useAuth } from '../../../../context/AuthContext'
-import PostCard from '../../components/PostCard/PostCard'
-import PostFormModal from '../../components/PostFormModal/PostFormModal'
-import FilterSidebar from '../../components/FilterSidebar/FilterSidebar'
-import EmptyState from '../../../../components/EmptyState/EmptyState'
-import Toast from '../../../../components/Toast/Toast'
-import { getPostGroups, getUserPosts } from '../../communityApi'
-import useCommunityPostActions from '../../hooks/useCommunityPostActions'
-import useInfiniteScroll from '../../hooks/useInfiniteScroll'
-import { mapPost } from '../../utils/mapPost'
-import './MyFeedPage.css'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useAuth } from '../../../../context/AuthContext';
+import PostCard from '../../components/PostCard/PostCard';
+import PostFormModal from '../../components/PostFormModal/PostFormModal';
+import FilterSidebar from '../../components/FilterSidebar/FilterSidebar';
+import EmptyState from '../../../../components/EmptyState/EmptyState';
+import Toast from '../../../../components/Toast/Toast';
+import { getPostGroups, getUserPosts } from '../../communityApi';
+import useCommunityPostActions from '../../hooks/useCommunityPostActions';
+import useInfiniteScroll from '../../hooks/useInfiniteScroll';
+import { mapPost } from '../../utils/mapPost';
+import './MyFeedPage.css';
 
 function MyFeedPage({ onNavigate }) {
-  const { t } = useTranslation()
-  const { user } = useAuth()
-  const userId = user?.id
+  const { t } = useTranslation();
+  const { user } = useAuth();
+  const userId = user?.id;
 
-  const [posts, setPosts] = useState([])
-  const [groups, setGroups] = useState([])
-  const [selectedStatus, setSelectedStatus] = useState('ALL')
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [posts, setPosts] = useState([]);
+  const [groups, setGroups] = useState([]);
+  const [selectedStatus, setSelectedStatus] = useState('ALL');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [cursor, setCursor] = useState(null)
-  const [hasMore, setHasMore] = useState(false)
-  const [isLoadingInitial, setIsLoadingInitial] = useState(false)
+  const [cursor, setCursor] = useState(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [isLoadingInitial, setIsLoadingInitial] = useState(false);
 
-  const [error, setError] = useState(null)
-  const [toast, setToast] = useState({ message: '', variant: 'success' })
+  const [error, setError] = useState(null);
+  const [toast, setToast] = useState({ message: '', variant: 'success' });
 
-  const requestGenerationRef = useRef(0)
+  const requestGenerationRef = useRef(0);
 
   useEffect(() => {
     const fetchGroups = async () => {
       try {
-        const data = await getPostGroups()
-        setGroups(data?.data || [])
+        const data = await getPostGroups();
+        setGroups(data?.data || []);
       } catch {
         // groups stays empty
       }
-    }
-    fetchGroups()
-  }, [])
+    };
+    fetchGroups();
+  }, []);
 
   const fetchUserPosts = useCallback(
     async (nextCursor) => {
-      if (!userId) return { items: [], hasMore: false, nextCursor: null }
+      if (!userId) return { items: [], hasMore: false, nextCursor: null };
       const response = await getUserPosts(userId, {
         cursor: nextCursor,
         limit: 20,
-      })
-      return response?.data || {}
+      });
+      return response?.data || {};
     },
     [userId]
-  )
+  );
 
   const handlePageLoaded = useCallback((pageData) => {
-    setPosts((prev) => [...prev, ...(pageData.items || [])])
-    setCursor(pageData.nextCursor || null)
-    setHasMore(Boolean(pageData.hasMore))
-  }, [])
+    setPosts((prev) => [...prev, ...(pageData.items || [])]);
+    setCursor(pageData.nextCursor || null);
+    setHasMore(Boolean(pageData.hasMore));
+  }, []);
 
   const handlePostCreated = useCallback(() => {
-    setIsModalOpen(false)
+    setIsModalOpen(false);
     setToast({
       message: t('community:postForm.successAlert'),
       variant: 'success',
-    })
-  }, [t])
+    });
+  }, [t]);
 
   const handleLikeError = useCallback(
     () =>
@@ -76,12 +76,12 @@ function MyFeedPage({ onNavigate }) {
         variant: 'error',
       }),
     [t]
-  )
+  );
   const { handleCreatePost, handleLikePost } = useCommunityPostActions({
     onLikeError: handleLikeError,
     onPostCreated: handlePostCreated,
     setPosts,
-  })
+  });
 
   const { isLoadingMore, resetLoadingMore, sentinelRef } = useInfiniteScroll({
     cursor,
@@ -90,58 +90,58 @@ function MyFeedPage({ onNavigate }) {
     isLoadingInitial,
     onPageLoaded: handlePageLoaded,
     requestGenerationRef,
-  })
+  });
 
   const loadInitialPosts = async () => {
-    if (!userId) return
-    const requestGeneration = ++requestGenerationRef.current
-    resetLoadingMore()
-    setIsLoadingInitial(true)
-    setError(null)
-    setPosts([])
-    setCursor(null)
-    setHasMore(false)
-    window.scrollTo({ top: 0 })
+    if (!userId) return;
+    const requestGeneration = ++requestGenerationRef.current;
+    resetLoadingMore();
+    setIsLoadingInitial(true);
+    setError(null);
+    setPosts([]);
+    setCursor(null);
+    setHasMore(false);
+    window.scrollTo({ top: 0 });
     try {
-      const pageData = await fetchUserPosts(null)
-      if (requestGeneration !== requestGenerationRef.current) return
-      setPosts(pageData?.items || [])
-      setCursor(pageData?.nextCursor || null)
-      setHasMore(Boolean(pageData?.hasMore))
+      const pageData = await fetchUserPosts(null);
+      if (requestGeneration !== requestGenerationRef.current) return;
+      setPosts(pageData?.items || []);
+      setCursor(pageData?.nextCursor || null);
+      setHasMore(Boolean(pageData?.hasMore));
     } catch {
       if (requestGeneration === requestGenerationRef.current) {
-        setError(t('common:loadError'))
+        setError(t('common:loadError'));
       }
     } finally {
       if (requestGeneration === requestGenerationRef.current) {
-        setIsLoadingInitial(false)
+        setIsLoadingInitial(false);
       }
     }
-  }
+  };
 
   useEffect(() => {
     if (userId) {
-      loadInitialPosts()
+      loadInitialPosts();
     }
-  }, [userId])
+  }, [userId]);
 
   // Lọc theo trạng thái bài viết.
   const filteredPosts = useMemo(() => {
     return posts.filter((post) => {
-      const postStatus = (post.status || 'PUBLISHED').toUpperCase()
-      const matchesStatus = selectedStatus === 'ALL' || postStatus === selectedStatus
-      return matchesStatus
-    })
-  }, [posts, selectedStatus])
+      const postStatus = (post.status || 'PUBLISHED').toUpperCase();
+      const matchesStatus = selectedStatus === 'ALL' || postStatus === selectedStatus;
+      return matchesStatus;
+    });
+  }, [posts, selectedStatus]);
 
-  const groupOptions = groups.map((g) => ({ value: g.id.toString(), label: g.groupName }))
+  const groupOptions = groups.map((g) => ({ value: g.id.toString(), label: g.groupName }));
 
   const handleStatusChange = (status) => {
-    if (status === selectedStatus) return
+    if (status === selectedStatus) return;
 
-    setSelectedStatus(status)
-    window.scrollTo({ top: 0 })
-  }
+    setSelectedStatus(status);
+    window.scrollTo({ top: 0 });
+  };
 
   return (
     <div className="my-feed-page">
@@ -156,9 +156,9 @@ function MyFeedPage({ onNavigate }) {
             <span>{t('community:createPost')}</span>
           </button>
           <FilterSidebar
-          filterType="status"
-          selectedValue={selectedStatus}
-          onSelect={handleStatusChange}
+            filterType="status"
+            selectedValue={selectedStatus}
+            onSelect={handleStatusChange}
           />
         </aside>
 
@@ -178,7 +178,7 @@ function MyFeedPage({ onNavigate }) {
           ) : filteredPosts.length > 0 ? (
             <>
               {filteredPosts.map((post) => {
-                const mapped = mapPost(post, groups)
+                const mapped = mapPost(post, groups);
                 return (
                   <PostCard
                     key={post.id}
@@ -194,11 +194,11 @@ function MyFeedPage({ onNavigate }) {
                     likedByMe={post.likedByMe}
                     onLike={(nextLiked) => handleLikePost(post.id, nextLiked)}
                     onOpenPost={() => {
-                      if (onNavigate) onNavigate(`/community/post/${post.id}`)
+                      if (onNavigate) onNavigate(`/community/post/${post.id}`);
                     }}
                     onNavigate={onNavigate}
                   />
-                )
+                );
               })}
               <div ref={sentinelRef} className="my-feed-page__sentinel" />
               {isLoadingMore && (
@@ -232,7 +232,7 @@ function MyFeedPage({ onNavigate }) {
         onDismiss={() => setToast((prev) => ({ ...prev, message: '' }))}
       />
     </div>
-  )
+  );
 }
 
-export default MyFeedPage
+export default MyFeedPage;

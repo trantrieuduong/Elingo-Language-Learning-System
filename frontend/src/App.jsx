@@ -189,7 +189,7 @@ function App() {
         return <MyFeedPage onNavigate={navigate} />;
       case '/community/groups':
         return <PostGroupPage onNavigate={navigate} />;
-      
+
       case '/progress':
         return <PlaceholderPage title="Progress" path={currentPath} />;
       case '/gamification':
@@ -223,11 +223,7 @@ function App() {
         <div className="ambient-bg__orb ambient-bg__orb--ambient" />
       </div>
       <Header onNavigate={navigate} currentPath={currentPath} />
-      <div
-        className={"app-main"}
-      >
-        {renderContent()}
-      </div>
+      <div className={'app-main'}>{renderContent()}</div>
       <Footer onNavigate={navigate} />
     </>
   );

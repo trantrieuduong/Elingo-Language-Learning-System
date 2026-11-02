@@ -1,12 +1,8 @@
-import { useTranslation } from 'react-i18next'
-import './PostCardStats.css'
+import { useTranslation } from 'react-i18next';
+import './PostCardStats.css';
 
-function PostCardStats({
-  likeCount = 0,
-  commentCount = 0,
-  onCommentClick,
-}) {
-  const { t } = useTranslation()
+function PostCardStats({ likeCount = 0, commentCount = 0, onCommentClick }) {
+  const { t } = useTranslation();
 
   return (
     <div className="post-card-stats">
@@ -23,11 +19,7 @@ function PostCardStats({
         </span>
       </div>
 
-      <button
-        type="button"
-        onClick={onCommentClick}
-        className="post-card-stats__btn"
-      >
+      <button type="button" onClick={onCommentClick} className="post-card-stats__btn">
         <span>
           {t('community:postCard.commentCount', {
             count: commentCount.toLocaleString(),
@@ -35,7 +27,7 @@ function PostCardStats({
         </span>
       </button>
     </div>
-  )
+  );
 }
 
-export default PostCardStats
+export default PostCardStats;

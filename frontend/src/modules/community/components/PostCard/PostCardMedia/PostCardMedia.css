@@ -76,8 +76,8 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: rgba(15, 23, 42, 0.65);
-  color: #ffffff;
+  background: var(--glass-modal-bg);
+  color: var(--color-on-surface);
   padding: 2px 8px;
   border-radius: var(--radius-pill);
   font-family: var(--font-display);
@@ -99,32 +99,24 @@
   width: 48px;
   height: 48px;
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--glass-thumb-bg);
+  border: 1px solid var(--color-glass-border-strong);
   color: var(--color-primary);
   display: grid;
   place-items: center;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-thumb);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  transition: transform 0.2s ease, background 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
   cursor: pointer;
   padding: 0;
   z-index: 2;
 }
 
 .post-card-media__play-btn:hover {
-  background: rgba(255, 255, 255, 0.98);
-}
-
-.post-card-media__video-container--playing {
-  cursor: default;
-}
-
-.post-card-media__video-container--playing .post-card-media__asset {
-  object-fit: contain;
-  background: #000000;
-  transform: none !important;
+  background: var(--color-surface-container-high);
 }
 
 .post-card-media__item:hover .post-card-media__play-btn {
@@ -141,12 +133,11 @@
   inset: 0;
   display: grid;
   place-items: center;
-  background: rgba(15, 23, 42, 0.55);
-  color: #ffffff;
+  background: var(--glass-capsule-bg);
+  color: var(--color-on-surface);
   font-family: var(--font-display);
   font-size: var(--font-size-headline-md);
   font-weight: 700;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
 }
-

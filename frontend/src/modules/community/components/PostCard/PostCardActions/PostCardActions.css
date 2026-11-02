@@ -19,7 +19,9 @@
   font-size: var(--font-size-label-lg);
   font-weight: 600;
   color: var(--color-on-surface-variant);
-  transition: background 0.2s ease, color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
 }
 
 .post-card-actions__btn:hover {
@@ -56,4 +58,3 @@
 .post-card-actions__icon {
   font-size: 20px;
 }
-

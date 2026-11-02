@@ -83,7 +83,9 @@
   letter-spacing: 0.02em;
   color: var(--color-on-primary-container);
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.15s ease;
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
 }
 
 .post-card-header__group-pill:hover {

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 function useInfiniteScroll({
   cursor,
@@ -8,74 +8,63 @@ function useInfiniteScroll({
   onPageLoaded,
   requestGenerationRef,
 }) {
-  const sentinelRef = useRef(null)
-  const callbacksRef = useRef({ fetchPage, onPageLoaded })
-  const isLoadingMoreRef = useRef(false)
-  const isMountedRef = useRef(false)
-  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const sentinelRef = useRef(null);
+  const callbacksRef = useRef({ fetchPage, onPageLoaded });
+  const isLoadingMoreRef = useRef(false);
+  const isMountedRef = useRef(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   useEffect(() => {
-    callbacksRef.current = { fetchPage, onPageLoaded }
-  }, [fetchPage, onPageLoaded])
+    callbacksRef.current = { fetchPage, onPageLoaded };
+  }, [fetchPage, onPageLoaded]);
 
   useEffect(() => {
-    isMountedRef.current = true
+    isMountedRef.current = true;
     return () => {
-      isMountedRef.current = false
-    }
-  }, [])
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const resetLoadingMore = useCallback(() => {
-    isLoadingMoreRef.current = false
-    setIsLoadingMore(false)
-  }, [])
+    isLoadingMoreRef.current = false;
+    setIsLoadingMore(false);
+  }, []);
 
   useEffect(() => {
-    const sentinel = sentinelRef.current
-    if (!sentinel) return
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
 
     const observer = new IntersectionObserver((entries) => {
-      const [target] = entries
-      if (
-        !target?.isIntersecting ||
-        !hasMore ||
-        isLoadingMoreRef.current ||
-        isLoadingInitial
-      ) {
-        return
+      const [target] = entries;
+      if (!target?.isIntersecting || !hasMore || isLoadingMoreRef.current || isLoadingInitial) {
+        return;
       }
 
-      const requestGeneration = requestGenerationRef.current
-      isLoadingMoreRef.current = true
-      setIsLoadingMore(true)
+      const requestGeneration = requestGenerationRef.current;
+      isLoadingMoreRef.current = true;
+      setIsLoadingMore(true);
 
       Promise.resolve()
         .then(() => callbacksRef.current.fetchPage(cursor))
         .then((pageData) => {
-          if (
-            isMountedRef.current &&
-            requestGeneration === requestGenerationRef.current
-          ) {
-            callbacksRef.current.onPageLoaded(pageData)
+          if (isMountedRef.current && requestGeneration === requestGenerationRef.current) {
+            callbacksRef.current.onPageLoaded(pageData);
           }
         })
         .catch(() => {})
         .finally(() => {
-          if (
-            isMountedRef.current &&
-            requestGeneration === requestGenerationRef.current
-          ) {
-            isLoadingMoreRef.current = false
-            setIsLoadingMore(false)
+          if (isMountedRef.current && requestGeneration === requestGenerationRef.current) {
+            isLoadingMoreRef.current = false;
+            setIsLoadingMore(false);
           }
-        })
-    })
+        });
+    });
 
-    observer.observe(sentinel)
-    return () => observer.disconnect()
-  }, [cursor, hasMore, isLoadingInitial, requestGenerationRef])
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [cursor, hasMore, isLoadingInitial, requestGenerationRef]);
 
-  return { isLoadingMore, resetLoadingMore, sentinelRef }
+  return { isLoadingMore, resetLoadingMore, sentinelRef };
 }
 
-export default useInfiniteScroll
+export default useInfiniteScroll;

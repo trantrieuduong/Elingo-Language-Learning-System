@@ -1,17 +1,17 @@
-import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import './PostCardCommentInput.css'
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import './PostCardCommentInput.css';
 
 function PostCardCommentInput({ avatarUrl, userName = 'User', onSubmit }) {
-  const { t } = useTranslation()
-  const [comment, setComment] = useState('')
+  const { t } = useTranslation();
+  const [comment, setComment] = useState('');
 
   const handleSubmit = (event) => {
-    event.preventDefault()
-    if (!comment.trim()) return
-    if (onSubmit) onSubmit(comment.trim())
-    setComment('')
-  }
+    event.preventDefault();
+    if (!comment.trim()) return;
+    if (onSubmit) onSubmit(comment.trim());
+    setComment('');
+  };
 
   return (
     <form onSubmit={handleSubmit} className="post-card-comment-input">
@@ -40,7 +40,7 @@ function PostCardCommentInput({ avatarUrl, userName = 'User', onSubmit }) {
         </button>
       </div>
     </form>
-  )
+  );
 }
 
-export default PostCardCommentInput
+export default PostCardCommentInput;

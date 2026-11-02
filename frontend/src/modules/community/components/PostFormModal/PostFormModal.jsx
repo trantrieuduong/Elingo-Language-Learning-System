@@ -1,183 +1,179 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
-import { useTranslation } from 'react-i18next'
-import Input from '../../../../components/Input/Input'
-import FormAlert from '../../../../components/FormAlert/FormAlert'
-import { uploadFileForVerification } from '../../../../services/uploadFile'
-import './PostFormModal.css'
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
+import Input from '../../../../components/Input/Input';
+import FormAlert from '../../../../components/FormAlert/FormAlert';
+import { uploadFileForVerification } from '../../../../services/uploadFile';
+import './PostFormModal.css';
 
-const TITLE_MAX_LENGTH = 255
-const CONTENT_MAX_LENGTH = 2000
-const MEDIA_MAX_FILES = 5
+const TITLE_MAX_LENGTH = 255;
+const CONTENT_MAX_LENGTH = 2000;
+const MEDIA_MAX_FILES = 5;
 
-function PostFormModal({
-  isOpen,
-  onClose,
-  onSubmit,
-  groups,
-  isLoading = false,
-}) {
-  const { t } = useTranslation()
-  const fileInputRef = useRef(null)
-  const mediaRef = useRef([])
+function PostFormModal({ isOpen, onClose, onSubmit, groups, isLoading = false }) {
+  const { t } = useTranslation();
+  const fileInputRef = useRef(null);
+  const mediaRef = useRef([]);
 
-  const availableGroups = groups || []
+  const availableGroups = groups || [];
 
   // States form
-  const [group, setGroup] = useState('')
-  const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
-  const [media, setMedia] = useState([])
-  const [errors, setErrors] = useState({})
-  const [generalError, setGeneralError] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [uploadProgressText, setUploadProgressText] = useState('')
+  const [group, setGroup] = useState('');
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [media, setMedia] = useState([]);
+  const [errors, setErrors] = useState({});
+  const [generalError, setGeneralError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgressText, setUploadProgressText] = useState('');
 
-  const isFormBusy = isLoading || isSubmitting
+  const isFormBusy = isLoading || isSubmitting;
 
   const resetForm = useCallback(() => {
-    setGroup('')
-    setTitle('')
-    setContent('')
+    setGroup('');
+    setTitle('');
+    setContent('');
     setMedia((prev) => {
-      prev.forEach((item) => { if (item.url) URL.revokeObjectURL(item.url) })
-      return []
-    })
-    setErrors({})
-    setGeneralError('')
-    setUploadProgressText('')
-  }, [])
+      prev.forEach((item) => {
+        if (item.url) URL.revokeObjectURL(item.url);
+      });
+      return [];
+    });
+    setErrors({});
+    setGeneralError('');
+    setUploadProgressText('');
+  }, []);
 
   const handleClose = useCallback(() => {
-    if (isFormBusy) return
-    resetForm()
-    onClose?.()
-  }, [isFormBusy, onClose, resetForm])
+    if (isFormBusy) return;
+    resetForm();
+    onClose?.();
+  }, [isFormBusy, onClose, resetForm]);
 
   useEffect(() => {
-    if (isOpen) resetForm()
-  }, [isOpen, resetForm])
+    if (isOpen) resetForm();
+  }, [isOpen, resetForm]);
 
   useEffect(() => {
-    mediaRef.current = media
-  }, [media])
+    mediaRef.current = media;
+  }, [media]);
 
   useEffect(() => {
     return () => {
       mediaRef.current.forEach((item) => {
-        if (item.url) URL.revokeObjectURL(item.url)
-      })
-    }
-  }, [])
+        if (item.url) URL.revokeObjectURL(item.url);
+      });
+    };
+  }, []);
 
   useEffect(() => {
-    if (!isOpen) return
+    if (!isOpen) return;
 
     const handleKeyDown = (e) => {
       if (e.key === 'Escape' && !isFormBusy) {
-        handleClose()
+        handleClose();
       }
-    }
+    };
 
-    document.body.style.overflow = 'hidden'
-    document.addEventListener('keydown', handleKeyDown)
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      document.body.style.overflow = ''
-      document.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [isOpen, isFormBusy, handleClose])
+      document.body.style.overflow = '';
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, isFormBusy, handleClose]);
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   const addFiles = (fileList) => {
-    const rawFiles = Array.from(fileList || [])
+    const rawFiles = Array.from(fileList || []);
     const acceptedFiles = rawFiles.filter(
       (file) => file.type.startsWith('image/') || file.type.startsWith('video/')
-    )
+    );
 
-    const remainingSlots = MEDIA_MAX_FILES - media.length
+    const remainingSlots = MEDIA_MAX_FILES - media.length;
 
     if (remainingSlots <= 0) {
       setErrors((prev) => ({
         ...prev,
         media: t('community:postForm.errors.mediaMaxFiles', { max: MEDIA_MAX_FILES }),
-      }))
-      return
+      }));
+      return;
     }
 
     const nextFiles = acceptedFiles.slice(0, remainingSlots).map((file) => ({
       id: `${file.name}-${file.lastModified}-${crypto.randomUUID()}`,
       file,
       url: URL.createObjectURL(file),
-    }))
+    }));
 
-    setMedia((prev) => [...prev, ...nextFiles])
+    setMedia((prev) => [...prev, ...nextFiles]);
     setErrors((prev) => ({
       ...prev,
       media:
         acceptedFiles.length > remainingSlots
           ? t('community:postForm.errors.firstFilesSelected', { slots: remainingSlots })
           : undefined,
-    }))
-  }
+    }));
+  };
 
   const handleFileChange = (e) => {
-    if (e.target.files) addFiles(e.target.files)
-    e.target.value = ''
-  }
+    if (e.target.files) addFiles(e.target.files);
+    e.target.value = '';
+  };
 
   const handleRemoveMedia = (id) => {
     setMedia((prev) => {
-      const removed = prev.find((item) => item.id === id)
-      if (removed?.url) URL.revokeObjectURL(removed.url)
-      return prev.filter((item) => item.id !== id)
-    })
-    setErrors((prev) => ({ ...prev, media: undefined }))
-  }
+      const removed = prev.find((item) => item.id === id);
+      if (removed?.url) URL.revokeObjectURL(removed.url);
+      return prev.filter((item) => item.id !== id);
+    });
+    setErrors((prev) => ({ ...prev, media: undefined }));
+  };
 
   const validate = () => {
-    const newErrors = {}
+    const newErrors = {};
 
-    if (!group) newErrors.group = t('community:postForm.errors.groupRequired')
-    if (!title.trim()) newErrors.title = t('community:postForm.errors.titleRequired')
+    if (!group) newErrors.group = t('community:postForm.errors.groupRequired');
+    if (!title.trim()) newErrors.title = t('community:postForm.errors.titleRequired');
     else if (title.trim().length > TITLE_MAX_LENGTH) {
-      newErrors.title = t('community:postForm.errors.titleMaxLength', { max: TITLE_MAX_LENGTH })
+      newErrors.title = t('community:postForm.errors.titleMaxLength', { max: TITLE_MAX_LENGTH });
     }
 
-    if (!content.trim()) newErrors.content = t('community:postForm.errors.contentRequired')
+    if (!content.trim()) newErrors.content = t('community:postForm.errors.contentRequired');
     else if (content.trim().length > CONTENT_MAX_LENGTH) {
       newErrors.content = t('community:postForm.errors.contentMaxLength', {
         max: CONTENT_MAX_LENGTH.toLocaleString(),
-      })
+      });
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setGeneralError('')
-    if (!validate()) return
+    e.preventDefault();
+    setGeneralError('');
+    if (!validate()) return;
 
-    setIsSubmitting(true)
-    setErrors({})
+    setIsSubmitting(true);
+    setErrors({});
 
     try {
-      const uploadedMedia = []
+      const uploadedMedia = [];
       if (media.length > 0) {
         for (let i = 0; i < media.length; i++) {
-          const item = media[i]
+          const item = media[i];
           setUploadProgressText(
             t('community:postForm.uploadProgress', {
               current: i + 1,
               total: media.length,
             })
-          )
+          );
 
-          const fileType = item.file.type || 'image/jpeg'
-          const verifiedFileKey = await uploadFileForVerification(item.file, fileType)
+          const fileType = item.file.type || 'image/jpeg';
+          const verifiedFileKey = await uploadFileForVerification(item.file, fileType);
 
           uploadedMedia.push({
             id: item.id,
@@ -186,11 +182,11 @@ function PostFormModal({
             name: item.file.name,
             size: item.file.size,
             localUrl: item.url,
-          })
+          });
         }
       }
 
-      setUploadProgressText(t('community:postForm.creatingPost'))
+      setUploadProgressText(t('community:postForm.creatingPost'));
 
       if (onSubmit) {
         const response = await onSubmit({
@@ -199,47 +195,40 @@ function PostFormModal({
           content,
           media,
           uploadedMedia,
-        })
+        });
         if (response && !response.success) {
-          const code = response.code
+          const code = response.code;
           const msg =
             (code && t(`api:error.${code}`, { defaultValue: '' })) ||
             response.message ||
-            t('community:postForm.errors.uploadFailed')
-          setGeneralError(msg)
+            t('community:postForm.errors.uploadFailed');
+          setGeneralError(msg);
         }
       }
     } catch (error) {
-      const responseData = error?.response?.data
-      const errorCode = responseData?.code
+      const responseData = error?.response?.data;
+      const errorCode = responseData?.code;
 
       const errorMessage =
         (errorCode && t(`api:error.${errorCode}`, { defaultValue: '' })) ||
         responseData?.message ||
         error?.message ||
-        t('community:postForm.errors.uploadFailed')
+        t('community:postForm.errors.uploadFailed');
 
-      setGeneralError(errorMessage)
+      setGeneralError(errorMessage);
     } finally {
-      setIsSubmitting(false)
-      setUploadProgressText('')
+      setIsSubmitting(false);
+      setUploadProgressText('');
     }
-  }
+  };
 
   const handleOverlayClick = () => {
-    handleClose()
-  }
+    handleClose();
+  };
 
   return createPortal(
-    <div
-      className="post-form-modal__overlay"
-      onClick={handleOverlayClick}
-      role="dialog"
-    >
-      <div
-        className="post-form-modal__container"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className="post-form-modal__overlay" onClick={handleOverlayClick} role="dialog">
+      <div className="post-form-modal__container" onClick={(e) => e.stopPropagation()}>
         {/* Header Modal */}
         <header className="post-form-modal__header">
           <div className="post-form-modal__header-info">
@@ -247,9 +236,7 @@ function PostFormModal({
               <span className="material-symbols-outlined">post_add</span>
             </div>
             <div>
-              <h2 className="post-form-modal__title">
-                {t('community:postForm.modalTitle')}
-              </h2>
+              <h2 className="post-form-modal__title">{t('community:postForm.modalTitle')}</h2>
               <p className="post-form-modal__description">
                 {t('community:postForm.modalSubtitle')}
               </p>
@@ -282,15 +269,17 @@ function PostFormModal({
                   value={group}
                   disabled={isFormBusy || availableGroups.length === 0}
                   onChange={(e) => {
-                    setGroup(e.target.value)
+                    setGroup(e.target.value);
                     if (errors.group) {
-                      setErrors((prev) => ({ ...prev, group: undefined }))
+                      setErrors((prev) => ({ ...prev, group: undefined }));
                     }
                   }}
                   className={`input-field ${errors.group ? 'input-field--error' : ''}`}
                 >
                   {availableGroups.length === 0 ? (
-                    <option value="" disabled>{t('community:postForm.loadingGroups', { defaultValue: 'Đang tải...' })}</option>
+                    <option value="" disabled>
+                      {t('community:postForm.loadingGroups', { defaultValue: 'Đang tải...' })}
+                    </option>
                   ) : (
                     <>
                       <option value="">{t('community:postForm.selectGroupPlaceholder')}</option>
@@ -319,9 +308,9 @@ function PostFormModal({
                   disabled={isFormBusy}
                   error={errors.title}
                   onChange={(e) => {
-                    setTitle(e.target.value)
+                    setTitle(e.target.value);
                     if (errors.title) {
-                      setErrors((prev) => ({ ...prev, title: undefined }))
+                      setErrors((prev) => ({ ...prev, title: undefined }));
                     }
                   }}
                 />
@@ -342,9 +331,9 @@ function PostFormModal({
                 value={content}
                 disabled={isFormBusy}
                 onChange={(e) => {
-                  setContent(e.target.value)
+                  setContent(e.target.value);
                   if (errors.content) {
-                    setErrors((prev) => ({ ...prev, content: undefined }))
+                    setErrors((prev) => ({ ...prev, content: undefined }));
                   }
                 }}
                 className={`input-field post-form-modal__textarea ${errors.content ? 'input-field--error' : ''}`}
@@ -404,11 +393,7 @@ function PostFormModal({
                       {item.file.type.startsWith('video/') ? (
                         <video src={item.url} className="post-form-modal__preview-asset" muted />
                       ) : (
-                        <img
-                          src={item.url}
-                          alt=""
-                          className="post-form-modal__preview-asset"
-                        />
+                        <img src={item.url} alt="" className="post-form-modal__preview-asset" />
                       )}
                       <div className="post-form-modal__preview-bar">
                         <span className="post-form-modal__preview-tag">
@@ -473,7 +458,7 @@ function PostFormModal({
       </div>
     </div>,
     document.body
-  )
+  );
 }
 
-export default PostFormModal
+export default PostFormModal;

@@ -1,35 +1,35 @@
-import { useEffect, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import './PostGroupPage.css'
-import EmptyState from '../../../../components/EmptyState/EmptyState'
-import { getPostGroups } from '../../communityApi'
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import './PostGroupPage.css';
+import EmptyState from '../../../../components/EmptyState/EmptyState';
+import { getPostGroups } from '../../communityApi';
 
 function PostGroupPage({ onNavigate }) {
-  const { t } = useTranslation()
-  const [groups, setGroups] = useState([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState(null)
+  const { t } = useTranslation();
+  const [groups, setGroups] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const fetchGroups = () => {
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
     getPostGroups()
       .then((res) => setGroups(res?.data || []))
       .catch(() => {
-        setError(t('common:loadError'))
+        setError(t('common:loadError'));
       })
-      .finally(() => setIsLoading(false))
-  }
+      .finally(() => setIsLoading(false));
+  };
 
   useEffect(() => {
-    fetchGroups()
-  }, [])
+    fetchGroups();
+  }, []);
 
   const handleSelectGroup = (groupId) => {
     if (onNavigate) {
-      onNavigate('/community', { selectedGroupId: groupId })
+      onNavigate('/community', { selectedGroupId: groupId });
     }
-  }
+  };
 
   return (
     <div className="post-group-page">
@@ -55,13 +55,9 @@ function PostGroupPage({ onNavigate }) {
         <div className="post-group-page__grid">
           {groups.map((group) => (
             <article key={group.id} className="post-group-card glass-card">
-              <h2 className="post-group-card__title text-headline-sm">
-                {group.groupName}
-              </h2>
+              <h2 className="post-group-card__title text-headline-sm">{group.groupName}</h2>
 
-              <p className="post-group-card__description text-body-md">
-                {group.description}
-              </p>
+              <p className="post-group-card__description text-body-md">{group.description}</p>
 
               <div className="post-group-card__actions">
                 <button
@@ -78,7 +74,7 @@ function PostGroupPage({ onNavigate }) {
         </div>
       )}
     </div>
-  )
+  );
 }
 
-export default PostGroupPage
+export default PostGroupPage;

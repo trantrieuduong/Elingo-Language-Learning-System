@@ -1,6 +1,6 @@
-import { useTranslation } from 'react-i18next'
-import { formatDate, formatRelativeTime } from '../../../../../utils/utils'
-import './PostCardHeader.css'
+import { useTranslation } from 'react-i18next';
+import { formatDate, formatRelativeTime } from '../../../../../utils/utils';
+import './PostCardHeader.css';
 
 /**
  * @param {Object} author - Thông tin người đăng ({ fullName, username, avatarUrl, id })
@@ -14,15 +14,15 @@ function PostCardHeader({
   onGroupClick,
   onOptionsClick,
 }) {
-  const { t, i18n } = useTranslation()
+  const { t, i18n } = useTranslation();
 
-  const formattedDate = formatDate(createdAt)
+  const formattedDate = formatDate(createdAt);
   const formattedCreatedAt =
     formattedDate === formatDate(new Date())
       ? formatRelativeTime(createdAt, i18n.resolvedLanguage || 'vi')
-      : formattedDate || createdAt
+      : formattedDate || createdAt;
 
-  const normalizedStatus = (status || 'PUBLISHED').toUpperCase()
+  const normalizedStatus = (status || 'PUBLISHED').toUpperCase();
 
   const renderStatus = () => {
     switch (normalizedStatus) {
@@ -31,41 +31,40 @@ function PostCardHeader({
           <span className="post-card-header__status post-card-header__status--pending">
             <span>{t('community:status.pending')}</span>
           </span>
-        )
+        );
       case 'NEEDS_REVIEW':
         return (
           <span className="post-card-header__status post-card-header__status--review">
             <span>{t('community:status.needsReview')}</span>
           </span>
-        )
+        );
       case 'REJECTED':
         return (
           <span className="post-card-header__status post-card-header__status--rejected">
             <span>{t('community:status.rejected')}</span>
           </span>
-        )
+        );
       case 'PUBLISHED':
       default:
         return (
           <span className="post-card-header__status post-card-header__status--published">
             <span>{t('community:status.published')}</span>
           </span>
-        )
+        );
     }
-  }
+  };
 
-  const authorDisplayName = author?.fullName || t('community:postCard.anonymousUser')
+  const authorDisplayName = author?.fullName || t('community:postCard.anonymousUser');
 
   return (
     <header className="post-card-header">
       <div className="post-card-header__author-group">
-        <button
-          type="button"
-          onClick={onAuthorClick}
-          className="post-card-header__avatar-btn"
-        >
+        <button type="button" onClick={onAuthorClick} className="post-card-header__avatar-btn">
           <img
-            src={author?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(authorDisplayName)}`}
+            src={
+              author?.avatarUrl ||
+              `https://ui-avatars.com/api/?name=${encodeURIComponent(authorDisplayName)}`
+            }
             alt={authorDisplayName}
             className="post-card-header__avatar"
           />
@@ -73,19 +72,13 @@ function PostCardHeader({
 
         <div className="post-card-header__meta">
           <div className="post-card-header__names">
-            <button
-              type="button"
-              onClick={onAuthorClick}
-              className="post-card-header__name-btn"
-            >
+            <button type="button" onClick={onAuthorClick} className="post-card-header__name-btn">
               {authorDisplayName}
             </button>
 
             {group && (
               <>
-                <span className="post-card-header__dot">
-                  •
-                </span>
+                <span className="post-card-header__dot">•</span>
                 <button
                   type="button"
                   onClick={onGroupClick}
@@ -97,9 +90,7 @@ function PostCardHeader({
             )}
           </div>
 
-          {author?.username && (
-            <div className="post-card-header__username">@{author.username}</div>
-          )}
+          {author?.username && <div className="post-card-header__username">@{author.username}</div>}
 
           <div className="post-card-header__submeta">
             <span>{formattedCreatedAt}</span>
@@ -117,7 +108,7 @@ function PostCardHeader({
         <span className="material-symbols-outlined">more_horiz</span>
       </button>
     </header>
-  )
+  );
 }
 
-export default PostCardHeader
+export default PostCardHeader;

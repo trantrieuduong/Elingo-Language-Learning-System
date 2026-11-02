@@ -1,7 +1,9 @@
 .post-card {
   border-radius: var(--radius-card-lg);
   overflow: hidden;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+  transition:
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.3s ease;
 }
 
 .post-card:hover {
@@ -30,4 +32,3 @@
     padding: var(--spacing-xs) var(--spacing-md) var(--spacing-md);
   }
 }
-
