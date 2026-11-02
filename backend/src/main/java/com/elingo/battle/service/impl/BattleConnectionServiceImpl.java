@@ -1,13 +1,17 @@
 package com.elingo.battle.service.impl;
 
 import com.elingo.battle.config.BattleProperties;
+import com.elingo.battle.dto.response.ActiveMatchResponse;
 import com.elingo.battle.dto.response.OpponentDisconnectedResponse;
+import com.elingo.battle.dto.response.OpponentReconnectedResponse;
 import com.elingo.battle.entity.BattleMatchStatus;
 import com.elingo.battle.service.BattleConnectionService;
 import com.elingo.battle.service.BattleEngineService;
 import com.elingo.battle.state.BattleLiveRegistry;
 import com.elingo.battle.state.LiveMatch;
 import com.elingo.battle.websocket.BattleEventPublisher;
+import com.elingo.common.exception.AppError;
+import com.elingo.common.exception.AppException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -66,6 +70,38 @@ public class BattleConnectionServiceImpl implements BattleConnectionService {
             log.error("Forfeit failed matchId={} userId={}", m.getMatchId(), userId, ex);
             engineService.cancel(m, "INTERNAL_ERROR");
         }
+    }
+
+    @Override
+    public void rejoin(Long userId, Long matchId) {
+        LiveMatch m = registry.getByUser(userId);
+        if (m == null || !m.getMatchId().equals(matchId)) {
+            throw new AppException(AppError.BATTLE_MATCH_NOT_FOUND);
+        }
+        m.lock();
+        try {
+            if (m.getStatus() != BattleMatchStatus.IN_PROGRESS) {
+                throw new AppException(AppError.BATTLE_MATCH_NOT_FOUND);
+            }
+            boolean wasDisconnected = m.markConnected(userId); // hủy forfeit nếu đang đếm
+            publisher.sendToUser(userId, "match:rejoined", engineService.snapshot(m, userId));
+            if (wasDisconnected) {
+                publisher.sendToUser(m.opponentOf(userId), "match:opponent-reconnected",
+                        new OpponentReconnectedResponse(matchId));
+            }
+            log.info("Player rejoined matchId={} userId={} wasDisconnected={}", matchId, userId, wasDisconnected);
+        } finally {
+            m.unlock();
+        }
+    }
+
+    @Override
+    public void sendActiveMatch(Long userId) {
+        LiveMatch m = registry.getByUser(userId);
+        ActiveMatchResponse res = (m != null && m.getStatus() == BattleMatchStatus.IN_PROGRESS)
+                ? new ActiveMatchResponse(m.getMatchId(), "IN_PROGRESS")
+                : new ActiveMatchResponse(null, "NONE");
+        publisher.sendToUser(userId, "active-match", res);
     }
 }
 

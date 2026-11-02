@@ -2,8 +2,10 @@ package com.elingo.battle.controller;
 
 import com.elingo.battle.dto.request.BattleAnswerRequest;
 import com.elingo.battle.dto.request.QueueJoinRequest;
+import com.elingo.battle.dto.request.RejoinRequest;
 import com.elingo.battle.dto.request.RoomCreateRequest;
 import com.elingo.battle.dto.request.RoomJoinRequest;
+import com.elingo.battle.service.BattleConnectionService;
 import com.elingo.battle.service.BattleEngineService;
 import com.elingo.battle.service.BattleQueueService;
 import com.elingo.battle.service.BattleRoomService;
@@ -22,6 +24,7 @@ public class BattleSocketController {
     private final BattleQueueService battleQueueService;
     private final BattleEngineService battleEngineService;
     private final BattleRoomService battleRoomService;
+    private final BattleConnectionService battleConnectionService;
 
     @MessageMapping("/battle/queue/join")
     public void joinQueue(@Valid @Payload QueueJoinRequest request, Principal principal) {
@@ -53,5 +56,15 @@ public class BattleSocketController {
     @MessageMapping("/battle/room/leave")
     public void leaveRoom(Principal principal) {
         battleRoomService.leaveRoom(Long.parseLong(principal.getName()));
+    }
+
+    @MessageMapping("/battle/rejoin")
+    public void rejoin(@Valid @Payload RejoinRequest request, Principal principal) {
+        battleConnectionService.rejoin(Long.parseLong(principal.getName()), request.matchId());
+    }
+
+    @MessageMapping("/battle/active-match")
+    public void activeMatch(Principal principal) {
+        battleConnectionService.sendActiveMatch(Long.parseLong(principal.getName()));
     }
 }

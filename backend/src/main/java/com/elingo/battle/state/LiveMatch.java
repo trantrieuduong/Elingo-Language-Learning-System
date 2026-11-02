@@ -1,5 +1,7 @@
 package com.elingo.battle.state;
 
+import com.elingo.battle.dto.response.PlayerResponse;
+import com.elingo.battle.dto.response.RoundResultResponse;
 import com.elingo.battle.entity.BattleMatchStatus;
 import com.elingo.battle.entity.BattleMatchType;
 import com.elingo.battle.entity.BattleMode;
@@ -42,6 +44,9 @@ public class LiveMatch {
     @Setter private volatile BattleMatchStatus status = BattleMatchStatus.IN_PROGRESS;
     @Setter private volatile ScheduledFuture<?> pendingFuture;
     @Setter private LiveRound currentRound;
+
+    @Setter private volatile List<PlayerResponse> players;
+    @Setter private RoundResultResponse lastRoundResult;
 
     public LiveMatch(Long matchId, BattleMode mode, BattleMatchType matchType, int totalRounds,
                      Long userAId, Long userBId,
@@ -117,5 +122,10 @@ public class LiveMatch {
     public void cancelAllGraces() {
         graceFutures.values().forEach(f -> f.cancel(false));
         graceFutures.clear();
+    }
+
+    public boolean markConnected(Long userId) {
+        cancelGrace(userId);
+        return disconnected.remove(userId);
     }
 }

@@ -40,6 +40,7 @@ public class BattleMatchServiceImpl implements BattleMatchService {
         // Đưa vào RAM registry
         LiveMatch live = new LiveMatch(data.matchId(), data.mode(), type, battleProperties.totalRounds(),
                 data.userAId(), data.userBId(), data.participantIds(), data.questions());
+        live.setPlayers(data.players());
         registry.register(live);
 
         // Gửi match:found cho cả hai

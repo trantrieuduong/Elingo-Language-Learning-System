@@ -101,22 +101,13 @@ public class BattleEngineServiceImpl implements BattleEngineService {
         m.lock();
         try {
             if (m.getStatus() != BattleMatchStatus.IN_PROGRESS) return;
+            m.setLastRoundResult(null); // Bắt đầu vòng mới -> reset kết quả vòng cũ
             LiveQuestion q = m.getQuestions().get(roundNo - 1);
             long now = System.currentTimeMillis();
             LiveRound r = new LiveRound(roundNo, q, now, now + q.timeLimitMs());
             m.setCurrentRound(r);
 
-            boolean typing = q.isTyping();
-            List<OptionResponse> options = typing ? null
-                    : q.options().stream().map(o -> new OptionResponse(o.id(), o.text())).toList();
-            Integer answerLength = typing ? q.correctAnswer().length() : null;
-            List<Integer> pattern = typing ? BattleTyping.pattern(q.correctAnswer()) : null;
-            String firstChar = typing ? BattleTyping.firstChar(q.correctAnswer()) : null;
-
-            MatchQuestionResponse payload = new MatchQuestionResponse(
-                    m.getMatchId(), q.questionId(), roundNo, m.getTotalRounds(), q.term(),
-                    options, m.getMode(), q.timeLimitMs(), now, r.getDeadlineAt(),
-                    answerLength, pattern, firstChar);
+            MatchQuestionResponse payload = questionPayload(m, r, now);
             publisher.sendToUser(m.getUserAId(), "match:question", payload);
             publisher.sendToUser(m.getUserBId(), "match:question", payload);
 
@@ -125,6 +116,21 @@ public class BattleEngineServiceImpl implements BattleEngineService {
         } finally {
             m.unlock();
         }
+    }
+
+    private MatchQuestionResponse questionPayload(LiveMatch m, LiveRound r, long serverNow) {
+        LiveQuestion q = r.getQuestion();
+        boolean typing = q.isTyping();
+        List<OptionResponse> options = typing ? null
+                : q.options().stream().map(o -> new OptionResponse(o.id(), o.text())).toList();
+        Integer answerLength = typing ? q.correctAnswer().length() : null;
+        List<Integer> pattern = typing ? BattleTyping.pattern(q.correctAnswer()) : null;
+        String firstChar = typing ? BattleTyping.firstChar(q.correctAnswer()) : null;
+
+        return new MatchQuestionResponse(
+                m.getMatchId(), q.questionId(), r.getRoundNo(), m.getTotalRounds(), q.term(),
+                options, m.getMode(), q.timeLimitMs(), serverNow, r.getDeadlineAt(),
+                answerLength, pattern, firstChar);
     }
 
     private void endRound(LiveMatch m, int roundNo) {
@@ -161,6 +167,7 @@ public class BattleEngineServiceImpl implements BattleEngineService {
 
             RoundResultResponse roundPayload =
                     new RoundResultResponse(m.getMatchId(), roundNo, q.correctAnswer(), results);
+            m.setLastRoundResult(roundPayload);
             publisher.sendToUser(m.getUserAId(), "match:round-result", roundPayload);
             publisher.sendToUser(m.getUserBId(), "match:round-result", roundPayload);
 
@@ -264,6 +271,24 @@ public class BattleEngineServiceImpl implements BattleEngineService {
             publisher.sendToUser(m.getUserAId(), "match:cancelled", payload);
             publisher.sendToUser(m.getUserBId(), "match:cancelled", payload);
             registry.remove(m);
+        } finally {
+            m.unlock();
+        }
+    }
+
+    @Override
+    public MatchRejoinedResponse snapshot(LiveMatch m, Long userId) {
+        m.lock();
+        try {
+            LiveRound r = m.getCurrentRound();
+            boolean inRound = r != null && !r.isEnded();
+            MatchQuestionResponse q = inRound ? questionPayload(m, r, System.currentTimeMillis()) : null;
+            List<PlayerScoreResponse> scores = List.of(
+                    new PlayerScoreResponse(m.getUserAId(), m.getScore(m.getUserAId()), m.getCorrectCount(m.getUserAId())),
+                    new PlayerScoreResponse(m.getUserBId(), m.getScore(m.getUserBId()), m.getCorrectCount(m.getUserBId())));
+            return new MatchRejoinedResponse(new MatchSnapshotResponse(
+                    m.getMatchId(), m.getMode(), m.getMatchType(), m.getTotalRounds(), m.getPlayers(), scores,
+                    r == null ? 0 : r.getRoundNo(), q, inRound && r.hasAnswered(userId), m.getLastRoundResult()));
         } finally {
             m.unlock();
         }

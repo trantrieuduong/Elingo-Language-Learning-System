@@ -138,4 +138,10 @@ public class BattleMatchPersistenceServiceImpl implements BattleMatchPersistence
         match.setFinishedAt(LocalDateTime.now());
         if (winnerUserId != null) match.setWinner(userRepository.getReferenceById(winnerUserId));
     }
+
+    @Override
+    @Transactional
+    public int cancelOrphanMatches() {
+        return matchRepository.cancelAllUnfinished(LocalDateTime.now());
+    }
 }

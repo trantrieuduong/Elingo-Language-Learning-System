@@ -21,4 +21,5 @@ public interface BattleMatchPersistenceService {
     void saveRoundAnswers(List<RoundAnswerRecord> records);
     void finishMatch(Long matchId, Long winnerUserId,
                      Map<Long, Integer> scores, Map<Long, Integer> correctCounts);
+    int cancelOrphanMatches();
 }
