@@ -1,0 +1,4 @@
+PATH=/usr/local/bin:/usr/bin:/bin
+0 * * * * /opt/elingo/backup.sh >> /opt/elingo/backups/backup.log 2>&1
+* * * * * flock -n /opt/elingo/bot/.lock python3 /opt/elingo/bot/monitor.py >> /opt/elingo/bot/monitor.log 2>&1
+5 * * * * /opt/elingo/ship_logs.sh >> /opt/elingo/backups/ship_logs.log 2>&1
