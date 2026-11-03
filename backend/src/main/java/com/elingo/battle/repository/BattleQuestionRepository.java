@@ -28,4 +28,6 @@ public interface BattleQuestionRepository extends JpaRepository<BattleQuestion, 
               and c.term not like '%/%' and c.term not like '%;%' and c.term not like '%,%'
             """)
     List<Long> findBattleTypingEligibleCardIds();
+
+    List<BattleQuestion> findByMatchIdOrderByRoundNo(Long matchId);
 }
