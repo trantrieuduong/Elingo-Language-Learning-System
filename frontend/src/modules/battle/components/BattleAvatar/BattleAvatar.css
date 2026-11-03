@@ -1,0 +1,45 @@
+/* ============================================================
+   BattleAvatar.css — Circular Avatar & Initials Fallback
+   ============================================================ */
+
+.battle-avatar {
+  border-radius: var(--radius-pill);
+  object-fit: cover;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--color-glass-border-strong);
+  box-shadow: var(--shadow-thumb);
+}
+
+.battle-avatar--sm {
+  width: 36px;
+  height: 36px;
+  font-size: var(--font-size-label-sm);
+}
+
+.battle-avatar--md {
+  width: 56px;
+  height: 56px;
+  font-size: var(--font-size-title-md);
+}
+
+.battle-avatar--lg {
+  width: 88px;
+  height: 88px;
+  font-size: var(--font-size-headline-lg);
+}
+
+.battle-avatar--fallback {
+  background: linear-gradient(135deg, #4d6d9e 0%, #3a5680 100%);
+  color: var(--color-on-primary);
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-bold);
+  user-select: none;
+}
+
+.battle-avatar__initials {
+  line-height: 1;
+  letter-spacing: var(--tracking-wide);
+}
