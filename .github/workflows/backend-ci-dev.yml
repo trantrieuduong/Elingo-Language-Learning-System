@@ -117,3 +117,44 @@ jobs:
         with:
           sarif_file: backend/trivy-fs-dev.sarif
           category: trivy-filesystem-dev
+  # ---------------------------------------------------------------------------
+  # 3. SONAR SCAN
+  # ---------------------------------------------------------------------------
+  sonar:
+    name: 3. SonarQube (SonarCloud, PR only)
+    needs: test
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_BACKEND }}
+    steps:
+      - name: Checkout
+        if: ${{ env.SONAR_TOKEN != '' }}
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        if: ${{ env.SONAR_TOKEN != '' }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: temurin
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+
+      - name: Make mvnw executable
+        if: ${{ env.SONAR_TOKEN != '' }}
+        run: chmod +x mvnw
+
+      - name: SonarCloud scan
+        if: ${{ env.SONAR_TOKEN != '' }}
+        run: >
+          ./mvnw -B -ntp verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+          -Dsonar.host.url=https://sonarcloud.io
+          -Dsonar.projectKey=elingo_backend
+          -Dsonar.organization=elingo
+          -Dsonar.projectName="elingo backend"
+          -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+        # -Dsonar.qualitygate.wait=true
