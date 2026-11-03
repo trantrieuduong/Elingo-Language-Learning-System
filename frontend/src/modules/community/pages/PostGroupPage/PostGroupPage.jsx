@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import './PostGroupPage.css';
 import EmptyState from '../../../../components/EmptyState/EmptyState';
-import { getPostGroups } from '../../communityApi';
+import { getPostGroupsApi } from '../../communityApi';
 
 function PostGroupPage({ onNavigate }) {
   const { t } = useTranslation();
@@ -13,7 +13,7 @@ function PostGroupPage({ onNavigate }) {
   const fetchGroups = () => {
     setIsLoading(true);
     setError(null);
-    getPostGroups()
+    getPostGroupsApi()
       .then((res) => setGroups(res?.data || []))
       .catch(() => {
         setError(t('common:loadError'));

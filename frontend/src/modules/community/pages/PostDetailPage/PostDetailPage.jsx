@@ -4,7 +4,9 @@ import BackButton from '../../../../components/BackButton/BackButton';
 import EmptyState from '../../../../components/EmptyState/EmptyState';
 import Toast from '../../../../components/Toast/Toast';
 import PostCard from '../../components/PostCard/PostCard';
-import { getPostById, likePost, unlikePost } from '../../communityApi';
+import PostFormModal from '../../components/PostFormModal/PostFormModal';
+import { getPostByIdApi, likePostApi, unlikePostApi } from '../../communityApi';
+import useCommunityPostEditor from '../../hooks/useCommunityPostEditor';
 import { mapPost } from '../../utils/mapPost';
 import './PostDetailPage.css';
 
@@ -18,7 +20,7 @@ function PostDetailPage({ postId, canGoBack, onNavigate }) {
 
   const fetchPost = useCallback(async () => {
     try {
-      const response = await getPostById(postId);
+      const response = await getPostByIdApi(postId);
       if (response?.success === false) {
         return { post: null, error: response.message || t('common:loadError') };
       }
@@ -63,9 +65,28 @@ function PostDetailPage({ postId, canGoBack, onNavigate }) {
     if (onNavigate) onNavigate(canGoBack ? -1 : '/community');
   };
 
+  const handlePostUpdated = useCallback(
+    (updatedPost) => {
+      setPost(updatedPost);
+      setToast({ message: t('postForm.updateSuccess'), variant: 'success' });
+    },
+    [t]
+  );
+  const handlePostEditError = useCallback((message) => setToast({ message, variant: 'error' }), []);
+  const {
+    editingPost,
+    handleClosePostForm,
+    handleOpenEditPostForm,
+    handleSubmitPostForm,
+    isModalOpen,
+  } = useCommunityPostEditor({
+    onEditError: handlePostEditError,
+    onPostUpdated: handlePostUpdated,
+  });
+
   const handleLike = async (nextLiked) => {
     try {
-      const response = nextLiked ? await likePost(postId) : await unlikePost(postId);
+      const response = nextLiked ? await likePostApi(postId) : await unlikePostApi(postId);
       if (response?.success === false) {
         setToast({ message: response.message || t('api:common.UNKNOWN_ERROR'), variant: 'error' });
         return false;
@@ -121,6 +142,7 @@ function PostDetailPage({ postId, canGoBack, onNavigate }) {
             commentCount={post.commentCount}
             likedByMe={post.likedByMe}
             onLike={handleLike}
+            onEdit={handleOpenEditPostForm}
             onNavigate={onNavigate}
           />
         )}
@@ -130,6 +152,13 @@ function PostDetailPage({ postId, canGoBack, onNavigate }) {
         message={toast.message}
         variant={toast.variant}
         onDismiss={() => setToast((previousToast) => ({ ...previousToast, message: '' }))}
+      />
+      <PostFormModal
+        isOpen={isModalOpen}
+        onClose={handleClosePostForm}
+        onSubmit={handleSubmitPostForm}
+        groups={[]}
+        initialPost={editingPost}
       />
     </main>
   );

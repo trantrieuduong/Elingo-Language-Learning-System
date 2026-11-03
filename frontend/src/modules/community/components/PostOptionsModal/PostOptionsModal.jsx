@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import './PostOptionsModal.css';
 
-function PostOptionsModal({ isOpen, onClose, postId }) {
+function PostOptionsModal({ isOpen, onClose, onEdit, postId, canEdit = false }) {
   const { t } = useTranslation();
   const [copyStatus, setCopyStatus] = useState('idle');
 
@@ -48,10 +48,19 @@ function PostOptionsModal({ isOpen, onClose, postId }) {
             <span className="material-symbols-outlined">close</span>
           </button>
         </header>
-        <button type="button" className="btn-secondary post-options-modal__item" disabled>
-          <span className="material-symbols-outlined">edit</span>
-          <span>{t('community:postCard.editPost')}</span>
-        </button>
+        {canEdit && onEdit && (
+          <button
+            type="button"
+            className="btn-secondary post-options-modal__item"
+            onClick={() => {
+              onClose?.();
+              onEdit(postId);
+            }}
+          >
+            <span className="material-symbols-outlined">edit</span>
+            <span>{t('community:postCard.editPost')}</span>
+          </button>
+        )}
         <button
           type="button"
           className="btn-secondary post-options-modal__item"

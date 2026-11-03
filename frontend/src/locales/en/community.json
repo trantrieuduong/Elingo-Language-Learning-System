@@ -43,9 +43,13 @@
   "postForm": {
     "modalTitle": "Create New Post",
     "modalSubtitle": "Choose the right group so your post reaches the most relevant learners.",
+    "editModalTitle": "Edit post",
+    "editModalSubtitle": "Update the post content and attachments.",
     "successAlert": "Post created successfully!",
+    "updateSuccess": "Post updated successfully!",
     "groupLabel": "Group *",
     "selectGroupPlaceholder": "Select group",
+    "loadingGroups": "Loading...",
     "titleLabel": "Title *",
     "titlePlaceholder": "What do you want to share?",
     "contentLabel": "Content *",
@@ -55,8 +59,10 @@
     "mediaNote": "Max {{max}} files",
     "uploadProgress": "Uploading file {{current}}/{{total}}...",
     "creatingPost": "Creating post...",
+    "updatingPost": "Updating post...",
     "processing": "Processing...",
     "submit": "Post",
+    "saveChanges": "Save changes",
     "cancel": "Cancel",
     "errors": {
       "groupRequired": "Please select a group.",
@@ -66,7 +72,9 @@
       "contentMaxLength": "Content cannot exceed {{max}} characters.",
       "mediaMaxFiles": "You can only upload up to {{max}} files.",
       "firstFilesSelected": "Selected the first {{slots}} files to stay within the limit.",
-      "uploadFailed": "Unable to upload files or publish the post. Please try again."
+      "uploadFailed": "Unable to upload files or publish the post. Please try again.",
+      "updateFailed": "Unable to update the post. Please try again.",
+      "loadPostFailed": "Unable to load the post details. Please try again."
     }
   },
   "postGroups": {

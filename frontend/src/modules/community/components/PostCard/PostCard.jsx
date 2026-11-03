@@ -27,6 +27,7 @@ function PostCard({
   likedByMe = false,
   onLike,
   onComment,
+  onEdit,
   onOpenPost,
   onNavigate,
 }) {
@@ -37,6 +38,7 @@ function PostCard({
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
 
   const isPublished = status === 'PUBLISHED';
+  const canEdit = Boolean(user?.id && author?.id) && String(user.id) === String(author.id);
 
   const displayedLikeCount = likeCount + (isLiked ? 1 : 0) - (likedByMe ? 1 : 0);
 
@@ -125,6 +127,8 @@ function PostCard({
           postId={postId}
           isOpen={isOptionsModalOpen}
           onClose={() => setIsOptionsModalOpen(false)}
+          onEdit={onEdit}
+          canEdit={canEdit}
         />
       )}
     </article>

@@ -4,7 +4,6 @@
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: rgba(15, 23, 42, 0.45);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   display: flex;
@@ -75,7 +74,7 @@
   place-items: center;
   color: var(--color-primary);
   flex-shrink: 0;
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--color-glass-border-standard);
 }
 
 .post-form-modal__icon-badge .material-symbols-outlined {
@@ -131,6 +130,10 @@
 @media (min-width: 601px) {
   .post-form-modal__row {
     grid-template-columns: 0.85fr 1.15fr;
+  }
+
+  .post-form-modal__row--editing {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -242,9 +245,7 @@
   aspect-ratio: 1;
   border-radius: var(--radius-md);
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  background: rgba(255, 255, 255, 0.5);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  background: var(--glass-card-bg);
 }
 
 .post-form-modal__preview-asset {
@@ -261,8 +262,8 @@
   justify-content: space-between;
   gap: 4px;
   padding: 4px 6px;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
-  color: #ffffff;
+  background: var(--color-surface-dim);
+  color: var(--color-on-surface);
 }
 
 .post-form-modal__preview-tag {
@@ -276,13 +277,13 @@
 .post-form-modal__remove-btn {
   width: 24px;
   height: 24px;
-  background: rgba(255, 255, 255, 0.9);
-  color: #334155;
+  background: var(--glass-thumb-bg);
+  color: var(--color-text-mid);
   border-radius: var(--radius-pill);
 }
 
 .post-form-modal__remove-btn:hover {
-  background: #ffffff;
+  background: var(--glass-pill-bg);
   color: var(--color-error);
 }
 
@@ -294,7 +295,7 @@
   aspect-ratio: 1;
   border-radius: var(--radius-md);
   border: 1.5px dashed var(--color-outline-variant);
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--glass-well-bg);
   color: var(--color-on-surface-variant);
   display: grid;
   place-items: center;

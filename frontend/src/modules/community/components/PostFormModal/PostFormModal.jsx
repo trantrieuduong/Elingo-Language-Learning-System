@@ -10,12 +10,20 @@ const TITLE_MAX_LENGTH = 255;
 const CONTENT_MAX_LENGTH = 2000;
 const MEDIA_MAX_FILES = 5;
 
-function PostFormModal({ isOpen, onClose, onSubmit, groups, isLoading = false }) {
+function PostFormModal({
+  isOpen,
+  onClose,
+  onSubmit,
+  groups,
+  initialPost = null,
+  isLoading = false,
+}) {
   const { t } = useTranslation();
   const fileInputRef = useRef(null);
   const mediaRef = useRef([]);
 
   const availableGroups = groups || [];
+  const isEditing = Boolean(initialPost);
 
   // States form
   const [group, setGroup] = useState('');
@@ -29,15 +37,22 @@ function PostFormModal({ isOpen, onClose, onSubmit, groups, isLoading = false })
 
   const isFormBusy = isLoading || isSubmitting;
 
-  const resetForm = useCallback(() => {
-    setGroup('');
-    setTitle('');
-    setContent('');
+  const resetForm = useCallback((post = null) => {
+    setGroup(post?.groupId?.toString() || '');
+    setTitle(post?.title || '');
+    setContent(post?.content || '');
     setMedia((prev) => {
       prev.forEach((item) => {
-        if (item.url) URL.revokeObjectURL(item.url);
+        if (item.isLocal && item.url) URL.revokeObjectURL(item.url);
       });
-      return [];
+      return (post?.medias || []).map((item, index) => ({
+        id: `existing-${post.id}-${item.order ?? index}`,
+        file: null,
+        fileKey: item.mediaUrl || item.url,
+        isLocal: false,
+        type: (item.mediaType || item.type || 'image').toLowerCase(),
+        url: item.mediaUrl || item.url,
+      }));
     });
     setErrors({});
     setGeneralError('');
@@ -51,8 +66,8 @@ function PostFormModal({ isOpen, onClose, onSubmit, groups, isLoading = false })
   }, [isFormBusy, onClose, resetForm]);
 
   useEffect(() => {
-    if (isOpen) resetForm();
-  }, [isOpen, resetForm]);
+    if (isOpen) resetForm(initialPost);
+  }, [initialPost, isOpen, resetForm]);
 
   useEffect(() => {
     mediaRef.current = media;
@@ -61,7 +76,7 @@ function PostFormModal({ isOpen, onClose, onSubmit, groups, isLoading = false })
   useEffect(() => {
     return () => {
       mediaRef.current.forEach((item) => {
-        if (item.url) URL.revokeObjectURL(item.url);
+        if (item.isLocal && item.url) URL.revokeObjectURL(item.url);
       });
     };
   }, []);
@@ -105,6 +120,8 @@ function PostFormModal({ isOpen, onClose, onSubmit, groups, isLoading = false })
     const nextFiles = acceptedFiles.slice(0, remainingSlots).map((file) => ({
       id: `${file.name}-${file.lastModified}-${crypto.randomUUID()}`,
       file,
+      isLocal: true,
+      type: file.type.startsWith('video/') ? 'video' : 'image',
       url: URL.createObjectURL(file),
     }));
 
@@ -126,7 +143,7 @@ function PostFormModal({ isOpen, onClose, onSubmit, groups, isLoading = false })
   const handleRemoveMedia = (id) => {
     setMedia((prev) => {
       const removed = prev.find((item) => item.id === id);
-      if (removed?.url) URL.revokeObjectURL(removed.url);
+      if (removed?.isLocal && removed.url) URL.revokeObjectURL(removed.url);
       return prev.filter((item) => item.id !== id);
     });
     setErrors((prev) => ({ ...prev, media: undefined }));
@@ -135,7 +152,7 @@ function PostFormModal({ isOpen, onClose, onSubmit, groups, isLoading = false })
   const validate = () => {
     const newErrors = {};
 
-    if (!group) newErrors.group = t('community:postForm.errors.groupRequired');
+    if (!isEditing && !group) newErrors.group = t('community:postForm.errors.groupRequired');
     if (!title.trim()) newErrors.title = t('community:postForm.errors.titleRequired');
     else if (title.trim().length > TITLE_MAX_LENGTH) {
       newErrors.title = t('community:postForm.errors.titleMaxLength', { max: TITLE_MAX_LENGTH });
@@ -162,13 +179,24 @@ function PostFormModal({ isOpen, onClose, onSubmit, groups, isLoading = false })
 
     try {
       const uploadedMedia = [];
+      const newMedia = media.filter((item) => item.file);
       if (media.length > 0) {
         for (let i = 0; i < media.length; i++) {
           const item = media[i];
+          if (!item.file) {
+            uploadedMedia.push({
+              id: item.id,
+              fileKey: item.fileKey,
+              type: item.type,
+              localUrl: item.url,
+            });
+            continue;
+          }
+
           setUploadProgressText(
             t('community:postForm.uploadProgress', {
-              current: i + 1,
-              total: media.length,
+              current: newMedia.findIndex((mediaItem) => mediaItem.id === item.id) + 1,
+              total: newMedia.length,
             })
           );
 
@@ -178,7 +206,7 @@ function PostFormModal({ isOpen, onClose, onSubmit, groups, isLoading = false })
           uploadedMedia.push({
             id: item.id,
             fileKey: verifiedFileKey,
-            type: item.file.type.startsWith('video/') ? 'video' : 'image',
+            type: item.type,
             name: item.file.name,
             size: item.file.size,
             localUrl: item.url,
@@ -186,7 +214,9 @@ function PostFormModal({ isOpen, onClose, onSubmit, groups, isLoading = false })
         }
       }
 
-      setUploadProgressText(t('community:postForm.creatingPost'));
+      setUploadProgressText(
+        t(isEditing ? 'community:postForm.updatingPost' : 'community:postForm.creatingPost')
+      );
 
       if (onSubmit) {
         const response = await onSubmit({
@@ -236,9 +266,17 @@ function PostFormModal({ isOpen, onClose, onSubmit, groups, isLoading = false })
               <span className="material-symbols-outlined">post_add</span>
             </div>
             <div>
-              <h2 className="post-form-modal__title">{t('community:postForm.modalTitle')}</h2>
+              <h2 className="post-form-modal__title">
+                {t(
+                  isEditing ? 'community:postForm.editModalTitle' : 'community:postForm.modalTitle'
+                )}
+              </h2>
               <p className="post-form-modal__description">
-                {t('community:postForm.modalSubtitle')}
+                {t(
+                  isEditing
+                    ? 'community:postForm.editModalSubtitle'
+                    : 'community:postForm.modalSubtitle'
+                )}
               </p>
             </div>
           </div>
@@ -258,45 +296,48 @@ function PostFormModal({ isOpen, onClose, onSubmit, groups, isLoading = false })
         {/* Form Body */}
         <form onSubmit={handleSubmit} noValidate className="post-form-modal__form">
           <div className="post-form-modal__scroll-body">
-            <div className="post-form-modal__row">
-              {/* Select Group */}
-              <div className="post-form-modal__group-wrapper">
-                <label htmlFor="post-group" className="input-label">
-                  {t('community:postForm.groupLabel')}
-                </label>
-                <select
-                  id="post-group"
-                  value={group}
-                  disabled={isFormBusy || availableGroups.length === 0}
-                  onChange={(e) => {
-                    setGroup(e.target.value);
-                    if (errors.group) {
-                      setErrors((prev) => ({ ...prev, group: undefined }));
-                    }
-                  }}
-                  className={`input-field ${errors.group ? 'input-field--error' : ''}`}
-                >
-                  {availableGroups.length === 0 ? (
-                    <option value="" disabled>
-                      {t('community:postForm.loadingGroups', { defaultValue: 'Đang tải...' })}
-                    </option>
-                  ) : (
-                    <>
-                      <option value="">{t('community:postForm.selectGroupPlaceholder')}</option>
-                      {availableGroups.map((item) => (
-                        <option key={item.value} value={item.value}>
-                          {item.label}
-                        </option>
-                      ))}
-                    </>
+            <div
+              className={`post-form-modal__row ${isEditing ? 'post-form-modal__row--editing' : ''}`}
+            >
+              {!isEditing && (
+                <div className="post-form-modal__group-wrapper">
+                  <label htmlFor="post-group" className="input-label">
+                    {t('community:postForm.groupLabel')}
+                  </label>
+                  <select
+                    id="post-group"
+                    value={group}
+                    disabled={isFormBusy || availableGroups.length === 0}
+                    onChange={(e) => {
+                      setGroup(e.target.value);
+                      if (errors.group) {
+                        setErrors((prev) => ({ ...prev, group: undefined }));
+                      }
+                    }}
+                    className={`input-field ${errors.group ? 'input-field--error' : ''}`}
+                  >
+                    {availableGroups.length === 0 ? (
+                      <option value="" disabled>
+                        {t('community:postForm.loadingGroups')}
+                      </option>
+                    ) : (
+                      <>
+                        <option value="">{t('community:postForm.selectGroupPlaceholder')}</option>
+                        {availableGroups.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </>
+                    )}
+                  </select>
+                  {errors.group && (
+                    <p id="post-group-error" className="input-error" role="alert">
+                      {errors.group}
+                    </p>
                   )}
-                </select>
-                {errors.group && (
-                  <p id="post-group-error" className="input-error" role="alert">
-                    {errors.group}
-                  </p>
-                )}
-              </div>
+                </div>
+              )}
 
               {/* Input Title */}
               <div className="post-form-modal__title-wrapper">
@@ -390,17 +431,17 @@ function PostFormModal({ isOpen, onClose, onSubmit, groups, isLoading = false })
                 <div className="post-form-modal__preview-grid">
                   {media.map((item, index) => (
                     <figure key={item.id} className="post-form-modal__preview-item">
-                      {item.file.type.startsWith('video/') ? (
+                      {item.type === 'video' ? (
                         <video src={item.url} className="post-form-modal__preview-asset" muted />
                       ) : (
                         <img src={item.url} alt="" className="post-form-modal__preview-asset" />
                       )}
                       <div className="post-form-modal__preview-bar">
-                        <span className="post-form-modal__preview-tag">
-                          {item.file.type.startsWith('video/')
-                            ? t('community:postCard.videoBadge')
-                            : `Ảnh ${index + 1}`}
-                        </span>
+                        {item.type === 'video' && (
+                          <span className="post-form-modal__preview-tag">
+                            {t('community:postCard.videoBadge')}
+                          </span>
+                        )}
                         <button
                           type="button"
                           disabled={isFormBusy}
@@ -450,7 +491,9 @@ function PostFormModal({ isOpen, onClose, onSubmit, groups, isLoading = false })
                 {uploadProgressText ||
                   (isFormBusy
                     ? t('community:postForm.processing')
-                    : t('community:postForm.submit'))}
+                    : t(
+                        isEditing ? 'community:postForm.saveChanges' : 'community:postForm.submit'
+                      ))}
               </span>
             </button>
           </footer>

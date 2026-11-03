@@ -1,37 +1,14 @@
 import { useCallback } from 'react';
-import { createPost, likePost, unlikePost } from '../communityApi';
+import { likePostApi, unlikePostApi } from '../communityApi';
 
-function useCommunityPostActions({
-  onLikeError,
-  onPostCreated,
-  setPosts,
-  shouldAddCreatedPostToPosts = true,
-}) {
-  const handleCreatePost = useCallback(
-    async ({ group, title, content, uploadedMedia = [] }) => {
-      const response = await createPost({
-        groupId: Number(group),
-        title,
-        content,
-        mediaUrls: uploadedMedia.map((media) => media.fileKey),
-      });
-
-      if (response?.data && shouldAddCreatedPostToPosts) {
-        setPosts((previousPosts) => [response.data, ...previousPosts]);
-      }
-
-      onPostCreated();
-    },
-    [onPostCreated, setPosts, shouldAddCreatedPostToPosts]
-  );
-
+function useCommunityPostActions({ onLikeError, setPosts }) {
   const handleLikePost = useCallback(
     async (postId, nextLiked) => {
       try {
         if (nextLiked) {
-          await likePost(postId);
+          await likePostApi(postId);
         } else {
-          await unlikePost(postId);
+          await unlikePostApi(postId);
         }
 
         setPosts((previousPosts) =>
@@ -54,7 +31,7 @@ function useCommunityPostActions({
     [onLikeError, setPosts]
   );
 
-  return { handleCreatePost, handleLikePost };
+  return { handleLikePost };
 }
 
 export default useCommunityPostActions;

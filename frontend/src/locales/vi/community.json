@@ -43,9 +43,13 @@
   "postForm": {
     "modalTitle": "Tạo bài viết mới",
     "modalSubtitle": "Chọn đúng nhóm để bài viết tiếp cận những người phù hợp.",
+    "editModalTitle": "Chỉnh sửa bài viết",
+    "editModalSubtitle": "Cập nhật nội dung và tệp đính kèm của bài viết.",
     "successAlert": "Đăng bài viết thành công!",
+    "updateSuccess": "Cập nhật bài viết thành công!",
     "groupLabel": "Nhóm *",
     "selectGroupPlaceholder": "Chọn nhóm",
+    "loadingGroups": "Đang tải...",
     "titleLabel": "Tiêu đề *",
     "titlePlaceholder": "Bạn muốn chia sẻ điều gì?",
     "contentLabel": "Nội dung *",
@@ -55,8 +59,10 @@
     "mediaNote": "Tối đa {{max}} tệp",
     "uploadProgress": "Đang tải tệp {{current}}/{{total}}...",
     "creatingPost": "Đang tạo bài viết...",
+    "updatingPost": "Đang cập nhật bài viết...",
     "processing": "Đang xử lý...",
     "submit": "Đăng bài",
+    "saveChanges": "Lưu thay đổi",
     "cancel": "Hủy",
     "errors": {
       "groupRequired": "Vui lòng chọn một nhóm.",
@@ -66,7 +72,9 @@
       "contentMaxLength": "Nội dung không được vượt quá {{max}} ký tự.",
       "mediaMaxFiles": "Bạn chỉ có thể tải lên tối đa {{max}} tệp.",
       "firstFilesSelected": "Đã chọn {{slots}} tệp đầu tiên để không vượt quá giới hạn.",
-      "uploadFailed": "Không thể tải tệp lên hoặc đăng bài viết. Vui lòng thử lại."
+      "uploadFailed": "Không thể tải tệp lên hoặc đăng bài viết. Vui lòng thử lại.",
+      "updateFailed": "Không thể cập nhật bài viết. Vui lòng thử lại.",
+      "loadPostFailed": "Không thể tải thông tin bài viết. Vui lòng thử lại."
     }
   },
   "postGroups": {

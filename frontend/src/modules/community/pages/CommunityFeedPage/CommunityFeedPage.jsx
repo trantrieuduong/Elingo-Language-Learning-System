@@ -5,8 +5,9 @@ import PostFormModal from '../../components/PostFormModal/PostFormModal';
 import FilterSidebar from '../../components/FilterSidebar/FilterSidebar';
 import EmptyState from '../../../../components/EmptyState/EmptyState';
 import Toast from '../../../../components/Toast/Toast';
-import { getPostGroups, getPublishedPosts } from '../../communityApi';
+import { getPostGroupsApi, getPublishedPostsApi } from '../../communityApi';
 import useCommunityPostActions from '../../hooks/useCommunityPostActions';
+import useCommunityPostEditor from '../../hooks/useCommunityPostEditor';
 import useInfiniteScroll from '../../hooks/useInfiniteScroll';
 import { mapPost } from '../../utils/mapPost';
 import './CommunityFeedPage.css';
@@ -17,8 +18,6 @@ function CommunityFeedPage({ onNavigate, initialSelectedGroupId = 'ALL' }) {
   const [posts, setPosts] = useState([]);
   const [groups, setGroups] = useState([]);
   const [selectedGroupId, setSelectedGroupId] = useState(initialSelectedGroupId);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
   const [cursor, setCursor] = useState(null);
   const [hasMore, setHasMore] = useState(false);
   const [isLoadingInitial, setIsLoadingInitial] = useState(false);
@@ -31,7 +30,7 @@ function CommunityFeedPage({ onNavigate, initialSelectedGroupId = 'ALL' }) {
   useEffect(() => {
     const fetchGroups = async () => {
       try {
-        const data = await getPostGroups();
+        const data = await getPostGroupsApi();
         setGroups(data?.data || []);
       } catch {
         // groups stays empty
@@ -41,7 +40,7 @@ function CommunityFeedPage({ onNavigate, initialSelectedGroupId = 'ALL' }) {
   }, []);
 
   const fetchPosts = useCallback(async (groupId, nextCursor) => {
-    const response = await getPublishedPosts({
+    const response = await getPublishedPostsApi({
       cursor: nextCursor,
       limit: 20,
       groupId: groupId === 'ALL' ? undefined : groupId,
@@ -61,12 +60,35 @@ function CommunityFeedPage({ onNavigate, initialSelectedGroupId = 'ALL' }) {
   }, []);
 
   const handlePostCreated = useCallback(() => {
-    setIsModalOpen(false);
     setToast({
       message: t('community:postForm.successAlert'),
       variant: 'success',
     });
   }, [t]);
+
+  const handlePostUpdated = useCallback(
+    (updatedPost) => {
+      setPosts((previousPosts) => previousPosts.filter((post) => post.id !== updatedPost.id));
+      setToast({ message: t('community:postForm.updateSuccess'), variant: 'success' });
+    },
+    [t]
+  );
+
+  const handlePostEditError = useCallback((message) => setToast({ message, variant: 'error' }), []);
+  const {
+    editingPost,
+    handleClosePostForm,
+    handleOpenEditPostForm,
+    handleOpenCreatePostForm,
+    handleSubmitPostForm,
+    isModalOpen,
+  } = useCommunityPostEditor({
+    onEditError: handlePostEditError,
+    onPostCreated: handlePostCreated,
+    onPostUpdated: handlePostUpdated,
+    setPosts,
+    shouldAddCreatedPostToPosts: false,
+  });
 
   const handleLikeError = useCallback(
     () =>
@@ -76,11 +98,9 @@ function CommunityFeedPage({ onNavigate, initialSelectedGroupId = 'ALL' }) {
       }),
     [t]
   );
-  const { handleCreatePost, handleLikePost } = useCommunityPostActions({
+  const { handleLikePost } = useCommunityPostActions({
     onLikeError: handleLikeError,
-    onPostCreated: handlePostCreated,
     setPosts,
-    shouldAddCreatedPostToPosts: false,
   });
 
   const { isLoadingMore, resetLoadingMore, sentinelRef } = useInfiniteScroll({
@@ -134,7 +154,7 @@ function CommunityFeedPage({ onNavigate, initialSelectedGroupId = 'ALL' }) {
           <button
             type="button"
             className="btn-primary community-feed-page__create-post-btn"
-            onClick={() => setIsModalOpen(true)}
+            onClick={handleOpenCreatePostForm}
           >
             <span className="material-symbols-outlined">add</span>
             <span>{t('community:createPost')}</span>
@@ -183,6 +203,7 @@ function CommunityFeedPage({ onNavigate, initialSelectedGroupId = 'ALL' }) {
                       if (onNavigate) onNavigate(`/community/posts/${post.id}`);
                     }}
                     onNavigate={onNavigate}
+                    onEdit={handleOpenEditPostForm}
                   />
                 );
               })}
@@ -198,7 +219,7 @@ function CommunityFeedPage({ onNavigate, initialSelectedGroupId = 'ALL' }) {
               icon="inbox"
               title={t('community:feed.emptyTitle')}
               description={t('community:feed.emptyGroup')}
-              onAction={() => setIsModalOpen(true)}
+              onAction={handleOpenCreatePostForm}
               actionVariant="primary"
             />
           )}
@@ -207,9 +228,10 @@ function CommunityFeedPage({ onNavigate, initialSelectedGroupId = 'ALL' }) {
 
       <PostFormModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmit={handleCreatePost}
+        onClose={handleClosePostForm}
+        onSubmit={handleSubmitPostForm}
         groups={groupOptions}
+        initialPost={editingPost}
       />
 
       <Toast

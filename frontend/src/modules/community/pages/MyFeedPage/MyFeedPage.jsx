@@ -6,8 +6,9 @@ import PostFormModal from '../../components/PostFormModal/PostFormModal';
 import FilterSidebar from '../../components/FilterSidebar/FilterSidebar';
 import EmptyState from '../../../../components/EmptyState/EmptyState';
 import Toast from '../../../../components/Toast/Toast';
-import { getPostGroups, getUserPosts } from '../../communityApi';
+import { getPostGroupsApi, getUserPostsApi } from '../../communityApi';
 import useCommunityPostActions from '../../hooks/useCommunityPostActions';
+import useCommunityPostEditor from '../../hooks/useCommunityPostEditor';
 import useInfiniteScroll from '../../hooks/useInfiniteScroll';
 import { mapPost } from '../../utils/mapPost';
 import './MyFeedPage.css';
@@ -20,8 +21,6 @@ function MyFeedPage({ onNavigate }) {
   const [posts, setPosts] = useState([]);
   const [groups, setGroups] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState('ALL');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
   const [cursor, setCursor] = useState(null);
   const [hasMore, setHasMore] = useState(false);
   const [isLoadingInitial, setIsLoadingInitial] = useState(false);
@@ -34,7 +33,7 @@ function MyFeedPage({ onNavigate }) {
   useEffect(() => {
     const fetchGroups = async () => {
       try {
-        const data = await getPostGroups();
+        const data = await getPostGroupsApi();
         setGroups(data?.data || []);
       } catch {
         // groups stays empty
@@ -46,7 +45,7 @@ function MyFeedPage({ onNavigate }) {
   const fetchUserPosts = useCallback(
     async (nextCursor) => {
       if (!userId) return { items: [], hasMore: false, nextCursor: null };
-      const response = await getUserPosts(userId, {
+      const response = await getUserPostsApi(userId, {
         cursor: nextCursor,
         limit: 20,
       });
@@ -62,12 +61,36 @@ function MyFeedPage({ onNavigate }) {
   }, []);
 
   const handlePostCreated = useCallback(() => {
-    setIsModalOpen(false);
     setToast({
       message: t('community:postForm.successAlert'),
       variant: 'success',
     });
   }, [t]);
+
+  const handlePostUpdated = useCallback(
+    (updatedPost) => {
+      setPosts((previousPosts) =>
+        previousPosts.map((post) => (post.id === updatedPost.id ? updatedPost : post))
+      );
+      setToast({ message: t('community:postForm.updateSuccess'), variant: 'success' });
+    },
+    [t]
+  );
+
+  const handlePostEditError = useCallback((message) => setToast({ message, variant: 'error' }), []);
+  const {
+    editingPost,
+    handleClosePostForm,
+    handleOpenEditPostForm,
+    handleOpenCreatePostForm,
+    handleSubmitPostForm,
+    isModalOpen,
+  } = useCommunityPostEditor({
+    onEditError: handlePostEditError,
+    onPostCreated: handlePostCreated,
+    onPostUpdated: handlePostUpdated,
+    setPosts,
+  });
 
   const handleLikeError = useCallback(
     () =>
@@ -77,9 +100,8 @@ function MyFeedPage({ onNavigate }) {
       }),
     [t]
   );
-  const { handleCreatePost, handleLikePost } = useCommunityPostActions({
+  const { handleLikePost } = useCommunityPostActions({
     onLikeError: handleLikeError,
-    onPostCreated: handlePostCreated,
     setPosts,
   });
 
@@ -150,7 +172,7 @@ function MyFeedPage({ onNavigate }) {
           <button
             type="button"
             className="btn-primary my-feed-page__create-post-btn"
-            onClick={() => setIsModalOpen(true)}
+            onClick={handleOpenCreatePostForm}
           >
             <span className="material-symbols-outlined">add</span>
             <span>{t('community:createPost')}</span>
@@ -198,6 +220,7 @@ function MyFeedPage({ onNavigate }) {
                       if (onNavigate) onNavigate(`/community/posts/${post.id}`);
                     }}
                     onNavigate={onNavigate}
+                    onEdit={handleOpenEditPostForm}
                   />
                 );
               })}
@@ -213,7 +236,7 @@ function MyFeedPage({ onNavigate }) {
               icon="inbox"
               title={t('community:feed.emptyTitle')}
               description={t('community:feed.emptyMyFeed')}
-              onAction={() => setIsModalOpen(true)}
+              onAction={handleOpenCreatePostForm}
               actionVariant="primary"
             />
           )}
@@ -222,9 +245,10 @@ function MyFeedPage({ onNavigate }) {
 
       <PostFormModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmit={handleCreatePost}
+        onClose={handleClosePostForm}
+        onSubmit={handleSubmitPostForm}
         groups={groupOptions}
+        initialPost={editingPost}
       />
 
       <Toast
