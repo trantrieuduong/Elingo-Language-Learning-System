@@ -2,6 +2,15 @@ app:
   front-end-domain: "http://localhost:5173"
   google:
     client-id: ${DEV_GOOGLE_CLIENT_ID}
+  premium:
+    bank-transfer:
+      code-prefix: ${DEV_BANK_TRANSFER_CODE_PREFIX:ELGO}
+      bank-name: ${DEV_BANK_NAME}
+      bank-account: ${DEV_BANK_ACCOUNT}
+      bank-account-name: ${DEV_BANK_ACCOUNT_NAME}
+      qr-template: ${DEV_BANK_TRANSFER_QR_TEMPLATE:compact}
+    sepay:
+      secret-key: ${DEV_SEPAY_WEBHOOK_SECRET}
 
 spring:
   datasource:

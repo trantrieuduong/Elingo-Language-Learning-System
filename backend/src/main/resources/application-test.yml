@@ -2,6 +2,15 @@ app:
   front-end-domain: "http://localhost:5173"
   google:
     client-id: ${TEST_GOOGLE_CLIENT_ID:test}
+  premium:
+    bank-transfer:
+      code-prefix: ELGO
+      bank-name: MBBank
+      bank-account: "0987654321"
+      bank-account-name: ELINGO
+      qr-template: compact
+    sepay:
+      secret-key: test-sepay-secret-key
 
 spring:
   datasource:
