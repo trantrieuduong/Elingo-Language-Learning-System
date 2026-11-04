@@ -1,0 +1,222 @@
+/* ============================================================
+   BattlePlayPage.css — Elingo Vocabulary Battle Play View
+   Design System: Liquid Glass Minimalism
+   ============================================================ */
+
+.battle-play-page {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: calc(72px + var(--spacing-xl)) var(--margin-mobile) var(--spacing-3xl);
+  box-sizing: border-box;
+}
+
+.battle-play-container {
+  width: 100%;
+  max-width: 680px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.battle-play-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-3xl);
+  border-radius: var(--radius-card-lg);
+  min-height: 280px;
+}
+
+.battle-play-countdown-card {
+  padding: var(--spacing-2xl) var(--spacing-xl);
+  border-radius: var(--radius-card-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xl);
+}
+
+.battle-play-countdown-card__header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.battle-play-countdown-card__badge {
+  display: inline-block;
+  padding: 4px 14px;
+  background: var(--color-pastel-soft-blue);
+  color: var(--color-pastel-soft-blue-text);
+  font-family: var(--font-display);
+  font-size: var(--font-size-label-sm);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+  border-radius: var(--radius-pill);
+}
+
+[data-theme='dark'] .battle-play-countdown-card__badge {
+  background: rgba(155, 183, 232, 0.16);
+  color: var(--color-primary-container);
+}
+
+.battle-play-countdown-card__subtitle {
+  margin: 0;
+}
+
+/* Khối VS hai đối thủ */
+.battle-play-versus {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: var(--spacing-lg);
+}
+
+.battle-play-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex: 1;
+  text-align: center;
+}
+
+.battle-play-player__name {
+  color: var(--color-text-high);
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin: 0;
+}
+
+.battle-play-player__tag {
+  font-family: var(--font-display);
+  font-size: var(--font-size-label-xs, 11px);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+  background: var(--color-pastel-soft-blue);
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+}
+
+[data-theme='dark'] .battle-play-player__tag {
+  background: rgba(155, 183, 232, 0.16);
+  color: var(--color-primary-container);
+}
+
+.battle-play-versus__divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-container-low);
+  border: 1.5px solid var(--color-glass-border-standard);
+  box-shadow: var(--shadow-thumb);
+}
+
+.battle-play-versus__text {
+  font-family: var(--font-display);
+  font-size: var(--font-size-title-md);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--color-text-disabled);
+  font-style: italic;
+  letter-spacing: var(--tracking-wider);
+}
+
+/* Số đếm ngược */
+.battle-play-countdown {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.battle-play-countdown__circle {
+  width: 104px;
+  height: 104px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, #4d6d9e 0%, #3a5680 100%);
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  box-shadow: var(--shadow-btn-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulse-countdown 1s ease-in-out infinite;
+}
+
+.battle-play-countdown__number {
+  color: var(--color-on-primary, #ffffff);
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1;
+}
+
+@keyframes pulse-countdown {
+  0% {
+    transform: scale(0.96);
+    opacity: 0.92;
+  }
+  50% {
+    transform: scale(1.04);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.96);
+    opacity: 0.92;
+  }
+}
+
+/* Khối Hủy trận đấu (cancelled) */
+.battle-cancelled-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--spacing-3xl) var(--spacing-xl);
+  border-radius: var(--radius-card-lg);
+  gap: var(--spacing-md);
+}
+
+.battle-cancelled-icon {
+  font-size: 56px;
+  color: var(--color-error);
+}
+
+.battle-cancelled-title {
+  color: var(--color-text-high);
+  margin: 0;
+}
+
+.battle-cancelled-reason {
+  margin: 0;
+  max-width: 440px;
+}
+
+.battle-cancelled-btn {
+  margin-top: var(--spacing-md);
+  padding: 0.875rem 2rem;
+}
+
+/* Mobile <= 600px */
+@media (max-width: 600px) {
+  .battle-play-countdown-card {
+    padding: var(--spacing-xl) var(--spacing-md);
+    gap: var(--spacing-lg);
+  }
+
+  .battle-play-versus {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+
+  .battle-play-versus__divider {
+    transform: rotate(90deg);
+  }
+}

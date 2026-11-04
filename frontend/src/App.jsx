@@ -15,6 +15,9 @@ import FlashcardReviewPage from './modules/learning/flashcard/pages/FlashcardRev
 import LessonListPage from './modules/learning/lesson/pages/LessonListPage';
 import DictationPage from './modules/learning/dictation/pages/DictationPage';
 import ShadowingPage from './modules/learning/shadowing/pages/ShadowingPage';
+import { BattleSocketProvider } from './modules/battle/context/BattleSocketContext';
+import BattleLobbyPage from './modules/battle/pages/BattleLobbyPage';
+import BattlePlayPage from './modules/battle/pages/BattlePlayPage';
 import './App.css';
 
 const PUBLIC_PATHS = ['/login', '/signup', '/account-verification', '/reset-password'];
@@ -57,6 +60,7 @@ function App() {
   const flashcardStudyMatch = currentPath.match(/^\/decks\/([a-z0-9]+(?:-[a-z0-9]+)*)$/);
   const dictationMatch = currentPath.match(/^\/lessons\/dictation\/([^/]+)$/);
   const shadowingMatch = currentPath.match(/^\/lessons\/shadowing\/([^/]+)$/);
+  const battlePlayMatch = currentPath.match(/^\/battle\/play\/(\d+)$/);
   const deckListMatch = currentPath === '/decks';
   const deckTopicsMatch = currentPath.match(/^\/decks\/([^/]+)\/topics$/);
   const topicCardsMatch = currentPath.match(/^\/decks\/([^/]+)\/topics\/([^/]+)\/cards$/);
@@ -132,7 +136,15 @@ function App() {
     );
   };
 
+  const renderBattle = (page) => <BattleSocketProvider>{page}</BattleSocketProvider>;
+
   const renderContent = () => {
+    if (battlePlayMatch) {
+      return renderBattle(
+        <BattlePlayPage matchId={battlePlayMatch[1]} onNavigate={navigate} />
+      );
+    }
+
     if (flashcardStudyMatch) {
       return (
         <FlashcardStudyPage
@@ -175,7 +187,7 @@ function App() {
       case '/review':
         return <FlashcardReviewPage onNavigate={navigate} />;
       case '/battle':
-        return <PlaceholderPage title="Battle" path={currentPath} />;
+        return renderBattle(<BattleLobbyPage onNavigate={navigate} />);
       case '/speaking':
         return <PlaceholderPage title="Speaking" path={currentPath} />;
       case '/community':

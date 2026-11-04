@@ -1,0 +1,117 @@
+/* ============================================================
+   ScoreBoard.css — Elingo Battle 1v1 Scoreboard
+   Design System: Liquid Glass Minimalism
+   ============================================================ */
+
+.battle-scoreboard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md) var(--spacing-xl);
+  border-radius: var(--radius-card);
+  gap: var(--spacing-md);
+  width: 100%;
+}
+
+.battle-scoreboard__player {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex: 1;
+}
+
+.battle-scoreboard__player--opponent {
+  justify-content: flex-end;
+}
+
+.battle-scoreboard__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.battle-scoreboard__info--opponent {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.battle-scoreboard__name {
+  color: var(--color-text-high);
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.battle-scoreboard__score {
+  color: var(--color-primary);
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  transition: transform var(--transition-base, 0.2s ease);
+}
+
+.battle-scoreboard__status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-display);
+  font-size: var(--font-size-label-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-success);
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+.battle-scoreboard__check-icon {
+  font-size: 14px;
+}
+
+/* Cột giữa */
+.battle-scoreboard__center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.battle-scoreboard__round-badge {
+  padding: 6px 16px;
+  border-radius: var(--radius-pill);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.battle-scoreboard__round-text {
+  color: var(--color-text-mid);
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-wide);
+  white-space: nowrap;
+}
+
+/* Mobile <= 600px */
+@media (max-width: 600px) {
+  .battle-scoreboard {
+    padding: var(--spacing-md);
+    gap: var(--spacing-xs);
+  }
+
+  .battle-scoreboard__name {
+    max-width: 90px;
+    font-size: var(--font-size-label-lg);
+  }
+
+  .battle-scoreboard__score {
+    font-size: var(--font-size-title-md);
+  }
+
+  .battle-scoreboard__round-badge {
+    padding: 4px 10px;
+  }
+}
+
