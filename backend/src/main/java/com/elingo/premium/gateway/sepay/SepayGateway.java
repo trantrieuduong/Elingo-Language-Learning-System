@@ -77,10 +77,14 @@ public class SepayGateway implements PaymentGateway {
                 refCode = extractRefCodeFromContent(content);
             }
 
+            if (refCode != null) {
+                refCode = refCode.trim().toUpperCase();
+            }
+
             log.info("Parsed SePay webhook eventId={} refCode={} amount={} success={}",
                     eventId, refCode, amount, success);
 
-            return new WebhookEvent(eventId, GATEWAY_CODE, refCode, amount, success, rawBody);
+            return new WebhookEvent(eventId, refCode, amount, success, rawBody);
         } catch (Exception e) {
             log.error("Failed to parse SePay webhook payload: {}", e.getMessage());
             throw new IllegalArgumentException("Malformed SePay webhook payload", e);
@@ -142,7 +146,7 @@ public class SepayGateway implements PaymentGateway {
             byte[] hmacBytes = mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
             return HexFormat.of().formatHex(hmacBytes);
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            throw new IllegalStateException("Failed to calculate HMAC-SHA256", e); // Lỗi config
+            throw new IllegalStateException("Failed to calculate HMAC-SHA256", e);
         }
     }
 
