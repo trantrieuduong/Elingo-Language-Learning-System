@@ -27,7 +27,8 @@ import com.elingo.common.entity.BaseEntity;
 @Table(
         name = "user_subscriptions",
         indexes = {
-                @Index(name = "idx_active_sub", columnList = "user_id, status, end_at")
+                @Index(name = "idx_active_sub", columnList = "user_id, status, end_at"),
+                @Index(name = "idx_sub_status_end_at", columnList = "status, end_at")
         }
 )
 @Data

@@ -555,7 +555,7 @@ CREATE TABLE report_images (
 ```sql
 CREATE TABLE payment_providers (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  code VARCHAR(50) NOT NULL UNIQUE,     -- 'SEPAY', 'VNPAY', 'MOMO'...
+  code VARCHAR(50) NOT NULL UNIQUE,     -- 'SEPAY', 'GPMPAY', 'VNPAY', 'MOMO'...
   name VARCHAR(150) NOT NULL,
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -583,7 +583,8 @@ CREATE TABLE user_subscriptions (
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (plan_id) REFERENCES premium_plans(id),
-  INDEX idx_active_sub (user_id, status, end_at)
+  INDEX idx_active_sub (user_id, status, end_at),
+  INDEX idx_sub_status_end_at (status, end_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE payment_transactions (
@@ -591,11 +592,11 @@ CREATE TABLE payment_transactions (
   subscription_id BIGINT UNSIGNED NULL,
   user_id BIGINT UNSIGNED NOT NULL,
   plan_id BIGINT UNSIGNED NOT NULL,
-  provider_id BIGINT UNSIGNED NOT NULL,
+  provider_id BIGINT UNSIGNED NULL,                -- NULL khi checkout, cập nhật khi nhận webhook thành công
   amount DECIMAL(12,2) NOT NULL,
   currency VARCHAR(10) NOT NULL DEFAULT 'VND',
-  provider_ref_code VARCHAR(100) NOT NULL UNIQUE,  -- mã đối soát: transfer_content (SePay), vnp_TxnRef (VNPay), orderId (Momo)...
-  metadata JSON NULL,                              -- field đặc thù riêng của từng cổng (số TK, bank gateway, v.v.) không cần cột cứng
+  provider_ref_code VARCHAR(100) NOT NULL UNIQUE,  -- mã đối soát: transfer_content (SePay, GpmPay)...
+  metadata JSON NULL,                              -- field đặc thù riêng của từng cổng (số TK, note đối soát, underpaid, v.v.)
   status ENUM('PENDING','SUCCESS','FAILED','REFUNDED') NOT NULL DEFAULT 'PENDING',
   paid_at DATETIME NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -603,7 +604,9 @@ CREATE TABLE payment_transactions (
   FOREIGN KEY (subscription_id) REFERENCES user_subscriptions(id) ON DELETE SET NULL,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (plan_id) REFERENCES premium_plans(id),
-  FOREIGN KEY (provider_id) REFERENCES payment_providers(id)
+  FOREIGN KEY (provider_id) REFERENCES payment_providers(id),
+  INDEX idx_tx_user_created (user_id, created_at),
+  INDEX idx_tx_status_created (status, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Log kỹ thuật: lưu MỌI lần webhook gọi tới, kể cả trùng lặp/lỗi — phục vụ tra soát, không phải nguồn tính tiền
@@ -619,6 +622,7 @@ CREATE TABLE payment_webhook_logs (
   processed_at DATETIME NULL,
   FOREIGN KEY (provider_id) REFERENCES payment_providers(id),
   FOREIGN KEY (transaction_id) REFERENCES payment_transactions(id) ON DELETE SET NULL,
+  UNIQUE KEY uk_webhook_log_provider_event (provider_id, event_id),
   INDEX idx_webhook_transaction (transaction_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 ```
