@@ -44,6 +44,8 @@ public class SecurityConfig {
             Map.entry("/auth/logout",       POST_ONLY),
             Map.entry("/auth/password-reset/**",        POST_ONLY),
             Map.entry("/auth/account-verifications/**", POST_ONLY),
+            Map.entry("/webhooks/payments/**",          POST_ONLY),
+            Map.entry("/premium/plans",                 GET_ONLY),
             Map.entry("/swagger-ui/**",     ALL_METHODS),
             Map.entry("/swagger-ui.html",   ALL_METHODS),
             Map.entry("/v3/api-docs/**",    ALL_METHODS),
