@@ -157,6 +157,7 @@ function App() {
           )}
           onNavigate={navigate}
         />
+        )}
     if (battlePlayMatch) {
       return renderBattle(
         <BattlePlayPage matchId={battlePlayMatch[1]} onNavigate={navigate} />
