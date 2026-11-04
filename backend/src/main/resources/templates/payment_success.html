@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${subject}">Payment Confirmation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 10px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .receipt-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .receipt-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+        .receipt-table td.label {
+            color: #666;
+            width: 40%;
+        }
+        .receipt-table td.value {
+            font-weight: bold;
+            color: #333;
+        }
+        .footer {
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            font-size: 12px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1 th:text="${subject}">Payment Confirmation</h1>
+    <p class="greeting" th:text="'Hello ' + ${username} + ','"></p>
+    <p>Thank you for upgrading to Premium on Elingo! Your payment has been successfully processed.</p>
+
+    <table class="receipt-table">
+        <tr>
+            <td class="label">Transaction Reference:</td>
+            <td class="value" th:text="${refCode}">ELGO_123456</td>
+        </tr>
+        <tr>
+            <td class="label">Plan:</td>
+            <td class="value" th:text="${planName}">1 Month Plan</td>
+        </tr>
+        <tr>
+            <td class="label">Amount Paid:</td>
+            <td class="value" th:text="${amount} + ' ' + ${currency}">99,000 VND</td>
+        </tr>
+        <tr>
+            <td class="label">Payment Time:</td>
+            <td class="value" th:text="${paidAt}">2026-11-03 20:00:00</td>
+        </tr>
+        <tr>
+            <td class="label">Valid Until:</td>
+            <td class="value" th:text="${endAt}">2026-12-03 20:00:00</td>
+        </tr>
+    </table>
+
+    <p>You now have full access to all premium lessons, advanced dictation, and shadowing features on Elingo.</p>
+
+    <div class="footer">
+        <p>ELINGO - Language Learning System</p>
+    </div>
+</div>
+</body>
+</html>
