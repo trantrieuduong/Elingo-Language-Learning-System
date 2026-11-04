@@ -193,7 +193,7 @@ public final class FileSignatureVerifier {
 
     /** Giá trị của vint sau khi bỏ bit marker (dùng cho trường size). */
     private static long vintValue(byte[] header, int pos, int length) {
-        long value = header[pos] & (0xFF >> length);
+        long value = (header[pos] & 0xFF) & (0xFF >> length);
         for (int i = 1; i < length; i++) {
             value = (value << 8) | (header[pos + i] & 0xFF);
         }

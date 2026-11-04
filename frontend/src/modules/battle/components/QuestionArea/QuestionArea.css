@@ -1,0 +1,279 @@
+/* ============================================================
+   QuestionArea.css — Elingo Vocabulary Battle Question Area
+   Design System: Liquid Glass Minimalism
+   ============================================================ */
+
+.battle-question-area {
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-card-lg);
+  gap: var(--spacing-xl);
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Thanh thời gian */
+.battle-timer-track {
+  width: 100%;
+  height: 8px;
+  background: var(--color-surface-container);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.battle-timer-bar {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: var(--radius-pill);
+  transition: width 0.1s linear, background-color 0.3s ease;
+}
+
+.battle-timer-bar--warning {
+  background: var(--color-error);
+}
+
+/* Câu hỏi/Thuật ngữ */
+.battle-question-header {
+  text-align: center;
+  padding: var(--spacing-sm) 0;
+}
+
+.battle-question-term {
+  color: var(--color-text-high);
+  margin: 0;
+  line-height: var(--line-height-headline-lg);
+}
+
+/* ── Chế độ Tự Luận (Typing) ── */
+.battle-typing-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-lg);
+  width: 100%;
+}
+
+.battle-typing-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 8px var(--spacing-lg);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-glass-border-standard);
+}
+
+.battle-typing-hint__label {
+  color: var(--color-text-mid);
+  text-transform: uppercase;
+}
+
+.battle-typing-hint__text {
+  font-family: monospace, var(--font-display);
+  font-size: var(--font-size-title-md);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 2px;
+  color: var(--color-primary);
+}
+
+.battle-typing-form {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  width: 100%;
+  max-width: 520px;
+}
+
+.battle-typing-input {
+  flex: 1;
+  padding: 0.875rem var(--spacing-lg);
+  border-radius: var(--radius-input);
+  border: 1.5px solid var(--color-outline-variant);
+  background: var(--color-surface-container-lowest);
+  color: var(--color-on-surface);
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-lg);
+  outline: none;
+  transition: border-color var(--transition-base, 0.2s ease), box-shadow var(--transition-base, 0.2s ease);
+}
+
+.battle-typing-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(67, 95, 139, 0.2);
+}
+
+.battle-typing-input:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background: var(--color-surface-container);
+}
+
+.battle-typing-submit-btn {
+  flex-shrink: 0;
+  padding: 0.875rem 1.75rem;
+}
+
+/* ── Chế độ Trắc Nghiệm (Multiple Choice) ── */
+.battle-options-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-md);
+  width: 100%;
+}
+
+.battle-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-card);
+  text-align: left;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform var(--transition-spring), border-color var(--transition-base), background var(--transition-base);
+  width: 100%;
+}
+
+.battle-option:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: var(--color-primary-container);
+}
+
+.battle-option:disabled {
+  cursor: default;
+}
+
+.battle-option--selected {
+  border-color: var(--color-primary);
+  background: var(--color-surface-container-low);
+  box-shadow: var(--shadow-card-hover);
+}
+
+[data-theme='dark'] .battle-option--selected {
+  background: rgba(155, 183, 232, 0.12);
+  border-color: var(--color-primary-container);
+}
+
+.battle-option--correct {
+  border-color: var(--color-success) !important;
+  background: var(--color-pastel-mint) !important;
+  color: var(--color-pastel-mint-text) !important;
+}
+
+[data-theme='dark'] .battle-option--correct {
+  background: rgba(31, 94, 75, 0.25) !important;
+  color: #a7f3d0 !important;
+}
+
+.battle-option--wrong {
+  border-color: var(--color-error) !important;
+  background: var(--color-error-container) !important;
+  color: var(--color-on-error-container) !important;
+}
+
+[data-theme='dark'] .battle-option--wrong {
+  background: rgba(186, 26, 26, 0.25) !important;
+  color: #fca5a5 !important;
+}
+
+.battle-option__text {
+  flex: 1;
+  color: inherit;
+  font-family: var(--font-body);
+  font-weight: var(--font-weight-medium, 500);
+}
+
+.battle-option__icon {
+  font-size: 24px;
+  flex-shrink: 0;
+  margin-left: var(--spacing-sm);
+}
+
+/* Chờ đối thủ trả lời */
+.battle-question-waiting {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) 0;
+}
+
+.battle-question-waiting__spinner {
+  width: 20px;
+  height: 20px;
+  border-width: 2px;
+}
+
+/* Kết quả vòng đấu */
+.battle-round-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-container-low);
+  text-align: center;
+}
+
+.battle-round-result__header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.battle-round-result__correct-label {
+  color: var(--color-text-mid);
+  text-transform: uppercase;
+}
+
+.battle-round-result__correct-val {
+  color: var(--color-success);
+  font-weight: var(--font-weight-bold);
+}
+
+.battle-round-result__typed {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.battle-round-result__feedback {
+  margin-top: 2px;
+}
+
+.battle-round-result__points--gain {
+  color: var(--color-success);
+  font-weight: var(--font-weight-bold);
+}
+
+.battle-round-result__points--zero {
+  color: var(--color-error);
+  font-weight: var(--font-weight-medium, 500);
+}
+
+/* Mobile <= 600px */
+@media (max-width: 600px) {
+  .battle-question-area {
+    padding: var(--spacing-lg) var(--spacing-md);
+    gap: var(--spacing-lg);
+  }
+
+  .battle-options-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
+
+  .battle-typing-form {
+    flex-direction: column;
+  }
+
+  .battle-typing-submit-btn {
+    width: 100%;
+  }
+}
+

@@ -1,0 +1,176 @@
+/* ============================================================
+   BattleResult.css — Elingo Vocabulary Battle Result Card
+   Design System: Liquid Glass Minimalism
+   ============================================================ */
+
+.battle-result-card {
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-2xl) var(--spacing-xl);
+  border-radius: var(--radius-card-lg);
+  gap: var(--spacing-xl);
+  width: 100%;
+  align-items: center;
+  text-align: center;
+}
+
+.battle-result-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.battle-result-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 6px 16px;
+  border-radius: var(--radius-pill);
+}
+
+.battle-result-badge__icon {
+  font-size: 20px;
+}
+
+.battle-result-title {
+  margin: 0;
+}
+
+.battle-result-desc {
+  margin: 0;
+}
+
+.battle-result-forfeit {
+  color: var(--color-warning);
+  margin-top: var(--spacing-xs);
+  font-weight: var(--font-weight-medium, 500);
+}
+
+/* Biến thể theo kết quả */
+.battle-result--win .battle-result-badge {
+  background: var(--color-pastel-mint);
+  color: var(--color-pastel-mint-text);
+  border-color: var(--color-success);
+}
+
+.battle-result--win .battle-result-title {
+  color: var(--color-success);
+}
+
+.battle-result--lose .battle-result-badge {
+  background: var(--color-error-container);
+  color: var(--color-on-error-container);
+  border-color: var(--color-error);
+}
+
+.battle-result--lose .battle-result-title {
+  color: var(--color-error);
+}
+
+.battle-result--draw .battle-result-badge {
+  background: var(--color-pastel-soft-blue);
+  color: var(--color-pastel-soft-blue-text);
+  border-color: var(--color-primary);
+}
+
+.battle-result--draw .battle-result-title {
+  color: var(--color-primary);
+}
+
+/* Danh sách người chơi trong bảng tổng kết */
+.battle-result-players {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  width: 100%;
+  max-width: 520px;
+}
+
+.battle-result-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-card);
+  width: 100%;
+}
+
+.battle-result-row--winner {
+  border-color: var(--color-primary);
+  background: var(--color-surface-container-low);
+  box-shadow: var(--shadow-card-hover);
+}
+
+[data-theme='dark'] .battle-result-row--winner {
+  background: rgba(155, 183, 232, 0.12);
+}
+
+.battle-result-row__user {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  text-align: left;
+}
+
+.battle-result-row__details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.battle-result-row__name {
+  color: var(--color-text-high);
+}
+
+.battle-result-row__score {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--color-primary);
+}
+
+/* Gợi ý XP */
+.battle-result-xp-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 8px var(--spacing-lg);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-mid);
+}
+
+.battle-result-xp-hint__icon {
+  font-size: 18px;
+  color: var(--color-primary);
+}
+
+/* Nút hành động */
+.battle-result-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--spacing-sm);
+}
+
+.battle-result-actions__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 0.875rem 2.5rem;
+}
+
+/* Mobile <= 600px */
+@media (max-width: 600px) {
+  .battle-result-card {
+    padding: var(--spacing-xl) var(--spacing-md);
+    gap: var(--spacing-lg);
+  }
+
+  .battle-result-row {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .battle-result-actions__btn {
+    width: 100%;
+  }
+}
+

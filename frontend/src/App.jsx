@@ -19,6 +19,9 @@ import CommunityFeedPage from './modules/community/pages/CommunityFeedPage/Commu
 import PostGroupPage from './modules/community/pages/PostGroupPage/PostGroupPage';
 import MyFeedPage from './modules/community/pages/MyFeedPage/MyFeedPage';
 import PostDetailPage from './modules/community/pages/PostDetailPage/PostDetailPage';
+import { BattleSocketProvider } from './modules/battle/context/BattleSocketContext';
+import BattleLobbyPage from './modules/battle/pages/BattleLobbyPage';
+import BattlePlayPage from './modules/battle/pages/BattlePlayPage';
 import './App.css';
 
 const PUBLIC_PATHS = ['/login', '/signup', '/account-verification', '/reset-password'];
@@ -61,6 +64,8 @@ function App() {
   const flashcardStudyMatch = currentPath.match(/^\/decks\/([a-z0-9]+(?:-[a-z0-9]+)*)$/);
   const dictationMatch = currentPath.match(/^\/lessons\/dictation\/([^/]+)$/);
   const shadowingMatch = currentPath.match(/^\/lessons\/shadowing\/([^/]+)$/);
+  const battlePlayMatch = currentPath.match(/^\/battle\/play\/(\d+)$/);
+  const deckListMatch = currentPath === '/decks';
   const deckTopicsMatch = currentPath.match(/^\/decks\/([^/]+)\/topics$/);
   const postDetailMatch = currentPath.match(/^\/community\/posts\/(\d+)$/);
   const isPrivateUserPath =
@@ -139,6 +144,8 @@ function App() {
     );
   };
 
+  const renderBattle = (page) => <BattleSocketProvider>{page}</BattleSocketProvider>;
+
   const renderContent = () => {
     if (postDetailMatch) {
       return (
@@ -150,6 +157,9 @@ function App() {
           )}
           onNavigate={navigate}
         />
+    if (battlePlayMatch) {
+      return renderBattle(
+        <BattlePlayPage matchId={battlePlayMatch[1]} onNavigate={navigate} />
       );
     }
 
@@ -195,7 +205,7 @@ function App() {
       case '/review':
         return <FlashcardReviewPage onNavigate={navigate} />;
       case '/battle':
-        return <PlaceholderPage title="Battle" path={currentPath} />;
+        return renderBattle(<BattleLobbyPage onNavigate={navigate} />);
       case '/speaking':
         return <PlaceholderPage title="Speaking" path={currentPath} />;
       case '/community':

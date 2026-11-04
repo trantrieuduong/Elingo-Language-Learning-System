@@ -1,0 +1,284 @@
+/* ============================================================
+   BattleLobbyPage.css — Elingo Vocabulary Battle Lobby
+   Design System: Liquid Glass Minimalism
+   ============================================================ */
+
+.battle-lobby-page {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: calc(72px + var(--spacing-xl)) var(--margin-mobile) var(--spacing-3xl);
+  box-sizing: border-box;
+}
+
+.battle-lobby-container {
+  width: 100%;
+  max-width: 680px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* Banner mất kết nối */
+.battle-connection-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-warning-bg);
+  border: 1.5px solid var(--color-warning);
+  border-radius: var(--radius-card);
+  color: var(--color-warning);
+}
+
+.battle-connection-banner__icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.battle-connection-banner__text {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-md);
+  font-weight: var(--font-weight-medium, 500);
+}
+
+/* Alert lỗi */
+.battle-alert {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-card);
+}
+
+.battle-alert--error {
+  background: var(--color-error-container);
+  border: 1.5px solid var(--color-error);
+  color: var(--color-on-error-container);
+}
+
+.battle-alert__icon {
+  font-size: 24px;
+  flex-shrink: 0;
+  color: var(--color-error);
+}
+
+.battle-alert__text {
+  flex: 1;
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+}
+
+.battle-alert__close-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-pill);
+  opacity: 0.8;
+  transition: opacity var(--transition-base, 0.2s ease);
+}
+
+.battle-alert__close-btn:hover {
+  opacity: 1;
+}
+
+/* Thẻ chính của sảnh chờ */
+.battle-lobby-card {
+  padding: var(--spacing-2xl) var(--spacing-xl);
+  border-radius: var(--radius-card-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.battle-lobby-card__header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.battle-lobby-card__title {
+  margin: 0;
+}
+
+.battle-lobby-card__subtitle {
+  margin: 0;
+}
+
+/* Chế độ chơi */
+.battle-lobby-modes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.battle-lobby-modes__label {
+  color: var(--color-text-mid);
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--font-size-label-lg);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-align: center;
+}
+
+.battle-lobby-modes__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.battle-mode-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-card);
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  border: 2px solid transparent;
+  transition: transform var(--transition-spring), border-color var(--transition-base), box-shadow var(--transition-base), background var(--transition-base);
+  width: 100%;
+}
+
+.battle-mode-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--color-primary-container);
+}
+
+.battle-mode-card--selected {
+  border-color: var(--color-primary);
+  background: var(--color-surface-container-low);
+  box-shadow: var(--shadow-card-hover);
+}
+
+[data-theme='dark'] .battle-mode-card--selected {
+  background: rgba(155, 183, 232, 0.12);
+  border-color: var(--color-primary-container);
+}
+
+.battle-mode-card__icon-wrapper {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.battle-mode-card__icon {
+  font-size: 28px;
+}
+
+.battle-mode-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  flex: 1;
+}
+
+.battle-mode-card__title {
+  margin: 0;
+}
+
+.battle-mode-card__desc {
+  margin: 0;
+  line-height: var(--line-height-body-sm);
+}
+
+.battle-mode-card__check {
+  position: absolute;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  color: var(--color-primary);
+  font-size: 22px;
+}
+
+/* Nút tìm trận */
+.battle-lobby-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--spacing-sm);
+}
+
+.battle-lobby-actions__find-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  min-width: 220px;
+  padding: 0.875rem 2.5rem;
+}
+
+/* Khối tìm trận */
+.battle-lobby-searching {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-3xl) var(--spacing-md);
+  gap: var(--spacing-md);
+  text-align: center;
+}
+
+.battle-lobby-searching__spinner {
+  width: 52px;
+  height: 52px;
+  border-width: 4px;
+}
+
+.battle-lobby-searching__title {
+  color: var(--color-text-high);
+  margin: 0;
+}
+
+.battle-lobby-searching__meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.battle-lobby-searching__mode {
+  font-family: var(--font-display);
+  font-size: var(--font-size-title-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+}
+
+.battle-lobby-searching__time {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-sm);
+  color: var(--color-text-disabled);
+}
+
+.battle-lobby-searching__cancel-btn {
+  margin-top: var(--spacing-lg);
+  min-width: 160px;
+}
+
+/* Responsive mobile <= 600px */
+@media (max-width: 600px) {
+  .battle-lobby-card {
+    padding: var(--spacing-xl) var(--spacing-md);
+  }
+
+  .battle-lobby-modes__grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+
+  .battle-lobby-actions__find-btn {
+    width: 100%;
+  }
+}

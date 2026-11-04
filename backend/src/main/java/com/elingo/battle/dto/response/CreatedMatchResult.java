@@ -1,0 +1,22 @@
+package com.elingo.battle.dto.response;
+
+import com.elingo.battle.entity.BattleMode;
+import com.elingo.battle.state.LiveQuestion;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Kết quả trả về từ BattleMatchPersistenceService.persistNewRandomMatch
+ * sau khi transaction commit — dùng để đưa vào RAM và gửi event.
+ */
+public record CreatedMatchResult(
+        Long matchId,
+        BattleMode mode,
+        Long userAId,
+        Long userBId,
+        List<PlayerResponse> players,
+        Map<Long, Long> participantIds,
+        List<LiveQuestion> questions
+) {
+}

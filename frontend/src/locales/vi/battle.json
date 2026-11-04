@@ -1,1 +1,62 @@
-{}
+{
+  "title": "Đấu trường từ vựng",
+  "subtitle": "Thử thách phản xạ và vốn từ vựng thời gian thực cùng người học khác",
+  "findMatch": "Tìm trận",
+  "cancel": "Hủy",
+  "searching": "Đang tìm đối thủ...",
+  "searchingMode": "Chế độ: {{mode}}",
+  "searchingTime": "Thời gian chờ: {{time}}",
+  "mode": {
+    "title": "Chọn chế độ thi đấu",
+    "multipleChoice": "Trắc nghiệm",
+    "multipleChoiceDesc": "Chọn nhanh nghĩa tiếng Việt chính xác trong 4 phương án",
+    "typing": "Tự luận (Gõ từ)",
+    "typingDesc": "Nhìn nghĩa tiếng Việt và gõ từ vựng tiếng Anh chính xác"
+  },
+  "connection": {
+    "reconnecting": "Mất kết nối máy chủ, đang thử lại..."
+  },
+  "play": {
+    "preparing": "Trận đấu sắp bắt đầu...",
+    "you": "Bạn",
+    "vs": "VS",
+    "opponentFallback": "Đối thủ",
+    "round": "Vòng {{current}}/{{total}}",
+    "answered": "Đã trả lời",
+    "waitingOpponent": "Đã gửi đáp án - đang chờ đối thủ...",
+    "timeUp": "Hết giờ",
+    "correctAnswer": "Đáp án đúng",
+    "yourAnswer": "Bạn gõ",
+    "points": "điểm",
+    "zeroPoints": "0 điểm",
+    "hint": "Gợi ý",
+    "typeHere": "Nhập từ vựng tiếng Anh...",
+    "submit": "Gửi",
+    "submitted": "Đã gửi"
+  },
+  "result": {
+    "win": "Chiến thắng!",
+    "lose": "Thua cuộc!",
+    "draw": "Hòa!",
+    "winDesc": "Chúc mừng! Bạn đã thể hiện khả năng phản xạ từ vựng xuất sắc.",
+    "loseDesc": "Đừng nản lòng! Hãy tiếp tục luyện tập để phục thù trận sau.",
+    "drawDesc": "Một trận đấu kịch tính và cân tài cân sức giữa hai bên.",
+    "forfeitWin": "Đối thủ đã rời trận. Bạn được xử thắng!",
+    "forfeitLose": "Bạn bị xử thua do mất kết nối hoặc rời trận.",
+    "score": "Điểm số",
+    "correctCount": "Đúng {{count}}/{{total}}",
+    "xpHint": "Cần ít nhất 3 câu đúng để nhận XP",
+    "playAgain": "Chơi lại",
+    "cancelled": {
+      "title": "Trận đấu bị hủy",
+      "BOTH_DISCONNECTED": "Cả hai người chơi đều mất kết nối quá thời gian chờ.",
+      "INTERNAL_ERROR": "Đã xảy ra sự cố kỹ thuật từ hệ thống trận đấu.",
+      "unknown": "Trận đấu bị hủy do sự cố bất ngờ."
+    },
+    "backToLobby": "Về sảnh thi đấu"
+  },
+  "error": {
+    "QUEUE_TIMEOUT": "Không tìm thấy đối thủ phù hợp. Vui lòng thử lại sau.",
+    "BATTLE_NOT_CONNECTED": "Chưa kết nối được tới máy chủ thi đấu. Vui lòng thử lại."
+  }
+}
