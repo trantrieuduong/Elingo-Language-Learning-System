@@ -1,0 +1,107 @@
+.community-media-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: grid;
+  place-items: center;
+  padding: var(--spacing-2xl);
+  background: var(--color-surface-container);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: community-media-lightbox-enter 0.2s ease;
+}
+
+.community-media-lightbox__asset {
+  width: auto;
+  height: auto;
+  max-width: min(100%, 1200px);
+  max-height: 88svh;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-modal);
+  background: var(--color-on-surface);
+}
+
+.community-media-lightbox__close {
+  position: absolute;
+  top: var(--spacing-lg);
+  right: var(--spacing-lg);
+  width: 44px;
+  height: 44px;
+  background: color-mix(in srgb, var(--color-surface-container-lowest) 92%, transparent);
+  color: var(--color-on-surface);
+  border: 1px solid var(--color-glass-border-strong);
+}
+
+.community-media-lightbox__close:hover {
+  background: var(--color-surface-container-lowest);
+}
+
+.community-media-lightbox__navigation {
+  position: absolute;
+  top: 50%;
+  width: 48px;
+  height: 48px;
+  transform: translateY(-50%);
+  background: color-mix(in srgb, var(--color-surface-container-lowest) 92%, transparent);
+  color: var(--color-on-surface);
+  border: 1px solid var(--color-glass-border-strong);
+}
+
+.community-media-lightbox__navigation:hover:not(:disabled) {
+  background: var(--color-surface-container-lowest);
+}
+
+.community-media-lightbox__navigation:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.community-media-lightbox__navigation .material-symbols-outlined {
+  font-size: 30px;
+}
+
+.community-media-lightbox__navigation--previous {
+  left: var(--spacing-lg);
+}
+
+.community-media-lightbox__navigation--next {
+  right: var(--spacing-lg);
+}
+
+@keyframes community-media-lightbox-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 600px) {
+  .community-media-lightbox {
+    padding: var(--spacing-md);
+  }
+
+  .community-media-lightbox__asset {
+    max-height: 82svh;
+  }
+
+  .community-media-lightbox__close {
+    top: var(--spacing-md);
+    right: var(--spacing-md);
+  }
+
+  .community-media-lightbox__navigation {
+    width: 40px;
+    height: 40px;
+  }
+
+  .community-media-lightbox__navigation--previous {
+    left: var(--spacing-sm);
+  }
+
+  .community-media-lightbox__navigation--next {
+    right: var(--spacing-sm);
+  }
+}

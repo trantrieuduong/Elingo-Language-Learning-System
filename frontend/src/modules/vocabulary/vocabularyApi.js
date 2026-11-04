@@ -47,7 +47,6 @@ export const getUserDecksApi = async (params = {}) => {
   const response = await apiClient.get('/users/me/decks');
   let decks = response.data?.data || [];
 
-  // Filter keyword theo title hoặc description
   const keyword = (params.keyword || params.q || '').trim().toLowerCase();
   if (keyword) {
     decks = decks.filter(
@@ -56,17 +55,14 @@ export const getUserDecksApi = async (params = {}) => {
     );
   }
 
-  // Filter theo status (ALL | PUBLISHED | DRAFT)
   if (params.status && params.status !== 'ALL') {
     decks = decks.filter((d) => d.status === params.status);
   }
 
-  // Filter theo tag ID
   if (params.tagId) {
     decks = decks.filter((d) => d.tags?.some((tag) => tag.id === params.tagId));
   }
 
-  // Filter theo CEFR ID
   if (params.cefrLevelId) {
     decks = decks.filter((d) => d.cefrLevels?.some((cefr) => cefr.id === params.cefrLevelId));
   }
@@ -170,11 +166,7 @@ export const getCardsByTopicApi = async (topicId) => {
 };
 
 /**
- * Tạo mới card trong topic của người dùng (CreateUserCardRequest).
- * Backend endpoint: POST /cards
- * Body: { topicId, term, pos, translation, explanationVi, explanationEn, examplesVi, examplesEn }
- *
- * @param {Object} data
+ * @param {Object} data { topicId, term, pos, translation, explanationVi, explanationEn, examplesVi, examplesEn }
  */
 export const createUserCardApi = async (data) => {
   const payload = {
@@ -192,12 +184,7 @@ export const createUserCardApi = async (data) => {
 };
 
 /**
- * Cập nhật thông tin card của người dùng (UpdateUserCardRequest).
- * Backend endpoint: PUT /cards/{cardId}
- * Body: { term, pos, translation, explanationVi, explanationEn, examplesVi, examplesEn }
- *
- * @param {number|string} cardId
- * @param {Object} data
+ * @param {Object} data - { term, pos, translation, explanationVi, explanationEn, examplesVi, examplesEn }
  */
 export const updateUserCardApi = async (cardId, data) => {
   const payload = {

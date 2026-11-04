@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
@@ -15,6 +15,10 @@ import FlashcardReviewPage from './modules/learning/flashcard/pages/FlashcardRev
 import LessonListPage from './modules/learning/lesson/pages/LessonListPage';
 import DictationPage from './modules/learning/dictation/pages/DictationPage';
 import ShadowingPage from './modules/learning/shadowing/pages/ShadowingPage';
+import CommunityFeedPage from './modules/community/pages/CommunityFeedPage/CommunityFeedPage';
+import PostGroupPage from './modules/community/pages/PostGroupPage/PostGroupPage';
+import MyFeedPage from './modules/community/pages/MyFeedPage/MyFeedPage';
+import PostDetailPage from './modules/community/pages/PostDetailPage/PostDetailPage';
 import { BattleSocketProvider } from './modules/battle/context/BattleSocketContext';
 import BattleLobbyPage from './modules/battle/pages/BattleLobbyPage';
 import BattlePlayPage from './modules/battle/pages/BattlePlayPage';
@@ -31,7 +35,7 @@ const PRIVATE_USER_PATHS = [
   '/battle',
   '/speaking',
   '/community',
-  '/community/topics',
+  '/community/groups',
   '/community/my-posts',
   '/progress',
   '/gamification',
@@ -63,14 +67,13 @@ function App() {
   const battlePlayMatch = currentPath.match(/^\/battle\/play\/(\d+)$/);
   const deckListMatch = currentPath === '/decks';
   const deckTopicsMatch = currentPath.match(/^\/decks\/([^/]+)\/topics$/);
-  const topicCardsMatch = currentPath.match(/^\/decks\/([^/]+)\/topics\/([^/]+)\/cards$/);
+  const postDetailMatch = currentPath.match(/^\/community\/posts\/(\d+)$/);
   const isPrivateUserPath =
     PRIVATE_USER_PATHS.some((path) => {
       return currentPath === path || currentPath.startsWith(`${path}/`);
     }) ||
     !!flashcardStudyMatch ||
     !!deckTopicsMatch ||
-    !!topicCardsMatch ||
     !!dictationMatch ||
     !!shadowingMatch;
 
@@ -102,8 +105,13 @@ function App() {
   }, [currentPath, user, loading, isPrivateUserPath]);
 
   const navigate = (path, param) => {
+    if (path === -1) {
+      window.history.back();
+      return;
+    }
+
     const stateObj = param && typeof param === 'object' ? param : {};
-    window.history.pushState(stateObj, '', path);
+    window.history.pushState({ ...stateObj, previousPath: window.location.pathname }, '', path);
     setCurrentPath(window.location.pathname);
 
     if (path === '/account-verification') {
@@ -139,6 +147,17 @@ function App() {
   const renderBattle = (page) => <BattleSocketProvider>{page}</BattleSocketProvider>;
 
   const renderContent = () => {
+    if (postDetailMatch) {
+      return (
+        <PostDetailPage
+          key={currentPath}
+          postId={postDetailMatch[1]}
+          canGoBack={['/community', '/community/my-posts'].includes(
+            window.history.state?.previousPath
+          )}
+          onNavigate={navigate}
+        />
+        )}
     if (battlePlayMatch) {
       return renderBattle(
         <BattlePlayPage matchId={battlePlayMatch[1]} onNavigate={navigate} />
@@ -191,11 +210,17 @@ function App() {
       case '/speaking':
         return <PlaceholderPage title="Speaking" path={currentPath} />;
       case '/community':
-        return <PlaceholderPage title="Community Feed" path={currentPath} />;
-      case '/community/topics':
-        return <PlaceholderPage title="Community Topics" path={currentPath} />;
+        return (
+          <CommunityFeedPage
+            initialSelectedGroupId={window.history.state?.selectedGroupId}
+            onNavigate={navigate}
+          />
+        );
       case '/community/my-posts':
-        return <PlaceholderPage title="My Posts" path={currentPath} />;
+        return <MyFeedPage onNavigate={navigate} />;
+      case '/community/groups':
+        return <PostGroupPage onNavigate={navigate} />;
+
       case '/progress':
         return <PlaceholderPage title="Progress" path={currentPath} />;
       case '/gamification':
@@ -229,11 +254,7 @@ function App() {
         <div className="ambient-bg__orb ambient-bg__orb--ambient" />
       </div>
       <Header onNavigate={navigate} currentPath={currentPath} />
-      <div
-        className={`app-main ${deckListMatch || deckTopicsMatch || topicCardsMatch ? 'app-main--vocabulary' : ''} ${topicCardsMatch ? 'app-main--card-management' : ''}`}
-      >
-        {renderContent()}
-      </div>
+      <div className={'app-main'}>{renderContent()}</div>
       <Footer onNavigate={navigate} />
     </>
   );

@@ -1,0 +1,117 @@
+.post-group-page {
+  /* Khoảng đệm đầu trang tránh bị floating Header che khuất */
+  padding-top: calc(72px + var(--spacing-2xl));
+  padding-bottom: var(--spacing-2xl);
+  width: calc(100% - 3rem);
+  max-width: 1432px;
+  margin-inline: auto;
+  box-sizing: border-box;
+}
+
+/* ── Grid danh sách nhóm bài viết ── */
+.post-group-page__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--spacing-xl);
+  width: 100%;
+}
+
+/* ── Post Group Card (.glass-card) ── */
+.post-group-card {
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-card-lg);
+  transition:
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.3s ease;
+}
+
+.post-group-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.12);
+}
+
+/* 1. Tên nhóm (headline-sm) */
+.post-group-card__title {
+  color: var(--color-text-high);
+  margin-bottom: var(--spacing-sm);
+}
+
+/* 2. Đoạn description rõ ràng, dễ đọc (text-body-md) */
+.post-group-card__description {
+  color: var(--color-text-body);
+  line-height: 1.625;
+  margin-bottom: var(--spacing-md);
+  flex: 1;
+}
+
+/* 3. Thống kê (Số bài viết) */
+.post-group-card__stats {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-on-surface-variant);
+  margin-bottom: var(--spacing-lg);
+}
+
+.post-group-card__stat-icon {
+  font-size: 18px;
+  color: var(--color-primary);
+}
+
+/* 4. Nút CTA "Xem bài viết" */
+.post-group-card__actions {
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.post-group-card__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.post-group-card__btn .material-symbols-outlined {
+  font-size: 18px;
+  transition: transform 0.2s ease;
+}
+
+.post-group-card__btn:hover .material-symbols-outlined {
+  transform: translateX(4px);
+}
+
+/* ── Loading Spinner State ── */
+.post-group-page__loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-2xl);
+  min-height: 240px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .post-group-page {
+    padding-top: calc(68px + var(--spacing-xl));
+  }
+
+  .post-group-page__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--spacing-lg);
+  }
+}
+
+@media (max-width: 600px) {
+  .post-group-page {
+    padding-top: calc(60px + var(--spacing-lg));
+    width: calc(100% - 1.5rem);
+  }
+
+  .post-group-page__grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+}

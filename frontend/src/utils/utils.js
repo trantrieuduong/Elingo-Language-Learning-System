@@ -24,25 +24,27 @@ export const formatDate = (dateInput, options = {}) => {
 };
 
 /**
- * Format thời gian tương đối (vd: "3 phút trước").
+ * Format thời gian tương đối theo locale.
  * @param {string|Date} dateInput
+ * @param {string} locale
  * @returns {string}
  */
-export const formatRelativeTime = (dateInput) => {
+export const formatRelativeTime = (dateInput, locale = 'vi') => {
   if (!dateInput) return '';
   const date = new Date(dateInput);
-  const now = new Date();
-  const diffMs = now - date;
-  const diffSec = Math.floor(diffMs / 1000);
-  const diffMin = Math.floor(diffSec / 60);
-  const diffHour = Math.floor(diffMin / 60);
-  const diffDay = Math.floor(diffHour / 24);
+  if (isNaN(date.getTime())) return '';
 
-  if (diffSec < 60) return 'Vừa xong';
-  if (diffMin < 60) return `${diffMin} phút trước`;
-  if (diffHour < 24) return `${diffHour} giờ trước`;
-  if (diffDay < 7) return `${diffDay} ngày trước`;
-  return formatDate(date);
+  const diffMs = Date.now() - date.getTime();
+  if (diffMs < 0) return '';
+
+  const diffSec = Math.floor(diffMs / 1000);
+  const relativeTimeFormat = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+
+  if (diffSec < 60) return relativeTimeFormat.format(0, 'second');
+  if (diffSec < 60 * 60) {
+    return relativeTimeFormat.format(-Math.floor(diffSec / 60), 'minute');
+  }
+  return relativeTimeFormat.format(-Math.floor(diffSec / (60 * 60)), 'hour');
 };
 
 /**

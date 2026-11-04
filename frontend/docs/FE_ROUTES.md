@@ -40,9 +40,9 @@
 | `/speaking` | `SpeakingLobbyPage` | `speaking/pages/` | Danh sách phòng luyện nói |
 | `/speaking/:roomId` | `SpeakingRoomPage` | `speaking/pages/` | Phòng luyện nói (WebRTC) |
 | `/community` | `CommunityFeedPage` | `community/pages/` | Feed cộng đồng (Bảng tin) |
-| `/community/topics` | `CommunityTopicPage` | `community/pages/` | Chủ đề cộng đồng |
+| `/community/groups` | `PostGroupPage` | `community/pages/` | Danh sách nhóm bài viết cộng đồng |
 | `/community/my-posts` | `CommunityMyPostsPage` | `community/pages/` | Bài viết của tôi |
-| `/community/post/:postId` | `PostDetailPage` | `community/pages/` | Chi tiết bài viết |
+| `/community/posts/:postId` | `PostDetailPage` | `community/pages/` | Chi tiết bài viết từ Community Feed và My Feed |
 | `/gamification` | `LeaderboardPage` | `gamification/pages/` | Bảng xếp hạng + XP |
 | `/progress` | `ProgressPage` | `progress/pages/` | Tiến độ học tập cá nhân |
 | `/premium` | `PremiumPage` | `premium/pages/` | Gói Premium + thanh toán |
