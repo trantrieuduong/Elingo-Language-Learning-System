@@ -139,15 +139,6 @@
   color: var(--color-error);
 }
 
-.post-card-header__options-btn {
-  color: var(--color-on-surface-variant);
-  flex-shrink: 0;
-}
-
-.post-card-header__options-btn:hover {
-  color: var(--color-text-high);
-}
-
 @media (min-width: 601px) {
   .post-card-header__avatar {
     width: 48px;

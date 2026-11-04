@@ -18,17 +18,17 @@
 
 ### Ví dụ thực tế
 
-| Component | Vị trí | Lý do |
-|---|---|---|
-| `Input` | `src/components/Input/` | Dùng ở auth, profile, admin, community... |
-| `ConfirmModal` | `src/components/ConfirmModal/` | Dùng để xác nhận hành động |
-| `Pagination` | `src/components/Pagination/` | Dùng ở mọi trang list |
-| `Filter` | `src/components/Filter/` | Dùng ở lesson list, deck list, ... |
-| `Header` | `src/components/Header/` | App-level, dùng ở tất cả public routes |
-| `Footer` | `src/components/Footer/` | App-level |
-| `LessonCard` | `src/modules/learning/lesson/components/` | Chỉ dùng trong lesson module |
-| `FlashCard` | `src/modules/learning/flashcard/components/` | Chỉ dùng trong flashcard module |
-| `BattleScoreBoard` | `src/modules/battle/components/` | Chỉ dùng trong battle module |
+| Component          | Vị trí                                       | Lý do                                     |
+| ------------------ | -------------------------------------------- | ----------------------------------------- |
+| `Input`            | `src/components/Input/`                      | Dùng ở auth, profile, admin, community... |
+| `ConfirmModal`     | `src/components/ConfirmModal/`               | Dùng để xác nhận hành động                |
+| `Pagination`       | `src/components/Pagination/`                 | Dùng ở mọi trang list                     |
+| `Filter`           | `src/components/Filter/`                     | Dùng ở lesson list, deck list, ...        |
+| `Header`           | `src/components/Header/`                     | App-level, dùng ở tất cả public routes    |
+| `Footer`           | `src/components/Footer/`                     | App-level                                 |
+| `LessonCard`       | `src/modules/learning/lesson/components/`    | Chỉ dùng trong lesson module              |
+| `FlashCard`        | `src/modules/learning/flashcard/components/` | Chỉ dùng trong flashcard module           |
+| `BattleScoreBoard` | `src/modules/battle/components/`             | Chỉ dùng trong battle module              |
 
 ### Khi nghi ngờ
 
@@ -61,20 +61,20 @@ LessonCard/
 
 ## 3. Component Naming
 
-| Loại | Convention | Ví dụ |
-|---|---|---|
-| Page | `PascalCase + Page` | `LoginPage`, `LessonListPage` |
-| Layout | `PascalCase + Layout` | `AdminLayout` |
-| Shared (no business) | `PascalCase` | `Input`, `ConfirmModal`, `Pagination` |
-| Feature component | `PascalCase` mô tả rõ vai trò | `LessonCard`, `FlashCard`, `BattleTimer` |
-| Context | `PascalCase + Context` | `BattleSocketContext` |
+| Loại                 | Convention                    | Ví dụ                                    |
+| -------------------- | ----------------------------- | ---------------------------------------- |
+| Page                 | `PascalCase + Page`           | `LoginPage`, `LessonListPage`            |
+| Layout               | `PascalCase + Layout`         | `AdminLayout`                            |
+| Shared (no business) | `PascalCase`                  | `Input`, `ConfirmModal`, `Pagination`    |
+| Feature component    | `PascalCase` mô tả rõ vai trò | `LessonCard`, `FlashCard`, `BattleTimer` |
+| Context              | `PascalCase + Context`        | `BattleSocketContext`                    |
 
 ---
 
 ## 4. Component Template
 
 ```jsx
-import './ComponentName.css'
+import './ComponentName.css';
 
 /**
  * ComponentName — mô tả ngắn gọn bằng tiếng Việt.
@@ -90,17 +90,13 @@ function ComponentName({ propA, onSomething, onNavigate }) {
   // Handlers
   const handleSomething = () => {
     // ...
-    if (onNavigate) onNavigate('/some-path')
-  }
+    if (onNavigate) onNavigate('/some-path');
+  };
 
-  return (
-    <div className="component-name-wrapper">
-      {/* ... */}
-    </div>
-  )
+  return <div className="component-name-wrapper">{/* ... */}</div>;
 }
 
-export default ComponentName
+export default ComponentName;
 ```
 
 ---
@@ -109,8 +105,8 @@ export default ComponentName
 
 ### 5.1 Props bắt buộc
 
-| Prop | Kiểu | Dùng khi |
-|---|---|---|
+| Prop         | Kiểu       | Dùng khi                              |
+| ------------ | ---------- | ------------------------------------- |
 | `onNavigate` | `Function` | Component cần navigate đến trang khác |
 
 ### 5.2 Default values
@@ -124,8 +120,8 @@ function FilterBar({ cefrLevels = [], tags = [], selectedCefrLevelId = null }) {
 
 ```jsx
 // Luôn check trước khi gọi callback
-if (onConfirm) onConfirm()
-if (onNavigate) onNavigate('/path')
+if (onConfirm) onConfirm();
+if (onNavigate) onNavigate('/path');
 ```
 
 ### 5.4 Không pass props thừa xuống DOM
@@ -133,12 +129,12 @@ if (onNavigate) onNavigate('/path')
 ```jsx
 // BAD — spread toàn bộ props xuống DOM element có thể gây warning
 function Input({ id, label, error, ...props }) {
-  return <input {...props} />  // props có thể chứa thứ không phải DOM attribute
+  return <input {...props} />; // props có thể chứa thứ không phải DOM attribute
 }
 
 // GOOD — chỉ spread những gì DOM cần
 function Input({ id, label, type, value, onChange, error, disabled, autoFocus, ...rest }) {
-  return <input id={id} type={type} value={value} onChange={onChange} {...rest} />
+  return <input id={id} type={type} value={value} onChange={onChange} {...rest} />;
 }
 ```
 
@@ -203,13 +199,13 @@ function Input({ id, label, type, value, onChange, error, disabled, autoFocus, .
 
 ```jsx
 <Input
-  id="email"               // BẮT BUỘC
+  id="email" // BẮT BUỘC
   label="Email"
-  type="email"             // hoặc 'password', 'text', 'number'...
+  type="email" // hoặc 'password', 'text', 'number'...
   placeholder="name@example.com"
   value={email}
   onChange={(e) => setEmail(e.target.value)}
-  error={errors.email}     // string hoặc null/undefined
+  error={errors.email} // string hoặc null/undefined
   autoFocus={true}
   disabled={isSubmitting}
 />
@@ -226,7 +222,7 @@ function Input({ id, label, type, value, onChange, error, disabled, autoFocus, .
   cancelText="Hủy"
   onConfirm={handleDelete}
   onCancel={() => setIsDeleteModalOpen(false)}
-  isDanger={true}           // nút confirm màu đỏ
+  isDanger={true} // nút confirm màu đỏ
   isLoading={isDeleting}
 />
 ```
@@ -235,8 +231,8 @@ function Input({ id, label, type, value, onChange, error, disabled, autoFocus, .
 
 ```jsx
 <Pagination
-  currentPage={page}          // 1-indexed
-  totalPages={totalPages}     // tự ẩn nếu <= 1
+  currentPage={page} // 1-indexed
+  totalPages={totalPages} // tự ẩn nếu <= 1
   onPageChange={(p) => setPage(p)}
 />
 ```
@@ -245,8 +241,8 @@ function Input({ id, label, type, value, onChange, error, disabled, autoFocus, .
 
 ```jsx
 <Filter
-  cefrLevels={cefrLevels}           // [{_id, name}]
-  tags={tags}                        // [{_id, name}]
+  cefrLevels={cefrLevels} // [{_id, name}]
+  tags={tags} // [{_id, name}]
   selectedCefrLevelId={selectedCefr}
   selectedTagId={selectedTag}
   onCefrChange={(id) => setSelectedCefr(id)}
@@ -287,7 +283,12 @@ function Input({ id, label, type, value, onChange, error, disabled, autoFocus, .
   actionVariant="primary"
   onAction={handleCreate}
 />
+
+// Trạng thái rỗng gọn bên trong một vùng chứa
+<EmptyState variant="compact" icon="chat_bubble_outline" description="Chưa có bình luận." />
 ```
+
+`variant` mặc định là `"default"` (giữ bề mặt `.glass-card`); dùng `"compact"` cho empty state nằm trong một bề mặt có sẵn.
 
 ### 7.8 `<PageLoading>` — `src/components/PageLoading/`
 
@@ -327,28 +328,36 @@ Toast dùng chung vị trí cố định phía trên bên phải, ngay dưới H
 ### 9.1 Page-level loading
 
 ```jsx
-if (loading) return <div className="page-loading"><div className="app-loading-spinner" /></div>
+if (loading)
+  return (
+    <div className="page-loading">
+      <div className="app-loading-spinner" />
+    </div>
+  );
 ```
 
 ### 9.2 Error state
 
 ```jsx
-if (error) return (
-  <div className="page-loading">
-    <p className="error-message">{error}</p>
-  </div>
-)
+if (error)
+  return (
+    <div className="page-loading">
+      <p className="error-message">{error}</p>
+    </div>
+  );
 ```
 
 ### 9.3 Empty state
 
 ```jsx
-{data.length === 0 && !loading && (
-  <div className="empty-state">
-    <span className="material-symbols-outlined">inbox</span>
-    <p>Không có dữ liệu</p>
-  </div>
-)}
+{
+  data.length === 0 && !loading && (
+    <div className="empty-state">
+      <span className="material-symbols-outlined">inbox</span>
+      <p>Không có dữ liệu</p>
+    </div>
+  );
+}
 ```
 
 ### 9.4 Inline alerts
@@ -356,8 +365,12 @@ if (error) return (
 Với lỗi/thành công gắn với form, dùng alert inline phía trên form thay vì chỉ dùng `alert()` hoặc console:
 
 ```jsx
-{error && <div className="auth-alert auth-alert--error">{error}</div>}
-{successMsg && <div className="auth-alert auth-alert--success">{successMsg}</div>}
+{
+  error && <div className="auth-alert auth-alert--error">{error}</div>;
+}
+{
+  successMsg && <div className="auth-alert auth-alert--success">{successMsg}</div>;
+}
 ```
 
 Alert cần có text cụ thể, không che nội dung, và có style dark mode tương ứng. Các module khác cần alert tương tự nên tạo component/shared pattern thay vì copy CSS auth.
@@ -366,19 +379,19 @@ Alert cần có text cụ thể, không che nội dung, và có style dark mode 
 
 ## 10. Lỗi Team Cần Tránh
 
-| Lỗi | Đúng |
-|---|---|
-| Tự viết glass CSS thay vì dùng utility class | Dùng `.glass-card`, `.glass-thumb`, v.v. |
-| Hardcode màu hex trong CSS | Dùng `var(--color-primary)` |
-| Tạo nút button custom | Dùng `.btn-primary`, `.btn-secondary`, `.btn-icon` |
-| Navigate trực tiếp bằng `window.location.href` | Dùng `onNavigate(path)` prop |
-| Dùng `<Link>` từ React Router | Dùng `<a href onClick>` pattern |
-| Quên `return null` khi component không nên render | Luôn handle edge case |
-| Quên cleanup trong useEffect | `return () => cleanup()` |
-| Tạo thêm Axios instance | Chỉ dùng `apiClient.js` |
-| Đặt CSS class không prefix | Prefix theo tên component |
-| Dùng icon library (lucide, heroicons) | Dùng Material Symbols Outlined |
-| Tạo shared component cho 1 feature duy nhất | Đặt trong module đó |
-| Tạo module-specific component ở `src/components/` | Chỉ shared components mới vào đó |
-| Tạo header/footer riêng trong page | Dùng shared component từ `App.jsx` |
-| Chỉ kiểm tra giao diện light hoặc desktop | Kiểm tra light/dark và desktop/mobile trước khi hoàn tất |
+| Lỗi                                               | Đúng                                                     |
+| ------------------------------------------------- | -------------------------------------------------------- |
+| Tự viết glass CSS thay vì dùng utility class      | Dùng `.glass-card`, `.glass-thumb`, v.v.                 |
+| Hardcode màu hex trong CSS                        | Dùng `var(--color-primary)`                              |
+| Tạo nút button custom                             | Dùng `.btn-primary`, `.btn-secondary`, `.btn-icon`       |
+| Navigate trực tiếp bằng `window.location.href`    | Dùng `onNavigate(path)` prop                             |
+| Dùng `<Link>` từ React Router                     | Dùng `<a href onClick>` pattern                          |
+| Quên `return null` khi component không nên render | Luôn handle edge case                                    |
+| Quên cleanup trong useEffect                      | `return () => cleanup()`                                 |
+| Tạo thêm Axios instance                           | Chỉ dùng `apiClient.js`                                  |
+| Đặt CSS class không prefix                        | Prefix theo tên component                                |
+| Dùng icon library (lucide, heroicons)             | Dùng Material Symbols Outlined                           |
+| Tạo shared component cho 1 feature duy nhất       | Đặt trong module đó                                      |
+| Tạo module-specific component ở `src/components/` | Chỉ shared components mới vào đó                         |
+| Tạo header/footer riêng trong page                | Dùng shared component từ `App.jsx`                       |
+| Chỉ kiểm tra giao diện light hoặc desktop         | Kiểm tra light/dark và desktop/mobile trước khi hoàn tất |

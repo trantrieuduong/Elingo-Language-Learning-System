@@ -6,6 +6,7 @@ import Toast from '../../../../components/Toast/Toast';
 import PostCard from '../../components/PostCard/PostCard';
 import PostFormModal from '../../components/PostFormModal/PostFormModal';
 import { getPostByIdApi, likePostApi, unlikePostApi } from '../../communityApi';
+import useCommunityPostDelete from '../../hooks/useCommunityPostDelete';
 import useCommunityPostEditor from '../../hooks/useCommunityPostEditor';
 import { mapPost } from '../../utils/mapPost';
 import './PostDetailPage.css';
@@ -73,6 +74,29 @@ function PostDetailPage({ postId, canGoBack, onNavigate }) {
     [t]
   );
   const handlePostEditError = useCallback((message) => setToast({ message, variant: 'error' }), []);
+  const handleCommentCreated = useCallback(() => {
+    setPost((previousPost) => ({
+      ...previousPost,
+      commentCount: (previousPost.commentCount || 0) + 1,
+    }));
+    setToast({ message: t('community:commentSuccess'), variant: 'success' });
+  }, [t]);
+  const handleCommentDeleted = useCallback(
+    (postId, commentId, parentCommentId, removedCommentCount = 1) => {
+      setPost((previousPost) => ({
+        ...previousPost,
+        commentCount: Math.max(0, (previousPost.commentCount || 0) - removedCommentCount),
+      }));
+    },
+    []
+  );
+  const handleCommentDeleteSuccess = useCallback(() => {
+    setToast({ message: t('community:comments.deleteSuccess'), variant: 'success' });
+  }, [t]);
+  const handleCommentError = useCallback(
+    (message) => setToast({ message: message || t('api:common.UNKNOWN_ERROR'), variant: 'error' }),
+    [t]
+  );
   const {
     editingPost,
     handleClosePostForm,
@@ -103,6 +127,18 @@ function PostDetailPage({ postId, canGoBack, onNavigate }) {
       return false;
     }
   };
+
+  const handlePostDeleted = useCallback(() => {
+    if (onNavigate) onNavigate('/community');
+  }, [onNavigate]);
+  const handlePostDeleteError = useCallback(
+    (message) => setToast({ message, variant: 'error' }),
+    []
+  );
+  const { handleDeletePost } = useCommunityPostDelete({
+    onDeleted: handlePostDeleted,
+    onError: handlePostDeleteError,
+  });
 
   const mappedPost = post ? mapPost(post) : null;
 
@@ -142,7 +178,12 @@ function PostDetailPage({ postId, canGoBack, onNavigate }) {
             commentCount={post.commentCount}
             likedByMe={post.likedByMe}
             onLike={handleLike}
+            onCommentCreated={handleCommentCreated}
+            onCommentError={handleCommentError}
+            onCommentDeleted={handleCommentDeleted}
+            onCommentDeleteSuccess={handleCommentDeleteSuccess}
             onEdit={handleOpenEditPostForm}
+            onDelete={handleDeletePost}
             onNavigate={onNavigate}
           />
         )}

@@ -8,6 +8,7 @@ import EmptyState from '../../../../components/EmptyState/EmptyState';
 import Toast from '../../../../components/Toast/Toast';
 import { getPostGroupsApi, getUserPostsApi } from '../../communityApi';
 import useCommunityPostActions from '../../hooks/useCommunityPostActions';
+import useCommunityPostDelete from '../../hooks/useCommunityPostDelete';
 import useCommunityPostEditor from '../../hooks/useCommunityPostEditor';
 import useInfiniteScroll from '../../hooks/useInfiniteScroll';
 import { mapPost } from '../../utils/mapPost';
@@ -23,7 +24,7 @@ function MyFeedPage({ onNavigate }) {
   const [selectedStatus, setSelectedStatus] = useState('ALL');
   const [cursor, setCursor] = useState(null);
   const [hasMore, setHasMore] = useState(false);
-  const [isLoadingInitial, setIsLoadingInitial] = useState(false);
+  const [isLoadingFirstPage, setIsLoadingFirstPage] = useState(false);
 
   const [error, setError] = useState(null);
   const [toast, setToast] = useState({ message: '', variant: 'success' });
@@ -78,6 +79,58 @@ function MyFeedPage({ onNavigate }) {
   );
 
   const handlePostEditError = useCallback((message) => setToast({ message, variant: 'error' }), []);
+  const handlePostDeleted = useCallback(
+    (postId) => {
+      setPosts((previousPosts) =>
+        previousPosts.filter((post) => String(post.id) !== String(postId))
+      );
+      setToast({ message: t('community:postCard.deleteSuccess'), variant: 'success' });
+    },
+    [t]
+  );
+  const handlePostDeleteError = useCallback(
+    (message) => setToast({ message, variant: 'error' }),
+    []
+  );
+  const { handleDeletePost } = useCommunityPostDelete({
+    onDeleted: handlePostDeleted,
+    onError: handlePostDeleteError,
+  });
+  const handleCommentCreated = useCallback(
+    (postId) => {
+      setPosts((previousPosts) =>
+        previousPosts.map((post) =>
+          String(post.id) === String(postId)
+            ? { ...post, commentCount: (post.commentCount || 0) + 1 }
+            : post
+        )
+      );
+      setToast({ message: t('community:commentSuccess'), variant: 'success' });
+    },
+    [t]
+  );
+  const handleCommentDeleted = useCallback(
+    (postId, commentId, parentCommentId, removedCommentCount = 1) => {
+      setPosts((previousPosts) =>
+        previousPosts.map((post) =>
+          String(post.id) === String(postId)
+            ? {
+                ...post,
+                commentCount: Math.max(0, (post.commentCount || 0) - removedCommentCount),
+              }
+            : post
+        )
+      );
+    },
+    []
+  );
+  const handleCommentDeleteSuccess = useCallback(() => {
+    setToast({ message: t('community:comments.deleteSuccess'), variant: 'success' });
+  }, [t]);
+  const handleCommentError = useCallback(
+    (message) => setToast({ message: message || t('api:common.UNKNOWN_ERROR'), variant: 'error' }),
+    [t]
+  );
   const {
     editingPost,
     handleClosePostForm,
@@ -109,7 +162,7 @@ function MyFeedPage({ onNavigate }) {
     cursor,
     fetchPage: fetchUserPosts,
     hasMore,
-    isLoadingInitial,
+    isLoadingFirstPage,
     onPageLoaded: handlePageLoaded,
     requestGenerationRef,
   });
@@ -118,7 +171,7 @@ function MyFeedPage({ onNavigate }) {
     if (!userId) return;
     const requestGeneration = ++requestGenerationRef.current;
     resetLoadingMore();
-    setIsLoadingInitial(true);
+    setIsLoadingFirstPage(true);
     setError(null);
     setPosts([]);
     setCursor(null);
@@ -136,7 +189,7 @@ function MyFeedPage({ onNavigate }) {
       }
     } finally {
       if (requestGeneration === requestGenerationRef.current) {
-        setIsLoadingInitial(false);
+        setIsLoadingFirstPage(false);
       }
     }
   };
@@ -193,7 +246,7 @@ function MyFeedPage({ onNavigate }) {
               actionLabel={t('common:retry')}
               onAction={loadInitialPosts}
             />
-          ) : isLoadingInitial ? (
+          ) : isLoadingFirstPage ? (
             <div className="glass-card my-feed-page__loading-card">
               <div className="app-loading-spinner" />
             </div>
@@ -216,11 +269,16 @@ function MyFeedPage({ onNavigate }) {
                     commentCount={post.commentCount}
                     likedByMe={post.likedByMe}
                     onLike={(nextLiked) => handleLikePost(post.id, nextLiked)}
+                    onCommentCreated={handleCommentCreated}
+                    onCommentError={handleCommentError}
+                    onCommentDeleted={handleCommentDeleted}
+                    onCommentDeleteSuccess={handleCommentDeleteSuccess}
                     onOpenPost={() => {
                       if (onNavigate) onNavigate(`/community/posts/${post.id}`);
                     }}
                     onNavigate={onNavigate}
                     onEdit={handleOpenEditPostForm}
+                    onDelete={handleDeletePost}
                   />
                 );
               })}

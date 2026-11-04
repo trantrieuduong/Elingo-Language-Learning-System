@@ -4,7 +4,7 @@ function useInfiniteScroll({
   cursor,
   fetchPage,
   hasMore,
-  isLoadingInitial,
+  isLoadingFirstPage,
   onPageLoaded,
   requestGenerationRef,
 }) {
@@ -36,7 +36,7 @@ function useInfiniteScroll({
 
     const observer = new IntersectionObserver((entries) => {
       const [target] = entries;
-      if (!target?.isIntersecting || !hasMore || isLoadingMoreRef.current || isLoadingInitial) {
+      if (!target?.isIntersecting || !hasMore || isLoadingMoreRef.current || isLoadingFirstPage) {
         return;
       }
 
@@ -62,7 +62,7 @@ function useInfiniteScroll({
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [cursor, hasMore, isLoadingInitial, requestGenerationRef]);
+  }, [cursor, hasMore, isLoadingFirstPage, requestGenerationRef]);
 
   return { isLoadingMore, resetLoadingMore, sentinelRef };
 }

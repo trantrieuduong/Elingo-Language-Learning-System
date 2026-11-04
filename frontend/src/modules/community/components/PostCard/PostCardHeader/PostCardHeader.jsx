@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import OptionsMenu from '../../../../../components/OptionsMenu/OptionsMenu';
 import { formatDate, formatRelativeTime } from '../../../../../utils/utils';
 import './PostCardHeader.css';
 
@@ -100,15 +101,7 @@ function PostCardHeader({
         </div>
       </div>
 
-      {onOptionsClick && (
-        <button
-          type="button"
-          onClick={onOptionsClick}
-          className="post-card-header__options-btn btn-icon"
-        >
-          <span className="material-symbols-outlined">more_horiz</span>
-        </button>
-      )}
+      {onOptionsClick && <OptionsMenu onClick={onOptionsClick} />}
     </header>
   );
 }

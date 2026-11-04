@@ -1,0 +1,8 @@
+.options-menu {
+  color: var(--color-on-surface-variant);
+  flex-shrink: 0;
+}
+
+.options-menu:hover {
+  color: var(--color-text-high);
+}
