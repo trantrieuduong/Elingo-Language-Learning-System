@@ -475,8 +475,8 @@ function DeckListPage({ onNavigate }) {
                       <article
                         key={deck.id}
                         className={`vocabulary-card glass-card ${
-                          deck.isPremium ? 'vocabulary-card--premium' : ''
-                        }`}
+                          activeTab !== 'system-decks' ? 'vocabulary-card--without-cover' : ''
+                        } ${deck.isPremium ? 'vocabulary-card--premium' : ''}`}
                         onClick={() => handleDeckClick(deck)}
                       >
                         {/* Huy hiệu Premium ở góc trên bên trái ảnh bìa */}
@@ -494,18 +494,19 @@ function DeckListPage({ onNavigate }) {
                           topicCount={deck.topicCount ?? 0}
                           cardCount={deck.cardCount ?? 0}
                         />
-                        {deck.coverImageUrl ? (
-                          <img
-                            src={deck.coverImageUrl}
-                            alt={deck.title || ''}
-                            className="vocabulary-card__cover-image"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="vocabulary-card__cover-placeholder">
-                            <span className="material-symbols-outlined">layers</span>
-                          </div>
-                        )}
+                        {activeTab === 'system-decks' &&
+                          (deck.coverImageUrl ? (
+                            <img
+                              src={deck.coverImageUrl}
+                              alt={deck.title || ''}
+                              className="vocabulary-card__cover-image"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="vocabulary-card__cover-placeholder">
+                              <span className="material-symbols-outlined">layers</span>
+                            </div>
+                          ))}
                         <div className="vocabulary-card__body">
                           {/* Tags & CEFR đặt phía trên tiêu đề tương tự LessonCard */}
                           {(deckCefrLevels.length > 0 || deckTags.length > 0) && (
@@ -593,6 +594,7 @@ function DeckListPage({ onNavigate }) {
                     <UserDeckCard
                       key={deck.id}
                       deck={deck}
+                      showCover={false}
                       onEdit={handleOpenEditModal}
                       onDelete={handleOpenDeleteModal}
                       onToggleStatus={handleToggleStatus}

@@ -109,6 +109,10 @@
   flex: 1;
 }
 
+.user-deck-card--without-cover .user-deck-card__body {
+  padding-top: calc(var(--spacing-lg) + var(--spacing-xl));
+}
+
 .user-deck-card__header {
   display: flex;
   flex-direction: column;

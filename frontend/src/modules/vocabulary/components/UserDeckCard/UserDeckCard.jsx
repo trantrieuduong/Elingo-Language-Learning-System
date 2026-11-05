@@ -3,7 +3,14 @@ import ProgressBar from '../../../../components/ProgressBar/ProgressBar';
 import DeckStatsPill from '../DeckStatsPill/DeckStatsPill';
 import './UserDeckCard.css';
 
-function UserDeckCard({ deck, onEdit, onDelete, onToggleStatus, onManageTopics }) {
+function UserDeckCard({
+  deck,
+  onEdit,
+  onDelete,
+  onToggleStatus,
+  onManageTopics,
+  showCover = true,
+}) {
   const { t } = useTranslation('learning');
   const isPublished = deck.status === 'PUBLISHED';
   const isDraft = deck.status === 'DRAFT';
@@ -11,7 +18,9 @@ function UserDeckCard({ deck, onEdit, onDelete, onToggleStatus, onManageTopics }
   const learnedCards = deck.learnedCardCount ?? 0;
 
   return (
-    <article className="user-deck-card glass-card">
+    <article
+      className={`user-deck-card glass-card ${showCover ? '' : 'user-deck-card--without-cover'}`}
+    >
       {/* Badge trạng thái ở góc trên bên trái */}
       <div className="user-deck-card__status-wrap">
         {isPublished && (
@@ -50,18 +59,19 @@ function UserDeckCard({ deck, onEdit, onDelete, onToggleStatus, onManageTopics }
       />
 
       {/* Ảnh bìa */}
-      {deck.coverImageUrl ? (
-        <img
-          src={deck.coverImageUrl}
-          alt={deck.title || t('userDeck.form.coverPreviewAlt')}
-          className="user-deck-card__cover"
-          loading="lazy"
-        />
-      ) : (
-        <div className="user-deck-card__cover-placeholder">
-          <span className="material-symbols-outlined">layers</span>
-        </div>
-      )}
+      {showCover &&
+        (deck.coverImageUrl ? (
+          <img
+            src={deck.coverImageUrl}
+            alt={deck.title || t('userDeck.form.coverPreviewAlt')}
+            className="user-deck-card__cover"
+            loading="lazy"
+          />
+        ) : (
+          <div className="user-deck-card__cover-placeholder">
+            <span className="material-symbols-outlined">layers</span>
+          </div>
+        ))}
 
       {/* Nội dung card */}
       <div className="user-deck-card__body">
