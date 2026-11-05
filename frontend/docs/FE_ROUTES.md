@@ -29,20 +29,20 @@
 | Path | Component | Module | Ghi chú |
 |---|---|---|---|
 | `/dashboard` | `DashboardPage` | `user/pages/` | Trang chính sau đăng nhập |
-| `/learning` | `LessonListPage` | `learning/lesson/pages/` | Kho bài học (đã triển khai GD1; chọn chế độ bằng modal, không có trang chi tiết riêng) |
-| `/learning/dictation/:slug` | `DictationPage` | `learning/dictation/pages/` | Nghe chép chính tả (đã triển khai GD2; định danh theo slug) |
-| `/learning/shadowing/:slug` | `ShadowingPage` | `learning/shadowing/pages/` | Luyện nói đuổi (đã triển khai GD3; định danh theo slug) |
+| `/learning` | `LessonListPage` | `learning/lesson/pages/` | Kho bài học (chọn chế độ bằng modal, không có trang chi tiết riêng) |
+| `/learning/dictation/:slug` | `DictationPage` | `learning/dictation/pages/` | Nghe chép chính tả (định danh theo slug) |
+| `/learning/shadowing/:slug` | `ShadowingPage` | `learning/shadowing/pages/` | Luyện nói đuổi (định danh theo slug) |
 | `/decks/:deckSlug` | `FlashcardStudyPage` | `learning/flashcard/pages/` | Học flashcard của một bộ từ (bắt buộc đăng nhập) |
 | `/decks/:deckId/topics` | `TopicListPage` | `vocabulary/pages/` | Quản lý các chủ đề thuộc bộ từ và các thẻ thuộc chủ đề được chọn, bắt buộc đăng nhập |
 | `/review` | `FlashcardReviewPage` | `learning/flashcard/pages/` | Ôn tập flashcard đến hạn (giới hạn 100 flashcard/1 ngày) |
 | `/battle` | `BattleLobbyPage` | `battle/pages/` | Sảnh chờ thi đấu |
-| `/battle/play` | `BattlePlayPage` | `battle/pages/` | Màn hình thi đấu (WebSocket) |
+| `/battle/play/:matchId` | `BattlePlayPage` | `battle/pages/` | Màn hình thi đấu (WebSocket: đếm ngược, câu hỏi trắc nghiệm/tự luận, bảng điểm, màn kết thúc) |
 | `/speaking` | `SpeakingLobbyPage` | `speaking/pages/` | Danh sách phòng luyện nói |
 | `/speaking/:roomId` | `SpeakingRoomPage` | `speaking/pages/` | Phòng luyện nói (WebRTC) |
 | `/community` | `CommunityFeedPage` | `community/pages/` | Feed cộng đồng (Bảng tin) |
-| `/community/topics` | `CommunityTopicPage` | `community/pages/` | Chủ đề cộng đồng |
+| `/community/groups` | `PostGroupPage` | `community/pages/` | Danh sách nhóm bài viết cộng đồng |
 | `/community/my-posts` | `CommunityMyPostsPage` | `community/pages/` | Bài viết của tôi |
-| `/community/post/:postId` | `PostDetailPage` | `community/pages/` | Chi tiết bài viết |
+| `/community/posts/:postId` | `PostDetailPage` | `community/pages/` | Chi tiết bài viết từ Community Feed và My Feed |
 | `/gamification` | `LeaderboardPage` | `gamification/pages/` | Bảng xếp hạng + XP |
 | `/progress` | `ProgressPage` | `progress/pages/` | Tiến độ học tập cá nhân |
 | `/premium` | `PremiumPage` | `premium/pages/` | Gói Premium + thanh toán |

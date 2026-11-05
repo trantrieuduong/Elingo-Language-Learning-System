@@ -125,6 +125,7 @@ public enum AppError {
     // ==========================================
     // 6. Battle (Đấu trường từ vựng 1vs1)
     // ==========================================
+    BATTLE_MODE_INVALID("BATTLE_MODE_INVALID", "Battle mode must be MULTIPLE_CHOICE or TYPING", HttpStatus.BAD_REQUEST),
     BATTLE_MATCH_NOT_FOUND("BATTLE_MATCH_NOT_FOUND", "Battle match not found", HttpStatus.NOT_FOUND),
     BATTLE_ROOM_NOT_FOUND("BATTLE_ROOM_NOT_FOUND", "Battle room code not found", HttpStatus.NOT_FOUND),
     BATTLE_ROOM_FULL("BATTLE_ROOM_FULL", "Battle room has already reached maximum participants", HttpStatus.BAD_REQUEST),
@@ -137,6 +138,8 @@ public enum AppError {
     BATTLE_QUESTION_TIMEOUT("BATTLE_QUESTION_TIMEOUT", "Answer submitted after question time limit expired", HttpStatus.BAD_REQUEST),
     BATTLE_QUESTION_ALREADY_ANSWERED("BATTLE_QUESTION_ALREADY_ANSWERED", "You have already answered this question", HttpStatus.BAD_REQUEST),
     CANNOT_BATTLE_YOURSELF("CANNOT_BATTLE_YOURSELF", "Cannot start a battle match against yourself", HttpStatus.BAD_REQUEST),
+    BATTLE_NOT_ENOUGH_CARDS("BATTLE_NOT_ENOUGH_CARDS", "Not enough vocabulary cards to start a battle", HttpStatus.BAD_REQUEST),
+    BATTLE_ANSWER_INVALID("BATTLE_ANSWER_INVALID", "Battle answer is invalid", HttpStatus.BAD_REQUEST),
 
     // ==========================================
     // 7. Speaking Room (Phòng luyện nói)

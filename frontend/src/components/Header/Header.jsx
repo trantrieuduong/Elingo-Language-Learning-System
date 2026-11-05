@@ -55,8 +55,13 @@ function Header({ onNavigate, currentPath }) {
       key: 'community',
       label: t('community'),
       children: [
-        { key: 'feed', label: t('feed'), path: '/community', icon: 'feed' },
-        { key: 'topics', label: t('topics'), path: '/community/topics', icon: 'forum' },
+        {
+          key: 'postGroups',
+          label: t('postGroups'),
+          path: '/community/groups',
+          icon: 'diversity_3',
+        },
+        { key: 'feed', label: t('feed'), path: '/community', icon: 'forum' },
         { key: 'myPosts', label: t('myPosts'), path: '/community/my-posts', icon: 'article' },
       ],
     },

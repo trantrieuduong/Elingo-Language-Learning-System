@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import Input from '../../../../components/Input/Input';
-import FormAlert from '../FormAlert/FormAlert';
+import FormAlert from '../../../../components/FormAlert/FormAlert';
 import './UserCardFormModal.css';
 
 const POS_OPTIONS = [
@@ -53,7 +53,7 @@ function UserCardFormModal({
   const [examplesVi, setExamplesVi] = useState('');
   const [examplesEn, setExamplesEn] = useState('');
   const [errors, setErrors] = useState({});
-  const [formError, setFormError] = useState('');
+  const [generalError, setGeneralError] = useState('');
 
   useEffect(() => {
     if (isOpen) {
@@ -75,7 +75,7 @@ function UserCardFormModal({
         setExamplesEn('');
       }
       setErrors({});
-      setFormError('');
+      setGeneralError('');
     }
   }, [isOpen, isEdit, card]);
 
@@ -133,6 +133,7 @@ function UserCardFormModal({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setGeneralError('');
     if (!validate()) return;
 
     const payload = {
@@ -153,16 +154,16 @@ function UserCardFormModal({
           (errorCode && t(`api:error.${errorCode}`, { defaultValue: '' })) ||
           res.message ||
           t('userCards.saveError');
-        setFormError(msg);
+        setGeneralError(msg);
       }
     } catch (err) {
-      const errorCode = err.response?.data?.code;
+      const responseData = err.response?.data;
+      const errorCode = responseData?.code;
       const msg =
         (errorCode && t(`api:error.${errorCode}`, { defaultValue: '' })) ||
-        err.response?.data?.message ||
-        err.message ||
+        responseData?.message ||
         t('userCards.saveError');
-      setFormError(msg);
+      setGeneralError(msg);
     }
   };
 
@@ -189,7 +190,7 @@ function UserCardFormModal({
           </button>
         </header>
 
-        <FormAlert message={formError} />
+        <FormAlert message={generalError} />
 
         <form onSubmit={handleSubmit} noValidate>
           <div className="user-card-form-modal__body">

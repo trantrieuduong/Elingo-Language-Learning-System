@@ -2,16 +2,11 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import Input from '../../../../components/Input/Input';
-import FormAlert from '../FormAlert/FormAlert';
+import FormAlert from '../../../../components/FormAlert/FormAlert';
 import './TopicFormModal.css';
 
 /**
- * @param {boolean}  isOpen      - Hiển thị modal hay không
- * @param {'create'|'edit'} mode - Chế độ tạo mới hoặc chỉnh sửa
- * @param {Object}   topic       - Dữ liệu topic hiện tại (chỉ khi mode='edit')
- * @param {Function} onSubmit    - Callback (formData) khi form hợp lệ và được submit
- * @param {Function} onClose     - Callback đóng modal
- * @param {boolean}  isSubmitting - Trạng thái đang gửi request
+ * @param {'create'|'edit'} mode
  */
 function TopicFormModal({
   isOpen,
@@ -20,22 +15,20 @@ function TopicFormModal({
   onSubmit,
   onClose,
   isSubmitting = false,
-  generalError = '',
 }) {
   const { t } = useTranslation(['learning', 'api', 'common']);
 
-  // ── Form state ──
   const [name, setName] = useState('');
   const [errors, setErrors] = useState({});
-  const [errorMessage, setErrorMessage] = useState('');
+  const [generalError, setGeneralError] = useState('');
 
   // Nạp dữ liệu khi modal mở
   useEffect(() => {
     if (!isOpen) return;
     setName(mode === 'edit' && topic ? (topic.name ?? '') : '');
     setErrors({});
-    setErrorMessage(generalError || '');
-  }, [isOpen, mode, topic, generalError]);
+    setGeneralError('');
+  }, [isOpen, mode, topic]);
 
   // Đóng modal khi nhấn Escape
   useEffect(() => {
@@ -62,12 +55,11 @@ function TopicFormModal({
 
   if (!isOpen) return null;
 
-  // ── Handlers ──
   const handleNameChange = (e) => {
     const value = e.target.value;
     setName(value);
     if (errors.name) setErrors((prev) => ({ ...prev, name: '' }));
-    if (errorMessage) setErrorMessage('');
+    if (generalError) setGeneralError('');
   };
 
   const validate = () => {
@@ -82,14 +74,32 @@ function TopicFormModal({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrorMessage('');
+    setGeneralError('');
     if (!validate()) return;
 
     const payload = { name: name.trim() };
 
-    onSubmit?.(payload);
+    try {
+      const res = await onSubmit?.(payload);
+      if (res && !res.success) {
+        const errorCode = res.code;
+        const msg =
+          (errorCode && t(`api:error.${errorCode}`, { defaultValue: '' })) ||
+          res.message ||
+          t('topic.submitError');
+        setGeneralError(msg);
+      }
+    } catch (err) {
+      const responseData = err?.response?.data;
+      const errorCode = responseData?.code;
+      const msg =
+        (errorCode && t(`api:error.${errorCode}`, { defaultValue: '' })) ||
+        responseData?.message ||
+        t('topic.submitError');
+      setGeneralError(msg);
+    }
   };
 
   const handleOverlayClick = (e) => {
@@ -119,7 +129,7 @@ function TopicFormModal({
           </button>
         </div>
 
-        <FormAlert message={errorMessage} />
+        <FormAlert message={generalError} />
 
         <form onSubmit={handleSubmit} noValidate className="topic-form-body">
           <Input

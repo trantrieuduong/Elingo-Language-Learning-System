@@ -67,7 +67,6 @@ function TopicListPage({ deckId, onNavigate }) {
   const [formMode, setFormMode] = useState('create'); // 'create' | 'edit'
   const [editingTopic, setEditingTopic] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formError, setFormError] = useState('');
 
   // States modal xóa topic
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -220,14 +219,12 @@ function TopicListPage({ deckId, onNavigate }) {
   const handleOpenCreate = () => {
     setFormMode('create');
     setEditingTopic(null);
-    setFormError('');
     setIsFormOpen(true);
   };
 
   const handleOpenEdit = (topic) => {
     setFormMode('edit');
     setEditingTopic(topic);
-    setFormError('');
     setIsFormOpen(true);
   };
 
@@ -250,12 +247,10 @@ function TopicListPage({ deckId, onNavigate }) {
     if (isSubmitting) return;
     setIsFormOpen(false);
     setEditingTopic(null);
-    setFormError('');
   };
 
   const handleFormSubmit = async (formData) => {
     setIsSubmitting(true);
-    setFormError('');
     try {
       let res;
       if (formMode === 'create') {
@@ -269,22 +264,11 @@ function TopicListPage({ deckId, onNavigate }) {
         setIsFormOpen(false);
         setEditingTopic(null);
         setRefreshTrigger((prev) => prev + 1);
-      } else {
-        const errorCode = res?.code;
-        const msg =
-          (errorCode && t(`api:error.${errorCode}`, { defaultValue: '' })) ||
-          res?.message ||
-          t('topic.submitError');
-        setFormError(msg);
       }
+
+      return res;
     } catch (err) {
-      const errorCode = err?.response?.data?.code;
-      const msg =
-        (errorCode && t(`api:error.${errorCode}`, { defaultValue: '' })) ||
-        err?.response?.data?.message ||
-        err?.message ||
-        t('topic.submitError');
-      setFormError(msg);
+      throw err;
     } finally {
       setIsSubmitting(false);
     }
@@ -594,7 +578,6 @@ function TopicListPage({ deckId, onNavigate }) {
         onSubmit={handleFormSubmit}
         onClose={handleCloseForm}
         isSubmitting={isSubmitting}
-        generalError={formError}
       />
 
       <ConfirmModal

@@ -1,0 +1,175 @@
+.post-card-comment-item {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: var(--spacing-sm);
+  min-width: 0;
+}
+
+.post-card-comment-item__avatar {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--color-glass-border-standard);
+  border-radius: var(--radius-pill);
+  object-fit: cover;
+}
+
+.post-card-comment-item__body {
+  min-width: 0;
+}
+
+.post-card-comment-item__header {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs) var(--spacing-sm);
+}
+
+.post-card-comment-item__author {
+  color: var(--color-text-high);
+  font-family: var(--font-display);
+  font-size: var(--font-size-label-md);
+  font-weight: 600;
+}
+
+.post-card-comment-item__time {
+  color: var(--color-text-disabled);
+  font-family: var(--font-body);
+  font-size: var(--font-size-label-sm);
+}
+
+.post-card-comment-item__options {
+  margin-left: auto;
+  align-self: flex-start;
+}
+
+.post-card-comment-item__content {
+  margin: var(--spacing-xs) 0 0;
+  color: var(--color-text-body);
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-md);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.post-card-comment-item__image {
+  display: block;
+  max-width: min(100%, 240px);
+  max-height: 240px;
+  margin-top: var(--spacing-sm);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-md);
+  object-fit: cover;
+}
+
+.post-card-comment-item__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  justify-content: flex-start;
+  margin-top: var(--spacing-xs);
+}
+
+.post-card-comment-item__actions .post-card-actions__btn {
+  min-height: 32px;
+  padding: 0 var(--spacing-sm);
+  font-size: var(--font-size-label-md);
+}
+
+.post-card-comment-item__actions .post-card-actions__icon {
+  font-size: 16px;
+}
+
+.post-card-comment-item__text-action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  min-height: 32px;
+  padding: 0 var(--spacing-sm);
+  color: var(--color-on-surface-variant);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: var(--font-size-label-md);
+  font-weight: 600;
+}
+
+.post-card-comment-item__text-action:hover {
+  color: var(--color-primary);
+  background: var(--color-surface-container-low);
+}
+
+.post-card-comment-item__text-action .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.post-card-comment-item__replies {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+  padding-left: var(--spacing-md);
+  border-left: 2px solid var(--color-outline-variant);
+}
+
+.post-card-comment-item__replies-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.post-card-comment-item--reply {
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-container-low);
+}
+
+.post-card-comment-item__replies-state {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  color: var(--color-on-surface-variant);
+  font-size: var(--font-size-body-sm);
+}
+
+.post-card-comment-item__replies-state--error {
+  color: var(--color-error);
+}
+
+.post-card-comment-item__replies-state .app-loading-spinner {
+  width: 18px;
+  height: 18px;
+}
+
+.post-card-comment-item__load-replies {
+  align-self: flex-start;
+  padding: var(--spacing-xs) var(--spacing-md);
+  font-size: var(--font-size-label-md);
+}
+
+[data-theme='dark'] .post-card-comment-item__text-action:hover,
+[data-theme='dark'] .post-card-comment-item--reply {
+  background: var(--color-surface-container-high);
+}
+
+@media (max-width: 360px) {
+  .post-card-comment-item {
+    grid-template-columns: 32px minmax(0, 1fr);
+    gap: var(--spacing-xs);
+  }
+
+  .post-card-comment-item__avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .post-card-comment-item__replies {
+    padding-left: var(--spacing-sm);
+  }
+}

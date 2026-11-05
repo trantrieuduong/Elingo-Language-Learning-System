@@ -1,6 +1,6 @@
 {
   "common": {
-    "UNKNOWN_ERROR": "An unknown error occurred. Please try again later.",
+    "UNKNOWN_ERROR": "A server error occurred. Please try again later.",
     "fallback": "An error occurred. Please try again."
   },
   "error": {
@@ -63,7 +63,22 @@
     "INVALID_FILE_TYPE": "Invalid file type.",
     "FILE_TYPE_MISMATCH": "File type does not match.",
     "FILE_ACCESS_DENIED": "Access to file is denied.",
-    "FILE_UPLOAD_FAILED": "Failed to upload file. Please try again."
+    "FILE_UPLOAD_FAILED": "Failed to upload file. Please try again.",
+    "BATTLE_MODE_INVALID": "Invalid battle mode.",
+    "BATTLE_MATCH_NOT_FOUND": "Battle match not found.",
+    "BATTLE_ROOM_NOT_FOUND": "Battle room not found or has been closed.",
+    "BATTLE_ROOM_FULL": "Battle room is full.",
+    "BATTLE_ROOM_ALREADY_STARTED": "The match in this room has already started.",
+    "BATTLE_MATCH_FINISHED": "The match has already ended.",
+    "BATTLE_MATCH_CANCELLED": "The match has been cancelled.",
+    "BATTLE_PARTICIPANT_NOT_FOUND": "Participant not found in this match.",
+    "BATTLE_ALREADY_PARTICIPATED": "You are already in a queue or an active match.",
+    "BATTLE_QUESTION_NOT_FOUND": "Battle question not found.",
+    "BATTLE_QUESTION_TIMEOUT": "Time limit exceeded for this question.",
+    "BATTLE_QUESTION_ALREADY_ANSWERED": "You have already answered this question.",
+    "CANNOT_BATTLE_YOURSELF": "You cannot battle against yourself.",
+    "BATTLE_NOT_ENOUGH_CARDS": "Not enough vocabulary cards to create a match.",
+    "BATTLE_ANSWER_INVALID": "Invalid battle answer."
   },
   "validation": {
     "username": {

@@ -1,6 +1,6 @@
 {
   "common": {
-    "UNKNOWN_ERROR": "Đã xảy ra lỗi không xác định. Vui lòng thử lại sau.",
+    "UNKNOWN_ERROR": "Đã xảy ra lỗi từ phía máy chủ. Vui lòng thử lại sau.",
     "fallback": "Đã có lỗi xảy ra. Vui lòng thử lại."
   },
   "error": {
@@ -63,7 +63,22 @@
     "INVALID_FILE_TYPE": "Loại tệp tin không hợp lệ.",
     "FILE_TYPE_MISMATCH": "Định dạng tệp không khớp.",
     "FILE_ACCESS_DENIED": "Không có quyền truy cập tệp tin.",
-    "FILE_UPLOAD_FAILED": "Tải tệp tin lên thất bại. Vui lòng thử lại."
+    "FILE_UPLOAD_FAILED": "Tải tệp tin lên thất bại. Vui lòng thử lại.",
+    "BATTLE_MODE_INVALID": "Chế độ thi đấu không hợp lệ.",
+    "BATTLE_MATCH_NOT_FOUND": "Không tìm thấy trận đấu.",
+    "BATTLE_ROOM_NOT_FOUND": "Phòng thi đấu không tồn tại hoặc đã bị hủy.",
+    "BATTLE_ROOM_FULL": "Phòng thi đấu đã đủ người tham gia.",
+    "BATTLE_ROOM_ALREADY_STARTED": "Trận đấu trong phòng này đã bắt đầu.",
+    "BATTLE_MATCH_FINISHED": "Trận đấu đã kết thúc.",
+    "BATTLE_MATCH_CANCELLED": "Trận đấu đã bị hủy.",
+    "BATTLE_PARTICIPANT_NOT_FOUND": "Người tham gia không tồn tại trong trận đấu.",
+    "BATTLE_ALREADY_PARTICIPATED": "Bạn đã ở trong hàng đợi hoặc đang có trận đấu khác.",
+    "BATTLE_QUESTION_NOT_FOUND": "Không tìm thấy câu hỏi thi đấu.",
+    "BATTLE_QUESTION_TIMEOUT": "Đã hết thời gian trả lời câu hỏi.",
+    "BATTLE_QUESTION_ALREADY_ANSWERED": "Bạn đã trả lời câu hỏi này rồi.",
+    "CANNOT_BATTLE_YOURSELF": "Không thể tự thi đấu với chính mình.",
+    "BATTLE_NOT_ENOUGH_CARDS": "Không đủ từ vựng để tạo trận đấu.",
+    "BATTLE_ANSWER_INVALID": "Câu trả lời không hợp lệ."
   },
   "validation": {
     "username": {

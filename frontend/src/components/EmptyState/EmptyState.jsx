@@ -4,6 +4,7 @@ function EmptyState({
   icon = 'inbox',
   title,
   description,
+  variant = 'default',
   isError = false,
   actionLabel,
   onAction,
@@ -15,9 +16,10 @@ function EmptyState({
     ? 'empty-state__icon--error text-error'
     : 'empty-state__icon--default text-disabled';
   const descClass = isError ? 'text-error' : 'text-disabled';
+  const variantClass = variant === 'compact' ? 'empty-state--compact' : 'glass-card';
 
   return (
-    <div className={`empty-state glass-card ${className}`.trim()}>
+    <div className={`empty-state ${variantClass} ${className}`.trim()}>
       {icon && (
         <span className={`material-symbols-outlined empty-state__icon ${iconStateClass}`}>
           {icon}

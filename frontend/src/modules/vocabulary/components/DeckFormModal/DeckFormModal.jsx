@@ -2,10 +2,9 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import Input from '../../../../components/Input/Input';
-import FormAlert from '../FormAlert/FormAlert';
+import FormAlert from '../../../../components/FormAlert/FormAlert';
 import './DeckFormModal.css';
 
-/** Modal tạo hoặc chỉnh sửa bộ từ cá nhân (UserDeckRequest). */
 function DeckFormModal({
   isOpen,
   mode = 'create',
@@ -74,21 +73,22 @@ function DeckFormModal({
       const response = await onSubmit({ title: title.trim(), description: description.trim() });
       if (response && !response.success) {
         const hasFieldErrors = applyServerFieldErrors(response);
-        const translated = response.code && t(`api:error.${response.code}`, { defaultValue: '' });
-        setGeneralError(
-          hasFieldErrors ? '' : translated || response.message || t('userDeck.form.saveError')
-        );
+        const code = response.code;
+        const msg =
+          (code && t(`api:error.${code}`, { defaultValue: '' })) ||
+          response.message ||
+          t('userDeck.form.saveError');
+        setGeneralError(hasFieldErrors ? '' : msg);
       }
     } catch (error) {
       const responseData = error.response?.data;
       const hasFieldErrors = applyServerFieldErrors(responseData);
       const code = responseData?.code;
-      const translated = code && t(`api:error.${code}`, { defaultValue: '' });
-      setGeneralError(
-        hasFieldErrors
-          ? ''
-          : translated || responseData?.message || error.message || t('userDeck.form.systemError')
-      );
+      const msg =
+        (code && t(`api:error.${code}`, { defaultValue: '' })) ||
+        responseData?.message ||
+        t('userDeck.form.saveError');
+      setGeneralError(hasFieldErrors ? '' : msg);
     }
   };
 

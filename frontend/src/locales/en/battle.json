@@ -1,1 +1,62 @@
-{}
+{
+  "title": "Vocabulary Arena",
+  "subtitle": "Challenge your vocabulary and quick reflexes in real-time matches with other learners",
+  "findMatch": "Find Match",
+  "cancel": "Cancel",
+  "searching": "Searching for an opponent...",
+  "searchingMode": "Mode: {{mode}}",
+  "searchingTime": "Waiting time: {{time}}",
+  "mode": {
+    "title": "Select battle mode",
+    "multipleChoice": "Multiple Choice",
+    "multipleChoiceDesc": "Pick the correct Vietnamese meaning quickly from 4 options",
+    "typing": "Typing",
+    "typingDesc": "Look at the Vietnamese meaning and type the English word accurately"
+  },
+  "connection": {
+    "reconnecting": "Connection lost, reconnecting to server..."
+  },
+  "play": {
+    "preparing": "The match is about to begin...",
+    "you": "You",
+    "vs": "VS",
+    "opponentFallback": "Opponent",
+    "round": "Round {{current}}/{{total}}",
+    "answered": "Answered",
+    "waitingOpponent": "Answer submitted - waiting for opponent...",
+    "timeUp": "Time's up",
+    "correctAnswer": "Correct answer",
+    "yourAnswer": "You typed",
+    "points": "pts",
+    "zeroPoints": "0 pts",
+    "hint": "Hint",
+    "typeHere": "Type English word here...",
+    "submit": "Submit",
+    "submitted": "Submitted"
+  },
+  "result": {
+    "win": "Victory!",
+    "lose": "Defeat!",
+    "draw": "Draw!",
+    "winDesc": "Congratulations! You showcased excellent vocabulary reflexes.",
+    "loseDesc": "Don't give up! Keep practicing and challenge again.",
+    "drawDesc": "An intense, evenly matched battle between both players.",
+    "forfeitWin": "Opponent left the match. You won by forfeit!",
+    "forfeitLose": "You lost by forfeit due to disconnection or leaving.",
+    "score": "Score",
+    "correctCount": "Correct {{count}}/{{total}}",
+    "xpHint": "Need at least 3 correct answers to earn XP",
+    "playAgain": "Play Again",
+    "cancelled": {
+      "title": "Match Cancelled",
+      "BOTH_DISCONNECTED": "Both players disconnected beyond the grace period.",
+      "INTERNAL_ERROR": "A technical error occurred in the battle system.",
+      "unknown": "The match was cancelled due to an unexpected issue."
+    },
+    "backToLobby": "Back to Lobby"
+  },
+  "error": {
+    "QUEUE_TIMEOUT": "No suitable opponent found. Please try again later.",
+    "BATTLE_NOT_CONNECTED": "Not connected to the battle server. Please try again."
+  }
+}
