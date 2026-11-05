@@ -1,11 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import {
-  connect,
-  disconnect,
-  onMessage,
-  onStatus,
-  send,
-} from '../battleSocket';
+import { subscribeBattle, onStatus, send } from '../battleSocket';
+import { getSocketStatus } from '../../../services/stompClient';
 
 const BattleSocketContext = createContext(null);
 
@@ -18,7 +13,7 @@ export const useBattleSocket = () => {
 };
 
 export const BattleSocketProvider = ({ children }) => {
-  const [connection, setConnection] = useState('connecting');
+  const [connection, setConnection] = useState(getSocketStatus);
   const [status, setStatus] = useState('idle'); // 'idle' | 'searching' | 'starting' | 'playing' | 'roundResult' | 'finished' | 'cancelled'
   const [mode, setMode] = useState('MULTIPLE_CHOICE');
   const [match, setMatch] = useState(null);
@@ -157,15 +152,9 @@ export const BattleSocketProvider = ({ children }) => {
       }
     };
 
-    const offStatus = onStatus(setConnection);
-    const offMsg = onMessage(handleEvent);
-    connect();
-
-    return () => {
-      offMsg();
-      offStatus();
-      disconnect();
-    };
+    const offStatus = onStatus(setConnection)
+    const offBattle = subscribeBattle(handleEvent)
+    return () => { offBattle(); offStatus() }
   }, []);
 
   const joinQueue = (newMode) => {
