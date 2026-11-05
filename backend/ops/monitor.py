@@ -4,8 +4,10 @@ Elingo monitor bot (chạy mỗi phút bằng cron).
 
 - Đọc log JSON mới của service backend, gom các dòng level=ERROR và gửi Telegram
   kèm requestId + vài dòng stack trace. Cùng một lỗi không báo lại trong ERR_COOLDOWN.
-- Theo dõi CPU/RAM của VPS: chỉ báo khi vượt ngưỡng liên tục SUSTAIN lần kiểm tra,
+- Theo dõi CPU, RAM, DISK của VPS: chỉ báo khi vượt ngưỡng liên tục SUSTAIN lần kiểm tra,
   nhắc lại mỗi REMIND_SEC nếu chưa hết, báo khi đã phục hồi.
+- Theo dõi trạng thái hoạt động của các container (SERVICES).
+- Theo dõi độ tươi của bản backup MySQL trong backups/.
 
 Chỉ dùng thư viện chuẩn của Python 3.
 Dùng: python3 monitor.py          (chạy bình thường)
@@ -24,13 +26,15 @@ import urllib.request
 BASE = os.environ.get("ELINGO_BASE", "/opt/elingo")
 STATE_FILE = f"{BASE}/bot/state.json"
 SERVICE = "backend"
+SERVICES = ["backend", "nginx", "mysql", "redis"]
 
 CPU_LIMIT = 85          # %
 RAM_LIMIT = 85          # % (tính theo MemAvailable)
+DISK_LIMIT = 85         # % (tính theo phân vùng "/")
 SUSTAIN = 3             # số lần kiểm tra liên tiếp (~3 phút) mới báo
-REMIND_SEC = 30 * 60    # nhắc lại nếu chưa hết
+REMIND_SEC = 30 * 60    # nhắc lại nếu chưa hết (30 phút)
 ERR_COOLDOWN = 10 * 60  # cùng một lỗi không báo lại trong 10 phút
-MAX_GROUPS = 5          # tối đa số nhóm lỗi trong 1 tin nhắn
+MAX_GROUPS = 5          # tối đa số nhóm lỗi gửi block đầy đủ trong 1 tin nhắn
 
 # "<timestamp docker> <nội dung dòng log>"
 DOCKER_RE = re.compile(r"^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d+))?Z\s?(.*)$")
@@ -53,41 +57,77 @@ ENV = load_env(f"{BASE}/.alert.env")
 
 
 def notify(text):
+    """Gửi tin nhắn Telegram, chia tối đa 3 đoạn <= 3900 ký tự. Trả về True/False."""
     token = ENV.get("TG_TOKEN")
     chat_id = ENV.get("TG_CHAT_ID")
     if not token or not chat_id:
-        return
-    data = urllib.parse.urlencode(
-        {"chat_id": chat_id, "text": ("[elingo-vps]\n" + text)[:3900]}
-    ).encode()
-    try:
-        urllib.request.urlopen(
-            f"https://api.telegram.org/bot{token}/sendMessage", data, timeout=10
+        return True
+
+    full_text = f"[elingo-vps]\n{text}".strip()
+    chunks = []
+    limit = 3900
+    remaining = full_text
+
+    while remaining and len(chunks) < 3:
+        if len(remaining) <= limit:
+            chunks.append(remaining)
+            break
+        # Nếu đã đạt đoạn thứ 3 (đoạn cuối cùng), cắt cứng tại limit
+        if len(chunks) == 2:
+            chunks.append(remaining[:limit].strip())
+            break
+        split_pos = remaining.rfind("\n", 0, limit)
+        if split_pos <= 0:
+            split_pos = limit
+        chunks.append(remaining[:split_pos].strip())
+        remaining = remaining[split_pos:].strip()
+
+    all_ok = True
+    for chunk in chunks:
+        if not chunk:
+            continue
+        data = urllib.parse.urlencode({"chat_id": chat_id, "text": chunk}).encode("utf-8")
+        req = urllib.request.Request(
+            f"https://api.telegram.org/bot{token}/sendMessage",
+            data=data,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
-    except Exception as e:
-        print("notify failed:", e)
+        try:
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                if resp.status != 200:
+                    all_ok = False
+        except Exception as e:
+            print(f"notify failed: {e}", file=sys.stdout)
+            all_ok = False
+    return all_ok
 
 
 def load_state():
+    if not os.path.exists(STATE_FILE):
+        return {}
     try:
-        with open(STATE_FILE) as f:
+        with open(STATE_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
-    except Exception:
+    except Exception as e:
+        print(f"Cảnh báo: File state {STATE_FILE} bị hỏng hoặc không đọc được ({e}), sử dụng state mới.", file=sys.stdout)
         return {}
 
 
 def save_state(state):
     tmp = STATE_FILE + ".tmp"
-    with open(tmp, "w") as f:
+    with open(tmp, "w", encoding="utf-8") as f:
         json.dump(state, f)
     os.replace(tmp, STATE_FILE)
 
 
-# ---------------------------------------------------------------- CPU / RAM
+# ---------------------------------------------------------------- CPU / RAM / DISK
 def cpu_percent(state):
     """CPU dùng (%) của cả máy trong khoảng thời gian kể từ lần chạy trước."""
-    with open("/proc/stat") as f:
-        vals = list(map(int, f.readline().split()[1:]))
+    try:
+        with open("/proc/stat") as f:
+            vals = list(map(int, f.readline().split()[1:]))
+    except Exception:
+        return None
     total, idle = sum(vals), vals[3] + vals[4]  # idle + iowait
     prev = state.get("cpu_prev")
     state["cpu_prev"] = [total, idle]
@@ -99,11 +139,28 @@ def cpu_percent(state):
 
 def ram_percent():
     m = {}
-    with open("/proc/meminfo") as f:
-        for line in f:
-            k, v = line.split(":")
-            m[k] = int(v.split()[0])
-    return 100.0 * (1 - m["MemAvailable"] / m["MemTotal"])
+    try:
+        with open("/proc/meminfo") as f:
+            for line in f:
+                k, v = line.split(":")
+                m[k] = int(v.split()[0])
+        return 100.0 * (1 - m["MemAvailable"] / m["MemTotal"])
+    except Exception:
+        return None
+
+
+def disk_percent():
+    """Tỷ lệ sử dụng dung lượng phân vùng root (/) theo phần trăm."""
+    try:
+        st = os.statvfs("/")
+        total = st.f_blocks * st.f_frsize
+        avail = st.f_bavail * st.f_frsize
+        if total <= 0:
+            return None
+        used = total - avail
+        return 100.0 * used / total
+    except Exception:
+        return None
 
 
 def top_containers():
@@ -128,16 +185,96 @@ def check_metric(state, name, value, limit, now):
         s["over"] += 1
         if s["over"] >= SUSTAIN and (not s["alerting"] or now - s["last_alert"] >= REMIND_SEC):
             head = "🔴" if not s["alerting"] else "⏰ Vẫn chưa hết:"
-            notify(
-                f"{head} {name} {value:.0f}% (ngưỡng {limit}%, kéo dài ≥{SUSTAIN} phút)\n\n"
-                + top_containers()
-            )
-            s["alerting"], s["last_alert"] = True, now
+            extra = top_containers() if name in ("CPU", "RAM") else ""
+            text = f"{head} {name} {value:.0f}% (ngưỡng {limit}%, kéo dài ≥{SUSTAIN} phút)"
+            if extra:
+                text += f"\n\n{extra}"
+            if notify(text):
+                s["alerting"] = True
+                s["last_alert"] = now
     else:
         s["over"] = 0
         if s["alerting"] and value < limit - 5:
-            notify(f"🟢 {name} đã về {value:.0f}%")
-            s["alerting"] = False
+            if notify(f"🟢 {name} đã về {value:.0f}%"):
+                s["alerting"] = False
+
+
+# ------------------------------------------------------------ Containers & Backup check
+def check_containers(state, now):
+    """Kiểm tra xem tất cả container trong SERVICES có đang chạy không."""
+    try:
+        r = subprocess.run(
+            ["docker", "compose", "ps", "--status", "running", "--services"],
+            cwd=BASE, capture_output=True, text=True, timeout=20,
+        )
+        if r.returncode != 0:
+            return
+        running = set(line.strip() for line in r.stdout.splitlines() if line.strip())
+    except Exception as e:
+        print(f"check_containers failed: {e}", file=sys.stdout)
+        return
+
+    down = [s for s in SERVICES if s not in running]
+    if not down:
+        return
+
+    fp = "containers_down:" + ",".join(sorted(down))
+    seen = state.setdefault("container_alerts", {})
+    rec = seen.setdefault(fp, {"last": 0, "muted": 0})
+    if now - rec["last"] < ERR_COOLDOWN:
+        rec["muted"] += 1
+        return
+
+    extra = f" (+{rec['muted']} lần bị gộp trước đó)" if rec["muted"] else ""
+    text = f"🔴 Container không ở trạng thái running{extra}: {', '.join(down)}"
+    if notify(text):
+        rec["last"] = now
+        rec["muted"] = 0
+
+
+def check_backup_age(state, now):
+    """Cảnh báo nếu bản backup MySQL mới nhất trong backups/ quá 90 phút tuổi."""
+    backup_dir = os.path.join(BASE, "backups")
+    if not os.path.isdir(backup_dir):
+        return
+
+    newest_mtime = None
+    try:
+        # Quét kiểm tra file .sql.gz (hỗ trợ cả cấu trúc phẳng lẫn thư mục con)
+        for root, _dirs, files in os.walk(backup_dir):
+            for fname in files:
+                if fname.endswith(".sql.gz"):
+                    fpath = os.path.join(root, fname)
+                    try:
+                        mtime = os.path.getmtime(fpath)
+                        if newest_mtime is None or mtime > newest_mtime:
+                            newest_mtime = mtime
+                    except OSError:
+                        continue
+    except Exception as e:
+        print(f"check_backup_age failed: {e}", file=sys.stdout)
+        return
+
+    fp = "backup_age_alert"
+    seen = state.setdefault("backup_alerts", {})
+    rec = seen.setdefault(fp, {"last": 0, "muted": 0})
+    if now - rec["last"] < ERR_COOLDOWN:
+        rec["muted"] += 1
+        return
+
+    msg = None
+    if newest_mtime is None:
+        extra = f" (+{rec['muted']} lần bị gộp)" if rec["muted"] else ""
+        msg = f"🔴 Cảnh báo backup{extra}: Không tìm thấy file backup .sql.gz nào trong {backup_dir}"
+    elif (now - newest_mtime) > 90 * 60:
+        age_min = int((now - newest_mtime) / 60)
+        extra = f" (+{rec['muted']} lần bị gộp)" if rec["muted"] else ""
+        msg = f"🔴 Cảnh báo backup{extra}: Bản backup MySQL mới nhất đã {age_min} phút tuổi (vượt ngưỡng 90 phút)"
+
+    if msg:
+        if notify(msg):
+            rec["last"] = now
+            rec["muted"] = 0
 
 
 # ------------------------------------------------------------ ERROR trong log
@@ -171,7 +308,7 @@ def parse_event(text):
         return None
     trace = (d.get("stack_trace") or "").splitlines()
     short = trace[:3]
-    causes = [l for l in trace if l.startswith("Caused by:")]
+    causes = [line for line in trace if line.startswith("Caused by:")]
     if causes and causes[-1] not in short:
         short.append(causes[-1])
     return {
@@ -180,12 +317,21 @@ def parse_event(text):
         "logger": d.get("logger_name", "?"),
         "msg": d.get("message", ""),
         "time": (d.get("@timestamp") or "")[:23].replace("T", " "),
-        "trace": [l.strip()[:160] for l in short],
+        "trace": [line.strip()[:160] for line in short],
     }
 
 
 def fingerprint(ev):
-    return ev["logger"] + "|" + re.sub(r"\d+", "N", ev["msg"])[:120]
+    """Tạo khóa phân nhóm lỗi: chuẩn hóa UUID, chuỗi hex dài và các số thành N."""
+    msg = ev.get("msg", "")
+    # Chuẩn hóa UUID
+    msg = re.sub(r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}", "N", msg)
+    # Chuẩn hóa chuỗi hex dài (từ 8 ký tự hex trở lên)
+    msg = re.sub(r"\b[0-9a-fA-F]{8,}\b", "N", msg)
+    # Chuẩn hóa số
+    msg = re.sub(r"\d+", "N", msg)
+    logger = ev.get("logger", "?")
+    return f"{logger}|{msg[:120]}"
 
 
 def check_errors(state, now):
@@ -196,7 +342,7 @@ def check_errors(state, now):
     try:
         lines = fetch_logs(cursor)
     except Exception as e:
-        print("fetch logs failed:", e)
+        print(f"fetch logs failed: {e}", file=sys.stdout)
         return
 
     events, newest = [], cursor
@@ -211,7 +357,6 @@ def check_errors(state, now):
         ev = parse_event(m.group(3))
         if ev:
             events.append(ev)
-    state["log_cursor"] = newest
 
     groups = {}
     for ev in events:
@@ -223,33 +368,61 @@ def check_errors(state, now):
             g["rids"].append(ev["rid"])
 
     seen = state.setdefault("errors", {})
-    for k in [k for k, v in seen.items() if now - v["last"] > 86400]:
+    for k in [k for k, v in seen.items() if now - v.get("last", 0) > 86400]:
         del seen[k]
 
-    parts = []
+    active_groups = []
     for fp, g in groups.items():
         rec = seen.setdefault(fp, {"last": 0, "muted": 0})
         if now - rec["last"] < ERR_COOLDOWN:
             rec["muted"] += g["count"]
-            continue
+        else:
+            active_groups.append((fp, g, rec))
+
+    # Nếu không có nhóm nào cần báo
+    if not active_groups:
+        state["log_cursor"] = newest
+        state.pop("error_notify_failed_at", None)
+        return
+
+    full_blocks = []
+    summary_lines = []
+    for idx, (fp, g, rec) in enumerate(active_groups):
         ev = g["first"]
         extra = f" (+{rec['muted']} lần bị gộp trước đó)" if rec["muted"] else ""
-        rid = ", ".join(g["rids"]) if g["rids"] else "(không có - job nền)"
-        block = (
-            f"🔴 ERROR x{g['count']}{extra}  {ev['time']}\n"
-            f"req: {rid}\n{ev['logger']} - {ev['msg'][:300]}"
-        )
-        if ev["trace"]:
-            block += "\n" + "\n".join(ev["trace"])
-        parts.append(block)
-        rec["last"], rec["muted"] = now, 0
+        if idx < MAX_GROUPS:
+            rid = ", ".join(g["rids"]) if g["rids"] else "(không có - job nền)"
+            block = (
+                f"🔴 ERROR x{g['count']}{extra}  {ev['time']}\n"
+                f"req: {rid}\n{ev['logger']} - {ev['msg'][:200]}"
+            )
+            if ev["trace"]:
+                block += "\n" + "\n".join(ev["trace"][:4])
+            full_blocks.append(block)
+        else:
+            msg_short = ev["msg"][:80].replace("\n", " ")
+            summary_lines.append(f"• x{g['count']} {ev['logger']} - {msg_short}")
 
-    if parts:
-        more = (
-            f"\n\n… và {len(parts) - MAX_GROUPS} nhóm lỗi khác"
-            if len(parts) > MAX_GROUPS else ""
-        )
-        notify("\n\n".join(parts[:MAX_GROUPS]) + more)
+    parts = []
+    if full_blocks:
+        parts.append("\n\n".join(full_blocks))
+    if summary_lines:
+        parts.append("\n".join(summary_lines))
+    text = "\n\n".join(parts)
+
+    send_ok = notify(text)
+    if send_ok:
+        for fp, g, rec in active_groups:
+            rec["last"] = now
+            rec["muted"] = 0
+        state["log_cursor"] = newest
+        state.pop("error_notify_failed_at", None)
+    else:
+        # Nếu gửi lỗi, giữ cursor để thử lại, trừ khi đã quá 30 phút
+        failed_at = state.setdefault("error_notify_failed_at", now)
+        if now - failed_at >= 30 * 60:
+            state["log_cursor"] = newest
+            state.pop("error_notify_failed_at", None)
 
 
 def main():
@@ -260,6 +433,9 @@ def main():
     now = time.time()
     check_metric(state, "CPU", cpu_percent(state), CPU_LIMIT, now)
     check_metric(state, "RAM", ram_percent(), RAM_LIMIT, now)
+    check_metric(state, "DISK", disk_percent(), DISK_LIMIT, now)
+    check_containers(state, now)
+    check_backup_age(state, now)
     check_errors(state, now)
     save_state(state)
 

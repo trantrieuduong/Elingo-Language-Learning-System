@@ -1,4 +1,5 @@
 PATH=/usr/local/bin:/usr/bin:/bin
-0 * * * * /opt/elingo/backup.sh >> /opt/elingo/backups/backup.log 2>&1
+0 * * * * flock -n /opt/elingo/.backup.lock /opt/elingo/backup.sh >> /opt/elingo/backups/backup.log 2>&1
 * * * * * flock -n /opt/elingo/bot/.lock python3 /opt/elingo/bot/monitor.py >> /opt/elingo/bot/monitor.log 2>&1
-5 * * * * /opt/elingo/ship_logs.sh >> /opt/elingo/backups/ship_logs.log 2>&1
+5 * * * * flock -n /opt/elingo/.ship_logs.lock /opt/elingo/ship_logs.sh >> /opt/elingo/backups/ship_logs.log 2>&1
+0 3 * * * logrotate -s /opt/elingo/.logrotate.state /opt/elingo/logrotate.conf >> /opt/elingo/backups/logrotate.log 2>&1
