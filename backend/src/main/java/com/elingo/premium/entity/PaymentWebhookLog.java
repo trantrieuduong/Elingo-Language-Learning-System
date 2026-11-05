@@ -9,6 +9,7 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -26,6 +27,9 @@ import com.elingo.common.entity.BaseEntity;
 @Entity
 @Table(
         name = "payment_webhook_logs",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_webhook_log_provider_event", columnNames = {"provider_id", "event_id"})
+        },
         indexes = {
                 @Index(name = "idx_webhook_transaction", columnList = "transaction_id")
         }

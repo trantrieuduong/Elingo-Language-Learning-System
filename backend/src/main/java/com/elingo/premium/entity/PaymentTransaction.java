@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -29,6 +30,10 @@ import com.elingo.common.entity.BaseEntity;
         name = "payment_transactions",
         uniqueConstraints = {
                 @UniqueConstraint(name = "uk_payment_transaction_provider_ref_code", columnNames = "provider_ref_code")
+        },
+        indexes = {
+                @Index(name = "idx_tx_user_created", columnList = "user_id, created_at"),
+                @Index(name = "idx_tx_status_created", columnList = "status, created_at")
         }
 )
 @Data
@@ -57,7 +62,7 @@ public class PaymentTransaction extends BaseEntity {
     PremiumPlan plan;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "provider_id", nullable = false)
+    @JoinColumn(name = "provider_id")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     PaymentProvider provider;

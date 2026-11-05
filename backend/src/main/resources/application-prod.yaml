@@ -5,6 +5,15 @@ app:
   front-end-domain: "https://elingo.pro"
   google:
     client-id: ${PROD_GOOGLE_CLIENT_ID}
+  premium:
+    bank-transfer:
+      code-prefix: ${PROD_BANK_TRANSFER_CODE_PREFIX:ELGO}
+      bank-name: ${PROD_BANK_NAME}
+      bank-account: ${PROD_BANK_ACCOUNT}
+      bank-account-name: ${PROD_BANK_ACCOUNT_NAME}
+      qr-template: ${PROD_BANK_TRANSFER_QR_TEMPLATE:compact}
+    sepay:
+      secret-key: ${PROD_SEPAY_WEBHOOK_SECRET}
 
 spring:
   datasource:

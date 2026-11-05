@@ -198,7 +198,7 @@ public enum AppError {
     PAYMENT_PROVIDER_INACTIVE("PAYMENT_PROVIDER_INACTIVE", "This payment provider is currently inactive", HttpStatus.BAD_REQUEST),
     PAYMENT_TRANSACTION_NOT_FOUND("PAYMENT_TRANSACTION_NOT_FOUND", "Payment transaction not found", HttpStatus.NOT_FOUND),
     PAYMENT_TRANSACTION_ALREADY_PROCESSED("PAYMENT_TRANSACTION_ALREADY_PROCESSED", "Payment transaction has already been completed or processed", HttpStatus.BAD_REQUEST),
-    INVALID_PAYMENT_SIGNATURE("INVALID_PAYMENT_SIGNATURE", "Invalid payment checksum or webhook signature", HttpStatus.BAD_REQUEST),
+    INVALID_PAYMENT_SIGNATURE("INVALID_PAYMENT_SIGNATURE", "Invalid payment checksum or webhook signature", HttpStatus.UNAUTHORIZED),
     PAYMENT_AMOUNT_MISMATCH("PAYMENT_AMOUNT_MISMATCH", "Paid amount does not match transaction plan price", HttpStatus.BAD_REQUEST),
     USER_SUBSCRIPTION_NOT_FOUND("USER_SUBSCRIPTION_NOT_FOUND", "User subscription not found", HttpStatus.NOT_FOUND),
     ACTIVE_SUBSCRIPTION_ALREADY_EXISTS("ACTIVE_SUBSCRIPTION_ALREADY_EXISTS", "User already has an active premium subscription", HttpStatus.BAD_REQUEST),

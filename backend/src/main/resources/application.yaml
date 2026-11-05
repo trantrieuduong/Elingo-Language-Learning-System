@@ -59,6 +59,10 @@ app:
     shadowing-pass-score: 55
     dictation-attempt-penalty: 5
     shadowing-attempt-penalty: 10
+  premium:
+    scheduler:
+      expire-cron: 0 0 * * * *
+      cancel-tx-cron: 0 */30 * * * *
   battle:
     total-rounds: 10
     question-time-ms: 15000

@@ -4,7 +4,6 @@ import com.elingo.auth.service.JwtService;
 import com.elingo.common.dto.ApiResponse;
 import com.elingo.common.dto.ErrorDetail;
 import com.elingo.common.exception.AppError;
-import java.util.List;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -28,6 +27,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -42,7 +42,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String path = request.getServletPath();
         return path.startsWith("/swagger-ui")
                 || path.startsWith("/v3/api-docs")
-                || path.equals("/swagger-ui.html");
+                || path.equals("/swagger-ui.html")
+                || path.startsWith("/webhooks/payments");
     }
 
     @Override
