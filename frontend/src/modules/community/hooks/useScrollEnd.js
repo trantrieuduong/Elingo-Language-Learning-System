@@ -10,9 +10,7 @@ function useScrollEnd(isEnabled = true) {
 
     const nextIsAtEnd =
       scrollContainer.scrollHeight - scrollContainer.clientHeight - scrollContainer.scrollTop <= 1;
-    setIsAtEnd((previousIsAtEnd) =>
-      previousIsAtEnd === nextIsAtEnd ? previousIsAtEnd : nextIsAtEnd
-    );
+      setIsAtEnd(nextIsAtEnd);
   }, []);
 
   useEffect(() => {
