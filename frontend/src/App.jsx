@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
@@ -22,6 +22,8 @@ import PostDetailPage from './modules/community/pages/PostDetailPage/PostDetailP
 import { BattleSocketProvider } from './modules/battle/context/BattleSocketContext';
 import BattleLobbyPage from './modules/battle/pages/BattleLobbyPage';
 import BattlePlayPage from './modules/battle/pages/BattlePlayPage';
+import BattleHistoryPage from './modules/battle/pages/BattleHistoryPage';
+import BattleMatchDetailPage from './modules/battle/pages/BattleMatchDetailPage';
 import './App.css';
 
 const PUBLIC_PATHS = ['/login', '/signup', '/account-verification', '/reset-password'];
@@ -65,6 +67,7 @@ function App() {
   const dictationMatch = currentPath.match(/^\/lessons\/dictation\/([^/]+)$/);
   const shadowingMatch = currentPath.match(/^\/lessons\/shadowing\/([^/]+)$/);
   const battlePlayMatch = currentPath.match(/^\/battle\/play\/(\d+)$/);
+  const battleDetailMatch = currentPath.match(/^\/battle\/history\/(\d+)$/);
   const deckListMatch = currentPath === '/decks';
   const deckTopicsMatch = currentPath.match(/^\/decks\/([^/]+)\/topics$/);
   const postDetailMatch = currentPath.match(/^\/community\/posts\/(\d+)$/);
@@ -158,6 +161,15 @@ function App() {
           onNavigate={navigate}
         />
         )}
+    if (battleDetailMatch) {
+      return (
+        <BattleMatchDetailPage
+          matchId={battleDetailMatch[1]}
+          onNavigate={navigate}
+        />
+      );
+    }
+
     if (battlePlayMatch) {
       return renderBattle(
         <BattlePlayPage matchId={battlePlayMatch[1]} onNavigate={navigate} />
@@ -207,6 +219,8 @@ function App() {
         return <FlashcardReviewPage onNavigate={navigate} />;
       case '/battle':
         return renderBattle(<BattleLobbyPage onNavigate={navigate} />);
+      case '/battle/history':
+        return <BattleHistoryPage onNavigate={navigate} />;
       case '/speaking':
         return <PlaceholderPage title="Speaking" path={currentPath} />;
       case '/community':

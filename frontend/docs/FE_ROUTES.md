@@ -36,7 +36,9 @@
 | `/decks/:deckId/topics` | `TopicListPage` | `vocabulary/pages/` | Quản lý các chủ đề thuộc bộ từ và các thẻ thuộc chủ đề được chọn, bắt buộc đăng nhập |
 | `/review` | `FlashcardReviewPage` | `learning/flashcard/pages/` | Ôn tập flashcard đến hạn (giới hạn 100 flashcard/1 ngày) |
 | `/battle` | `BattleLobbyPage` | `battle/pages/` | Sảnh chờ thi đấu |
-| `/battle/play/:matchId` | `BattlePlayPage` | `battle/pages/` | Màn hình thi đấu (WebSocket: đếm ngược, câu hỏi trắc nghiệm/tự luận, bảng điểm, màn kết thúc) |
+| `/battle/play/:matchId` | `BattlePlayPage` | `battle/pages/` | Màn hình thi đấu (WebSocket/STOMP: đếm ngược, câu hỏi trắc nghiệm/tự luận, bảng điểm, màn kết thúc) |
+| `/battle/history` | `BattleHistoryPage` | `battle/pages/` | Lịch sử đấu & thống kê cá nhân (REST) |
+| `/battle/history/:matchId` | `BattleMatchDetailPage` | `battle/pages/` | Chi tiết kết quả từng vòng của một trận đấu (REST) |
 | `/speaking` | `SpeakingLobbyPage` | `speaking/pages/` | Danh sách phòng luyện nói |
 | `/speaking/:roomId` | `SpeakingRoomPage` | `speaking/pages/` | Phòng luyện nói (WebRTC) |
 | `/community` | `CommunityFeedPage` | `community/pages/` | Feed cộng đồng (Bảng tin) |

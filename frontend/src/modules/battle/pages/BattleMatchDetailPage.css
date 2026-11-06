@@ -1,0 +1,460 @@
+/* ============================================================
+   BattleMatchDetailPage.css — Elingo Vocabulary Battle Detail Page
+   Design System: Liquid Glass Minimalism
+   ============================================================ */
+
+.battle-detail-page {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: calc(72px + var(--spacing-xl)) var(--margin-mobile) var(--spacing-3xl);
+  box-sizing: border-box;
+}
+
+.battle-detail-container {
+  width: calc(100% - 3rem);
+  max-width: 1432px;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+/* Layout 2 cột: Tóm tắt trận đấu (trái) và Danh sách câu hỏi (phải) */
+.battle-detail-layout {
+  display: grid;
+  grid-template-columns: 460px 1fr;
+  gap: var(--spacing-xl);
+  align-items: start;
+}
+
+.battle-detail-top-nav {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+/* ── Cột trái: Header + Tóm tắt đối đầu ── */
+.battle-detail-left-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.battle-detail-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.battle-detail-header__title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.battle-detail-title {
+  margin: 0;
+}
+
+.battle-detail-result-badge {
+  padding: 4px 14px;
+  border-radius: var(--radius-pill);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-label-sm);
+}
+
+.battle-detail-badge--win {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--color-success);
+}
+
+.battle-detail-badge--lose {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--color-error);
+}
+
+.battle-detail-badge--draw {
+  background: rgba(234, 179, 8, 0.15);
+  color: var(--color-warning);
+}
+
+.battle-detail-header__date-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-text-disabled);
+  font-size: var(--font-size-body-sm);
+}
+
+.battle-detail-header__date-icon {
+  font-size: 16px;
+}
+
+/* Thẻ tóm tắt đối đầu bên trái */
+.battle-detail-summary-card {
+  padding: var(--spacing-2xl) var(--spacing-xl);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xl);
+  background: var(--glass-card-bg);
+  backdrop-filter: var(--blur-xl) saturate(190%);
+  -webkit-backdrop-filter: var(--blur-xl) saturate(190%);
+  border: 1.5px solid var(--color-glass-border-strong);
+  box-shadow: var(--shadow-card);
+}
+
+.battle-detail-mode-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-lg);
+  padding: 4px 0;
+}
+
+.battle-detail-tab-item {
+  font-size: var(--font-size-body-md);
+  font-weight: 600;
+  color: #4b6b94;
+  letter-spacing: var(--tracking-wide);
+}
+
+.battle-detail-tab-divider {
+  width: 1px;
+  height: 18px;
+  background: rgba(147, 168, 206, 0.45);
+}
+
+[data-theme='dark'] .battle-detail-tab-item {
+  color: #93b4e6;
+}
+
+[data-theme='dark'] .battle-detail-tab-divider {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.battle-detail-versus {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: var(--spacing-md);
+}
+
+.battle-detail-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  text-align: center;
+}
+
+.battle-detail-player__name {
+  color: var(--color-text-high);
+  font-weight: 700;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.battle-detail-player__role {
+  font-size: 11px;
+  color: var(--color-text-disabled);
+}
+
+.battle-detail-player__score {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 32px;
+  color: var(--color-primary);
+  margin-top: 2px;
+}
+
+.battle-detail-player__correct {
+  font-size: var(--font-size-body-xs);
+  color: var(--color-text-disabled);
+}
+
+.battle-detail-versus__text {
+  font-family: var(--font-display);
+  font-size: var(--font-size-title-md);
+  font-weight: 800;
+  color: var(--color-text-disabled);
+  letter-spacing: 1px;
+}
+
+/* ── Cột phải: Accordion danh sách câu hỏi ── */
+.battle-detail-right-col {
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-sizing: border-box;
+}
+
+.battle-detail-rounds-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: var(--spacing-md);
+}
+
+.battle-detail-rounds-header__title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: var(--color-text-high);
+  font-weight: 700;
+}
+
+.battle-detail-rounds-header__icon {
+  font-size: 22px;
+  color: var(--color-primary);
+}
+
+.battle-detail-rounds-count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-container);
+  color: var(--color-text-mid);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Danh sách accordion từng câu */
+.battle-detail-rounds-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.battle-detail-round-item {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-container-low);
+  overflow: hidden;
+  transition: border-color var(--transition-base);
+}
+
+.battle-detail-round-item:hover {
+  border-color: var(--color-glass-border-standard);
+}
+
+.battle-detail-round-header-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  gap: var(--spacing-md);
+}
+
+.battle-detail-round-header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex: 1;
+  min-width: 0;
+}
+
+.battle-detail-round-number-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-container);
+  color: var(--color-text-high);
+  font-family: var(--font-display);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 13px;
+}
+
+.battle-detail-round-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.battle-detail-round-term {
+  color: var(--color-text-high);
+  font-weight: 600;
+  font-size: var(--font-size-body-md);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.battle-detail-round-answer-preview {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--font-size-body-xs);
+}
+
+.battle-detail-round-preview-icon {
+  font-size: 14px;
+}
+
+.battle-detail-round-header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-shrink: 0;
+}
+
+.battle-detail-round-badge-pill {
+  padding: 3px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.battle-detail-round-badge-pill--correct {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--color-success);
+}
+
+.battle-detail-round-badge-pill--wrong {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--color-error);
+}
+
+.battle-detail-round-arrow {
+  color: var(--color-text-disabled);
+  font-size: 18px;
+  transition: transform var(--transition-base);
+}
+
+.battle-detail-round-arrow--expanded {
+  transform: rotate(180deg);
+}
+
+/* Phần chi tiết mở rộng khi bấm vào câu hỏi */
+.battle-detail-round-body {
+  padding: var(--spacing-md) var(--spacing-lg) var(--spacing-lg);
+  border-top: 1px dashed var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  background: var(--color-surface);
+}
+
+.battle-detail-round-correct-line {
+  font-size: var(--font-size-body-sm);
+  color: var(--color-text-mid);
+}
+
+.battle-detail-round-columns {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-md);
+}
+
+.battle-detail-answer-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.battle-detail-col-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+}
+
+.battle-detail-answer-box {
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.battle-detail-answer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-xs);
+}
+
+.battle-detail-answer-text {
+  font-weight: var(--font-weight-medium, 500);
+  word-break: break-word;
+}
+
+.battle-detail-status-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.battle-detail-answer-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.battle-detail-loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--spacing-3xl);
+}
+
+.battle-detail-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-3xl);
+  text-align: center;
+}
+
+.battle-detail-error__icon {
+  font-size: 48px;
+  color: var(--color-error);
+}
+
+.battle-detail-error__actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+}
+
+/* Mobile & Tablet Responsive */
+@media (max-width: 1024px) {
+  .battle-detail-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .battle-detail-container {
+    width: 100%;
+  }
+
+  .battle-detail-main-card {
+    padding: var(--spacing-lg) var(--spacing-md);
+  }
+
+  .battle-detail-round-columns {
+    grid-template-columns: 1fr;
+  }
+}

@@ -16,6 +16,27 @@
   "connection": {
     "reconnecting": "Mất kết nối máy chủ, đang thử lại..."
   },
+  "room": {
+    "title": "Phòng riêng",
+    "create": "Tạo phòng",
+    "createDesc": "Tạo phòng và nhận mã mời để đấu cùng bạn bè",
+    "joinTitle": "Vào phòng bằng mã",
+    "codeLabel": "Mã phòng",
+    "codePlaceholder": "MÃ PHÒNG (6 KÝ TỰ)",
+    "join": "Vào phòng",
+    "codeInvalid": "Mã phòng phải gồm đúng 6 ký tự.",
+    "waitingTitle": "Đang chờ đối thủ vào phòng",
+    "waitingDesc": "Chia sẻ mã phòng này với bạn bè. Trận đấu sẽ tự động bắt đầu ngay khi có người tham gia.",
+    "copy": "Sao chép",
+    "copied": "Đã sao chép",
+    "cancel": "Hủy phòng"
+  },
+  "resume": {
+    "title": "Bạn đang có một trận dở",
+    "desc": "Quay lại sớm, nếu không bạn sẽ bị xử thua.",
+    "continue": "Tiếp tục",
+    "blocked": "Hãy tiếp tục hoặc chờ trận dở kết thúc."
+  },
   "play": {
     "preparing": "Trận đấu sắp bắt đầu...",
     "you": "Bạn",
@@ -32,7 +53,11 @@
     "hint": "Gợi ý",
     "typeHere": "Nhập từ vựng tiếng Anh...",
     "submit": "Gửi",
-    "submitted": "Đã gửi"
+    "submitted": "Đã gửi",
+    "restoring": "Đang khôi phục trận đấu...",
+    "opponentDisconnected": "{{name}} mất kết nối - còn {{seconds}}s để quay lại",
+    "opponentDisconnectedConfirm": "Đang xác nhận...",
+    "nextQuestionSoon": "Câu tiếp theo sắp bắt đầu..."
   },
   "result": {
     "win": "Chiến thắng!",
@@ -46,14 +71,66 @@
     "score": "Điểm số",
     "correctCount": "Đúng {{count}}/{{total}}",
     "xpHint": "Cần ít nhất 3 câu đúng để nhận XP",
+    "xpGained": "+{{xp}} XP",
     "playAgain": "Chơi lại",
+    "viewHistory": "Xem lịch sử",
     "cancelled": {
       "title": "Trận đấu bị hủy",
       "BOTH_DISCONNECTED": "Cả hai người chơi đều mất kết nối quá thời gian chờ.",
       "INTERNAL_ERROR": "Đã xảy ra sự cố kỹ thuật từ hệ thống trận đấu.",
+      "CONNECTION_LOST": "Trận đã kết thúc trong lúc bạn mất kết nối.",
       "unknown": "Trận đấu bị hủy do sự cố bất ngờ."
     },
     "backToLobby": "Về sảnh thi đấu"
+  },
+  "history": {
+    "title": "Lịch sử đấu",
+    "subtitle": "Xem lại danh sách các trận đấu và thành tích thi đấu của bạn",
+    "backToLobby": "Quay lại sảnh",
+    "link": "Lịch sử đấu",
+    "stats": {
+      "total": "Tổng trận",
+      "wins": "Thắng",
+      "losses": "Thua",
+      "draws": "Hòa",
+      "winRate": "Tỉ lệ thắng"
+    },
+    "filter": {
+      "result": "Kết quả",
+      "mode": "Chế độ",
+      "matchType": "Loại trận",
+      "all": "Tất cả"
+    },
+    "result": {
+      "WIN": "Thắng",
+      "LOSE": "Thua",
+      "DRAW": "Hòa"
+    },
+    "matchType": {
+      "RANDOM": "Ngẫu nhiên",
+      "ROOM": "Phòng riêng"
+    },
+    "emptyTitle": "Không tìm thấy trận đấu",
+    "empty": "Bạn chưa có trận đấu nào. Hãy tham gia ngay một trận!",
+    "emptyFiltered": "Không tìm thấy trận đấu nào phù hợp với bộ lọc hiện tại.",
+    "clearFilters": "Xóa bộ lọc",
+    "loadError": "Không thể tải lịch sử trận đấu. Vui lòng thử lại.",
+    "retry": "Thử lại"
+  },
+  "detail": {
+    "title": "Chi tiết trận",
+    "round": "Vòng {{round}}",
+    "correctAnswer": "Đáp án đúng",
+    "you": "Bạn",
+    "opponent": "Đối thủ",
+    "noAnswer": "Không trả lời",
+    "correct": "Đúng",
+    "wrong": "Sai",
+    "seconds": "{{sec}}s",
+    "back": "Quay lại lịch sử",
+    "loadError": "Không thể tải chi tiết trận đấu. Vui lòng thử lại.",
+    "roundsTitle": "Danh sách câu hỏi",
+    "youAnswered": "Bạn trả lời"
   },
   "error": {
     "QUEUE_TIMEOUT": "Không tìm thấy đối thủ phù hợp. Vui lòng thử lại sau.",
