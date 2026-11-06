@@ -95,7 +95,7 @@ function DeckFormModal({
   if (!isOpen) return null;
 
   return createPortal(
-    <div className="deck-form-overlay" onClick={() => !isLoading && onClose?.()}>
+    <div className="deck-form-overlay">
       <div className="deck-form-modal glass-capsule" onClick={(event) => event.stopPropagation()}>
         <header className="deck-form-header">
           <div className="deck-form-header__info">
