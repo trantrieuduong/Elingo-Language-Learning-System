@@ -1,4 +1,4 @@
-import apiClient from '../../services/apiClient';
+﻿import apiClient, { requestRefresh } from '../../services/apiClient';
 
 export const loginApi = async (identifier, password) => {
   const response = await apiClient.post(
@@ -35,7 +35,7 @@ export const resendVerificationOtpApi = async (email) => {
 };
 
 export const refreshTokenApi = async () => {
-  const response = await apiClient.post('/auth/refresh', {}, { withCredentials: true });
+  const response = await requestRefresh();
   return response.data;
 };
 

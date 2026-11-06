@@ -10,6 +10,7 @@ import com.elingo.battle.service.BattleEngineService;
 import com.elingo.battle.state.BattleLiveRegistry;
 import com.elingo.battle.state.LiveMatch;
 import com.elingo.battle.websocket.BattleEventPublisher;
+import com.elingo.battle.websocket.BattleEvents;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +42,7 @@ public class BattleConnectionServiceImpl implements BattleConnectionService {
         try {
             if (m.getStatus() != BattleMatchStatus.IN_PROGRESS) return;
             if (!m.markDisconnected(userId)) return; // đã ngắt rồi (tránh lặp)
-            publisher.sendToUser(m.opponentOf(userId), "match:opponent-disconnected",
+            publisher.sendToUser(m.opponentOf(userId), BattleEvents.MATCH_OPPONENT_DISCONNECTED,
                     new OpponentDisconnectedResponse(m.getMatchId(), props.reconnectGraceMs()));
             m.putGrace(userId, battleScheduler.schedule(
                     () -> onGraceExpired(m, userId),
@@ -84,9 +85,9 @@ public class BattleConnectionServiceImpl implements BattleConnectionService {
                 throw new AppException(AppError.BATTLE_MATCH_NOT_FOUND);
             }
             boolean wasDisconnected = m.markConnected(userId); // hủy forfeit nếu đang đếm
-            publisher.sendToUser(userId, "match:rejoined", engineService.snapshot(m, userId));
+            publisher.sendToUser(userId, BattleEvents.MATCH_REJOINED, engineService.snapshot(m, userId));
             if (wasDisconnected) {
-                publisher.sendToUser(m.opponentOf(userId), "match:opponent-reconnected",
+                publisher.sendToUser(m.opponentOf(userId), BattleEvents.MATCH_OPPONENT_RECONNECTED,
                         new OpponentReconnectedResponse(matchId));
             }
             log.info("Player rejoined matchId={} userId={} wasDisconnected={}", matchId, userId, wasDisconnected);
@@ -101,7 +102,7 @@ public class BattleConnectionServiceImpl implements BattleConnectionService {
         ActiveMatchResponse res = (m != null && m.getStatus() == BattleMatchStatus.IN_PROGRESS)
                 ? new ActiveMatchResponse(m.getMatchId(), "IN_PROGRESS")
                 : new ActiveMatchResponse(null, "NONE");
-        publisher.sendToUser(userId, "active-match", res);
+        publisher.sendToUser(userId, BattleEvents.ACTIVE_MATCH, res);
     }
 }
 

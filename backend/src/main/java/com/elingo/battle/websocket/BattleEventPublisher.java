@@ -1,6 +1,7 @@
 package com.elingo.battle.websocket;
 
 import com.elingo.battle.dto.response.BattleErrorResponse;
+import com.elingo.common.websocket.WsErrorSender;
 import com.elingo.battle.dto.response.BattleEventEnvelope;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -12,7 +13,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class BattleEventPublisher {
+public class BattleEventPublisher implements WsErrorSender {
 
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -32,8 +33,14 @@ public class BattleEventPublisher {
         );
     }
 
+    @Override
+    public String destinationPrefix() {
+        return "/app/battle";
+    }
+
     // Gửi event error tới một user.
+    @Override
     public void sendError(Long userId, String code, String message) {
-        sendToUser(userId, "error", new BattleErrorResponse(code, message));
+        sendToUser(userId, BattleEvents.ERROR, new BattleErrorResponse(code, message));
     }
 }

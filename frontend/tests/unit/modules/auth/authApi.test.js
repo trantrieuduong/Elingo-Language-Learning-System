@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+﻿import { describe, it, expect } from 'vitest'
 import { http, HttpResponse } from 'msw'
 import { server } from '../../../mocks/server'
 import {
@@ -159,6 +159,28 @@ describe('authApi', () => {
       )
 
       await expect(refreshTokenApi()).rejects.toThrow()
+    })
+
+    it('refreshTokenApi should not send Authorization header even when accessToken exists in localStorage', async () => {
+      localStorage.setItem('accessToken', 'expired-token')
+
+      let capturedAuthHeader = undefined
+      server.use(
+        http.post('*/auth/refresh', ({ request }) => {
+          capturedAuthHeader = request.headers.get('authorization')
+          return HttpResponse.json({
+            success: true,
+            data: { accessToken: 'new-token-after-refresh' },
+          })
+        })
+      )
+
+      const result = await refreshTokenApi()
+
+      expect(capturedAuthHeader).toBeNull()
+      expect(result.success).toBe(true)
+
+      localStorage.removeItem('accessToken')
     })
   })
 

@@ -12,6 +12,7 @@ import com.elingo.battle.state.*;
 import com.elingo.battle.util.BattleScoring;
 import com.elingo.battle.util.BattleTyping;
 import com.elingo.battle.websocket.BattleEventPublisher;
+import com.elingo.battle.websocket.BattleEvents;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import lombok.RequiredArgsConstructor;
@@ -83,7 +84,7 @@ public class BattleEngineServiceImpl implements BattleEngineService {
             r.putAnswer(new LiveAnswer(userId, optionId, typed, correct, (int) responseMs, points));
 
             // Báo đối thủ biết người kia đã trả lời
-            publisher.sendToUser(m.opponentOf(userId), "match:opponent-answered",
+            publisher.sendToUser(m.opponentOf(userId), BattleEvents.MATCH_OPPONENT_ANSWERED,
                     new OpponentAnsweredResponse(m.getMatchId(), r.getRoundNo()));
 
             // Cả hai đã trả lời -> kết thúc vòng ngay
@@ -110,8 +111,8 @@ public class BattleEngineServiceImpl implements BattleEngineService {
             m.setCurrentRound(r);
 
             MatchQuestionResponse payload = questionPayload(m, r, now);
-            publisher.sendToUser(m.getUserAId(), "match:question", payload);
-            publisher.sendToUser(m.getUserBId(), "match:question", payload);
+            publisher.sendToUser(m.getUserAId(), BattleEvents.MATCH_QUESTION, payload);
+            publisher.sendToUser(m.getUserBId(), BattleEvents.MATCH_QUESTION, payload);
 
             // Hết giờ câu -> endRound
             scheduleNext(m, q.timeLimitMs(), () -> endRound(m, roundNo));
@@ -170,8 +171,8 @@ public class BattleEngineServiceImpl implements BattleEngineService {
             RoundResultResponse roundPayload =
                     new RoundResultResponse(m.getMatchId(), roundNo, q.correctAnswer(), results);
             m.setLastRoundResult(roundPayload);
-            publisher.sendToUser(m.getUserAId(), "match:round-result", roundPayload);
-            publisher.sendToUser(m.getUserBId(), "match:round-result", roundPayload);
+            publisher.sendToUser(m.getUserAId(), BattleEvents.MATCH_ROUND_RESULT, roundPayload);
+            publisher.sendToUser(m.getUserBId(), BattleEvents.MATCH_ROUND_RESULT, roundPayload);
 
             scheduleNext(m, props.roundGapMs(), () -> afterRound(m, roundNo));
         } finally {
@@ -224,8 +225,8 @@ public class BattleEngineServiceImpl implements BattleEngineService {
 
         MatchFinishedResponse payload =
                 new MatchFinishedResponse(m.getMatchId(), winnerId, reason, players);
-        publisher.sendToUser(m.getUserAId(), "match:finished", payload);
-        publisher.sendToUser(m.getUserBId(), "match:finished", payload);
+        publisher.sendToUser(m.getUserAId(), BattleEvents.MATCH_FINISHED, payload);
+        publisher.sendToUser(m.getUserBId(), BattleEvents.MATCH_FINISHED, payload);
         registry.remove(m);
 
         log.info("Match finished matchId={} winnerId={} scoreA={} scoreB={} reason={}",
@@ -276,8 +277,8 @@ public class BattleEngineServiceImpl implements BattleEngineService {
                 log.error("Cannot mark match cancelled matchId={}", m.getMatchId(), ex);
             }
             MatchCancelledResponse payload = new MatchCancelledResponse(m.getMatchId(), reason);
-            publisher.sendToUser(m.getUserAId(), "match:cancelled", payload);
-            publisher.sendToUser(m.getUserBId(), "match:cancelled", payload);
+            publisher.sendToUser(m.getUserAId(), BattleEvents.MATCH_CANCELLED, payload);
+            publisher.sendToUser(m.getUserBId(), BattleEvents.MATCH_CANCELLED, payload);
             registry.remove(m);
         } finally {
             m.unlock();

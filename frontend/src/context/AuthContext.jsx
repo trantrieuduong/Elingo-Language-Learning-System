@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
+import { connectSocket, disconnectSocket } from '../services/stompClient';
 import { useTranslation } from 'react-i18next';
 import {
   getMeApi,
@@ -52,6 +53,13 @@ export const AuthProvider = ({ children }) => {
   });
   const [accessToken, setAccessToken] = useState(() => localStorage.getItem('accessToken'));
   const [loading, setLoading] = useState(true);
+
+  // Kết nối WebSocket chung khi đã đăng nhập xong; tắt khi đăng xuất
+  const isAuthenticated = !loading && !!accessToken
+  useEffect(() => {
+    if (isAuthenticated) connectSocket()
+    else disconnectSocket()
+  }, [isAuthenticated])
 
   useEffect(() => {
     initializeAuth();

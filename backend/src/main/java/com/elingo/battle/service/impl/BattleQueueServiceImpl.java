@@ -7,6 +7,7 @@ import com.elingo.battle.service.BattleMatchService;
 import com.elingo.battle.service.BattleQueueService;
 import com.elingo.battle.state.QueueEntry;
 import com.elingo.battle.websocket.BattleEventPublisher;
+import com.elingo.battle.websocket.BattleEvents;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import lombok.RequiredArgsConstructor;
@@ -52,7 +53,7 @@ public class BattleQueueServiceImpl implements BattleQueueService {
         // Idempotent: đã trong hàng đợi -> trả mode thật đang chờ, không đổi hàng đợi
         BattleMode currentMode = userQueueMode.get(userId);
         if (currentMode != null) {
-            eventPublisher.sendToUser(userId, "queue:joined", new QueueJoinedResponse(currentMode));
+            eventPublisher.sendToUser(userId, BattleEvents.QUEUE_JOINED, new QueueJoinedResponse(currentMode));
             return;
         }
 
@@ -62,7 +63,7 @@ public class BattleQueueServiceImpl implements BattleQueueService {
             // Kiểm tra lại sau khi vào lock
             if (userQueueMode.containsKey(userId)) {
                 BattleMode realMode = userQueueMode.get(userId);
-                eventPublisher.sendToUser(userId, "queue:joined", new QueueJoinedResponse(realMode));
+                eventPublisher.sendToUser(userId, BattleEvents.QUEUE_JOINED, new QueueJoinedResponse(realMode));
                 return;
             }
 
@@ -77,7 +78,7 @@ public class BattleQueueServiceImpl implements BattleQueueService {
             } else {
                 queue.add(new QueueEntry(userId, mode, Instant.now()));
                 userQueueMode.put(userId, mode);
-                eventPublisher.sendToUser(userId, "queue:joined", new QueueJoinedResponse(mode));
+                eventPublisher.sendToUser(userId, BattleEvents.QUEUE_JOINED, new QueueJoinedResponse(mode));
                 scheduleQueueTimeout(userId, mode);
             }
         }
@@ -96,7 +97,7 @@ public class BattleQueueServiceImpl implements BattleQueueService {
             getQueue(mode).removeIf(e -> e.userId().equals(userId));
             cancelTimeout(userId);
         }
-        eventPublisher.sendToUser(userId, "queue:left", Collections.emptyMap());
+        eventPublisher.sendToUser(userId, BattleEvents.QUEUE_LEFT, Collections.emptyMap());
     }
 
     @Override
@@ -126,8 +127,8 @@ public class BattleQueueServiceImpl implements BattleQueueService {
             eventPublisher.sendError(opponentId, ex.getAppError().getCode(), ex.getMessage());
         } catch (Exception ex) {
             log.error("Unexpected error creating match userId={} opponentId={}", userId, opponentId, ex);
-            eventPublisher.sendError(userId, "INTERNAL_ERROR", "Failed to create match");
-            eventPublisher.sendError(opponentId, "INTERNAL_ERROR", "Failed to create match");
+            eventPublisher.sendError(userId, AppError.INTERNAL_SERVER_ERROR.getCode(), AppError.INTERNAL_SERVER_ERROR.getMessage());
+            eventPublisher.sendError(opponentId, AppError.INTERNAL_SERVER_ERROR.getCode(), AppError.INTERNAL_SERVER_ERROR.getMessage());
         }
     }
 
@@ -166,7 +167,7 @@ public class BattleQueueServiceImpl implements BattleQueueService {
             userQueueMode.remove(userId);
             getQueue(mode).removeIf(e -> e.userId().equals(userId));
         }
-        eventPublisher.sendToUser(userId, "queue:timeout", Collections.emptyMap());
+        eventPublisher.sendToUser(userId, BattleEvents.QUEUE_TIMEOUT, Collections.emptyMap());
         log.info("Queue timeout userId={} mode={}", userId, mode);
     }
 

@@ -11,6 +11,7 @@ import com.elingo.battle.service.BattleMatchService;
 import com.elingo.battle.state.BattleLiveRegistry;
 import com.elingo.battle.state.LiveMatch;
 import com.elingo.battle.websocket.BattleEventPublisher;
+import com.elingo.battle.websocket.BattleEvents;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -47,8 +48,8 @@ public class BattleMatchServiceImpl implements BattleMatchService {
         MatchFoundResponse found = new MatchFoundResponse(
                 data.matchId(), data.mode(), type,
                 battleProperties.totalRounds(), battleProperties.countdownMs(), data.players());
-        eventPublisher.sendToUser(data.userAId(), "match:found", found);
-        eventPublisher.sendToUser(data.userBId(), "match:found", found);
+        eventPublisher.sendToUser(data.userAId(), BattleEvents.MATCH_FOUND, found);
+        eventPublisher.sendToUser(data.userBId(), BattleEvents.MATCH_FOUND, found);
 
         // Bắt đầu game loop 
         engineService.start(live);
