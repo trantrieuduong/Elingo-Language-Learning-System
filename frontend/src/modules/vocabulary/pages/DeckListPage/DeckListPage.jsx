@@ -476,10 +476,10 @@ function DeckListPage({ onNavigate }) {
                         key={deck.id}
                         className={`vocabulary-card glass-card ${
                           deck.isPremium ? 'vocabulary-card--premium' : ''
-                        }`}
+                        } ${activeTab === 'community-decks' ? 'vocabulary-card--without-cover' : ''}`}
                         onClick={() => handleDeckClick(deck)}
                       >
-                        {/* Huy hiệu Premium ở góc trên bên trái ảnh bìa */}
+                        {/* Huy hiệu Premium ở góc trên bên trái */}
                         {deck.isPremium && (
                           <span className="vocabulary-card__premium-badge">
                             <span className="material-symbols-outlined vocabulary-card__premium-icon">
@@ -494,18 +494,19 @@ function DeckListPage({ onNavigate }) {
                           topicCount={deck.topicCount ?? 0}
                           cardCount={deck.cardCount ?? 0}
                         />
-                        {deck.coverImageUrl ? (
-                          <img
-                            src={deck.coverImageUrl}
-                            alt={deck.title || ''}
-                            className="vocabulary-card__cover-image"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="vocabulary-card__cover-placeholder">
-                            <span className="material-symbols-outlined">layers</span>
-                          </div>
-                        )}
+                        {activeTab === 'system-decks' &&
+                          (deck.coverImageUrl ? (
+                            <img
+                              src={deck.coverImageUrl}
+                              alt={deck.title || ''}
+                              className="vocabulary-card__cover-image"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="vocabulary-card__cover-placeholder">
+                              <span className="material-symbols-outlined">layers</span>
+                            </div>
+                          ))}
                         <div className="vocabulary-card__body">
                           {/* Tags & CEFR đặt phía trên tiêu đề tương tự LessonCard */}
                           {(deckCefrLevels.length > 0 || deckTags.length > 0) && (
