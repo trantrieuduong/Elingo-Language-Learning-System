@@ -1,4 +1,4 @@
-import axios from 'axios';
+﻿import axios from 'axios';
 import i18n from '../i18n';
 
 const apiClient = axios.create({
@@ -11,6 +11,12 @@ const apiClient = axios.create({
   },
   timeout: 15000,
 });
+
+/**
+ * Goi /auth/refresh qua axios thuan - khong gan Authorization header
+ */
+export const requestRefresh = () =>
+  axios.post(`${import.meta.env.VITE_API_URL}/auth/refresh`, {}, { withCredentials: true });
 
 let isRefreshing = false;
 let failedQueue = [];
@@ -146,11 +152,7 @@ apiClient.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const response = await axios.post(
-          `${import.meta.env.VITE_API_URL}/auth/refresh`,
-          {},
-          { withCredentials: true }
-        );
+        const response = await requestRefresh();
 
         const newAccessToken = response.data?.data?.accessToken;
         if (newAccessToken) {
