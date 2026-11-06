@@ -343,7 +343,10 @@ function DeckListPage({ onNavigate }) {
             <button
               type="button"
               className={`deck-tab-btn ${activeTab === 'system-decks' ? 'deck-tab-btn--active' : ''}`}
-              onClick={() => setSelectedTab('system-decks')}
+              onClick={() => {
+                setSelectedTab('system-decks');
+                setPage(1);
+              }}
             >
               <span className="material-symbols-outlined">auto_stories</span>
               {t('userDeck.tabs.systemDecks')}
@@ -351,7 +354,10 @@ function DeckListPage({ onNavigate }) {
             <button
               type="button"
               className={`deck-tab-btn ${activeTab === 'community-decks' ? 'deck-tab-btn--active' : ''}`}
-              onClick={() => setSelectedTab('community-decks')}
+              onClick={() => {
+                setSelectedTab('community-decks');
+                setPage(1);
+              }}
             >
               <span className="material-symbols-outlined">explore</span>
               {t('userDeck.tabs.explore')}
