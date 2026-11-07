@@ -59,8 +59,8 @@
 }
 
 .battle-result--lose .battle-result-badge {
-  background: var(--color-error-container);
-  color: var(--color-on-error-container);
+  background: var(--color-pastel-coral);
+  color: var(--color-pastel-coral-text);
   border-color: var(--color-error);
 }
 
@@ -69,22 +69,22 @@
 }
 
 .battle-result--draw .battle-result-badge {
-  background: var(--color-pastel-soft-blue);
-  color: var(--color-pastel-soft-blue-text);
-  border-color: var(--color-primary);
+  background: var(--color-pastel-lavender);
+  color: var(--color-pastel-lavender-text);
+  border-color: var(--color-warning);
 }
 
 .battle-result--draw .battle-result-title {
-  color: var(--color-primary);
+  color: var(--color-warning);
 }
 
-/* Danh sách người chơi trong bảng tổng kết */
+/* Danh sách người chơi và điểm số */
 .battle-result-players {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
   width: 100%;
-  max-width: 520px;
+  max-width: 480px;
 }
 
 .battle-result-row {
@@ -93,29 +93,26 @@
   justify-content: space-between;
   padding: var(--spacing-md) var(--spacing-lg);
   border-radius: var(--radius-card);
-  width: 100%;
+  border: 1.5px solid transparent;
+  transition: transform var(--transition-base);
 }
 
 .battle-result-row--winner {
-  border-color: var(--color-primary);
-  background: var(--color-surface-container-low);
-  box-shadow: var(--shadow-card-hover);
-}
-
-[data-theme='dark'] .battle-result-row--winner {
-  background: rgba(155, 183, 232, 0.12);
+  border-color: var(--color-success);
+  background: rgba(16, 185, 129, 0.08);
 }
 
 .battle-result-row__user {
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
-  text-align: left;
 }
 
 .battle-result-row__details {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
   gap: 2px;
 }
 
@@ -139,6 +136,12 @@
   color: var(--color-text-mid);
 }
 
+.battle-result-xp-gained {
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  background: rgba(59, 130, 246, 0.12);
+  color: var(--color-primary);
+}
+
 .battle-result-xp-hint__icon {
   font-size: 18px;
   color: var(--color-primary);
@@ -148,6 +151,8 @@
 .battle-result-actions {
   display: flex;
   justify-content: center;
+  align-items: center;
+  gap: var(--spacing-md);
   margin-top: var(--spacing-sm);
 }
 
@@ -155,7 +160,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-sm);
-  padding: 0.875rem 2.5rem;
+  padding: 0.875rem 2rem;
 }
 
 /* Mobile <= 600px */
@@ -169,8 +174,13 @@
     padding: var(--spacing-sm) var(--spacing-md);
   }
 
-  .battle-result-actions__btn {
+  .battle-result-actions {
+    flex-direction: column;
     width: 100%;
   }
-}
 
+  .battle-result-actions__btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
