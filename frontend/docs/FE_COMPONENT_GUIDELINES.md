@@ -313,6 +313,12 @@ Toast dùng chung vị trí cố định phía trên bên phải, ngay dưới H
 - `Header` nhận `currentPath` để thể hiện route hiện tại. Với cặp action đăng nhập/đăng ký, action của route đang mở dùng `.btn-primary`, action còn lại dùng `.btn-secondary`.
 - Landing navigation dùng anchor section và active state theo vị trí scroll; luôn giữ underline mounted rồi animate opacity/transform, không add/remove underline làm layout giật.
 
+### 7.11 `<PremiumPlanCard>` — `src/components/PremiumPlanCard/`
+
+- Dùng chung layout cho bảng giá Landing và danh sách gói Premium;
+- `plan` gồm `name`, `price`, `currency`, `durationDays` và tùy chọn `description`. Giá được hiển thị theo locale; thời hạn được tính từ `durationDays` và hiển thị sau dấu `/`.
+- Truyền `features` và `popularLabel` qua props riêng; `isFeatured` áp dụng kiểu thẻ nổi bật và nút primary. Truyền `buttonLabel` để hiển thị CTA; nút bị vô hiệu hóa nếu không có `onSelect`.
+
 ---
 
 ## 8. Khi Nào KHÔNG Tạo Component Mới

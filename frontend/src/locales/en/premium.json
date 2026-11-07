@@ -1,1 +1,20 @@
-{}
+{
+  "plan": {
+    "duration": {
+      "day_one": "{{count}} day",
+      "day_other": "{{count}} days",
+      "lifetime": "Forever",
+      "month_one": "{{count}} month",
+      "month_other": "{{count}} months",
+      "year_one": "{{count}} year",
+      "year_other": "{{count}} years"
+    },
+    "upgrade": "Upgrade to Premium"
+  },
+  "plans": {
+    "bestValue": "Best value",
+    "emptyDescription": "There are no active Premium plans right now. Please check back later.",
+    "emptyTitle": "No Premium plans available",
+    "loading": "Loading Premium plans..."
+  }
+}

@@ -1,1 +1,20 @@
-{}
+{
+  "plan": {
+    "duration": {
+      "day_one": "{{count}} ngày",
+      "day_other": "{{count}} ngày",
+      "lifetime": "Vĩnh viễn",
+      "month_one": "{{count}} tháng",
+      "month_other": "{{count}} tháng",
+      "year_one": "{{count}} năm",
+      "year_other": "{{count}} năm"
+    },
+    "upgrade": "Nâng cấp Premium"
+  },
+  "plans": {
+    "bestValue": "Giá tốt nhất",
+    "emptyDescription": "Hiện chưa có gói Premium nào đang hoạt động. Vui lòng quay lại sau.",
+    "emptyTitle": "Chưa có gói Premium",
+    "loading": "Đang tải gói Premium..."
+  }
+}

@@ -1,5 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import EmptyState from '../../../components/EmptyState/EmptyState';
+import PremiumPlanCard from '../../../components/PremiumPlanCard/PremiumPlanCard';
+import { getPremiumPlansApi } from '../../premium/premiumApi';
+import { getBestValuePlan } from '../../premium/utils/format';
 import './LandingPage.css';
 
 function SectionHeading({ badge, title, description }) {
@@ -13,12 +17,78 @@ function SectionHeading({ badge, title, description }) {
 }
 
 function LandingPage({ onNavigate }) {
-  const { t } = useTranslation('home');
+  const { t } = useTranslation(['home', 'premium', 'common']);
   const [activeMode, setActiveMode] = useState('vocabulary');
+  const [plans, setPlans] = useState([]);
+  const [isPlansLoading, setIsPlansLoading] = useState(true);
+  const [plansError, setPlansError] = useState(null);
+  const [plansRetryCount, setPlansRetryCount] = useState(0);
 
   const handleNavigate = (path) => {
     if (onNavigate) onNavigate(path);
   };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchPlans = async () => {
+      setIsPlansLoading(true);
+      setPlansError(null);
+
+      try {
+        const response = await getPremiumPlansApi();
+        if (!isMounted) return;
+
+        const planList = response?.data || response;
+        setPlans(Array.isArray(planList) ? planList : []);
+      } catch {
+        if (!isMounted) return;
+        setPlansError(t('common:loadError'));
+      } finally {
+        if (isMounted) setIsPlansLoading(false);
+      }
+    };
+
+    fetchPlans();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [plansRetryCount, t]);
+
+  const freePlan = plans.find((plan) => Number(plan.price) === 0) ?? {
+    id: 'free',
+    name: t('pricing.basic.name'),
+    price: 0,
+    currency: 'VND',
+    durationDays: 0,
+  };
+  const bestValuePlan = getBestValuePlan(plans);
+  const pricingPlans = [
+    {
+      plan: {
+        ...freePlan,
+        durationDays: 0,
+        description: t('pricing.basic.description'),
+      },
+      features: t('pricing.basic.features', { returnObjects: true }),
+      popularLabel: t('pricing.popularFree'),
+      buttonLabel: t('pricing.basic.btn'),
+      onSelect: () => handleNavigate('/login'),
+    },
+    bestValuePlan &&
+      bestValuePlan.id !== freePlan.id && {
+        plan: {
+          ...bestValuePlan,
+          description: t('pricing.pro.description'),
+        },
+        features: t('pricing.pro.features', { returnObjects: true }),
+        popularLabel: t('premium:plans.bestValue'),
+        buttonLabel: t('pricing.pro.btn'),
+        isFeatured: true,
+        onSelect: () => handleNavigate('/login'),
+      },
+  ].filter(Boolean);
 
   const MODES = [
     { key: 'vocabulary', label: t('modes.vocabulary'), icon: 'style' },
@@ -256,29 +326,48 @@ function LandingPage({ onNavigate }) {
           title={t('pricing.title')}
           description={t('pricing.description')}
         />
-        <div className="landing-pricing">
-          <PlanCard
-            name={t('pricing.basic.name')}
-            price={t('pricing.basic.price')}
-            period={t('pricing.basic.period')}
-            description={t('pricing.basic.description')}
-            features={t('pricing.basic.features', { returnObjects: true })}
-            popularLabel={t('pricing.popularFree')}
-            buttonLabel={t('pricing.basic.btn')}
-            onClick={() => handleNavigate('/signup')}
+        {isPlansLoading ? (
+          <div className="landing-pricing__status" role="status">
+            <span className="app-loading-spinner" />
+            <span>{t('premium:plans.loading')}</span>
+          </div>
+        ) : plansError ? (
+          <EmptyState
+            className="landing-pricing__empty-state"
+            variant="compact"
+            icon="error"
+            isError
+            description={plansError}
+            actionLabel={t('common:retry')}
+            onAction={() => setPlansRetryCount((count) => count + 1)}
           />
-          <PlanCard
-            isPro
-            name={t('pricing.pro.name')}
-            price={t('pricing.pro.price')}
-            period={t('pricing.pro.period')}
-            description={t('pricing.pro.description')}
-            features={t('pricing.pro.features', { returnObjects: true })}
-            popularLabel={t('pricing.popularPro')}
-            buttonLabel={t('pricing.pro.btn')}
-            onClick={() => handleNavigate('/signup')}
+        ) : pricingPlans.length === 0 ? (
+          <EmptyState
+            className="landing-pricing__empty-state"
+            variant="compact"
+            icon="workspace_premium"
+            title={t('premium:plans.emptyTitle')}
+            description={t('premium:plans.emptyDescription')}
           />
-        </div>
+        ) : (
+          <div
+            className={`landing-pricing ${
+              pricingPlans.length === 1 ? 'landing-pricing--single' : ''
+            }`}
+          >
+            {pricingPlans.map((pricingPlan) => (
+              <PremiumPlanCard
+                key={pricingPlan.plan.id}
+                plan={pricingPlan.plan}
+                features={pricingPlan.features}
+                popularLabel={pricingPlan.popularLabel}
+                buttonLabel={pricingPlan.buttonLabel}
+                isFeatured={pricingPlan.isFeatured}
+                onSelect={pricingPlan.onSelect}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* ── FINAL CTA ── */}
@@ -442,50 +531,6 @@ function CommunityPost({ initials, name, time, text, likes, comments, commentsLa
           {comments} {commentsLabel}
         </button>
       </div>
-    </article>
-  );
-}
-
-function PlanCard({
-  name,
-  price,
-  period,
-  description,
-  features,
-  popularLabel,
-  buttonLabel,
-  isPro = false,
-  onClick,
-}) {
-  return (
-    <article
-      className={`landing-plan ${isPro ? 'landing-plan--pro glass-pro glass-sheen' : 'glass-card'}`}
-    >
-      <span className="landing-plan__popular glass-thumb">{popularLabel}</span>
-      <div>
-        <div className="landing-plan__title">
-          <h3>{name}</h3>
-        </div>
-        <div className="landing-plan__price">
-          <strong>{price}</strong>
-          <span>{period}</span>
-        </div>
-        <p>{description}</p>
-        <ul>
-          {Array.isArray(features) &&
-            features.map((feature) => (
-              <li key={feature}>
-                <span className="material-symbols-outlined">
-                  {isPro ? 'check_circle' : 'check'}
-                </span>
-                {feature}
-              </li>
-            ))}
-        </ul>
-      </div>
-      <button className={isPro ? 'btn-primary' : 'btn-secondary'} onClick={onClick}>
-        {buttonLabel}
-      </button>
     </article>
   );
 }

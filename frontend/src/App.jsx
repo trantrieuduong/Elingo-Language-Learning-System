@@ -22,12 +22,10 @@ import PostDetailPage from './modules/community/pages/PostDetailPage/PostDetailP
 import { BattleSocketProvider } from './modules/battle/context/BattleSocketContext';
 import BattleLobbyPage from './modules/battle/pages/BattleLobbyPage';
 import BattlePlayPage from './modules/battle/pages/BattlePlayPage';
+import PremiumPage from './modules/premium/pages/PremiumPage';
 import './App.css';
 
-const PUBLIC_PATHS = ['/login', '/signup', '/account-verification', '/reset-password'];
-
-// Các public route có thể xem cả khi chưa đăng nhập và khi đã đăng nhập (không redirect về /dashboard nếu đã đăng nhập)
-const SHARED_PUBLIC_PATHS = ['/', '/decks', '/lessons'];
+const AUTH_PATHS = ['/login', '/signup', '/account-verification', '/reset-password'];
 
 const PRIVATE_USER_PATHS = [
   '/dashboard',
@@ -39,7 +37,6 @@ const PRIVATE_USER_PATHS = [
   '/community/my-posts',
   '/progress',
   '/gamification',
-  '/premium',
   '/premium/my-subscription',
   '/profile',
   '/notification',
@@ -65,7 +62,6 @@ function App() {
   const dictationMatch = currentPath.match(/^\/lessons\/dictation\/([^/]+)$/);
   const shadowingMatch = currentPath.match(/^\/lessons\/shadowing\/([^/]+)$/);
   const battlePlayMatch = currentPath.match(/^\/battle\/play\/(\d+)$/);
-  const deckListMatch = currentPath === '/decks';
   const deckTopicsMatch = currentPath.match(/^\/decks\/([^/]+)\/topics$/);
   const postDetailMatch = currentPath.match(/^\/community\/posts\/(\d+)$/);
   const isPrivateUserPath =
@@ -80,7 +76,7 @@ function App() {
   useEffect(() => {
     if (loading) return;
 
-    const isAuthOnlyPath = PUBLIC_PATHS.includes(currentPath);
+    const isAuthOnlyPath = AUTH_PATHS.includes(currentPath);
     const isAdmin = user?.role === 'ADMIN';
     const isAdminPath = currentPath.startsWith('/admin');
 
@@ -226,7 +222,7 @@ function App() {
       case '/gamification':
         return <PlaceholderPage title="Gamification" path={currentPath} />;
       case '/premium':
-        return <PlaceholderPage title="Premium" path={currentPath} />;
+        return <PremiumPage onNavigate={navigate} />;
       case '/premium/my-subscription':
         return <PlaceholderPage title="My Subscription" path={currentPath} />;
       case '/profile':
