@@ -80,5 +80,5 @@ public class LocalServiceTextModerator implements TextModerator {
     record Request(String text) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    record Response(String label, double score, Map<String, Double> scores, int chunks) {}
+    record Response(String label, Double score, Map<String, Double> scores, Integer chunks) {}
 }

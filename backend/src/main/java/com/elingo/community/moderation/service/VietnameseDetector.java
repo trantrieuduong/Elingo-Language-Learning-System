@@ -12,6 +12,7 @@ public final class VietnameseDetector {
     private static final String VI_CHARS = "àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ";
 
     public static boolean containVietnamese(String text) {
+        if (text == null) return false;
         String s = Normalizer.normalize(text, Normalizer.Form.NFC);
         for (int i = 0; i < s.length(); i++) {
             char c = Character.toLowerCase(s.charAt(i));
