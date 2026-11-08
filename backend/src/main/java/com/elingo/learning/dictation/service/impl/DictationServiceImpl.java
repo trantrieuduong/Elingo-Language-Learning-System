@@ -1,6 +1,6 @@
 package com.elingo.learning.dictation.service.impl;
 
-import com.elingo.common.enums.LessonMode;
+import com.elingo.learning.lesson.enums.LessonMode;
 import com.elingo.common.event.XpGainedEvent;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;

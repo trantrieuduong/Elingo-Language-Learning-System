@@ -5,11 +5,12 @@ import com.elingo.learning.lesson.dto.request.GetPublishedLessonsRequest;
 import com.elingo.learning.lesson.dto.response.LessonDetailResponse;
 import com.elingo.learning.lesson.dto.response.LessonResponse;
 import com.elingo.learning.lesson.dto.response.LessonSegmentResponse;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
 public interface LessonService {
-    PageResponse<LessonResponse> getAllPublishedLessons(Long userId, GetPublishedLessonsRequest request);
+    PageResponse<LessonResponse> getAllPublishedLessons(Long userId, GetPublishedLessonsRequest request, Pageable pageable);
 
     LessonDetailResponse getLessonById(Long userId, Long lessonId);
     LessonDetailResponse getLessonBySlug(Long userId, String slug);
