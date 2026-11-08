@@ -1,0 +1,36 @@
+.battle-disconnect-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm, 8px);
+  padding: 10px 16px;
+  margin-bottom: var(--spacing-md, 16px);
+  border-radius: var(--radius-md, 12px);
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: var(--color-error, #ef4444);
+  animation: fadeIn 0.3s ease;
+  z-index: 10;
+}
+
+.battle-disconnect-banner__icon {
+  font-size: 22px;
+  color: var(--color-error, #ef4444);
+  flex-shrink: 0;
+}
+
+.battle-disconnect-banner__content {
+  font-weight: 500;
+  color: var(--color-on-surface, #ffffff);
+}
+
+@media (max-width: 480px) {
+  .battle-disconnect-banner {
+    padding: 8px 12px;
+    font-size: var(--font-size-body-sm, 13px);
+  }
+
+  .battle-disconnect-banner__icon {
+    font-size: 18px;
+  }
+}
+
