@@ -456,7 +456,7 @@ CREATE TABLE post_moderation_logs (
   actor_type ENUM('AI','ADMIN') NOT NULL,
   actor_id BIGINT UNSIGNED NULL,              -- id admin nếu actor_type = ADMIN, NULL nếu AI
   action ENUM('AUTO_APPROVE','AUTO_REJECT','FLAG_FOR_REVIEW',
-              'MANUAL_APPROVE','MANUAL_REJECT','MANUAL_HIDE') NOT NULL,
+              'MANUAL_APPROVE','MANUAL_REJECT') NOT NULL,
   ai_label VARCHAR(100) NULL,                 -- ví dụ 'SPAM', 'HATE_SPEECH', 'CLEAN' (chỉ có khi actor_type = AI)
   ai_score DECIMAL(5,4) NULL,                 -- độ tin cậy AI trả về (chỉ có khi actor_type = AI)
   note VARCHAR(500) NULL,                     -- ghi chú của admin khi duyệt tay

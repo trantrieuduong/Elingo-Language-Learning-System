@@ -29,6 +29,18 @@ springdoc:
     operations-sorter: alpha
 
 app:
+  community:
+    moderation:
+      openai-model: omni-moderation-latest
+      openai-base-url: https://api.openai.com # OpenAI SDK
+      scheduler:
+        fixed-delay-seconds: 30
+        batch-size: 5
+        maxAttempts: 3
+      policy:
+        auto-reject-threshold: 0.7
+        review-threshold: 0.5
+        video-max-frames: 12
   otp:
     expiration-minutes: 15
   flashcard:

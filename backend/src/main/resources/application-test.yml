@@ -11,6 +11,18 @@ app:
       qr-template: compact
     sepay:
       secret-key: test-sepay-secret-key
+  ffmpeg:
+    path: ffmpeg
+    ffprobe-path: ffprobe
+    max-concurrent: 1
+  community:
+    moderation:
+      openai-api-key: test-key
+      scheduler:
+        enabled: false
+      moderation-service:
+        base-url: http://localhost:8000/v1/moderate/text
+        token: test-token
 
 spring:
   datasource:

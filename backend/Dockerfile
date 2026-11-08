@@ -25,6 +25,8 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 COPY --from=builder --chown=appuser:appgroup /app/target/*.jar app.jar
 
+RUN apk add --no-cache ffmpeg
+
 USER appuser
 
 EXPOSE 8080

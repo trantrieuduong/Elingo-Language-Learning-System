@@ -11,6 +11,18 @@ app:
       qr-template: ${DEV_BANK_TRANSFER_QR_TEMPLATE:compact}
     sepay:
       secret-key: ${DEV_SEPAY_WEBHOOK_SECRET}
+  community:
+    moderation:
+      openai-api-key: ${DEV_OPENAI_API_KEY}
+      scheduler:
+        enabled: ${DEV_MODERATION_SCHEDULER_ENABLED:false}
+      moderation-service:
+        base-url: ${DEV_MODERATION_SERVICE_URL:http://localhost:8000/v1/moderate/text}
+        token: ${DEV_MODERATION_SERVICE_TOKEN:}
+  ffmpeg:
+    path: ${DEV_FFMPEG_PATH:ffmpeg}
+    ffprobe-path: ${DEV_FFPROBE_PATH:ffprobe}
+    max-concurrent: ${DEV_MAX_CONCURRENT:3}
 
 spring:
   datasource:

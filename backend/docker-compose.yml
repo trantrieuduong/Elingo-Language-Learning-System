@@ -4,6 +4,9 @@ x-logging: &default-logging
     max-size: "10m"
     max-file: "3"
 
+# Ngân sách RAM cho VPS 4 CPU / 4 GB:
+#   mysql 768m + redis 192m + backend 1152m + moderation-service 1g + nginx 64m = ~3.2 GB
+#   Còn ~800 MB cho OS, Docker daemon, page cache và các script ops.
 services:
   # ---------------------------------------------------------------------------
   # 1. Database: MySQL
@@ -20,7 +23,7 @@ services:
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
-      - --innodb-buffer-pool-size=256M
+      - --innodb-buffer-pool-size=384M
       - --max-connections=50
       - --performance-schema=OFF
       - --binlog-expire-logs-seconds=259200
@@ -37,7 +40,7 @@ services:
       timeout: 5s
       retries: 10
       start_period: 40s
-    mem_limit: 600m
+    mem_limit: 768m
     logging: *default-logging
 
   # ---------------------------------------------------------------------------
@@ -66,7 +69,25 @@ services:
     logging: *default-logging
 
   # ---------------------------------------------------------------------------
-  # 3. Backend: Spring Boot Application
+  # 3. Moderation Service: Python (ViSoBERT, PyTorch CPU) - chỉ nội bộ, không publish port
+  # ---------------------------------------------------------------------------
+  moderation-service:
+    image: ghcr.io/${GITHUB_REPOSITORY}/moderation-service:latest
+    container_name: elingo-moderation
+    restart: always
+    environment:
+      MODERATION_TORCH_THREADS: 2
+      MODERATION_INTERNAL_TOKEN: ${PROD_MODERATION_SERVICE_TOKEN:-}
+      OMP_NUM_THREADS: 2
+      MKL_NUM_THREADS: 2
+    networks:
+      - elingo-network
+    cpus: "2.0"
+    mem_limit: 1g
+    logging: *default-logging
+
+  # ---------------------------------------------------------------------------
+  # 4. Backend: Spring Boot Application (kèm ffmpeg trong image)
   # ---------------------------------------------------------------------------
   backend:
     image: ghcr.io/${GITHUB_REPOSITORY}/backend:latest
@@ -79,6 +100,7 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: prod
+      # Heap ~576 MB, phần còn lại của 1152m dành cho metaspace/thread và tiến trình ffmpeg
       JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=50.0 -XX:+UseSerialGC -XX:+ExitOnOutOfMemoryError"
       # MySQL
       PROD_MYSQL_CONNECTION_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?useSSL=false&allowPublicKeyRetrieval=true&connectionTimeZone=Asia/Ho_Chi_Minh&forceConnectionTimeZoneToSession=true
@@ -93,6 +115,13 @@ services:
       # JWT & Google OAuth
       PROD_JWT_SIGNER_KEY: ${PROD_JWT_SIGNER_KEY}
       PROD_GOOGLE_CLIENT_ID: ${PROD_GOOGLE_CLIENT_ID}
+      # Premium & Payment
+      PROD_BANK_TRANSFER_CODE_PREFIX: ${PROD_BANK_TRANSFER_CODE_PREFIX:-ELGO}
+      PROD_BANK_NAME: ${PROD_BANK_NAME}
+      PROD_BANK_ACCOUNT: ${PROD_BANK_ACCOUNT}
+      PROD_BANK_ACCOUNT_NAME: ${PROD_BANK_ACCOUNT_NAME}
+      PROD_BANK_TRANSFER_QR_TEMPLATE: ${PROD_BANK_TRANSFER_QR_TEMPLATE:-compact}
+      PROD_SEPAY_WEBHOOK_SECRET: ${PROD_SEPAY_WEBHOOK_SECRET}
       # Email Service
       PROD_MAIL_HOST: ${PROD_MAIL_HOST}
       PROD_MAIL_PORT: ${PROD_MAIL_PORT}
@@ -104,13 +133,18 @@ services:
       PROD_R2_SECRET_KEY: ${PROD_R2_SECRET_KEY}
       PROD_R2_BUCKET: ${PROD_R2_BUCKET}
       PROD_R2_PUBLIC_URL: ${PROD_R2_PUBLIC_URL}
+      # Moderation
+      PROD_MODERATION_SERVICE_URL: http://moderation-service:8000/v1/moderate/text
+      PROD_MODERATION_SERVICE_TOKEN: ${PROD_MODERATION_SERVICE_TOKEN:-}
+      PROD_OPENAI_API_KEY: ${PROD_OPENAI_API_KEY}
+      PROD_MODERATION_SCHEDULER_ENABLED: ${PROD_MODERATION_SCHEDULER_ENABLED:-true}
     networks:
       - elingo-network
-    mem_limit: 768m
+    mem_limit: 1152m
     logging: *default-logging
 
   # ---------------------------------------------------------------------------
-  # 4. Reverse Proxy: Nginx
+  # 5. Reverse Proxy: Nginx
   # ---------------------------------------------------------------------------
   nginx:
     image: nginx:alpine

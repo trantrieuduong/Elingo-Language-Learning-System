@@ -64,3 +64,7 @@ dist-ssr
 .env
 *storybook.log
 storybook-static
+
+# Python
+__pycache__/
+.venv/
