@@ -6,6 +6,7 @@ import com.elingo.gamification.entity.XpSource;
 import com.elingo.gamification.service.CheckInService;
 import com.elingo.gamification.service.XpPolicy;
 import com.elingo.gamification.service.XpService;
+import com.elingo.gamification.websocket.GamificationEventPublisher;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -38,6 +39,9 @@ class LearningXpListenerTest {
     @Mock
     private GamificationProperties props;
 
+    @Mock
+    private GamificationEventPublisher gamificationEventPublisher;
+
     @InjectMocks
     private LearningXpListener listener;
 
@@ -63,6 +67,7 @@ class LearningXpListenerTest {
             verify(checkInService).ensureCheckedIn(USER_ID, OCCURRED_AT);
             verify(xpPolicy).allow(USER_ID, XpSource.LESSON_DICTATION, OCCURRED_AT.toLocalDate());
             verify(xpService).addXp(USER_ID, 30, XpSource.LESSON_DICTATION, REF_ID);
+            verify(gamificationEventPublisher).sendXpGained(USER_ID, 30);
         }
 
         @Test
@@ -76,6 +81,7 @@ class LearningXpListenerTest {
 
             verify(checkInService, never()).ensureCheckedIn(anyLong(), any());
             verify(xpService, never()).addXp(anyLong(), anyInt(), any(), anyLong());
+            verify(gamificationEventPublisher, never()).sendXpGained(anyLong(), anyInt());
         }
 
         @Test
@@ -91,6 +97,7 @@ class LearningXpListenerTest {
             verify(checkInService, never()).ensureCheckedIn(anyLong(), any());
             verify(xpPolicy, never()).allow(anyLong(), any(), any());
             verify(xpService, never()).addXp(anyLong(), anyInt(), any(), anyLong());
+            verify(gamificationEventPublisher, never()).sendXpGained(anyLong(), anyInt());
         }
 
         @Test
@@ -107,6 +114,7 @@ class LearningXpListenerTest {
             verify(checkInService).ensureCheckedIn(USER_ID, OCCURRED_AT);
             verify(xpPolicy).allow(USER_ID, XpSource.FLASHCARD_REVIEW, OCCURRED_AT.toLocalDate());
             verify(xpService, never()).addXp(anyLong(), anyInt(), any(), anyLong());
+            verify(gamificationEventPublisher, never()).sendXpGained(anyLong(), anyInt());
         }
 
         @Test
@@ -121,6 +129,7 @@ class LearningXpListenerTest {
             listener.on(event);
 
             verify(xpService, never()).addXp(anyLong(), anyInt(), any(), anyLong());
+            verify(gamificationEventPublisher, never()).sendXpGained(anyLong(), anyInt());
         }
     }
 }

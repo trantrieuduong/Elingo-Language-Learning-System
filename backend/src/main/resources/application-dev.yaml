@@ -39,7 +39,7 @@ spring:
     show-sql: true
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
         default_batch_fetch_size: 50
   mail:
     host: ${DEV_MAIL_HOST}

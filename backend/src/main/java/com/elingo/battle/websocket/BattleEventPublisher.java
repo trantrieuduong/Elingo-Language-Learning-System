@@ -1,9 +1,6 @@
 package com.elingo.battle.websocket;
 
-import com.elingo.battle.dto.response.BattleErrorResponse;
-import com.elingo.common.websocket.WsErrorSender;
-import com.elingo.battle.dto.response.BattleEventEnvelope;
-import lombok.RequiredArgsConstructor;
+import com.elingo.common.websocket.AbstractWsSender;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
@@ -12,35 +9,19 @@ import org.springframework.stereotype.Component;
  * Không nơi nào khác gọi SimpMessagingTemplate trực tiếp cho battle.
  */
 @Component
-@RequiredArgsConstructor
-public class BattleEventPublisher implements WsErrorSender {
+public class BattleEventPublisher extends AbstractWsSender {
 
-    private final SimpMessagingTemplate messagingTemplate;
+    public BattleEventPublisher(SimpMessagingTemplate messagingTemplate) {
+        super(messagingTemplate);
+    }
 
-    /**
-     * Gửi event tới một user cụ thể.
-     *
-     * @param userId id người nhận
-     * @param event  tên event (vd: "match:found", "queue:joined")
-     * @param data   payload data (sẽ serialize thành JSON)
-     */
-    public void sendToUser(Long userId, String event, Object data) {
-        BattleEventEnvelope envelope = new BattleEventEnvelope(event, data);
-        messagingTemplate.convertAndSendToUser(
-                String.valueOf(userId),
-                "/queue/battle",
-                envelope
-        );
+    @Override
+    protected String userQueueDestination() {
+        return "/queue/battle";
     }
 
     @Override
     public String destinationPrefix() {
         return "/app/battle";
-    }
-
-    // Gửi event error tới một user.
-    @Override
-    public void sendError(Long userId, String code, String message) {
-        sendToUser(userId, BattleEvents.ERROR, new BattleErrorResponse(code, message));
     }
 }
