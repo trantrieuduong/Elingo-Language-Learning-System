@@ -13,10 +13,16 @@ export const XpProvider = ({ children }) => {
   const handleDismiss = useCallback(() => setToastMessage(''), []);
 
   useEffect(() => {
-    const unsubscribe = subscribeXp((payload) => {
+    const unsubscribe = subscribeXp((envelope) => {
+      const event = envelope?.event;
+      if (event && event !== 'xp:gained') return;
+
+      const payload = envelope?.data ?? envelope;
       const amount = Number(payload?.xpGained);
       if (!Number.isFinite(amount) || amount <= 0) return;
-      setLastXp({ amount, at: Date.now() });
+
+      const at = envelope?.timestamp || Date.now();
+      setLastXp({ amount, at });
       setToastMessage(t('xpToast', { xp: amount }));
     });
 

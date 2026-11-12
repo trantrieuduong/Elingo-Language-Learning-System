@@ -18,5 +18,4 @@ public final class BattleEvents {
     public static final String MATCH_OPPONENT_RECONNECTED = "match:opponent-reconnected";
     public static final String MATCH_REJOINED = "match:rejoined";
     public static final String ACTIVE_MATCH = "active-match";
-    public static final String ERROR = "error";
 }
