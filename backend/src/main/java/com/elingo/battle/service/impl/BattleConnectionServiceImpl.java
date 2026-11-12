@@ -13,7 +13,6 @@ import com.elingo.battle.websocket.BattleEventPublisher;
 import com.elingo.battle.websocket.BattleEvents;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -23,16 +22,25 @@ import java.time.Instant;
 
 @Slf4j(topic = "BATTLE-CONNECTION-SERVICE")
 @Service
-@RequiredArgsConstructor
 public class BattleConnectionServiceImpl implements BattleConnectionService {
 
     private final BattleLiveRegistry registry;
     private final BattleEngineService engineService;
     private final BattleEventPublisher publisher;
     private final BattleProperties props;
-
-    @Qualifier("battleScheduler")
     private final ThreadPoolTaskScheduler battleScheduler;
+
+    public BattleConnectionServiceImpl(@Qualifier("battleScheduler") ThreadPoolTaskScheduler battleScheduler,
+                                       BattleProperties props,
+                                       BattleEventPublisher publisher,
+                                       BattleEngineService engineService,
+                                       BattleLiveRegistry registry) {
+        this.battleScheduler = battleScheduler;
+        this.props = props;
+        this.publisher = publisher;
+        this.engineService = engineService;
+        this.registry = registry;
+    }
 
     @Override
     public void onUserOffline(Long userId) {
