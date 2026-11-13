@@ -16,11 +16,25 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 import java.util.List;
+import static java.util.Map.entry;
+import java.util.Map;
 import java.util.Objects;
 
 @RestControllerAdvice
 @Slf4j(topic = "GLOBAL-EXCEPTION-HANDLER")
 public class GlobalExceptionHandler {
+
+    private static final Map<String, AppError> CONSTRAINT_ERROR_MAPPINGS = Map.ofEntries(
+            entry("uk_user_username",       AppError.USERNAME_EXISTED),
+            entry("uk_user_email",          AppError.EMAIL_EXISTED),
+            entry("uk_deck_slug",           AppError.DECK_SLUG_EXISTED),
+            entry("uk_topic_slug_per_deck", AppError.TOPIC_SLUG_EXISTED),
+            entry("uk_lesson_slug",         AppError.LESSON_SLUG_EXISTED),
+            entry("uk_badge_code",          AppError.BADGE_CODE_EXISTED),
+            entry("uk_user_checkin_date",   AppError.ALREADY_CHECKED_IN_TODAY),
+            entry("uk_user_segment",        AppError.PROGRESS_UPDATE_CONFLICT),
+            entry("uk_user_lesson",         AppError.PROGRESS_UPDATE_CONFLICT)
+    );
 
     /*
      * Access denied / forbidden error (403)
@@ -103,44 +117,38 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(AppError.valueOf(code));
     }
 
-
     /*
      * Database unique constraint violation exception
      */
     @ExceptionHandler(DataIntegrityViolationException.class)
     ResponseEntity<ApiResponse<Void>> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
-        Throwable cause = ex.getCause();
-        AppError appError = AppError.UNCATEGORIZED_EXCEPTION;
+        AppError appError = resolveConstraintViolation(ex.getCause());
 
-        if (cause instanceof ConstraintViolationException cve) {
-            String constraint = cve.getConstraintName();
-            if (constraint != null) {
-                if (constraint.contains("uk_user_username")) {
-                    appError = AppError.USERNAME_EXISTED;
-                } else if (constraint.contains("uk_user_email")) {
-                    appError = AppError.EMAIL_EXISTED;
-                } else if (constraint.contains("uk_deck_slug")) {
-                    appError = AppError.DECK_SLUG_EXISTED;
-                } else if (constraint.contains("uk_topic_slug_per_deck")) {
-                    appError = AppError.TOPIC_SLUG_EXISTED;
-                } else if (constraint.contains("uk_lesson_slug")) {
-                    appError = AppError.LESSON_SLUG_EXISTED;
-                } else if (constraint.contains("uk_badge_code")) {
-                    appError = AppError.BADGE_CODE_EXISTED;
-                } else if (constraint.contains("uk_user_checkin_date")) {
-                    appError = AppError.ALREADY_CHECKED_IN_TODAY;
-                } else if (constraint.contains("uk_user_segment") || constraint.contains("uk_user_lesson")) {
-                    appError = AppError.PROGRESS_UPDATE_CONFLICT;
-                }
-            }
+        if (appError == AppError.UNCATEGORIZED_EXCEPTION) {
+            log.error("Unmapped data integrity violation", ex);
+        } else {
+            log.warn("Data integrity violation code={}", appError.getCode());
         }
 
-        if (appError == AppError.UNCATEGORIZED_EXCEPTION)
-            log.error("Unmapped data integrity violation", ex);
-        else
-            log.warn("Data integrity violation code={}", appError.getCode());
-
         return buildErrorResponse(appError);
+    }
+
+    private AppError resolveConstraintViolation(Throwable cause) {
+        if (!(cause instanceof ConstraintViolationException cve)) {
+            return AppError.UNCATEGORIZED_EXCEPTION;
+        }
+
+        String constraint = cve.getConstraintName();
+        if (constraint == null) {
+            return AppError.UNCATEGORIZED_EXCEPTION;
+        }
+
+        String normalized = constraint.toLowerCase();
+        return CONSTRAINT_ERROR_MAPPINGS.entrySet().stream()
+                .filter(e -> normalized.contains(e.getKey()))
+                .map(Map.Entry::getValue)
+                .findFirst()
+                .orElse(AppError.UNCATEGORIZED_EXCEPTION);
     }
 
     private ResponseEntity<ApiResponse<Void>> buildErrorResponse(AppError appError) {
