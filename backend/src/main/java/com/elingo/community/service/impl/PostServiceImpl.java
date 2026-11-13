@@ -161,6 +161,20 @@ public class PostServiceImpl implements PostService {
         Post post = postRepository.findByIdWithMedia(postId)
                 .orElseThrow(() -> new AppException(AppError.POST_NOT_FOUND));
 
+        validatePostModifiable(post, currentUserId);
+
+        post.setTitle(request.title());
+        post.setContent(request.content());
+
+        updatePostMedias(post, request.mediaUrls(), currentUserId);
+
+        boolean likedByMe = postLikeRepository.existsByIdPostIdAndIdUserId(postId, currentUserId);
+        post.setStatus(PostStatus.PENDING);
+        log.info("Post updated postId={} mediaCount={}", postId, post.getMedias().size());
+        return postMapper.toPostResponse(post, likedByMe);
+    }
+
+    private void validatePostModifiable(Post post, Long currentUserId) {
         if (post.getStatus() == PostStatus.DELETED) {
             throw new AppException(AppError.POST_NOT_FOUND);
         }
@@ -168,47 +182,62 @@ public class PostServiceImpl implements PostService {
         if (!post.getUser().getId().equals(currentUserId)) {
             throw new AppException(AppError.POST_ACCESS_DENIED);
         }
+    }
 
-        post.setTitle(request.title());
-        post.setContent(request.content());
-
+    private void updatePostMedias(Post post, List<String> requestedKeys, Long currentUserId) {
         List<PostMedia> currentMedias = post.getMedias();
         Map<String, PostMedia> existingByUrl = currentMedias.stream()
                 .collect(Collectors.toMap(PostMedia::getMediaUrl, m -> m, (a, b) -> a));
 
-        List<String> newKeys = request.mediaUrls() != null ? request.mediaUrls() : List.of();
+        List<String> newKeys = requestedKeys != null ? requestedKeys : List.of();
         List<PostMedia> retainedOrNewMedias = new ArrayList<>();
         Set<PostMedia> keptMedias = new HashSet<>();
 
         for (int i = 0; i < newKeys.size(); i++) {
             String key = newKeys.get(i);
-            if (FileKey.isInZone(key, FileKey.UPLOADS_PREFIX)) {
-                PostMedia existing = existingByUrl.get(key);
-                if (existing == null) {
-                    throw new AppException(AppError.INVALID_REQUEST);
-                }
-                existing.setOrder(i);
-                retainedOrNewMedias.add(existing);
-                keptMedias.add(existing);
-            } else {
-                requireOwned(key, currentUserId);
-                String uploadsKey = requireMediaKind(key, MediaKind.IMAGE, MediaKind.VIDEO);
-                MediaKind mediaKind = FileKey.mediaKindOf(key);
-                MediaType mediaType = MediaType.valueOf(mediaKind.name());
-
-                PostMedia newMedia = PostMedia.builder()
-                        .post(post)
-                        .mediaType(mediaType)
-                        .mediaUrl(uploadsKey)
-                        .order(i)
-                        .build();
-
-                retainedOrNewMedias.add(newMedia);
-                publisher.publishEvent(new FileAttachedEvent(key, uploadsKey));
-            }
+            PostMedia media = resolveOrCreatePostMedia(post, key, i, existingByUrl, keptMedias, currentUserId);
+            retainedOrNewMedias.add(media);
         }
 
-        // Những media cũ không còn trong danh sách giữ lại sẽ bị gỡ bỏ
+        cleanupRemovedMedias(currentMedias, keptMedias);
+        syncCurrentMedias(currentMedias, retainedOrNewMedias);
+    }
+
+    private PostMedia resolveOrCreatePostMedia(Post post, String key, int order,
+                                               Map<String, PostMedia> existingByUrl,
+                                               Set<PostMedia> keptMedias,
+                                               Long currentUserId) {
+        if (FileKey.isInZone(key, FileKey.UPLOADS_PREFIX)) {
+            PostMedia existing = existingByUrl.get(key);
+            if (existing == null) {
+                throw new AppException(AppError.INVALID_REQUEST);
+            }
+            existing.setOrder(order);
+            keptMedias.add(existing);
+            return existing;
+        }
+
+        return createNewPostMedia(post, key, order, currentUserId);
+    }
+
+    private PostMedia createNewPostMedia(Post post, String key, int order, Long currentUserId) {
+        requireOwned(key, currentUserId);
+        String uploadsKey = requireMediaKind(key, MediaKind.IMAGE, MediaKind.VIDEO);
+        MediaKind mediaKind = FileKey.mediaKindOf(key);
+        MediaType mediaType = MediaType.valueOf(mediaKind.name());
+
+        PostMedia newMedia = PostMedia.builder()
+                .post(post)
+                .mediaType(mediaType)
+                .mediaUrl(uploadsKey)
+                .order(order)
+                .build();
+
+        publisher.publishEvent(new FileAttachedEvent(key, uploadsKey));
+        return newMedia;
+    }
+
+    private void cleanupRemovedMedias(List<PostMedia> currentMedias, Set<PostMedia> keptMedias) {
         List<String> deletedUrls = new ArrayList<>();
         List<PostMedia> toRemove = new ArrayList<>();
         for (PostMedia existing : currentMedias) {
@@ -219,20 +248,18 @@ public class PostServiceImpl implements PostService {
         }
 
         currentMedias.removeAll(toRemove);
+
+        if (!deletedUrls.isEmpty()) {
+            publisher.publishEvent(new FileDeletedEvent(deletedUrls));
+        }
+    }
+
+    private void syncCurrentMedias(List<PostMedia> currentMedias, List<PostMedia> retainedOrNewMedias) {
         for (PostMedia m : retainedOrNewMedias) {
             if (!currentMedias.contains(m)) {
                 currentMedias.add(m);
             }
         }
-
-        if (!deletedUrls.isEmpty()) {
-            publisher.publishEvent(new FileDeletedEvent(deletedUrls));
-        }
-
-        boolean likedByMe = postLikeRepository.existsByIdPostIdAndIdUserId(postId, currentUserId);
-        post.setStatus(PostStatus.PENDING);
-        log.info("Post updated postId={} mediaCount={}", postId, currentMedias.size());
-        return postMapper.toPostResponse(post, likedByMe);
     }
 
     @Override
