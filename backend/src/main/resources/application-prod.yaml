@@ -3,6 +3,19 @@ server:
 
 app:
   front-end-domain: "https://elingo.pro"
+  thread-pool:
+    scheduler:
+      default-pool-size: ${PROD_SCHEDULER_DEFAULT_POOL_SIZE:2}
+      battle-pool-size: ${PROD_SCHEDULER_BATTLE_POOL_SIZE:4}
+    async:
+      email:
+        core-pool-size: ${PROD_EMAIL_CORE_POOL_SIZE:2}
+        max-pool-size: ${PROD_EMAIL_MAX_POOL_SIZE:4}
+        queue-capacity: ${PROD_EMAIL_QUEUE_CAPACITY:200}
+      gamification:
+        core-pool-size: ${PROD_GAMIFICATION_CORE_POOL_SIZE:2}
+        max-pool-size: ${PROD_GAMIFICATION_MAX_POOL_SIZE:4}
+        queue-capacity: ${PROD_GAMIFICATION_QUEUE_CAPACITY:1000}
   google:
     client-id: ${PROD_GOOGLE_CLIENT_ID}
   premium:

@@ -1,5 +1,6 @@
 package com.elingo.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -10,14 +11,18 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 @EnableAsync
 @Configuration
+@RequiredArgsConstructor
 public class AsyncConfig {
+
+    private final ThreadPoolProperties threadPoolProperties;
 
     @Bean(name = "emailTaskExecutor")
     public Executor emailTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(4);
-        executor.setMaxPoolSize(10);
-        executor.setQueueCapacity(100);
+        var emailConfig = threadPoolProperties.async().email();
+        executor.setCorePoolSize(emailConfig.corePoolSize());
+        executor.setMaxPoolSize(emailConfig.maxPoolSize());
+        executor.setQueueCapacity(emailConfig.queueCapacity());
         executor.setThreadNamePrefix("email-async-");
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         executor.setTaskDecorator(new MdcTaskDecorator());
@@ -29,10 +34,11 @@ public class AsyncConfig {
     @Bean(name = "gamificationExecutor")
     public Executor gamificationExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(2);
-        executor.setMaxPoolSize(4);
-        executor.setQueueCapacity(500);
-        executor.setThreadNamePrefix("gamification-");
+        var gamificationConfig = threadPoolProperties.async().gamification();
+        executor.setCorePoolSize(gamificationConfig.corePoolSize());
+        executor.setMaxPoolSize(gamificationConfig.maxPoolSize());
+        executor.setQueueCapacity(gamificationConfig.queueCapacity());
+        executor.setThreadNamePrefix("gamification-async-");
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         executor.setTaskDecorator(new MdcTaskDecorator());
         executor.setWaitForTasksToCompleteOnShutdown(true);

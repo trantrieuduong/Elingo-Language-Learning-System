@@ -10,8 +10,8 @@ import com.elingo.battle.websocket.BattleEventPublisher;
 import com.elingo.battle.websocket.BattleEvents;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +26,6 @@ import java.util.concurrent.ScheduledFuture;
 
 @Slf4j(topic = "BATTLE-SERVICE")
 @Service
-@RequiredArgsConstructor
 public class BattleQueueServiceImpl implements BattleQueueService {
 
     private final BattleEventPublisher eventPublisher;
@@ -42,6 +41,16 @@ public class BattleQueueServiceImpl implements BattleQueueService {
 
     // userId -> mode đang chờ
     private final Map<Long, BattleMode> userQueueMode = new ConcurrentHashMap<>();
+
+    public BattleQueueServiceImpl(BattleEventPublisher eventPublisher,
+                                  BattleMatchService battleMatchService,
+                                  BattleProperties battleProperties,
+                                  @Qualifier("battleScheduler") ThreadPoolTaskScheduler battleScheduler) {
+        this.eventPublisher = eventPublisher;
+        this.battleMatchService = battleMatchService;
+        this.battleProperties = battleProperties;
+        this.battleScheduler = battleScheduler;
+    }
 
     @Override
     public void join(Long userId, BattleMode mode) {
