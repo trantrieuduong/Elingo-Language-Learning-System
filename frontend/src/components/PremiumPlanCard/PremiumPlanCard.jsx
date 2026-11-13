@@ -26,6 +26,8 @@ function PremiumPlanCard({
       className={`premium-plan-card ${
         isFeatured ? 'premium-plan-card--featured glass-pro glass-sheen' : 'glass-card'
       } ${popularLabel ? 'premium-plan-card--has-popular' : ''} ${
+        buttonLabel ? 'premium-plan-card--has-button' : ''
+      } ${
         hasDetails ? '' : 'premium-plan-card--compact'
       }`}
     >

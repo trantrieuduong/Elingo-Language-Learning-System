@@ -6,6 +6,7 @@ import PageLoading from '../../../components/PageLoading/PageLoading';
 import { getPremiumPlansApi } from '../premiumApi';
 import { getBestValuePlan } from '../utils/format';
 import PremiumPlanCard from '../../../components/PremiumPlanCard/PremiumPlanCard';
+import PremiumCheckoutModal from '../components/PremiumCheckoutModal/PremiumCheckoutModal';
 import './PremiumPage.css';
 
 function PremiumPage({ onNavigate }) {
@@ -18,13 +19,19 @@ function PremiumPage({ onNavigate }) {
   const [error, setError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
 
+  // Modal checkout
+  const [selectedPlanForCheckout, setSelectedPlanForCheckout] = useState(null);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, []);
+
   useEffect(() => {
     let isMounted = true;
 
     const fetchPlans = async () => {
       setLoading(true);
       setError(null);
-
       try {
         const response = await getPremiumPlansApi();
         if (!isMounted) return;
@@ -50,8 +57,12 @@ function PremiumPage({ onNavigate }) {
     setRetryCount((count) => count + 1);
   };
 
-  const handleUpgrade = () => {
-    if (onNavigate) onNavigate('/login');
+  const handleSelectPlan = (plan) => {
+    if (!user) {
+      if (onNavigate) onNavigate('/login');
+      return;
+    }
+    setSelectedPlanForCheckout(plan);
   };
 
   const bestValuePlan = getBestValuePlan(plans);
@@ -75,22 +86,41 @@ function PremiumPage({ onNavigate }) {
           description={t('plans.emptyDescription')}
         />
       ) : (
-        <div className="premium-page__grid">
-          {plans.map((plan) => {
-            const isFeatured = plan.id === bestValuePlan?.id;
+        <>
+          <div className="premium-page__notice glass-card" role="note">
+            <span className="material-symbols-outlined premium-page__notice-icon">
+              info
+            </span>
+            <span className="premium-page__notice-text text-body-md">
+              {t('plans.accumulationNote')}
+            </span>
+          </div>
 
-            return (
-              <PremiumPlanCard
-                key={plan.id}
-                plan={plan}
-                isFeatured={isFeatured}
-                popularLabel={isFeatured ? t('plans.bestValue') : undefined}
-                buttonLabel={t('plan.upgrade')}
-                onSelect={!user ? handleUpgrade : undefined}
-              />
-            );
-          })}
-        </div>
+          <div className="premium-page__grid">
+            {plans.map((plan) => {
+              const isFeatured = plan.id === bestValuePlan?.id;
+
+              return (
+                <PremiumPlanCard
+                  key={plan.id}
+                  plan={plan}
+                  isFeatured={isFeatured}
+                  popularLabel={isFeatured ? t('plans.bestValue') : undefined}
+                  buttonLabel={t('plan.upgrade')}
+                  onSelect={() => handleSelectPlan(plan)}
+                />
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {selectedPlanForCheckout && (
+        <PremiumCheckoutModal
+          plan={selectedPlanForCheckout}
+          onClose={() => setSelectedPlanForCheckout(null)}
+          onNavigate={onNavigate}
+        />
       )}
     </main>
   );

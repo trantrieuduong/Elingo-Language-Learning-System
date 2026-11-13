@@ -71,7 +71,7 @@ LessonCard/
 
 ---
 
-## 4. Component Template
+## 4. Component Template (Tùy chọn phần JSDoc)
 
 ```jsx
 import './ComponentName.css';
@@ -146,7 +146,7 @@ function Input({ id, label, type, value, onChange, error, disabled, autoFocus, .
 
 ```jsx
 // Dùng utility class từ index.css — KHÔNG tự viết glass CSS
-<div className="glass-card" style={{ borderRadius: 'var(--radius-card)' }}>
+<div className="glass-card">
 ```
 
 ### 6.2 Button

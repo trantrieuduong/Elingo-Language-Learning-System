@@ -54,12 +54,12 @@ function LoginPage({ onNavigate }) {
   const isMountedRef = useRef(true);
   const googleButtonRef = useRef(null);
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+    return () => {
       isMountedRef.current = false;
-    },
-    []
-  );
+    };
+  }, []);
 
   const validate = () => {
     const newErrors = {};

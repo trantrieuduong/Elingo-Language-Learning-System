@@ -11,10 +11,33 @@
     },
     "upgrade": "Upgrade to Premium"
   },
+  "checkout": {
+    "title": "Upgrade to Premium",
+    "subtitle": "Scan the QR code to pay",
+    "planName": "Subscription Plan",
+    "amount": "Amount",
+    "transferInfo": "Manual Bank Transfer",
+    "bankName": "Bank",
+    "bankAccount": "Account Number",
+    "accountName": "Account Name",
+    "transferContent": "Transfer Description",
+    "copied": "Copied!",
+    "copyError": "Could not copy. Please try again.",
+    "statusPending": "Waiting for payment confirmation...",
+    "statusSuccess": "Payment successful! Your Premium plan is now active.",
+    "statusFailed": "Transaction failed or was cancelled.",
+    "statusRefunded": "Transaction has been refunded.",
+    "waitingHint": "Please transfer the exact amount and description. Underpaid or incorrect transfers will not be processed. If any error occurs, please contact support email.",
+    "qrFallback": "Could not load QR code. Please make a manual bank transfer.",
+    "createError": "Unable to initialize checkout. Please try again later.",
+    "transactionId": "Transaction ID",
+    "successCta": "View subscription"
+  },
   "plans": {
     "bestValue": "Best value",
     "emptyDescription": "There are no active Premium plans right now. Please check back later.",
     "emptyTitle": "No Premium plans available",
-    "loading": "Loading Premium plans..."
+    "loading": "Loading Premium plans...",
+    "accumulationNote": "Existing subscriptions will be extended with the new duration."
   }
 }

@@ -1,0 +1,10 @@
+.copy-btn {
+  width: 32px;
+  height: 32px;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.copy-btn .material-symbols-outlined {
+  font-size: 18px;
+}

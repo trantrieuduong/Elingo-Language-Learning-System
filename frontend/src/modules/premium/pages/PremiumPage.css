@@ -9,6 +9,27 @@
   box-sizing: border-box;
 }
 
+.premium-page__notice {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-card);
+  margin-bottom: var(--spacing-xl);
+  color: var(--color-primary);
+  background: var(--glass-card-bg);
+}
+
+.premium-page__notice-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
+.premium-page__notice-text {
+  color: var(--color-text-high);
+}
+
 .premium-page__grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

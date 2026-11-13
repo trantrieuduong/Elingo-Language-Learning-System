@@ -9,12 +9,35 @@
       "year_one": "{{count}} năm",
       "year_other": "{{count}} năm"
     },
-    "upgrade": "Nâng cấp Premium"
+    "upgrade": "Đăng ký gói"
+  },
+  "checkout": {
+    "title": "Thanh toán gói Premium",
+    "subtitle": "Quét mã QR để thanh toán",
+    "planName": "Gói đăng ký",
+    "amount": "Số tiền",
+    "transferInfo": "Thông tin chuyển khoản thủ công",
+    "bankName": "Ngân hàng",
+    "bankAccount": "Số tài khoản",
+    "accountName": "Chủ tài khoản",
+    "transferContent": "Nội dung chuyển khoản",
+    "copied": "Đã sao chép!",
+    "copyError": "Không thể sao chép. Vui lòng thử lại.",
+    "statusPending": "Đang chờ hệ thống xác nhận thanh toán...",
+    "statusSuccess": "Thanh toán thành công! Gói Premium đã được kích hoạt.",
+    "statusFailed": "Giao dịch không thành công hoặc đã bị hủy.",
+    "statusRefunded": "Giao dịch đã được hoàn tiền.",
+    "waitingHint": "Vui lòng chuyển đúng số tiền và nội dung. Không xử lý các trường hợp chuyển thiếu hoặc sai. Nếu có sai sót vui lòng liên hệ email hỗ trợ.",
+    "qrFallback": "Không tải được mã QR. Vui lòng thực hiện chuyển khoản thủ công.",
+    "createError": "Không thể tạo phiên thanh toán. Vui lòng thử lại sau.",
+    "transactionId": "Mã giao dịch",
+    "successCta": "Xem chi tiết gói"
   },
   "plans": {
     "bestValue": "Giá tốt nhất",
     "emptyDescription": "Hiện chưa có gói Premium nào đang hoạt động. Vui lòng quay lại sau.",
     "emptyTitle": "Chưa có gói Premium",
-    "loading": "Đang tải gói Premium..."
+    "loading": "Đang tải gói Premium...",
+    "accumulationNote": "Gói đã đăng ký nếu có sẽ được cộng dồn thời hạn sử dụng."
   }
 }

@@ -3,13 +3,16 @@
   display: flex;
   width: 100%;
   min-width: 0;
-  min-height: 560px;
   flex-direction: column;
   align-items: stretch;
   justify-content: space-between;
   gap: var(--spacing-xl);
   padding: var(--spacing-xl);
   border-radius: var(--radius-card-lg);
+}
+
+.premium-plan-card--has-button {
+  min-height: 560px;
 }
 
 .premium-plan-card--compact {
@@ -114,7 +117,7 @@
 }
 
 @media (max-width: 1024px) {
-  .premium-plan-card {
+  .premium-plan-card--has-button {
     min-height: auto;
   }
 }

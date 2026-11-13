@@ -73,8 +73,6 @@ function LandingPage({ onNavigate }) {
       },
       features: t('pricing.basic.features', { returnObjects: true }),
       popularLabel: t('pricing.popularFree'),
-      buttonLabel: t('pricing.basic.btn'),
-      onSelect: () => handleNavigate('/login'),
     },
     bestValuePlan &&
       bestValuePlan.id !== freePlan.id && {
@@ -84,9 +82,7 @@ function LandingPage({ onNavigate }) {
         },
         features: t('pricing.pro.features', { returnObjects: true }),
         popularLabel: t('premium:plans.bestValue'),
-        buttonLabel: t('pricing.pro.btn'),
         isFeatured: true,
-        onSelect: () => handleNavigate('/login'),
       },
   ].filter(Boolean);
 
