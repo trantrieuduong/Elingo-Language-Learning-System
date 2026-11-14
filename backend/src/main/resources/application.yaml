@@ -34,6 +34,10 @@ app:
       default-pool-size: 2
       battle-pool-size: 2
     async:
+      app:
+        core-pool-size: 2
+        max-pool-size: 4
+        queue-capacity: 200
       email:
         core-pool-size: 1
         max-pool-size: 2

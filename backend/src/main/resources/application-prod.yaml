@@ -8,6 +8,10 @@ app:
       default-pool-size: ${PROD_SCHEDULER_DEFAULT_POOL_SIZE:2}
       battle-pool-size: ${PROD_SCHEDULER_BATTLE_POOL_SIZE:4}
     async:
+      app:
+        core-pool-size: ${PROD_APP_ASYNC_CORE_POOL_SIZE:2}
+        max-pool-size: ${PROD_APP_ASYNC_MAX_POOL_SIZE:4}
+        queue-capacity: ${PROD_APP_ASYNC_QUEUE_CAPACITY:200}
       email:
         core-pool-size: ${PROD_EMAIL_CORE_POOL_SIZE:2}
         max-pool-size: ${PROD_EMAIL_MAX_POOL_SIZE:4}
