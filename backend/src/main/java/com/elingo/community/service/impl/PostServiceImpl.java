@@ -4,6 +4,7 @@ import com.elingo.common.dto.CursorResponse;
 import com.elingo.common.enums.MediaKind;
 import com.elingo.common.event.FileAttachedEvent;
 import com.elingo.common.event.FileDeletedEvent;
+import com.elingo.common.event.NotificationEvent;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.common.util.CursorUtils;
@@ -306,6 +307,15 @@ public class PostServiceImpl implements PostService {
 
         postLikeRepository.save(postLike);
         postRepository.updateLikeCount(postId, 1);
+
+        if (!post.getUser().getId().equals(currentUserId)) {
+            publisher.publishEvent(NotificationEvent.postLiked(
+                    post.getUser().getId(),
+                    postId,
+                    user.getUsername()
+            ));
+        }
+
         log.info("Post liked postId={}", postId);
     }
 

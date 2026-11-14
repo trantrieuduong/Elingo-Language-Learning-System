@@ -4,6 +4,7 @@ import com.elingo.common.dto.PageResponse;
 import com.elingo.common.enums.MediaKind;
 import com.elingo.common.event.FileAttachedEvent;
 import com.elingo.common.event.FileDeletedEvent;
+import com.elingo.common.event.NotificationEvent;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.community.dto.request.CreateCommentRequest;
@@ -94,6 +95,24 @@ public class CommentServiceImpl implements CommentService {
 
         if (uploadsKey != null) {
             publisher.publishEvent(new FileAttachedEvent(request.imageUrl(), uploadsKey));
+        }
+
+        if (parent != null) {
+            if (!parent.getUser().getId().equals(currentUserId)) {
+                publisher.publishEvent(NotificationEvent.commentReplied(
+                        parent.getUser().getId(),
+                        post.getId(),
+                        user.getUsername()
+                ));
+            }
+        } else {
+            if (!post.getUser().getId().equals(currentUserId)) {
+                publisher.publishEvent(NotificationEvent.postCommented(
+                        post.getUser().getId(),
+                        post.getId(),
+                        user.getUsername()
+                ));
+            }
         }
 
         log.info("Comment created commentId={} postId={} parentCommentId={} hasImage={}",

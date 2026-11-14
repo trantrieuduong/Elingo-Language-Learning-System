@@ -6,7 +6,7 @@ import com.elingo.gamification.entity.XpSource;
 import com.elingo.gamification.service.CheckInService;
 import com.elingo.gamification.service.XpPolicy;
 import com.elingo.gamification.service.XpService;
-import com.elingo.gamification.websocket.GamificationEventPublisher;
+import com.elingo.gamification.publisher.GamificationEventPublisher;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;

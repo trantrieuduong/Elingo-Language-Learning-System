@@ -1,4 +1,4 @@
-package com.elingo.gamification.websocket;
+package com.elingo.gamification.publisher;
 
 import com.elingo.common.websocket.AbstractWsSender;
 import com.elingo.gamification.dto.response.XpGainedResponse;
