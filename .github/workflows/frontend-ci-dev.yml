@@ -22,32 +22,81 @@ concurrency:
   group: frontend-ci-dev-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  NODE_VERSION: "22"
+
+defaults:
+  run:
+    working-directory: frontend
+
 jobs:
-  test:
-    name: Lint, Test & Build
+  # ---------------------------------------------------------------------------
+  # 1. LINT
+  # ---------------------------------------------------------------------------
+  lint:
+    name: 1. Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - name: Checkout
+        uses: actions/checkout@v5
 
-      - name: Setup Node.js
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v5
         with:
-          node-version: 22
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
-        working-directory: ./frontend
         run: npm ci
 
       - name: Run Lint
-        working-directory: ./frontend
         run: npm run lint
 
+  # ---------------------------------------------------------------------------
+  # 2. TEST (+ coverage)
+  # ---------------------------------------------------------------------------
+  test:
+    name: 2. Test (+ coverage)
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
       - name: Run Test Coverage
-        working-directory: ./frontend
         run: npm run test:coverage
 
+  # ---------------------------------------------------------------------------
+  # 3. BUILD
+  # ---------------------------------------------------------------------------
+  build:
+    name: 3. Build
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
       - name: Build Frontend
-        working-directory: ./frontend
         run: npm run build
