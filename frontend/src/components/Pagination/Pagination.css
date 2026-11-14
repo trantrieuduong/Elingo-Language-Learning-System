@@ -39,19 +39,21 @@
 .pagination__page:hover {
   background: var(--glass-thumb-bg);
   backdrop-filter: var(--blur-md);
-  border-color: rgba(255, 255, 255, 0.6);
+  border-color: var(--color-glass-border-subtle);
   color: var(--color-on-surface);
 }
 
 .pagination__page--active {
-  background: var(--color-secondary-container);
+  background: var(--color-primary-container);
   color: var(--color-primary);
-  border-color: rgba(155, 183, 232, 0.3);
+  border-color: var(--color-glass-border-faint);
 }
 
 .pagination__page--active:hover {
-  background: var(--color-secondary-container);
+  background: var(--color-primary-container);
   color: var(--color-primary);
+  border-color: var(--color-glass-border-faint);
+  cursor: default;
 }
 
 /* ── Prev/Next icon buttons ── */
@@ -82,7 +84,7 @@
   padding: 0.4rem 0.6rem;
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-outline-variant);
-  background: rgba(255, 255, 255, 0.6);
+  background: var(--glass-card-bg);
   color: var(--color-text-high);
   font-family: var(--font-body);
   font-size: var(--font-size-body-sm);
@@ -92,7 +94,7 @@
 
 .pagination__jump-input:focus {
   border-color: var(--color-primary-container);
-  box-shadow: 0 0 0 3px rgba(155, 183, 232, 0.2);
+  box-shadow: 0 0 0 3px var(--color-primary-container);
 }
 
 /* Ẩn arrow spinner trong number input */

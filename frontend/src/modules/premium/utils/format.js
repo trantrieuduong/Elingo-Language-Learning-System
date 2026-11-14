@@ -47,3 +47,24 @@ export const getBestValuePlan = (plans = []) => {
       candidates[0]
     ).plan;
 };
+
+/**
+ * Format ngày giờ thành chuỗi dd/MM/yyyy HH:mm theo locale.
+ * @param {string|Date} dateInput
+ * @param {string} locale
+ * @returns {string}
+ */
+export const formatDateTime = (dateInput, locale = 'vi-VN') => {
+  if (!dateInput) return '';
+  const date = new Date(dateInput);
+  if (isNaN(date.getTime())) return '';
+
+  return new Intl.DateTimeFormat(locale, {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(date);
+};

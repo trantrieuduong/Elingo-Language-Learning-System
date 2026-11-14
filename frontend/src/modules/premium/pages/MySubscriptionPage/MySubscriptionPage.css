@@ -1,0 +1,147 @@
+.my-sub-page {
+  width: 100%;
+  max-width: var(--container-wide);
+  min-height: auto;
+  margin-inline: auto;
+  padding-inline: var(--margin-desktop);
+  padding-top: calc(2 * var(--spacing-3xl) + var(--spacing-md));
+  padding-bottom: var(--spacing-2xl);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xl);
+}
+
+.my-sub-page .badge .material-symbols-outlined {
+  font-size: var(--font-size-body-sm);
+}
+
+/* ── Section: Active Subscription ── */
+.my-sub-card {
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex-direction: column;
+}
+
+.my-sub-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
+.my-sub-card__title-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.my-sub-card__icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+}
+
+.my-sub-card__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.my-sub-card__label {
+  color: var(--color-text-mid);
+}
+
+.my-sub-card__value {
+  color: var(--color-text-high);
+  font-weight: var(--font-weight-medium);
+  word-break: break-word;
+}
+
+.my-sub-card__value--highlight {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-display);
+}
+
+/* ── Section: Transactions ── */
+.my-sub-page__tx-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.my-sub-page__section-title {
+  color: var(--color-text-high);
+}
+
+.my-sub-page__tx-card {
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex-direction: column;
+}
+
+.my-sub-table__ref-code {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-sm);
+  letter-spacing: 0.05em;
+  color: var(--color-text-mid);
+}
+
+.my-sub-table__amount {
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-display);
+}
+
+.my-sub-page__pagination-wrap {
+  display: flex;
+  justify-content: center;
+  padding-top: var(--spacing-xs);
+}
+
+.my-sub-page__pagination-wrap .pagination,
+.my-sub-page__tx-section > .pagination {
+  margin-top: var(--spacing-md);
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .my-sub-page {
+    padding-inline: var(--margin-mobile);
+  }
+}
+
+@media (max-width: 600px) {
+  .my-sub-page {
+    width: 100%;
+    padding-top: calc(72px + var(--spacing-sm));
+    gap: var(--spacing-xl);
+  }
+
+  .my-sub-card {
+    padding: var(--spacing-lg);
+  }
+
+  .my-sub-card__header {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--spacing-md);
+    align-items: start;
+  }
+
+  .my-sub-card__title-wrap {
+    grid-column: 1 / -1;
+  }
+
+  .my-sub-page__tx-card {
+    padding: var(--spacing-lg);
+  }
+}

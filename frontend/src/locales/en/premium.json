@@ -39,5 +39,36 @@
     "emptyTitle": "No Premium plans available",
     "loading": "Loading Premium plans...",
     "accumulationNote": "Existing subscriptions will be extended with the new duration."
+  },
+  "mySubscription": {
+    "title": "My Premium Subscription",
+    "cardTitle": "Subscription Details",
+    "status": "Status",
+    "startAt": "Start Date",
+    "endAt": "Expiration Date",
+    "remainingDays": "Remaining Days",
+    "remainingDaysValue": "{{count}} days",
+    "noActiveSubscription": "You do not have an active Premium subscription.",
+    "explorePlans": "Explore Premium Plans",
+    "statuses": {
+      "active": "Active",
+      "expired": "Expired",
+      "cancelled": "Cancelled"
+    },
+    "transactionsTitle": "Transaction History",
+    "transactionsEmpty": "No payment transactions found.",
+    "table": {
+      "planName": "Plan Name",
+      "amount": "Amount",
+      "status": "Status",
+      "paidAt": "Date",
+      "refCode": "Transaction ID"
+    },
+    "txStatuses": {
+      "pending": "Pending",
+      "success": "Success",
+      "failed": "Failed",
+      "refunded": "Refunded"
+    }
   }
 }

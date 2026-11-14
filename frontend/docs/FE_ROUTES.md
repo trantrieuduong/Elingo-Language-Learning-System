@@ -10,7 +10,7 @@
 
 ## 1. Route Map Hiện Tại
 
-> **Trạng thái implementation:** Landing, auth routes, `/decks`, `/lessons` và `/premium` ở mục 1.1 đã có page thực. Các private/admin route bên dưới hiện được guard nhưng đa số vẫn render `PlaceholderPage` trong `App.jsx`; tên component trong bảng là target khi module tương ứng được triển khai.
+> **Trạng thái implementation:** Landing, auth routes, `/decks`, `/lessons`, `/premium`, `/premium/my-subscription` ở mục 1.1 đã có page thực. Các private/admin route bên dưới hiện được guard nhưng đa số vẫn render `PlaceholderPage` trong `App.jsx`; tên component trong bảng là target khi module tương ứng được triển khai.
 
 ### 1.1 Public Routes (Không cần đăng nhập)
 
@@ -22,7 +22,8 @@
 | `/account-verification` | `AccountVerificationPage` | `auth/pages/` | Xác thực email bằng OTP; nhận email qua history state |
 | `/decks` | `DeckListPage` | `vocabulary/pages/` | Trang bộ từ công khai gồm tab bộ từ hệ thống và bộ từ cộng đồng; tab bộ từ của tôi chỉ hiển thị và tải dữ liệu khi đã đăng nhập |
 | `/lessons` | `LessonListPage` | `learning/lesson/pages/` | Danh sách bài học công khai |
-| `/premium` | `PremiumPage` | `premium/pages/` | Danh sách gói Premium đang hoạt động, xem được khi chưa đăng nhập |
+| `/premium` | `PremiumListPage` | `premium/pages/PremiumListPage/` | Danh sách gói Premium đang hoạt động, xem được khi chưa đăng nhập |
+| `/premium/my-subscription` | `MySubscriptionPage` | `premium/pages/MySubscriptionPage/` | Gói Premium đang đăng ký và lịch sử giao dịch của user đang đăng nhập |
 
 **Planned, chưa tạo route/page:** `/forgot-password`, `/reset-password`.
 
@@ -31,9 +32,9 @@
 | Path | Component | Module | Ghi chú |
 |---|---|---|---|
 | `/dashboard` | `DashboardPage` | `user/pages/` | Trang chính sau đăng nhập |
-| `/learning` | `LessonListPage` | `learning/lesson/pages/` | Kho bài học (chọn chế độ bằng modal, không có trang chi tiết riêng) |
-| `/learning/dictation/:slug` | `DictationPage` | `learning/dictation/pages/` | Nghe chép chính tả (định danh theo slug) |
-| `/learning/shadowing/:slug` | `ShadowingPage` | `learning/shadowing/pages/` | Luyện nói đuổi (định danh theo slug) |
+| `/lessons` | `LessonListPage` | `learning/lesson/pages/` | Kho bài học (chọn chế độ bằng modal, không có trang chi tiết riêng) |
+| `/lessons/dictation/:slug` | `DictationPage` | `learning/dictation/pages/` | Nghe chép chính tả (định danh theo slug) |
+| `/lessons/shadowing/:slug` | `ShadowingPage` | `learning/shadowing/pages/` | Luyện nói đuổi (định danh theo slug) |
 | `/decks/:deckSlug` | `FlashcardStudyPage` | `learning/flashcard/pages/` | Học flashcard của một bộ từ (bắt buộc đăng nhập) |
 | `/decks/:deckId/topics` | `TopicListPage` | `vocabulary/pages/` | Quản lý các chủ đề thuộc bộ từ và các thẻ thuộc chủ đề được chọn, bắt buộc đăng nhập |
 | `/review` | `FlashcardReviewPage` | `learning/flashcard/pages/` | Ôn tập flashcard đến hạn (giới hạn 100 flashcard/1 ngày) |
@@ -64,7 +65,7 @@
 | `/admin/lessons/:lessonId/edit` | `AdminLessonEditPage` | `admin/pages/lesson/` | Sửa bài học |
 | `/admin/flashcards` | `AdminFlashcardListPage` | `admin/pages/flashcard/` | Quản lý flashcard |
 | `/admin/vocabulary` | `AdminVocabularyListPage` | `admin/pages/vocabulary/` | Quản lý từ vựng |
-| `/admin/premium` | `AdminPremiumPage` | `admin/pages/premium/` | Quản lý gói Premium |
+| `/admin/premium` | `AdminPremiumListPage` | `admin/pages/premium/` | Quản lý gói Premium |
 | `/admin/reports` | `AdminReportListPage` | `admin/pages/report/` | Xử lý báo cáo vi phạm |
 | `/admin/community` | `AdminCommunityPage` | `admin/pages/community/` | Kiểm duyệt cộng đồng |
 

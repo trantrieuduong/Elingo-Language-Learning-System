@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../../../context/AuthContext';
-import EmptyState from '../../../components/EmptyState/EmptyState';
-import PageLoading from '../../../components/PageLoading/PageLoading';
-import { getPremiumPlansApi } from '../premiumApi';
-import { getBestValuePlan } from '../utils/format';
-import PremiumPlanCard from '../../../components/PremiumPlanCard/PremiumPlanCard';
-import PremiumCheckoutModal from '../components/PremiumCheckoutModal/PremiumCheckoutModal';
-import './PremiumPage.css';
+import { useAuth } from '../../../../context/AuthContext';
+import EmptyState from '../../../../components/EmptyState/EmptyState';
+import PageLoading from '../../../../components/PageLoading/PageLoading';
+import { getPremiumPlansApi } from '../../premiumApi';
+import { getBestValuePlan } from '../../utils/format';
+import PremiumPlanCard from '../../../../components/PremiumPlanCard/PremiumPlanCard';
+import PremiumCheckoutModal from '../../components/PremiumCheckoutModal/PremiumCheckoutModal';
+import './PremiumListPage.css';
 
-function PremiumPage({ onNavigate }) {
+function PremiumListPage({ onNavigate }) {
   const { t } = useTranslation(['premium', 'common']);
   const { user } = useAuth();
 
@@ -106,8 +106,8 @@ function PremiumPage({ onNavigate }) {
                   plan={plan}
                   isFeatured={isFeatured}
                   popularLabel={isFeatured ? t('plans.bestValue') : undefined}
-                  buttonLabel={t('plan.upgrade')}
-                  onSelect={() => handleSelectPlan(plan)}
+                  buttonLabel={user ? t('plan.upgrade') : undefined}
+                  onSelect={user ? () => handleSelectPlan(plan) : undefined}
                 />
               );
             })}
@@ -126,4 +126,4 @@ function PremiumPage({ onNavigate }) {
   );
 }
 
-export default PremiumPage;
+export default PremiumListPage;

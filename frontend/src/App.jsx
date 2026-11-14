@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
@@ -22,7 +22,8 @@ import PostDetailPage from './modules/community/pages/PostDetailPage/PostDetailP
 import { BattleSocketProvider } from './modules/battle/context/BattleSocketContext';
 import BattleLobbyPage from './modules/battle/pages/BattleLobbyPage';
 import BattlePlayPage from './modules/battle/pages/BattlePlayPage';
-import PremiumPage from './modules/premium/pages/PremiumPage';
+import PremiumListPage from './modules/premium/pages/PremiumListPage/PremiumListPage';
+import MySubscriptionPage from './modules/premium/pages/MySubscriptionPage/MySubscriptionPage';
 import './App.css';
 
 const AUTH_PATHS = ['/login', '/signup', '/account-verification', '/reset-password'];
@@ -153,7 +154,7 @@ function App() {
           )}
           onNavigate={navigate}
         />
-        )}
+    )}
     if (battlePlayMatch) {
       return renderBattle(
         <BattlePlayPage matchId={battlePlayMatch[1]} onNavigate={navigate} />
@@ -222,9 +223,9 @@ function App() {
       case '/gamification':
         return <PlaceholderPage title="Gamification" path={currentPath} />;
       case '/premium':
-        return <PremiumPage onNavigate={navigate} />;
+        return <PremiumListPage onNavigate={navigate} />;
       case '/premium/my-subscription':
-        return <PlaceholderPage title="My Subscription" path={currentPath} />;
+        return <MySubscriptionPage onNavigate={navigate} />;
       case '/profile':
         return <PlaceholderPage title="Profile" path={currentPath} />;
       case '/decks':

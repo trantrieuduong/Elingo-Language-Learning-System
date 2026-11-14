@@ -39,5 +39,36 @@
     "emptyTitle": "Chưa có gói Premium",
     "loading": "Đang tải gói Premium...",
     "accumulationNote": "Gói đã đăng ký nếu có sẽ được cộng dồn thời hạn sử dụng."
+  },
+  "mySubscription": {
+    "title": "Gói Premium của tôi",
+    "cardTitle": "Thông tin gói đăng ký",
+    "status": "Trạng thái",
+    "startAt": "Ngày bắt đầu",
+    "endAt": "Ngày hết hạn",
+    "remainingDays": "Thời gian còn lại",
+    "remainingDaysValue": "{{count}} ngày",
+    "noActiveSubscription": "Bạn chưa có gói Premium nào đang hoạt động.",
+    "explorePlans": "Khám phá các gói Premium",
+    "statuses": {
+      "active": "Đang hoạt động",
+      "expired": "Đã hết hạn",
+      "cancelled": "Đã hủy"
+    },
+    "transactionsTitle": "Lịch sử thanh toán",
+    "transactionsEmpty": "Chưa có giao dịch thanh toán nào.",
+    "table": {
+      "planName": "Tên gói",
+      "amount": "Số tiền",
+      "status": "Trạng thái",
+      "paidAt": "Thời gian",
+      "refCode": "Mã giao dịch"
+    },
+    "txStatuses": {
+      "pending": "Đang chờ thanh toán",
+      "success": "Thành công",
+      "failed": "Thất bại",
+      "refunded": "Đã hoàn tiền"
+    }
   }
 }

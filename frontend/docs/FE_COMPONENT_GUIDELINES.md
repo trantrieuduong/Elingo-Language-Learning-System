@@ -319,6 +319,30 @@ Toast dùng chung vị trí cố định phía trên bên phải, ngay dưới H
 - `plan` gồm `name`, `price`, `currency`, `durationDays` và tùy chọn `description`. Giá được hiển thị theo locale; thời hạn được tính từ `durationDays` và hiển thị sau dấu `/`.
 - Truyền `features` và `popularLabel` qua props riêng; `isFeatured` áp dụng kiểu thẻ nổi bật và nút primary. Truyền `buttonLabel` để hiển thị CTA; nút bị vô hiệu hóa nếu không có `onSelect`.
 
+### 7.12 `<Table>` - `src/components/Table/`
+
+```jsx
+<Table
+  columns={[
+    { key: 'planName', title: 'Tên gói', width: 25 },
+    { key: 'amount', title: 'Số tiền', width: 20, align: 'right' },
+    {
+      key: 'status', title: 'Trạng thái', width: 18,
+      render: (value, row, index) => <Badge status={value} />,
+    },
+  ]}
+  data={transactions}
+  rowKey="id" // string key name hoặc hàm (row, index) => string|number
+  className="my-custom-table"
+/>
+```
+
+- Component bảng dữ liệu dùng chung (cho lịch sử giao dịch, bảng quản trị, ...);
+- Tự động bọc trong `.table-wrapper` hỗ trợ cuộn ngang trên thiết bị di động (`overflow-x: auto`);
+- `columns`: mảng cấu hình các cột gồm `key`, `title`, `width` (phần trăm `%` hoặc chuỗi kích thước), `align` (`'left'|'center'|'right'`), và `render(value, row, index)` tùy biến hiển thị ô;
+- `data`: mảng danh sách dữ liệu các hàng;
+- `rowKey`: tên thuộc tính định danh hàng (mặc định `'id'`) hoặc hàm lấy key duy nhất.
+
 ---
 
 ## 8. Khi Nào KHÔNG Tạo Component Mới
