@@ -1,4 +1,4 @@
-package com.elingo.gamification.websocket;
+package com.elingo.gamification.publisher;
 
 public final class GamificationEvents {
     private GamificationEvents() {}
