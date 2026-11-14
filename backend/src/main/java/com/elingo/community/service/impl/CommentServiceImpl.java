@@ -187,32 +187,7 @@ public class CommentServiceImpl implements CommentService {
 
         comment.setContent(request.content());
 
-        String oldKey = comment.getImageUrl();
-        String newKey = request.imageUrl();
-
-        if (newKey != null && !newKey.isBlank()) {
-            if (FileKey.isInZone(newKey, FileKey.VERIFIED_PREFIX)) {
-                requireOwned(newKey, currentUserId);
-                String uploadsKey = requireMediaKind(newKey, MediaKind.IMAGE);
-                comment.setImageUrl(uploadsKey);
-                publisher.publishEvent(new FileAttachedEvent(newKey, uploadsKey));
-                if (oldKey != null && !oldKey.isBlank()) {
-                    publisher.publishEvent(new FileDeletedEvent(List.of(oldKey)));
-                }
-            } else if (FileKey.isInZone(newKey, FileKey.UPLOADS_PREFIX)) {
-                if (!newKey.equals(oldKey)) {
-                    throw new AppException(AppError.INVALID_REQUEST);
-                }
-            } else {
-                throw new AppException(AppError.INVALID_REQUEST);
-            }
-        } else {
-            // Người dùng gỡ bỏ ảnh đính kèm của bình luận
-            if (oldKey != null && !oldKey.isBlank()) {
-                comment.setImageUrl(null);
-                publisher.publishEvent(new FileDeletedEvent(List.of(oldKey)));
-            }
-        }
+        updateCommentImage(comment, request.imageUrl(), currentUserId);
 
         int replyCount = (int) commentRepository.countByParentCommentId(commentId);
         boolean likedByMe = commentLikeRepository.existsByIdCommentIdAndIdUserId(commentId, currentUserId);
@@ -292,6 +267,50 @@ public class CommentServiceImpl implements CommentService {
         commentLikeRepository.deleteByIdCommentIdAndIdUserId(commentId, currentUserId);
         commentRepository.updateLikeCount(commentId, -1);
         log.info("Comment unliked commentId={}", commentId);
+    }
+
+    private void updateCommentImage(Comment comment, String newKey, Long currentUserId) {
+        String oldKey = comment.getImageUrl();
+
+        if (newKey == null || newKey.isBlank()) {
+            removeCommentImage(comment, oldKey);
+            return;
+        }
+
+        if (FileKey.isInZone(newKey, FileKey.VERIFIED_PREFIX)) {
+            attachVerifiedImage(comment, newKey, oldKey, currentUserId);
+        } else if (FileKey.isInZone(newKey, FileKey.UPLOADS_PREFIX)) {
+            validateRetainedImage(newKey, oldKey);
+        } else {
+            throw new AppException(AppError.INVALID_REQUEST);
+        }
+    }
+
+    private void attachVerifiedImage(Comment comment, String newKey, String oldKey, Long currentUserId) {
+        requireOwned(newKey, currentUserId);
+        String uploadsKey = requireMediaKind(newKey, MediaKind.IMAGE);
+        comment.setImageUrl(uploadsKey);
+        publisher.publishEvent(new FileAttachedEvent(newKey, uploadsKey));
+        deleteOldImageIfExists(oldKey);
+    }
+
+    private void validateRetainedImage(String newKey, String oldKey) {
+        if (!newKey.equals(oldKey)) {
+            throw new AppException(AppError.INVALID_REQUEST);
+        }
+    }
+
+    private void removeCommentImage(Comment comment, String oldKey) {
+        if (oldKey != null && !oldKey.isBlank()) {
+            comment.setImageUrl(null);
+            publisher.publishEvent(new FileDeletedEvent(List.of(oldKey)));
+        }
+    }
+
+    private void deleteOldImageIfExists(String oldKey) {
+        if (oldKey != null && !oldKey.isBlank()) {
+            publisher.publishEvent(new FileDeletedEvent(List.of(oldKey)));
+        }
     }
 
     private String requireMediaKind(String verifiedKey, MediaKind... allowed) {

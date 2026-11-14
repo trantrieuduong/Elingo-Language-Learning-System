@@ -29,6 +29,19 @@ springdoc:
     operations-sorter: alpha
 
 app:
+  thread-pool:
+    scheduler:
+      default-pool-size: 2
+      battle-pool-size: 2
+    async:
+      email:
+        core-pool-size: 1
+        max-pool-size: 2
+        queue-capacity: 50
+      gamification:
+        core-pool-size: 1
+        max-pool-size: 2
+        queue-capacity: 100
   community:
     moderation:
       openai-model: omni-moderation-latest

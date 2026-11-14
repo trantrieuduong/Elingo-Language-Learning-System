@@ -24,7 +24,7 @@ public record CursorResponse<T>(
         boolean hasMore = items.size() > limit;
         List<T> pagedItems = hasMore ? items.subList(0, limit) : items;
         String nextCursor = (hasMore && !pagedItems.isEmpty())
-                ? cursorExtractor.apply(pagedItems.get(pagedItems.size() - 1))
+                ? cursorExtractor.apply(pagedItems.getLast())
                 : null;
 
         return new CursorResponse<>(pagedItems, nextCursor, hasMore);

@@ -15,8 +15,8 @@ import com.elingo.battle.websocket.BattleEventPublisher;
 import com.elingo.battle.websocket.BattleEvents;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +27,6 @@ import java.util.concurrent.ScheduledFuture;
 
 @Slf4j(topic = "BATTLE-ENGINE-SERVICE")
 @Service
-@RequiredArgsConstructor
 public class BattleEngineServiceImpl implements BattleEngineService {
 
     private final BattleLiveRegistry registry;
@@ -36,6 +35,20 @@ public class BattleEngineServiceImpl implements BattleEngineService {
     private final BattleProperties props;
     private final ThreadPoolTaskScheduler battleScheduler;
     private final BattleXpService xpService;
+
+    public BattleEngineServiceImpl(BattleLiveRegistry registry,
+                                   BattleEventPublisher publisher,
+                                   BattleMatchPersistenceService persistence,
+                                   BattleProperties props,
+                                   @Qualifier("battleScheduler") ThreadPoolTaskScheduler battleScheduler,
+                                   BattleXpService xpService) {
+        this.registry = registry;
+        this.publisher = publisher;
+        this.persistence = persistence;
+        this.props = props;
+        this.battleScheduler = battleScheduler;
+        this.xpService = xpService;
+    }
 
     @Override
     public void start(LiveMatch m) {

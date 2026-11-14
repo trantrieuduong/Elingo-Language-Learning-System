@@ -6,6 +6,7 @@
   background: var(--color-glass-border-faint);
   border-radius: var(--radius-sm);
   overflow: hidden;
+  max-height: 520px;
 }
 
 .post-card-media--single {
@@ -16,12 +17,9 @@
   grid-template-columns: repeat(2, 1fr);
 }
 
-.post-card-media--triple {
-  grid-template-columns: repeat(3, 1fr);
-}
-
+.post-card-media--triple,
 .post-card-media--quad {
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
 }
 
 .post-card-media__item {
@@ -44,12 +42,42 @@
   aspect-ratio: 4 / 3;
 }
 
-.post-card-media--triple .post-card-media__item {
+.post-card-media--triple .post-card-media__item,
+.post-card-media--quad .post-card-media__item {
   aspect-ratio: 1 / 1;
 }
 
-.post-card-media--quad .post-card-media__item {
-  aspect-ratio: 1 / 1;
+/* Ẩn item thứ 4 trên desktop vì desktop chỉ hiện 1 hàng 3 ô */
+.post-card-media__item--mobile-only {
+  display: none;
+}
+
+.post-card-media__overlay--desktop-only {
+  display: grid;
+}
+
+.post-card-media__overlay--mobile-only {
+  display: none;
+}
+
+@media (max-width: 600px) {
+  /* Trên Mobile: nếu có 4 ảnh thì chia 2 hàng (2 trên 2 dưới) */
+  .post-card-media--quad {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .post-card-media__item--mobile-only {
+    display: block;
+  }
+
+  /* Trên Mobile: ẩn overlay của ô số 3 nếu là layout quad */
+  .post-card-media--quad .post-card-media__overlay--desktop-only {
+    display: none;
+  }
+
+  .post-card-media--quad .post-card-media__overlay--mobile-only {
+    display: grid;
+  }
 }
 
 .post-card-media__asset {

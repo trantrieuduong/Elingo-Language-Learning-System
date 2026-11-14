@@ -5,15 +5,18 @@ import './index.css';
 import App from './App.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { ThemeProvider } from './context/ThemeContext.jsx';
+import { SocketErrorProvider } from './context/SocketErrorContext.jsx';
 import { XpProvider } from './modules/gamification/context/XpContext.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ThemeProvider>
       <AuthProvider>
-        <XpProvider>
-          <App />
-        </XpProvider>
+        <SocketErrorProvider>
+          <XpProvider>
+            <App />
+          </XpProvider>
+        </SocketErrorProvider>
       </AuthProvider>
     </ThemeProvider>
   </StrictMode>
