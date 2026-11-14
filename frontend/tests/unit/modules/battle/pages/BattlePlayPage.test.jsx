@@ -512,4 +512,55 @@ describe('BattlePlayPage page component', () => {
       }
     });
   });
+
+  describe('additional behaviors', () => {
+    it('counts the countdown down every second until GO', () => {
+      vi.useFakeTimers();
+      try {
+        renderPlay({ match: buildMatch({ countdownMs: 3000, foundAt: Date.now() }) });
+        expect(screen.getByText('3')).toBeInTheDocument();
+
+        act(() => {
+          vi.advanceTimersByTime(1000);
+        });
+        expect(screen.getByText('2')).toBeInTheDocument();
+
+        act(() => {
+          vi.advanceTimersByTime(2500);
+        });
+        expect(screen.getByText('GO!')).toBeInTheDocument();
+        // Đếm xong thì dừng interval
+        expect(vi.getTimerCount()).toBe(0);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('does not start a countdown timer when the match has no countdown', () => {
+      vi.useFakeTimers();
+      try {
+        renderPlay({ match: buildMatch({ countdownMs: 0 }) });
+
+        expect(vi.getTimerCount()).toBe(0);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('does not try to rejoin twice when the page re-renders with new callbacks', () => {
+      const { rerender } = renderPlay({ match: null, activeMatchChecked: true, activeMatchId: MATCH_ID });
+
+      rerender(<BattlePlayPage matchId={MATCH_ID} onNavigate={vi.fn()} />);
+
+      expect(socket.rejoinMatch).toHaveBeenCalledTimes(1);
+    });
+
+    it('uses the default name for the current user when the profile has no full name', () => {
+      useAuth.mockReturnValue({ user: { id: 1, fullName: '', avatarUrl: null } });
+
+      renderPlay({ status: 'playing', question: buildQuestion() });
+
+      expect(screen.getByText(tr('battle:play.you'))).toBeInTheDocument();
+    });
+  });
 });

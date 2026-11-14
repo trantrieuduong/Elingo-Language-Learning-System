@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor, within, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import BattleHistoryPage from '@/modules/battle/pages/BattleHistoryPage';
 import { getBattleHistoryApi, getBattleStatsApi } from '@/modules/battle/battleApi';
@@ -360,6 +360,69 @@ describe('BattleHistoryPage page component', () => {
       renderPage();
 
       expect(await screen.findByText(tr('battle:history.loadError'))).toBeInTheDocument();
+    });
+  });
+
+  describe('unmount and malformed responses', () => {
+    const deferred = () => {
+      let resolve;
+      let reject;
+      const promise = new Promise((res, rej) => {
+        resolve = res;
+        reject = rej;
+      });
+      return { promise, resolve, reject };
+    };
+
+    it('ignores responses that arrive after the page is unmounted', async () => {
+      const history = deferred();
+      const stats = deferred();
+      getBattleHistoryApi.mockReturnValue(history.promise);
+      getBattleStatsApi.mockReturnValue(stats.promise);
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const { unmount } = renderPage();
+
+      unmount();
+      await act(async () => {
+        history.resolve(historyResponse([buildItem()]));
+        stats.resolve(statsResponse);
+      });
+
+      expect(errorSpy).not.toHaveBeenCalled();
+      errorSpy.mockRestore();
+    });
+
+    it('ignores failures that arrive after the page is unmounted', async () => {
+      const history = deferred();
+      const stats = deferred();
+      getBattleHistoryApi.mockReturnValue(history.promise);
+      getBattleStatsApi.mockReturnValue(stats.promise);
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const { unmount } = renderPage();
+
+      unmount();
+      await act(async () => {
+        history.reject(new Error('Network error'));
+        stats.reject(new Error('Network error'));
+      });
+
+      expect(errorSpy).not.toHaveBeenCalled();
+      errorSpy.mockRestore();
+    });
+
+    it('shows an error when the response is successful but has no data', async () => {
+      getBattleHistoryApi.mockResolvedValue({ success: true });
+      renderPage();
+
+      expect(await screen.findByText(tr('battle:history.loadError'))).toBeInTheDocument();
+    });
+
+    it('does not render pagination when the response has no total pages', async () => {
+      getBattleHistoryApi.mockResolvedValue({ success: true, data: { content: [buildItem()] } });
+      renderPage();
+      await screen.findByText('Bob');
+
+      expect(document.querySelector('.pagination')).not.toBeInTheDocument();
     });
   });
 });

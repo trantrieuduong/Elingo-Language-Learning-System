@@ -1068,4 +1068,52 @@ describe('BattleSocketContext', () => {
       expect(result.current.question).toBeNull();
     });
   });
+
+  describe('payloads with missing fields', () => {
+    it('stores a null room code when room:created has no room code', () => {
+      const { result } = renderProvider();
+
+      emit('room:created', {});
+
+      expect(result.current.status).toBe('roomWaiting');
+      expect(result.current.roomCode).toBeNull();
+    });
+
+    it('keeps the current mode when match:found has no mode', () => {
+      const { result } = renderProvider();
+
+      emit('match:found', { matchId: 100, players });
+
+      expect(result.current.status).toBe('starting');
+      expect(result.current.mode).toBe('MULTIPLE_CHOICE');
+    });
+
+    it('keeps the scores when match:finished has no players list', () => {
+      const { result } = renderProvider();
+      startMatch(result);
+
+      emit('match:finished', { matchId: 100, winnerId: 1 });
+
+      expect(result.current.status).toBe('finished');
+      expect(result.current.finished).toEqual({ matchId: 100, winnerId: 1 });
+      expect(result.current.scores).toEqual({ 1: 0, 2: 0 });
+    });
+  });
+
+  describe('rejoin failure to send', () => {
+    it('does not treat later match-not-found errors as a failed rejoin when the rejoin message was not sent', () => {
+      send.mockReturnValue(false);
+      const { result } = renderProvider();
+
+      act(() => {
+        result.current.rejoinMatch(100);
+      });
+      emit('error', { code: 'BATTLE_MATCH_NOT_FOUND' });
+
+      expect(send).toHaveBeenCalledWith('/app/battle/rejoin', { matchId: 100 });
+      expect(result.current.status).toBe('idle');
+      expect(result.current.error).toBe('BATTLE_MATCH_NOT_FOUND');
+      expect(result.current.cancelReason).toBeNull();
+    });
+  });
 });

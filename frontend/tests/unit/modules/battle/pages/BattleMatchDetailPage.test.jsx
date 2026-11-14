@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, within, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import BattleMatchDetailPage from '@/modules/battle/pages/BattleMatchDetailPage';
 import { getBattleDetailApi } from '@/modules/battle/battleApi';
@@ -322,6 +322,75 @@ describe('BattleMatchDetailPage page component', () => {
       renderPage();
 
       expect(await screen.findByText(tr('battle:detail.loadError'))).toBeInTheDocument();
+    });
+  });
+
+  describe('additional behaviors', () => {
+    it('ignores responses that arrive after the page is unmounted', async () => {
+      let resolveDetail;
+      getBattleDetailApi.mockReturnValue(new Promise((resolve) => { resolveDetail = resolve; }));
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const { unmount } = renderPage();
+
+      unmount();
+      await act(async () => {
+        resolveDetail({ success: true, data: buildDetail() });
+      });
+
+      expect(errorSpy).not.toHaveBeenCalled();
+      errorSpy.mockRestore();
+    });
+
+    it('ignores failures that arrive after the page is unmounted', async () => {
+      let rejectDetail;
+      getBattleDetailApi.mockReturnValue(new Promise((_, reject) => { rejectDetail = reject; }));
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const { unmount } = renderPage();
+
+      unmount();
+      await act(async () => {
+        rejectDetail(new Error('Network error'));
+      });
+
+      expect(errorSpy).not.toHaveBeenCalled();
+      errorSpy.mockRestore();
+    });
+
+    it('renders a match without a finished time', async () => {
+      getBattleDetailApi.mockResolvedValue({ success: true, data: buildDetail({ finishedAt: null }) });
+      renderPage();
+
+      expect(await screen.findByRole('heading', { name: /#100/ })).toBeInTheDocument();
+    });
+
+    it('shows a wrong answer of mine and a missing answer of the opponent in an expanded round', async () => {
+      const user = userEvent.setup();
+      getBattleDetailApi.mockResolvedValue({
+        success: true,
+        data: buildDetail({
+          rounds: [
+            {
+              roundNo: 1,
+              term: 'apple',
+              correctAnswer: 'táo',
+              answers: [
+                { userId: 1, answered: true, answerText: 'cam', isCorrect: false, responseTimeMs: 4000 },
+                { userId: 2, answered: false, answerText: null, isCorrect: false, responseTimeMs: null },
+              ],
+            },
+          ],
+        }),
+      });
+      const { container } = renderPage();
+      await screen.findByRole('heading', { name: /#100/ });
+
+      await user.click(screen.getByText('apple').closest('button'));
+
+      const body = container.querySelector('.battle-detail-round-body');
+      const answers = [...body.querySelectorAll('.battle-detail-answer-text')].map((el) => el.textContent);
+      expect(answers).toEqual(['cam', tr('battle:detail.noAnswer')]);
+      expect(body.querySelector('.battle-detail-status-icon.text-error')).toHaveTextContent('cancel');
+      expect(body.querySelectorAll('.battle-detail-status-icon')).toHaveLength(1);
     });
   });
 });

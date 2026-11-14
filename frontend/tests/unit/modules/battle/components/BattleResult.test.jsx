@@ -196,4 +196,43 @@ describe('BattleResult component', () => {
       expect(screen.queryByRole('button', { name: trRx('battle:result.viewHistory') })).not.toBeInTheDocument();
     });
   });
+
+  describe('edge cases', () => {
+    it('highlights the opponent row when the opponent is the winner', () => {
+      const { container } = renderResult({
+        finished: buildFinished({
+          winnerId: 2,
+          players: [
+            { userId: 1, score: 100, correctCount: 1, isWinner: false },
+            { userId: 2, score: 300, correctCount: 3, isWinner: true },
+          ],
+        }),
+      });
+
+      const rows = container.querySelectorAll('.battle-result-row');
+      expect(rows[0]).not.toHaveClass('battle-result-row--winner');
+      expect(rows[1]).toHaveClass('battle-result-row--winner');
+    });
+
+    it('does not highlight any row when the match is a draw', () => {
+      const { container } = renderResult({
+        finished: buildFinished({
+          winnerId: null,
+          players: [
+            { userId: 1, score: 200, correctCount: 2, isWinner: false },
+            { userId: 2, score: 200, correctCount: 2, isWinner: false },
+          ],
+        }),
+      });
+
+      expect(container.querySelectorAll('.battle-result-row--winner')).toHaveLength(0);
+    });
+
+    it('renders without finished data using default values', () => {
+      renderResult({ finished: undefined });
+
+      expect(screen.getAllByText('0')).toHaveLength(2);
+      expect(screen.queryByText(tr('battle:result.forfeitWin'))).not.toBeInTheDocument();
+    });
+  });
 });

@@ -379,4 +379,95 @@ describe('BattleLobbyPage page component', () => {
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     });
   });
+
+  describe('additional behaviors', () => {
+    afterEach(() => {
+      delete navigator.clipboard;
+    });
+
+    it('hides the copied state again after two seconds', async () => {
+      vi.useFakeTimers();
+      try {
+        const writeText = vi.fn().mockResolvedValue(undefined);
+        Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+        renderLobby({ status: 'roomWaiting', roomCode: 'ABC234' });
+
+        await act(async () => {
+          fireEvent.click(screen.getByRole('button', { name: trRx('battle:room.copy') }));
+        });
+        expect(screen.getByText(tr('battle:room.copied'))).toBeInTheDocument();
+
+        act(() => {
+          vi.advanceTimersByTime(2100);
+        });
+
+        expect(screen.queryByText(tr('battle:room.copied'))).not.toBeInTheDocument();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('hides the copied state again after two seconds when the clipboard API fails', async () => {
+      vi.useFakeTimers();
+      try {
+        const writeText = vi.fn().mockRejectedValue(new Error('denied'));
+        Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+        renderLobby({ status: 'roomWaiting', roomCode: 'ABC234' });
+
+        await act(async () => {
+          fireEvent.click(screen.getByRole('button', { name: trRx('battle:room.copy') }));
+        });
+        expect(screen.getByText(tr('battle:room.copied'))).toBeInTheDocument();
+
+        act(() => {
+          vi.advanceTimersByTime(2100);
+        });
+
+        expect(screen.queryByText(tr('battle:room.copied'))).not.toBeInTheDocument();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('does not copy anything when there is no room code', () => {
+      const writeText = vi.fn().mockResolvedValue(undefined);
+      Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+      renderLobby({ status: 'roomWaiting', roomCode: null });
+
+      fireEvent.click(screen.getByRole('button', { name: trRx('battle:room.copy') }));
+
+      expect(writeText).not.toHaveBeenCalled();
+    });
+
+    it('formats the searching time with two digit seconds', () => {
+      vi.useFakeTimers();
+      try {
+        renderLobby({ status: 'searching' });
+
+        act(() => {
+          vi.advanceTimersByTime(75000);
+        });
+
+        expect(screen.getByText(tr('battle:searchingTime', { time: '1:15' }))).toBeInTheDocument();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('shows the typing mode in the searching dialog', () => {
+      localStorage.setItem('battle.mode', 'TYPING');
+
+      renderLobby({ status: 'searching' });
+
+      expect(screen.getByText(tr('battle:mode.typing'), { selector: 'strong' })).toBeInTheDocument();
+    });
+
+    it('shows the typing mode in the room waiting dialog', () => {
+      localStorage.setItem('battle.mode', 'TYPING');
+
+      renderLobby({ status: 'roomWaiting', roomCode: 'ABC234' });
+
+      expect(screen.getByText(tr('battle:mode.typing'), { selector: 'strong' })).toBeInTheDocument();
+    });
+  });
 });

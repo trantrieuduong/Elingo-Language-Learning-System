@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, act } from '@testing-library/react';
+import { render, screen, act, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import QuestionArea from '@/modules/battle/components/QuestionArea/QuestionArea';
 import { tr } from '../../../../utils/i18n';
@@ -346,6 +346,34 @@ describe('QuestionArea component', () => {
 
       expect(screen.getByText('ice cream', { selector: '.battle-round-result__correct-val' })).toBeInTheDocument();
       expect(screen.getByText(`+120 ${tr('battle:play.points')}`)).toBeInTheDocument();
+    });
+  });
+
+  describe('edge cases', () => {
+    it('renders an empty hint when the answer pattern is an empty list', () => {
+      const { container } = render(<QuestionArea question={buildTypingQuestion({ answerPattern: [] })} />);
+
+      expect(container.querySelector('.battle-typing-hint__text').textContent).toBe('');
+    });
+
+    it('does not submit a typed answer when the question is locked', async () => {
+      const onSubmit = vi.fn();
+      const { container } = render(
+        <QuestionArea question={buildTypingQuestion()} answered onSubmit={onSubmit} />
+      );
+
+      fireEvent.submit(container.querySelector('form'));
+
+      expect(onSubmit).not.toHaveBeenCalled();
+    });
+
+    it('does not submit when the typed answer is blank even if the form is submitted directly', () => {
+      const onSubmit = vi.fn();
+      const { container } = render(<QuestionArea question={buildTypingQuestion()} onSubmit={onSubmit} />);
+
+      fireEvent.submit(container.querySelector('form'));
+
+      expect(onSubmit).not.toHaveBeenCalled();
     });
   });
 });
