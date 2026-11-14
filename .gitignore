@@ -68,3 +68,5 @@ storybook-static
 # Python
 __pycache__/
 .venv/
+
+ai-logs.txt
