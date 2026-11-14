@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -27,4 +28,10 @@ public interface UserSubscriptionRepository extends JpaRepository<UserSubscripti
     int updateStatusForExpiredSubscriptions(@Param("expiredStatus") SubscriptionStatus expiredStatus,
                                             @Param("activeStatus") SubscriptionStatus activeStatus,
                                             @Param("now") LocalDateTime now);
+
+    @Query("SELECT s FROM UserSubscription s JOIN FETCH s.user JOIN FETCH s.plan " +
+           "WHERE s.status = :status AND s.endAt > :now AND s.endAt <= :threshold")
+    List<UserSubscription> findExpiringSubscriptions(@Param("status") SubscriptionStatus status,
+                                                     @Param("now") LocalDateTime now,
+                                                     @Param("threshold") LocalDateTime threshold);
 }

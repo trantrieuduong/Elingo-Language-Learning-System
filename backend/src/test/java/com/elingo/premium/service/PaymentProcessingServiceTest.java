@@ -1,6 +1,8 @@
 package com.elingo.premium.service;
 
+import com.elingo.common.event.NotificationEvent;
 import com.elingo.common.event.PaymentSucceededEvent;
+import com.elingo.notification.entity.NotificationType;
 import com.elingo.premium.dto.PaymentProcessingResult;
 import com.elingo.premium.entity.PaymentProvider;
 import com.elingo.premium.entity.PaymentTransaction;
@@ -155,7 +157,10 @@ class PaymentProcessingServiceTest {
             WebhookEvent event = new WebhookEvent("evt_1", "ELGO_REF_123", new BigDecimal("99000"), true, "{}");
             when(transactionRepository.findByRefCodeForUpdate("ELGO_REF_123")).thenReturn(Optional.of(testTransaction));
 
-            UserSubscription createdSub = UserSubscription.builder().id(200L).build();
+            UserSubscription createdSub = UserSubscription.builder()
+                    .id(200L)
+                    .endAt(LocalDateTime.of(2026, 12, 1, 10, 0))
+                    .build();
             when(subscriptionService.activateOrExtend(1L, 10L)).thenReturn(createdSub);
 
             PaymentProcessingResult result = paymentProcessingService.process(event, testProvider);
@@ -170,11 +175,20 @@ class PaymentProcessingServiceTest {
             verify(transactionRepository).save(testTransaction);
             verify(subscriptionService).activateOrExtend(1L, 10L);
 
-            ArgumentCaptor<PaymentSucceededEvent> eventCaptor = ArgumentCaptor.forClass(PaymentSucceededEvent.class);
-            verify(eventPublisher).publishEvent(eventCaptor.capture());
-            assertThat(eventCaptor.getValue().transactionId()).isEqualTo(100L);
-            assertThat(eventCaptor.getValue().userId()).isEqualTo(1L);
-            assertThat(eventCaptor.getValue().planId()).isEqualTo(10L);
+            ArgumentCaptor<PaymentSucceededEvent> paymentEventCaptor = ArgumentCaptor.forClass(PaymentSucceededEvent.class);
+            verify(eventPublisher).publishEvent(paymentEventCaptor.capture());
+            assertThat(paymentEventCaptor.getValue().transactionId()).isEqualTo(100L);
+            assertThat(paymentEventCaptor.getValue().userId()).isEqualTo(1L);
+            assertThat(paymentEventCaptor.getValue().planId()).isEqualTo(10L);
+
+            ArgumentCaptor<NotificationEvent> notifEventCaptor = ArgumentCaptor.forClass(NotificationEvent.class);
+            verify(eventPublisher).publishEvent(notifEventCaptor.capture());
+            NotificationEvent notif = notifEventCaptor.getValue();
+            assertThat(notif.recipientId()).isEqualTo(1L);
+            assertThat(notif.type()).isEqualTo(NotificationType.SUBSCRIPTION_ACTIVATED);
+            assertThat(notif.refId()).isEqualTo(200L);
+            assertThat(notif.args()).containsEntry("planName", testPlan.getName());
+            assertThat(notif.args()).containsEntry("expiresAt", "01/12/2026");
         }
     }
 }

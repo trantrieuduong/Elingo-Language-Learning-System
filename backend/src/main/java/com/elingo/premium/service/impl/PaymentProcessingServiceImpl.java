@@ -6,6 +6,7 @@ import com.elingo.premium.entity.PaymentTransaction;
 import com.elingo.premium.entity.PaymentTransactionStatus;
 import com.elingo.premium.entity.UserSubscription;
 import com.elingo.premium.entity.WebhookLogStatus;
+import com.elingo.common.event.NotificationEvent;
 import com.elingo.common.event.PaymentSucceededEvent;
 import com.elingo.premium.gateway.WebhookEvent;
 import com.elingo.premium.repository.PaymentTransactionRepository;
@@ -18,12 +19,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "PAYMENT-PROCESSING-SERVICE")
 public class PaymentProcessingServiceImpl implements PaymentProcessingService {
+
+    private static final DateTimeFormatter EXPIRES_AT_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private final PaymentTransactionRepository transactionRepository;
     private final SubscriptionService subscriptionService;
@@ -104,6 +108,14 @@ public class PaymentProcessingServiceImpl implements PaymentProcessingService {
                 tx.getPlan().getId(),
                 tx.getAmount(),
                 tx.getPaidAt()
+        ));
+
+        String expiresAt = subscription.getEndAt() != null ? subscription.getEndAt().format(EXPIRES_AT_FORMATTER) : "";
+        eventPublisher.publishEvent(NotificationEvent.subscriptionActivated(
+                tx.getUser().getId(),
+                subscription.getId(),
+                tx.getPlan().getName(),
+                expiresAt
         ));
 
         return new PaymentProcessingResult(tx.getId(), WebhookLogStatus.PROCESSED, "Payment processed successfully");
