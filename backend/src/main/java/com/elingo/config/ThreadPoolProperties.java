@@ -15,8 +15,15 @@ public record ThreadPoolProperties(
     ) {}
 
     public record Async(
+            @DefaultValue App app,
             @DefaultValue Email email,
             @DefaultValue Gamification gamification
+    ) {}
+
+    public record App(
+            @DefaultValue("2") int corePoolSize,
+            @DefaultValue("4") int maxPoolSize,
+            @DefaultValue("200") int queueCapacity
     ) {}
 
     public record Email(
