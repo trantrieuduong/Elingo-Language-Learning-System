@@ -187,6 +187,7 @@ public enum AppError {
     REPORT_ALREADY_RESOLVED("REPORT_ALREADY_RESOLVED", "Report has already been resolved or rejected", HttpStatus.BAD_REQUEST),
     CANNOT_REPORT_SELF("CANNOT_REPORT_SELF", "You cannot report your own account or content", HttpStatus.BAD_REQUEST),
     REPORT_TARGET_NOT_FOUND("REPORT_TARGET_NOT_FOUND", "The target entity being reported does not exist", HttpStatus.NOT_FOUND),
+    REPORT_ALREADY_EXISTS("REPORT_ALREADY_EXISTS", "You have already submitted a pending report for this item", HttpStatus.BAD_REQUEST),
 
     // ==========================================
     // 11. Premium & Payment (Gói Premium & Thanh toán)
