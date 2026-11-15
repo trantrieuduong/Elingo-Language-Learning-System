@@ -19,6 +19,20 @@
   gap: var(--spacing-lg);
 }
 
+.battle-play-loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-3xl);
+  gap: var(--spacing-md);
+  min-height: 320px;
+}
+
+.battle-play-restoring-text {
+  margin: 0;
+}
+
 .battle-play-loading {
   display: flex;
   align-items: center;
@@ -26,6 +40,37 @@
   padding: var(--spacing-3xl);
   border-radius: var(--radius-card-lg);
   min-height: 280px;
+}
+
+/* Vòng nghỉ sau rejoin */
+.battle-play-rejoin-round-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-2xl) var(--spacing-xl);
+  border-radius: var(--radius-card-lg);
+  gap: var(--spacing-md);
+  text-align: center;
+}
+
+.battle-play-rejoin-round-result__badge {
+  padding: 4px 14px;
+}
+
+.battle-play-rejoin-round-result__answer {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.battle-play-rejoin-round-result__score {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.battle-play-rejoin-round-result__next {
+  margin: 0;
 }
 
 .battle-play-countdown-card {
@@ -199,8 +244,14 @@
   max-width: 440px;
 }
 
-.battle-cancelled-btn {
+.battle-cancelled-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
   margin-top: var(--spacing-md);
+}
+
+.battle-cancelled-btn {
   padding: 0.875rem 2rem;
 }
 
@@ -218,5 +269,14 @@
 
   .battle-play-versus__divider {
     transform: rotate(90deg);
+  }
+
+  .battle-cancelled-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .battle-cancelled-btn {
+    width: 100%;
   }
 }

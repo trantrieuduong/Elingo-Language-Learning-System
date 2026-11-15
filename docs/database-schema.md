@@ -456,7 +456,7 @@ CREATE TABLE post_moderation_logs (
   actor_type ENUM('AI','ADMIN') NOT NULL,
   actor_id BIGINT UNSIGNED NULL,              -- id admin nếu actor_type = ADMIN, NULL nếu AI
   action ENUM('AUTO_APPROVE','AUTO_REJECT','FLAG_FOR_REVIEW',
-              'MANUAL_APPROVE','MANUAL_REJECT','MANUAL_HIDE') NOT NULL,
+              'MANUAL_APPROVE','MANUAL_REJECT') NOT NULL,
   ai_label VARCHAR(100) NULL,                 -- ví dụ 'SPAM', 'HATE_SPEECH', 'CLEAN' (chỉ có khi actor_type = AI)
   ai_score DECIMAL(5,4) NULL,                 -- độ tin cậy AI trả về (chỉ có khi actor_type = AI)
   note VARCHAR(500) NULL,                     -- ghi chú của admin khi duyệt tay
@@ -669,13 +669,14 @@ CREATE TABLE speaking_participants (
 CREATE TABLE notifications (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   user_id BIGINT UNSIGNED NOT NULL,
-  type VARCHAR(100) NOT NULL,           -- ví dụ: 'REPORT_RESOLVED', 'BADGE_EARNED', 'SUBSCRIPTION_EXPIRING'
+  type ENUM('POST_LIKED','POST_COMMENTED','COMMENT_REPLIED','BADGE_EARNED','SUBSCRIPTION_ACTIVATED','SUBSCRIPTION_EXPIRING','REPORT_RESOLVED') NOT NULL,
   title VARCHAR(255) NOT NULL,
-  content VARCHAR(500),
-  ref_type VARCHAR(50),
+  params JSON,
+  ref_type ENUM('POST','COMMENT','BADGE','SUBSCRIPTION','REPORT'),
   ref_id BIGINT UNSIGNED,
   is_read BOOLEAN NOT NULL DEFAULT FALSE,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   INDEX idx_notification_user (user_id, is_read, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

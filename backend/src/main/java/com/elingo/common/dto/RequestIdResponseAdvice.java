@@ -1,6 +1,7 @@
 package com.elingo.common.dto;
 
 import com.elingo.config.RequestLoggingFilter;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.MDC;
 import org.springframework.core.MethodParameter;
@@ -14,17 +15,17 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 @RestControllerAdvice
 public class RequestIdResponseAdvice implements ResponseBodyAdvice<Object> {
     @Override
-    public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
+    public boolean supports(@NonNull MethodParameter returnType, @NonNull Class<? extends HttpMessageConverter<?>> converterType) {
         return true;
     }
 
     @Override
     public @Nullable Object beforeBodyWrite(@Nullable Object body,
-                                            MethodParameter returnType,
-                                            MediaType selectedContentType,
-                                            Class<? extends HttpMessageConverter<?>> selectedConverterType,
-                                            ServerHttpRequest request,
-                                            ServerHttpResponse response) {
+                                            @NonNull MethodParameter returnType,
+                                            @NonNull MediaType selectedContentType,
+                                            @NonNull Class<? extends HttpMessageConverter<?>> selectedConverterType,
+                                            @NonNull ServerHttpRequest request,
+                                            @NonNull ServerHttpResponse response) {
         if (body instanceof ApiResponse<?> api && api.getRequestId() == null) {
             api.setRequestId(MDC.get(RequestLoggingFilter.REQUEST_ID));
         }

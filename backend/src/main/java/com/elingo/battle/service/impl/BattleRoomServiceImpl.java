@@ -10,6 +10,7 @@ import com.elingo.battle.state.BattleRoomRegistry;
 import com.elingo.battle.state.LiveRoom;
 import com.elingo.battle.util.BattleRoomCode;
 import com.elingo.battle.websocket.BattleEventPublisher;
+import com.elingo.battle.websocket.BattleEvents;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import lombok.RequiredArgsConstructor;
@@ -50,7 +51,7 @@ public class BattleRoomServiceImpl implements BattleRoomService {
 
         registry.register(new LiveRoom(code, userId, mode));
         log.info("Room created roomCode={} hostId={} mode={}", code, userId, mode);
-        eventPublisher.sendToUser(userId, "room:created", new RoomCreatedResponse(code, mode));
+        eventPublisher.sendToUser(userId, BattleEvents.ROOM_CREATED, new RoomCreatedResponse(code, mode));
     }
 
     @Override
@@ -87,15 +88,15 @@ public class BattleRoomServiceImpl implements BattleRoomService {
         } catch (Exception ex) {
             log.error("Unexpected error creating room match roomCode={} hostId={} guestId={}",
                     code, hostId, userId, ex);
-            eventPublisher.sendError(hostId, "INTERNAL_ERROR", "Failed to create match");
-            eventPublisher.sendError(userId, "INTERNAL_ERROR", "Failed to create match");
+            eventPublisher.sendError(hostId, AppError.INTERNAL_SERVER_ERROR.getCode(), AppError.INTERNAL_SERVER_ERROR.getMessage());
+            eventPublisher.sendError(userId, AppError.INTERNAL_SERVER_ERROR.getCode(), AppError.INTERNAL_SERVER_ERROR.getMessage());
         }
     }
 
     @Override
     public synchronized void leaveRoom(Long userId) {
         registry.removeByHost(userId);
-        eventPublisher.sendToUser(userId, "room:left", Collections.emptyMap());
+        eventPublisher.sendToUser(userId, BattleEvents.ROOM_LEFT, Collections.emptyMap());
         log.info("Room left userId={}", userId);
     }
 

@@ -169,19 +169,24 @@
   z-index: 2;
 }
 
-.vocabulary-card__cover-image {
-  width: 100%;
-  height: 160px;
-  object-fit: cover;
-  border-bottom: 1px solid var(--color-outline-variant);
-}
-
 .vocabulary-card__body {
   padding: var(--spacing-lg);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
   flex: 1;
+}
+
+.vocabulary-card__cover-image {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  height: auto;
+  object-fit: cover;
+  border-bottom: 1px solid var(--color-outline-variant);
+}
+
+.vocabulary-card--without-cover .vocabulary-card__body {
+  padding-top: calc(var(--spacing-lg) + var(--spacing-xl));
 }
 
 .vocabulary-card:hover {

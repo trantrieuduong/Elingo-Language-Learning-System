@@ -1,6 +1,5 @@
 package com.elingo.learning.shadowing.service.impl;
 
-import com.elingo.common.enums.LessonMode;
 import com.elingo.common.event.FileAttachedEvent;
 import com.elingo.common.event.FileDeletedEvent;
 import com.elingo.common.event.XpGainedEvent;
@@ -15,6 +14,7 @@ import com.elingo.learning.lesson.entity.LessonSegment;
 import com.elingo.learning.lesson.entity.SegmentWordAccuracy;
 import com.elingo.learning.lesson.entity.UserLessonProgress;
 import com.elingo.learning.lesson.entity.UserSegmentProgress;
+import com.elingo.learning.lesson.enums.LessonMode;
 import com.elingo.learning.lesson.mapper.LessonProgressMapper;
 import com.elingo.learning.lesson.repository.LessonSegmentRepository;
 import com.elingo.learning.lesson.service.LessonAccessService;
@@ -25,6 +25,7 @@ import com.elingo.learning.shadowing.dto.request.UpdateShadowingProgressRequest;
 import com.elingo.learning.shadowing.dto.request.WordAccuracyItem;
 import com.elingo.learning.shadowing.service.ShadowingService;
 import com.elingo.learning.shadowing.service.ShadowingScoringService;
+import com.elingo.progress.service.ProgressService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -46,6 +47,7 @@ public class ShadowingServiceImpl implements ShadowingService {
     private final LessonSegmentRepository lessonSegmentRepository;
     private final LessonProgressService lessonProgressService;
     private final LessonProgressMapper lessonProgressMapper;
+    private final ProgressService progressService;
     private final ShadowingScoringService scoringService;
     private final LessonProperties lessonProperties;
     private final ApplicationEventPublisher publisher;
@@ -127,7 +129,7 @@ public class ShadowingServiceImpl implements ShadowingService {
         LessonProgressSummaryResponse summaryResponse = lessonProgressMapper.toLessonProgressSummaryResponse(lessonProgress);
         boolean passed = finalScore >= pass;
 
-        return new SegmentSubmitResponse(finalScore, passed, lessonProgressService.buildSegmentProgress(progress), summaryResponse);
+        return new SegmentSubmitResponse(finalScore, passed, progressService.buildSegmentProgress(progress), summaryResponse);
     }
 
     // Key phải thuộc chính user này

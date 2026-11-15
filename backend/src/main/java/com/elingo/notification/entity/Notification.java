@@ -1,13 +1,7 @@
 package com.elingo.notification.entity;
 
 import com.elingo.user.entity.User;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Index;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -19,6 +13,10 @@ import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 
 import com.elingo.common.entity.BaseEntity;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+import java.util.Map;
 
 @Entity
 @Table(
@@ -40,17 +38,20 @@ public class Notification extends BaseEntity {
     @EqualsAndHashCode.Exclude
     User user;
 
-    @Column(length = 100, nullable = false)
-    String type;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 100, updatable = false)
+    NotificationType type;
 
     @Column(nullable = false)
     String title;
 
-    @Column(length = 500)
-    String content;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "params", columnDefinition = "json", updatable = false)
+    Map<String, String> params;
 
-    @Column(name = "ref_type", length = 50)
-    String refType;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ref_type", length = 50, updatable = false)
+    NotificationRefType refType;
 
     @Column(name = "ref_id")
     Long refId;

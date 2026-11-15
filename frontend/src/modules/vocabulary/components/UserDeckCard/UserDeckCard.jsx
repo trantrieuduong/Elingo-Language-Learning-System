@@ -49,20 +49,6 @@ function UserDeckCard({ deck, onEdit, onDelete, onToggleStatus, onManageTopics }
         cardCount={totalCards}
       />
 
-      {/* Ảnh bìa */}
-      {deck.coverImageUrl ? (
-        <img
-          src={deck.coverImageUrl}
-          alt={deck.title || t('userDeck.form.coverPreviewAlt')}
-          className="user-deck-card__cover"
-          loading="lazy"
-        />
-      ) : (
-        <div className="user-deck-card__cover-placeholder">
-          <span className="material-symbols-outlined">layers</span>
-        </div>
-      )}
-
       {/* Nội dung card */}
       <div className="user-deck-card__body">
         {/* Tags và CEFR levels */}

@@ -102,14 +102,10 @@ function TopicFormModal({
     }
   };
 
-  const handleOverlayClick = (e) => {
-    if (e.target === e.currentTarget) onClose?.();
-  };
-
   const isCreate = mode === 'create';
 
   return createPortal(
-    <div className="topic-form-overlay" onClick={handleOverlayClick}>
+    <div className="topic-form-overlay">
       <div className="topic-form-modal glass-capsule">
         {/* Header */}
         <div className="topic-form-header">

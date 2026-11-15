@@ -179,7 +179,7 @@ public class UserIntegrationTest extends BaseIntegrationTest {
                                         .andExpect(jsonPath("$.success").value(true));
 
                         User updatedUser = userRepository.findById(testUser.getId()).orElseThrow();
-                        assert updatedUser.getEmail().equals(NEW_EMAIL);
+                        assertThat(updatedUser.getEmail()).isEqualTo(NEW_EMAIL);
                 }
 
                 @Test

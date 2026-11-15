@@ -8,7 +8,9 @@ const BattleResult = ({
   finished,
   matchType = 'RANDOM',
   totalRounds = 10,
+  xpGained = null,
   onExit,
+  onViewHistory,
 }) => {
   const { t } = useTranslation('battle');
 
@@ -126,17 +128,26 @@ const BattleResult = ({
         </div>
       </div>
 
-      {/* Gợi ý XP tĩnh nếu chưa đủ 3 câu đúng */}
-      {showXpHint && (
+      {/* Dòng +N XP hoặc Gợi ý XP tĩnh */}
+      {xpGained != null ? (
+        <div className="battle-result-xp-hint battle-result-xp-gained glass-thumb">
+          <span className="material-symbols-outlined battle-result-xp-hint__icon text-primary">
+            bolt
+          </span>
+          <span className="text-title-sm text-primary font-bold">
+            {t('result.xpGained', { xp: xpGained })}
+          </span>
+        </div>
+      ) : showXpHint ? (
         <div className="battle-result-xp-hint glass-thumb">
           <span className="material-symbols-outlined battle-result-xp-hint__icon">
             info
           </span>
           <span className="text-body-sm">{t('result.xpHint')}</span>
         </div>
-      )}
+      ) : null}
 
-      {/* Nút Chơi lại / Về sảnh */}
+      {/* Nút Chơi lại / Xem lịch sử */}
       <div className="battle-result-actions">
         <button
           type="button"
@@ -146,10 +157,19 @@ const BattleResult = ({
           <span className="material-symbols-outlined">replay</span>
           {t('result.playAgain')}
         </button>
+        {onViewHistory && (
+          <button
+            type="button"
+            className="btn-secondary battle-result-actions__btn"
+            onClick={onViewHistory}
+          >
+            <span className="material-symbols-outlined">history</span>
+            {t('result.viewHistory')}
+          </button>
+        )}
       </div>
     </div>
   );
 };
 
 export default BattleResult;
-

@@ -13,6 +13,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,11 +29,12 @@ public class LessonController {
     private final LessonService lessonService;
 
     @GetMapping
-    @Operation(summary = "Get all published lessons with optional filters (cefrLevelIds, tagIds, keyword) and pagination (9 items/page)")
+    @Operation(summary = "Get all published lessons with optional filters (cefrLevelIds, tagIds, keyword) and pagination (default 9 items/page, 1-based page)")
     public ApiResponse<PageResponse<LessonResponse>> getAllPublishedLessons(
             @ModelAttribute @Valid GetPublishedLessonsRequest request,
+            @PageableDefault(size = 9, sort = {"publishedAt", "id"}, direction = Sort.Direction.DESC) Pageable pageable,
             @CurrentUserId Long userId) {
-        PageResponse<LessonResponse> response = lessonService.getAllPublishedLessons(userId, request);
+        PageResponse<LessonResponse> response = lessonService.getAllPublishedLessons(userId, request, pageable);
         return ApiResponse.<PageResponse<LessonResponse>>builder()
                 .success(true)
                 .data(response)

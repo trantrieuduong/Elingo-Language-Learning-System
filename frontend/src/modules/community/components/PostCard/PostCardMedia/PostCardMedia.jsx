@@ -3,10 +3,12 @@ import { useTranslation } from 'react-i18next';
 import MediaLightbox from '../../MediaLightbox/MediaLightbox';
 import './PostCardMedia.css';
 
-const MAX_VISIBLE_ITEMS = 4;
+const MAX_VISIBLE_ITEMS_DESKTOP = 3;
+const MAX_VISIBLE_ITEMS_MOBILE = 4;
 
 /**
- * PostCardMedia — Lưới hiển thị danh sách tập tin đa phương tiện (ảnh/video) với tối đa 4 ô.
+ * PostCardMedia — Hiển thị danh sách tập tin đa phương tiện (ảnh/video).
+ * Desktop: 1 hàng 3 ô (nếu có 3+ item), Mobile: lưới 2 hàng 2x2 tối đa 4 ô.
  *
  * @param {Array} media - Danh sách media [{ id, type, url, poster, alt }]
  */
@@ -29,20 +31,22 @@ function PostCardMedia({ media = [] }) {
           ? 'post-card-media--triple'
           : 'post-card-media--quad';
 
-  const remainingCount = media.length - MAX_VISIBLE_ITEMS;
+  const remainingDesktop = media.length - MAX_VISIBLE_ITEMS_DESKTOP;
+  const remainingMobile = media.length - MAX_VISIBLE_ITEMS_MOBILE;
 
   const handleItemClick = (index) => setSelectedMediaIndex(index);
 
   return (
     <div className={`post-card-media ${gridClass}`}>
-      {media.slice(0, MAX_VISIBLE_ITEMS).map((item, index) => {
-        const isRemainingOverlay = index === MAX_VISIBLE_ITEMS - 1 && remainingCount > 0;
+      {media.slice(0, MAX_VISIBLE_ITEMS_MOBILE).map((item, index) => {
+        const isThirdItem = index === 2;
+        const isFourthItem = index === 3;
 
         return (
           <div
             key={item.id || index}
             onClick={() => handleItemClick(index)}
-            className="post-card-media__item"
+            className={`post-card-media__item ${isFourthItem ? 'post-card-media__item--mobile-only' : ''}`}
           >
             {item.type === 'video' ? (
               <div className="post-card-media__video-container">
@@ -64,8 +68,16 @@ function PostCardMedia({ media = [] }) {
               <img src={item.url} alt={item.alt || ''} className="post-card-media__asset" />
             )}
 
-            {isRemainingOverlay && (
-              <span className="post-card-media__overlay">+{remainingCount}</span>
+            {isThirdItem && remainingDesktop > 0 && (
+              <span className="post-card-media__overlay post-card-media__overlay--desktop-only">
+                +{remainingDesktop}
+              </span>
+            )}
+
+            {isFourthItem && remainingMobile > 0 && (
+              <span className="post-card-media__overlay post-card-media__overlay--mobile-only">
+                +{remainingMobile}
+              </span>
             )}
           </div>
         );

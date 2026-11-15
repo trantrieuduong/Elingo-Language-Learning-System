@@ -29,6 +29,35 @@ springdoc:
     operations-sorter: alpha
 
 app:
+  thread-pool:
+    scheduler:
+      default-pool-size: 2
+      battle-pool-size: 2
+    async:
+      app:
+        core-pool-size: 2
+        max-pool-size: 4
+        queue-capacity: 200
+      email:
+        core-pool-size: 1
+        max-pool-size: 2
+        queue-capacity: 50
+      gamification:
+        core-pool-size: 1
+        max-pool-size: 2
+        queue-capacity: 100
+  community:
+    moderation:
+      openai-model: omni-moderation-latest
+      openai-base-url: https://api.openai.com # OpenAI SDK
+      scheduler:
+        fixed-delay-seconds: 30
+        batch-size: 5
+        maxAttempts: 3
+      policy:
+        auto-reject-threshold: 0.7
+        review-threshold: 0.5
+        video-max-frames: 12
   otp:
     expiration-minutes: 15
   flashcard:
@@ -63,6 +92,7 @@ app:
     scheduler:
       expire-cron: 0 0 * * * *
       cancel-tx-cron: 0 */30 * * * *
+      expiring-cron: 0 0 8 * * *
   battle:
     total-rounds: 10
     question-time-ms: 15000

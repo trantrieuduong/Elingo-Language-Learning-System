@@ -151,51 +151,66 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
 
-        // 1. Avatar: chỉ kiểm tra, chưa ghi 
-        // null/rỗng = xoá; trùng key hiện tại = giữ; còn lại = ảnh mới.
-        String newKey = StringUtils.hasText(request.avatarUrl()) ? request.avatarUrl() : null;
-        String oldKey = user.getAvatarUrl();
-        boolean avatarChanged = !Objects.equals(newKey, oldKey);
-        String newUploadsKey = null;
-        if (avatarChanged && newKey != null) {
-            requireOwned(newKey, userId);                 // key phải thuộc chính user này
-            newUploadsKey = FileKey.toUploads(newKey);    // sai vùng -> AppException(INVALID_REQUEST)
-            if (newUploadsKey.equals(oldKey)) {           // gửi lại verified key đã dùng: bỏ qua hết
-                avatarChanged = false;
-            }
-        }
+        boolean isUsernameChanged = validateUsernameChange(user, request.username(), userId);
 
-        // 2. Username
-        boolean isUsernameChanged = !request.username().equals(user.getUsername());
-        if (isUsernameChanged) {
-            if (!user.canChangeUsername()) {
-                log.warn("Username change rejected due to cooldown userId={} lastChangedAt={}",
-                        userId, user.getUsernameChangedAt());
-                throw new AppException(AppError.CANNOT_CHANGE_USERNAME_YET);
-            }
-            if (userRepository.existsByUsername(request.username())) {
-                log.warn("Username change rejected, already exists userId={}", userId);
-                throw new AppException(AppError.USERNAME_EXISTED);
-            }
-        }
-
-        // 3. Ghi các field thường
         userMapper.updateUser(user, request);
+
         if (isUsernameChanged) {
             user.setUsernameChangedAt(LocalDateTime.now());
         }
 
-        // 4. Avatar: ghi key uploads/ (hoặc null) rồi phát event
-        if (avatarChanged) {
-            user.setAvatarUrl(newUploadsKey);
-            if (newUploadsKey != null) {
-                publisher.publishEvent(new FileAttachedEvent(newKey, newUploadsKey));
-            }
-            if (FileKey.isInZone(oldKey, FileKey.UPLOADS_PREFIX)) { // false khi oldKey null hoặc không phải file hệ thống
-                publisher.publishEvent(new FileDeletedEvent(List.of(oldKey)));
+        updateAvatar(user, request.avatarUrl(), userId);
+
+        return userMapper.toUserMeResponse(user);
+    }
+
+    private boolean validateUsernameChange(User user, String newUsername, Long userId) {
+        if (newUsername.equals(user.getUsername())) {
+            return false;
+        }
+
+        if (!user.canChangeUsername()) {
+            log.warn("Username change rejected due to cooldown userId={} lastChangedAt={}",
+                    userId, user.getUsernameChangedAt());
+            throw new AppException(AppError.CANNOT_CHANGE_USERNAME_YET);
+        }
+
+        if (userRepository.existsByUsername(newUsername)) {
+            log.warn("Username change rejected, already exists userId={}", userId);
+            throw new AppException(AppError.USERNAME_EXISTED);
+        }
+
+        return true;
+    }
+
+    private void updateAvatar(User user, String requestAvatarUrl, Long userId) {
+        String newKey = StringUtils.hasText(requestAvatarUrl) ? requestAvatarUrl : null;
+        String oldKey = user.getAvatarUrl();
+        if (Objects.equals(newKey, oldKey)) {
+            return;
+        }
+
+        String newUploadsKey = null;
+        if (newKey != null) {
+            requireOwned(newKey, userId);
+            newUploadsKey = FileKey.toUploads(newKey);
+            if (newUploadsKey.equals(oldKey)) {
+                return;
             }
         }
-        return userMapper.toUserMeResponse(user);
+
+        user.setAvatarUrl(newUploadsKey);
+        publishAvatarEvents(newKey, newUploadsKey, oldKey);
+    }
+
+    private void publishAvatarEvents(String newKey, String newUploadsKey, String oldKey) {
+        if (newUploadsKey != null) {
+            publisher.publishEvent(new FileAttachedEvent(newKey, newUploadsKey));
+        }
+
+        if (FileKey.isInZone(oldKey, FileKey.UPLOADS_PREFIX)) {
+            publisher.publishEvent(new FileDeletedEvent(List.of(oldKey)));
+        }
     }
 
     // Key phải thuộc chính user này

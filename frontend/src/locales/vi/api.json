@@ -78,7 +78,8 @@
     "BATTLE_QUESTION_ALREADY_ANSWERED": "Bạn đã trả lời câu hỏi này rồi.",
     "CANNOT_BATTLE_YOURSELF": "Không thể tự thi đấu với chính mình.",
     "BATTLE_NOT_ENOUGH_CARDS": "Không đủ từ vựng để tạo trận đấu.",
-    "BATTLE_ANSWER_INVALID": "Câu trả lời không hợp lệ."
+    "BATTLE_ANSWER_INVALID": "Câu trả lời không hợp lệ.",
+    "MALFORMED_JSON": "Dữ liệu gửi lên không hợp lệ."
   },
   "validation": {
     "username": {

@@ -252,12 +252,8 @@ function PostFormModal({
     }
   };
 
-  const handleOverlayClick = () => {
-    handleClose();
-  };
-
   return createPortal(
-    <div className="post-form-modal__overlay" onClick={handleOverlayClick} role="dialog">
+    <div className="post-form-modal__overlay" role="dialog">
       <div className="post-form-modal__container" onClick={(e) => e.stopPropagation()}>
         {/* Header Modal */}
         <header className="post-form-modal__header">

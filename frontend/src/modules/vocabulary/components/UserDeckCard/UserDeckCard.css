@@ -76,33 +76,10 @@
   pointer-events: none;
 }
 
-/* Cover Image / Placeholder */
-.user-deck-card__cover {
-  width: 100%;
-  height: 160px;
-  object-fit: cover;
-  border-bottom: 1px solid var(--color-outline-variant);
-}
-
-.user-deck-card__cover-placeholder {
-  width: 100%;
-  height: 160px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, rgba(67, 95, 139, 0.08) 0%, rgba(155, 183, 232, 0.15) 100%);
-  border-bottom: 1px solid var(--color-outline-variant);
-}
-
-.user-deck-card__cover-placeholder span {
-  font-size: 48px;
-  color: var(--color-primary);
-  opacity: 0.55;
-}
-
 /* Card Body */
 .user-deck-card__body {
   padding: var(--spacing-lg);
+  padding-top: calc(var(--spacing-lg) + var(--spacing-xl));
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);

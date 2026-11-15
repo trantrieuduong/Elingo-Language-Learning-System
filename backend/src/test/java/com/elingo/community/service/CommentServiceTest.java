@@ -3,6 +3,7 @@ package com.elingo.community.service;
 import com.elingo.common.dto.PageResponse;
 import com.elingo.common.event.FileAttachedEvent;
 import com.elingo.common.event.FileDeletedEvent;
+import com.elingo.common.event.NotificationEvent;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.community.dto.request.CreateCommentRequest;
@@ -18,6 +19,7 @@ import com.elingo.community.repository.CommentLikeRepository;
 import com.elingo.community.repository.CommentRepository;
 import com.elingo.community.repository.PostRepository;
 import com.elingo.community.service.impl.CommentServiceImpl;
+import com.elingo.notification.entity.NotificationType;
 import com.elingo.user.entity.Role;
 import com.elingo.user.entity.User;
 import com.elingo.user.repository.UserRepository;
@@ -27,6 +29,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -158,7 +161,7 @@ class CommentServiceTest {
     class CreateCommentTests {
 
         @Test
-        @DisplayName("Create root comment successfully without image")
+        @DisplayName("Create root comment successfully without image: publishes NotificationEvent")
         void createComment_Success_RootWithoutImage() {
             CreateCommentRequest request = new CreateCommentRequest(POST_ID, null, "Root comment", null);
 
@@ -178,11 +181,18 @@ class CommentServiceTest {
             assertThat(response.id()).isEqualTo(COMMENT_ID);
             verify(commentRepository).save(any(Comment.class));
             verify(postRepository).updateCommentCount(POST_ID, 1);
-            verify(publisher, never()).publishEvent(any());
+
+            ArgumentCaptor<NotificationEvent> eventCaptor = ArgumentCaptor.forClass(NotificationEvent.class);
+            verify(publisher).publishEvent(eventCaptor.capture());
+            NotificationEvent event = eventCaptor.getValue();
+            assertThat(event.recipientId()).isEqualTo(postAuthor.getId());
+            assertThat(event.type()).isEqualTo(NotificationType.POST_COMMENTED);
+            assertThat(event.refId()).isEqualTo(POST_ID);
+            assertThat(event.args()).containsEntry("actor", testUser.getUsername());
         }
 
         @Test
-        @DisplayName("Create root comment successfully with verified image")
+        @DisplayName("Create root comment successfully with verified image: publishes FileAttachedEvent and NotificationEvent")
         void createComment_Success_WithImage() {
             String imageKey = "verified/1/pic.png";
             CreateCommentRequest request = new CreateCommentRequest(POST_ID, null, "Comment with image", imageKey);
@@ -203,10 +213,11 @@ class CommentServiceTest {
             verify(commentRepository).save(any(Comment.class));
             verify(postRepository).updateCommentCount(POST_ID, 1);
             verify(publisher).publishEvent(any(FileAttachedEvent.class));
+            verify(publisher).publishEvent(any(NotificationEvent.class));
         }
 
         @Test
-        @DisplayName("Create reply comment successfully")
+        @DisplayName("Create reply comment successfully: publishes NotificationEvent")
         void createComment_Success_Reply() {
             CreateCommentRequest request = new CreateCommentRequest(POST_ID, PARENT_COMMENT_ID, "Reply comment", null);
 
@@ -226,6 +237,61 @@ class CommentServiceTest {
             assertThat(response).isNotNull();
             verify(commentRepository).save(any(Comment.class));
             verify(postRepository).updateCommentCount(POST_ID, 1);
+
+            ArgumentCaptor<NotificationEvent> eventCaptor = ArgumentCaptor.forClass(NotificationEvent.class);
+            verify(publisher).publishEvent(eventCaptor.capture());
+            NotificationEvent event = eventCaptor.getValue();
+            assertThat(event.recipientId()).isEqualTo(parentComment.getUser().getId());
+            assertThat(event.type()).isEqualTo(NotificationType.COMMENT_REPLIED);
+            assertThat(event.refId()).isEqualTo(POST_ID);
+            assertThat(event.args()).containsEntry("actor", testUser.getUsername());
+        }
+
+        @Test
+        @DisplayName("Create root comment by post author: does not publish NotificationEvent")
+        void createComment_Success_RootByAuthor_DoesNotPublishNotificationEvent() {
+            CreateCommentRequest request = new CreateCommentRequest(POST_ID, null, "Author own comment", null);
+
+            when(postRepository.findById(POST_ID)).thenReturn(Optional.of(testPost));
+            when(userRepository.findById(OTHER_USER_ID)).thenReturn(Optional.of(postAuthor));
+            when(commentRepository.save(any(Comment.class))).thenAnswer(inv -> {
+                Comment c = inv.getArgument(0);
+                c.setId(COMMENT_ID);
+                return c;
+            });
+            when(postMapper.toCommentResponse(any(Comment.class), eq(0), eq(false)))
+                    .thenAnswer(inv -> buildCommentResponse(inv.getArgument(0), 0, false));
+
+            CommentResponse response = commentService.createComment(request, OTHER_USER_ID);
+
+            assertThat(response).isNotNull();
+            verify(commentRepository).save(any(Comment.class));
+            verify(postRepository).updateCommentCount(POST_ID, 1);
+            verify(publisher, never()).publishEvent(any(NotificationEvent.class));
+        }
+
+        @Test
+        @DisplayName("Create reply comment by comment author: does not publish NotificationEvent")
+        void createComment_Success_ReplyToOwnComment_DoesNotPublishNotificationEvent() {
+            CreateCommentRequest request = new CreateCommentRequest(POST_ID, PARENT_COMMENT_ID, "Reply to own comment", null);
+
+            when(postRepository.findById(POST_ID)).thenReturn(Optional.of(testPost));
+            when(userRepository.findById(OTHER_USER_ID)).thenReturn(Optional.of(postAuthor));
+            when(commentRepository.findById(PARENT_COMMENT_ID)).thenReturn(Optional.of(parentComment));
+            when(commentRepository.save(any(Comment.class))).thenAnswer(inv -> {
+                Comment c = inv.getArgument(0);
+                c.setId(COMMENT_ID);
+                return c;
+            });
+            when(postMapper.toCommentResponse(any(Comment.class), eq(0), eq(false)))
+                    .thenAnswer(inv -> buildCommentResponse(inv.getArgument(0), 0, false));
+
+            CommentResponse response = commentService.createComment(request, OTHER_USER_ID);
+
+            assertThat(response).isNotNull();
+            verify(commentRepository).save(any(Comment.class));
+            verify(postRepository).updateCommentCount(POST_ID, 1);
+            verify(publisher, never()).publishEvent(any(NotificationEvent.class));
         }
 
         @Test

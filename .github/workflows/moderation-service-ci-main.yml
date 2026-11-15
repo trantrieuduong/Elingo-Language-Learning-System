@@ -1,0 +1,205 @@
+name: Moderation Service CI - main
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'moderation-service/**'
+      - '.github/workflows/moderation-service-ci-main.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'moderation-service/**'
+      - '.github/workflows/moderation-service-ci-main.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: moderation-ci-main-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  PYTHON_VERSION: "3.11"
+
+defaults:
+  run:
+    working-directory: moderation-service
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # 1. BUILD & TEST
+  # ---------------------------------------------------------------------------
+  test:
+    name: 1. Build & Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: moderation-service/requirements.txt
+
+      - name: Install dependencies (PyTorch CPU)
+        run: pip install -r requirements.txt pytest httpx
+
+      - name: Compile check
+        run: python -m compileall -q app
+
+      - name: Run tests
+        if: ${{ hashFiles('moderation-service/tests/**') != '' }}
+        run: python -m pytest -q
+
+  # ---------------------------------------------------------------------------
+  # 2. SECURITY / DEPENDENCY SCANNING
+  # ---------------------------------------------------------------------------
+  security:
+    name: 2. Security & Dependency Scanning
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Trivy - scan filesystem (source, dependency, Dockerfile)
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          scan-type: fs
+          scan-ref: moderation-service
+          scanners: vuln,misconfig,secret
+          exit-code: '1'
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          format: sarif
+          output: trivy-moderation.sarif
+        env:
+          TRIVY_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-db
+
+      - name: Upload Trivy SARIF
+        if: always() && hashFiles('trivy-moderation.sarif') != ''
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-moderation.sarif
+          category: trivy-moderation
+
+  # ---------------------------------------------------------------------------
+  # 3. PACKAGING (Docker Build & Push)
+  # ---------------------------------------------------------------------------
+  package:
+    name: 3. Packaging (Docker Build & Push)
+    needs: [test, security]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30   # build lần đầu phải tải model từ Hugging Face
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/moderation-service
+          tags: |
+            type=sha,format=short,prefix=
+            type=raw,value=latest
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./moderation-service
+          file: ./moderation-service/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=moderation-service
+          cache-to: type=gha,mode=max,scope=moderation-service
+
+  # ---------------------------------------------------------------------------
+  # 4. AUTO-DEPLOY (chỉ cập nhật container moderation-service)
+  # ---------------------------------------------------------------------------
+  deploy:
+    name: 4. Auto-Deploy
+    needs: package
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Deploy moderation-service via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.PROD_SERVER_HOST }}
+          username: ${{ secrets.PROD_SERVER_USER }}
+          key: ${{ secrets.PROD_SERVER_SSH_KEY }}
+          port: ${{ secrets.PROD_SERVER_PORT || 22 }}
+          script: |
+            set -e
+            echo "Chờ khóa deploy (tránh chạy song song với backend)..."
+            exec 9>/tmp/elingo-deploy.lock
+            flock -w 900 9
+
+            cd /opt/elingo
+
+            if ! docker compose config --services | grep -qx moderation-service; then
+              echo "docker-compose.yml trên VPS chưa có moderation-service (backend chưa deploy bản mới) - bỏ qua deploy, image đã được push."
+              exit 0
+            fi
+
+            echo "Đăng nhập vào GHCR trên VPS..."
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            echo "Kéo image moderation-service mới nhất..."
+            docker compose pull moderation-service
+
+            echo "Cập nhật container moderation-service..."
+            docker compose up -d --no-deps moderation-service
+
+            echo "Chờ moderation-service healthy (nạp model)..."
+            for i in $(seq 1 36); do
+              status=$(docker inspect -f '{{.State.Health.Status}}' elingo-moderation 2>/dev/null || echo "unknown")
+              echo "  [$i/36] health=$status"
+              if [ "$status" = "healthy" ]; then
+                docker image prune -f
+                echo "Triển khai moderation-service hoàn tất!"
+                exit 0
+              fi
+              sleep 5
+            done
+
+            echo "moderation-service không healthy sau 180s. Log gần nhất:"
+            docker logs --tail 50 elingo-moderation || true
+            exit 1

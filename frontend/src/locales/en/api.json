@@ -78,7 +78,8 @@
     "BATTLE_QUESTION_ALREADY_ANSWERED": "You have already answered this question.",
     "CANNOT_BATTLE_YOURSELF": "You cannot battle against yourself.",
     "BATTLE_NOT_ENOUGH_CARDS": "Not enough vocabulary cards to create a match.",
-    "BATTLE_ANSWER_INVALID": "Invalid battle answer."
+    "BATTLE_ANSWER_INVALID": "Invalid battle answer.",
+    "MALFORMED_JSON": "Invalid data format."
   },
   "validation": {
     "username": {

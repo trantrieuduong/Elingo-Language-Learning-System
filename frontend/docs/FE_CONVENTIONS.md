@@ -1,4 +1,4 @@
-# FE_CONVENTIONS.md — Elingo Frontend Conventions
+﻿# FE_CONVENTIONS.md — Elingo Frontend Conventions
 
 > Tài liệu này là **single source of truth** về architecture và code conventions cho frontend của Elingo.
 >
@@ -263,6 +263,7 @@ onNavigate('/account-verification', { email })
 - **Request Interceptor**: Gắn `Bearer token` từ `localStorage`
 - **Response Interceptor**: Tự refresh khi 401, xử lý failedQueue
 - Khi refresh thất bại: xóa localStorage → dispatch `auth:logout` → redirect `/login`
+- Goi `/auth/refresh` phai qua `requestRefresh()` (axios thuan, khong gan Authorization); **khong** goi `apiClient.post('/auth/refresh')`.
 
 ### 5.2 Module API Files
 

@@ -24,8 +24,20 @@ const MODE_STORAGE_KEY = 'battle.mode';
 const BattleLobbyPage = ({ onNavigate }) => {
   const { t } = useTranslation('battle');
   const { t: tApi } = useTranslation('api');
-  const { connection, status, match, error, joinQueue, leaveQueue, clearError } =
-    useBattleSocket();
+  const {
+    connection,
+    status,
+    match,
+    error,
+    roomCode,
+    activeMatchId,
+    joinQueue,
+    leaveQueue,
+    createRoom,
+    joinRoom,
+    leaveRoom,
+    clearError,
+  } = useBattleSocket();
 
   const [selectedMode, setSelectedMode] = useState(() => {
     try {
@@ -40,6 +52,9 @@ const BattleLobbyPage = ({ onNavigate }) => {
   });
 
   const [searchSeconds, setSearchSeconds] = useState(0);
+  const [inputRoomCode, setInputRoomCode] = useState('');
+  const [roomError, setRoomError] = useState(null);
+  const [isCopied, setIsCopied] = useState(false);
 
   const handleSelectMode = (newMode) => {
     setSelectedMode(newMode);
@@ -52,8 +67,46 @@ const BattleLobbyPage = ({ onNavigate }) => {
 
   const handleStartQueue = () => {
     clearError();
+    setRoomError(null);
     joinQueue(selectedMode);
   };
+
+  const handleCreateRoom = () => {
+    clearError();
+    setRoomError(null);
+    createRoom(selectedMode);
+  };
+
+  const handleJoinRoom = () => {
+    clearError();
+    setRoomError(null);
+    const code = inputRoomCode.trim().toUpperCase();
+    if (code.length !== 6) {
+      setRoomError(t('room.codeInvalid'));
+      return;
+    }
+    joinRoom(code);
+  };
+
+  const handleCopyCode = async () => {
+    if (!roomCode) return;
+    try {
+      await navigator.clipboard.writeText(roomCode);
+      setIsCopied(true);
+      setTimeout(() => {
+        setIsCopied(false);
+      }, 2000);
+    } catch {
+      // Fallback nếu clipboard API bị lỗi
+      setIsCopied(true);
+      setTimeout(() => {
+        setIsCopied(false);
+      }, 2000);
+    }
+  };
+
+  const isConnected = connection === 'connected';
+  const hasActiveMatch = status === 'idle' && !!activeMatchId;
 
   // Đếm giây khi đang tìm trận
   useEffect(() => {
@@ -76,13 +129,13 @@ const BattleLobbyPage = ({ onNavigate }) => {
     }
   }, [status, match, onNavigate]);
 
-  const errorMessage = error
-    ? t(`error.${error}`, { defaultValue: '' }) ||
-      tApi(`error.${error}`, { defaultValue: '' }) ||
-      tApi('common.UNKNOWN_ERROR')
-    : null;
-
-  const isConnected = connection === 'connected';
+  const errorMessage =
+    roomError ||
+    (error
+      ? t(`error.${error}`, { defaultValue: '' }) ||
+        tApi(`error.${error}`, { defaultValue: '' }) ||
+        tApi('common.UNKNOWN_ERROR')
+      : null);
 
   const formatSeconds = (sec) => {
     const mins = Math.floor(sec / 60);
@@ -105,109 +158,300 @@ const BattleLobbyPage = ({ onNavigate }) => {
           </div>
         )}
 
-        {/* Khối chính: Chọn chế độ HOẶC Đang tìm trận */}
+        {/* Banner trận dở */}
+        {hasActiveMatch && (
+          <div className="battle-lobby-resume glass-card">
+            <div className="battle-lobby-resume__content">
+              <div className="battle-lobby-resume__header">
+                <span className="material-symbols-outlined battle-lobby-resume__icon">
+                  history_toggle_off
+                </span>
+                <span className="text-title-md battle-lobby-resume__title">
+                  {t('resume.title')}
+                </span>
+              </div>
+              <p className="text-body-sm text-disabled battle-lobby-resume__desc">
+                {t('resume.desc')}
+              </p>
+            </div>
+            <button
+              type="button"
+              className="btn-primary battle-lobby-resume__btn"
+              onClick={() => onNavigate(`/battle/play/${activeMatchId}`)}
+            >
+              <span className="material-symbols-outlined">play_arrow</span>
+              {t('resume.continue')}
+            </button>
+          </div>
+        )}
+
+        {/* Khối chính: Chọn chế độ hoặc Đang tìm trận hoặc Đang chờ phòng */}
         <div className="battle-lobby-card glass-card">
           <header className="battle-lobby-card__header">
-            <h1 className="text-headline-md battle-lobby-card__title">{t('title')}</h1>
-            <p className="text-body-md text-disabled battle-lobby-card__subtitle">
-              {t('subtitle')}
-            </p>
+            <div className="battle-lobby-card__header-left">
+              <div className="battle-lobby-card__header-icon-box">
+                <span className="material-symbols-outlined battle-lobby-card__header-icon">
+                  swords
+                </span>
+              </div>
+              <div className="battle-lobby-card__title-group">
+                <h1 className="text-headline-md battle-lobby-card__title">{t('title')}</h1>
+                <p className="text-body-md text-disabled battle-lobby-card__subtitle">
+                  {t('subtitle')}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              className="battle-lobby-history-link"
+              onClick={() => onNavigate('/battle/history')}
+              aria-label={t('history.link')}
+            >
+              <span className="material-symbols-outlined">history</span>
+              <span>{t('history.link')}</span>
+            </button>
           </header>
 
-          {status === 'searching' ? (
-            <div className="battle-lobby-searching">
-              <div className="app-loading-spinner battle-lobby-searching__spinner" />
-              <h2 className="text-title-lg battle-lobby-searching__title">
+          <div className="battle-lobby-modes">
+            <div className="battle-lobby-divider">
+              <span>{t('mode.title')}</span>
+            </div>
+            <div className="battle-lobby-modes__grid" role="radiogroup">
+              {MODES.map((item) => {
+                const isSelected = selectedMode === item.key;
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    role="radio"
+                    aria-checked={isSelected}
+                    className={`battle-mode-card glass-card ${
+                      isSelected ? 'battle-mode-card--selected' : ''
+                    }`}
+                    onClick={() => handleSelectMode(item.key)}
+                    disabled={hasActiveMatch}
+                  >
+                    <div className="battle-mode-card__icon-wrapper glass-thumb">
+                      <span className="material-symbols-outlined battle-mode-card__icon">
+                        {item.icon}
+                      </span>
+                    </div>
+                    <div className="battle-mode-card__content">
+                      <span className="text-title-md battle-mode-card__title">
+                        {t(item.labelKey)}
+                      </span>
+                      <p className="text-body-sm text-disabled battle-mode-card__desc">
+                        {t(item.descKey)}
+                      </p>
+                    </div>
+                    <span className="material-symbols-outlined battle-mode-card__arrow">
+                      chevron_right
+                    </span>
+                    {isSelected && (
+                      <span className="material-symbols-outlined battle-mode-card__check">
+                        check_circle
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {hasActiveMatch && (
+              <div className="battle-lobby-blocked-notice text-body-sm text-warning">
+                <span className="material-symbols-outlined">info</span>
+                {t('resume.blocked')}
+              </div>
+            )}
+
+            {/* Nút tìm trận ngẫu nhiên */}
+            <div className="battle-lobby-actions">
+              <button
+                type="button"
+                className="btn-primary battle-lobby-actions__find-btn"
+                disabled={!isConnected || hasActiveMatch}
+                onClick={handleStartQueue}
+              >
+                <span className="material-symbols-outlined">swords</span>
+                <span>{t('findMatch')}</span>
+                <span className="material-symbols-outlined">arrow_forward</span>
+              </button>
+            </div>
+
+            {/* Khối phòng riêng */}
+            <div className="battle-lobby-room-section">
+              <div className="battle-lobby-room-divider">
+                <span>{t('room.title')}</span>
+              </div>
+
+              <div className="battle-lobby-room-grid">
+                {/* Tạo phòng */}
+                <div className="battle-lobby-room-card glass-card">
+                  <div className="battle-lobby-room-card__header">
+                    <div className="battle-lobby-room-card__icon-wrapper glass-thumb">
+                      <span className="material-symbols-outlined battle-lobby-room-card__icon">
+                        add_circle
+                      </span>
+                    </div>
+                    <div className="battle-lobby-room-card__title-group">
+                      <span className="text-title-sm">{t('room.create')}</span>
+                      <p className="text-body-sm text-disabled battle-lobby-room-card__desc">
+                        {t('room.createDesc')}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-primary battle-lobby-room-card__action-btn"
+                    disabled={!isConnected || hasActiveMatch}
+                    onClick={handleCreateRoom}
+                  >
+                    {t('room.create')}
+                  </button>
+                </div>
+
+                {/* Vào phòng bằng mã */}
+                <div className="battle-lobby-room-card glass-card">
+                  <div className="battle-lobby-room-card__header">
+                    <div className="battle-lobby-room-card__icon-wrapper glass-thumb">
+                      <span className="material-symbols-outlined battle-lobby-room-card__icon">
+                        login
+                      </span>
+                    </div>
+                    <div className="battle-lobby-room-card__title-group">
+                      <span className="text-title-sm">{t('room.joinTitle')}</span>
+                      <p className="text-body-sm text-disabled battle-lobby-room-card__desc">
+                        {t('room.waitingDesc')}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="battle-lobby-room-input-group">
+                    <input
+                      type="text"
+                      className="battle-lobby-room-input"
+                      placeholder={t('room.codePlaceholder')}
+                      aria-label={t('room.codeLabel')}
+                      maxLength={6}
+                      autoComplete="off"
+                      spellCheck={false}
+                      value={inputRoomCode}
+                      onChange={(e) => {
+                        setInputRoomCode(e.target.value.toUpperCase());
+                        if (roomError) setRoomError(null);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (isConnected && !hasActiveMatch) handleJoinRoom();
+                        }
+                      }}
+                      disabled={hasActiveMatch}
+                    />
+                    <button
+                      type="button"
+                      className="btn-primary battle-lobby-room-join-btn"
+                      disabled={!isConnected || hasActiveMatch}
+                      onClick={handleJoinRoom}
+                    >
+                      {t('room.join')}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Modal tìm trận ngẫu nhiên (Popup) */}
+        {status === 'searching' && (
+          <div className="battle-modal-overlay">
+            <div className="battle-search-modal" role="dialog" aria-modal="true">
+              <div className="app-loading-spinner battle-search-modal__spinner" />
+              <h2 className="battle-search-modal__title">
                 {t('searching')}
               </h2>
-              <div className="battle-lobby-searching__meta">
-                <span className="battle-lobby-searching__mode">
-                  {t('searchingMode', {
-                    mode: t(
+              <div className="battle-search-modal__meta">
+                <span className="battle-search-modal__mode">
+                  {t('mode.title')}:{' '}
+                  <strong className="text-primary">
+                    {t(
                       selectedMode === 'MULTIPLE_CHOICE'
                         ? 'mode.multipleChoice'
                         : 'mode.typing'
-                    ),
-                  })}
+                    )}
+                  </strong>
                 </span>
-                <span className="battle-lobby-searching__time">
+                <span className="battle-search-modal__time">
                   {t('searchingTime', { time: formatSeconds(searchSeconds) })}
                 </span>
               </div>
               <button
                 type="button"
-                className="btn-secondary battle-lobby-searching__cancel-btn"
+                className="btn-secondary battle-search-modal__cancel-btn"
                 onClick={leaveQueue}
               >
                 {t('cancel')}
               </button>
             </div>
-          ) : (
-            <div className="battle-lobby-modes">
-              <h2 className="text-title-sm battle-lobby-modes__label">
-                {t('mode.title')}
-              </h2>
-              <div className="battle-lobby-modes__grid" role="radiogroup">
-                {MODES.map((item) => {
-                  const isSelected = selectedMode === item.key;
-                  return (
-                    <button
-                      key={item.key}
-                      type="button"
-                      role="radio"
-                      aria-checked={isSelected}
-                      className={`battle-mode-card glass-card ${
-                        isSelected ? 'battle-mode-card--selected' : ''
-                      }`}
-                      onClick={() => handleSelectMode(item.key)}
-                    >
-                      <div className="battle-mode-card__icon-wrapper glass-thumb">
-                        <span className="material-symbols-outlined battle-mode-card__icon">
-                          {item.icon}
-                        </span>
-                      </div>
-                      <div className="battle-mode-card__content">
-                        <span className="text-title-md battle-mode-card__title">
-                          {t(item.labelKey)}
-                        </span>
-                        <p className="text-body-sm text-disabled battle-mode-card__desc">
-                          {t(item.descKey)}
-                        </p>
-                      </div>
-                      {isSelected && (
-                        <span className="material-symbols-outlined battle-mode-card__check">
-                          check_circle
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+          </div>
+        )}
 
-              <div className="battle-lobby-actions">
+        {/* Modal chờ phòng riêng (Popup) */}
+        {status === 'roomWaiting' && (
+          <div className="battle-modal-overlay">
+            <div className="battle-room-modal" role="dialog" aria-modal="true">
+              <div className="app-loading-spinner battle-search-modal__spinner" />
+              <h2 className="battle-search-modal__title">
+                {t('room.waitingTitle')}
+              </h2>
+              <p className="battle-lobby-room-waiting__desc">
+                {t('room.waitingDesc')}
+              </p>
+              <div className="battle-lobby-room-code-display">
+                <span className="battle-lobby-room-code-text">{roomCode}</span>
                 <button
                   type="button"
-                  className="btn-primary battle-lobby-actions__find-btn"
-                  disabled={!isConnected}
-                  onClick={handleStartQueue}
+                  className="btn-secondary battle-lobby-room-code-copy-btn"
+                  onClick={handleCopyCode}
                 >
-                  <span className="material-symbols-outlined">swords</span>
-                  {t('findMatch')}
+                  <span className="material-symbols-outlined">
+                    {isCopied ? 'check' : 'content_copy'}
+                  </span>
+                  <span>{isCopied ? t('room.copied') : t('room.copy')}</span>
                 </button>
               </div>
+              <div className="battle-lobby-room-waiting__mode">
+                <span>{t('mode.title')}:</span>{' '}
+                <strong className="text-primary">
+                  {t(
+                    selectedMode === 'MULTIPLE_CHOICE'
+                      ? 'mode.multipleChoice'
+                      : 'mode.typing'
+                  )}
+                </strong>
+              </div>
+              <button
+                type="button"
+                className="btn-secondary battle-search-modal__cancel-btn"
+                onClick={leaveRoom}
+              >
+                {t('room.cancel')}
+              </button>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       <Toast
         message={errorMessage}
         variant="error"
-        onDismiss={clearError}
+        onDismiss={() => {
+          setRoomError(null);
+          clearError();
+        }}
       />
     </main>
   );
 };
 
 export default BattleLobbyPage;
-

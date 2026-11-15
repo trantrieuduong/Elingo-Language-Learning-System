@@ -1,22 +1,30 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Toast from '../../../components/Toast/Toast';
+import PageLoading from '../../../components/PageLoading/PageLoading';
 import { useAuth } from '../../../context/AuthContext';
 import { useBattleSocket } from '../context/BattleSocketContext';
+import { useXp } from '../../gamification/context/XpContext';
 import BattleAvatar from '../components/BattleAvatar/BattleAvatar';
 import ScoreBoard from '../components/ScoreBoard/ScoreBoard';
 import QuestionArea from '../components/QuestionArea/QuestionArea';
 import BattleResult from '../components/BattleResult/BattleResult';
+import DisconnectBanner from '../components/DisconnectBanner/DisconnectBanner';
 import './BattlePlayPage.css';
 
 const BattlePlayPage = ({ matchId, onNavigate }) => {
   const { t } = useTranslation('battle');
   const { t: tApi } = useTranslation('api');
   const { user } = useAuth();
+  const { lastXp } = useXp();
   const {
+    connection,
     status,
     match,
     error,
+    activeMatchId,
+    activeMatchChecked,
+    opponentDisconnected,
     question,
     serverOffsetMs,
     answered,
@@ -25,18 +33,46 @@ const BattlePlayPage = ({ matchId, onNavigate }) => {
     scores,
     finished,
     cancelReason,
+    rejoinMatch,
     sendAnswer,
     exitBattle,
     clearError,
   } = useBattleSocket();
 
   const isMatchValid = match && String(match.matchId) === String(matchId);
+  const rejoiningAttemptedRef = useRef(false);
+  const finishedAtRef = useRef(null);
 
+  // Ghi nhận thời điểm kết thúc trận để đối chiếu với lastXp
   useEffect(() => {
-    if (!isMatchValid) {
+    if (status === 'finished') {
+      if (!finishedAtRef.current) {
+        finishedAtRef.current = Date.now();
+      }
+    } else {
+      finishedAtRef.current = null;
+    }
+  }, [status]);
+
+  // 1. Khôi phục trận khi không có match khớp URL
+  useEffect(() => {
+    if (isMatchValid) return;
+
+    if (!activeMatchChecked) {
+      // Đang chờ socket phản hồi active-match
+      return;
+    }
+
+    if (String(activeMatchId) === String(matchId)) {
+      if (!rejoiningAttemptedRef.current) {
+        rejoiningAttemptedRef.current = true;
+        rejoinMatch(matchId);
+      }
+    } else {
+      // activeMatchChecked mà không có trận khớp -> về sảnh
       onNavigate('/battle');
     }
-  }, [isMatchValid, onNavigate]);
+  }, [isMatchValid, activeMatchChecked, activeMatchId, matchId, rejoinMatch, onNavigate]);
 
   const [remainingCountdown, setRemainingCountdown] = useState(() => {
     if (!match?.countdownMs || !match?.foundAt) return 0;
@@ -59,11 +95,21 @@ const BattlePlayPage = ({ matchId, onNavigate }) => {
     return () => clearInterval(interval);
   }, [match]);
 
+  // Nếu chưa có trận đấu hợp lệ (đang chờ activeMatchChecked hoặc đang rejoin)
   if (!isMatchValid) {
-    return null;
+    return (
+      <main className="battle-play-page">
+        <div className="battle-play-loading-container">
+          <PageLoading />
+          <p className="text-body-md text-disabled battle-play-restoring-text">
+            {t('play.restoring')}
+          </p>
+        </div>
+      </main>
+    );
   }
 
-  // Chuẩn hóa me và opponent một lần
+  // Chuẩn hóa me và opponent
   const me = {
     userId: user?.id,
     name: user?.fullName || t('play.you'),
@@ -85,6 +131,11 @@ const BattlePlayPage = ({ matchId, onNavigate }) => {
     onNavigate('/battle');
   };
 
+  const handleViewHistory = () => {
+    exitBattle();
+    onNavigate('/battle/history');
+  };
+
   const errorMessage = error
     ? t(`error.${error}`, { defaultValue: '' }) ||
       tApi(`error.${error}`, { defaultValue: '' }) ||
@@ -92,10 +143,33 @@ const BattlePlayPage = ({ matchId, onNavigate }) => {
     : null;
 
   const totalRounds = match.totalRounds || 10;
+  const isConnected = connection === 'connected';
+
+  // Tính xpGained cho trận RANDOM
+  const xpGained =
+    status === 'finished' &&
+    match?.matchType === 'RANDOM' &&
+    lastXp &&
+    finishedAtRef.current &&
+    lastXp.at >= finishedAtRef.current
+      ? lastXp.amount
+      : null;
 
   return (
     <main className="battle-play-page">
       <div className="battle-play-container">
+        {/* Banner kết nối của chính mình */}
+        {!isConnected && ['starting', 'playing', 'roundResult'].includes(status) && (
+          <div className="battle-connection-banner glass-card" role="status">
+            <span className="material-symbols-outlined battle-connection-banner__icon">
+              wifi_off
+            </span>
+            <span className="battle-connection-banner__text">
+              {t('connection.reconnecting')}
+            </span>
+          </div>
+        )}
+
         {/* 1. Màn Đếm Ngược chuẩn bị (starting) */}
         {status === 'starting' && (
           <div className="battle-play-countdown-card glass-card">
@@ -160,11 +234,20 @@ const BattlePlayPage = ({ matchId, onNavigate }) => {
               me={me}
               opponent={opponent}
               scores={scores}
-              roundNo={question?.roundNo || 1}
+              roundNo={question?.roundNo || roundResult?.roundNo || 1}
               totalRounds={totalRounds}
               meAnswered={answered}
               opponentAnswered={opponentAnswered}
             />
+
+            {/* Banner đối thủ mất kết nối */}
+            {opponentDisconnected && (
+              <DisconnectBanner
+                opponentName={opponent.name}
+                graceMs={opponentDisconnected.graceMs}
+                at={opponentDisconnected.at}
+              />
+            )}
 
             {question ? (
               <QuestionArea
@@ -178,6 +261,39 @@ const BattlePlayPage = ({ matchId, onNavigate }) => {
                 )}
                 onSubmit={sendAnswer}
               />
+            ) : roundResult ? (
+              /* Vòng nghỉ sau khi rejoin (status === 'roundResult' nhưng question === null) */
+              <div className="battle-play-rejoin-round-result glass-card">
+                <div className="battle-play-rejoin-round-result__badge glass-pill">
+                  <span className="text-label-md">
+                    {t('play.round', {
+                      current: roundResult.roundNo,
+                      total: totalRounds,
+                    })}
+                  </span>
+                </div>
+                <div className="battle-play-rejoin-round-result__answer">
+                  <span className="text-body-md text-disabled">
+                    {t('play.correctAnswer')}:
+                  </span>
+                  <strong className="text-title-lg text-primary">
+                    {roundResult.correctAnswer}
+                  </strong>
+                </div>
+                {roundResult.results?.some(
+                  (r) => String(r.userId) === String(me.userId)
+                ) && (
+                  <div className="battle-play-rejoin-round-result__score text-body-md">
+                    +{roundResult.results.find(
+                      (r) => String(r.userId) === String(me.userId)
+                    )?.pointsGained || 0}{' '}
+                    {t('play.points')}
+                  </div>
+                )}
+                <p className="text-body-sm text-disabled battle-play-rejoin-round-result__next">
+                  {t('play.nextQuestionSoon')}
+                </p>
+              </div>
             ) : (
               <div className="battle-play-loading glass-card">
                 <div className="app-loading-spinner" />
@@ -194,7 +310,9 @@ const BattlePlayPage = ({ matchId, onNavigate }) => {
             finished={finished}
             matchType={match.matchType}
             totalRounds={totalRounds}
+            xpGained={xpGained}
             onExit={handleExit}
+            onViewHistory={handleViewHistory}
           />
         )}
 
@@ -212,15 +330,26 @@ const BattlePlayPage = ({ matchId, onNavigate }) => {
                 ? t('result.cancelled.BOTH_DISCONNECTED')
                 : cancelReason === 'INTERNAL_ERROR'
                   ? t('result.cancelled.INTERNAL_ERROR')
-                  : t('result.cancelled.unknown')}
+                  : cancelReason === 'CONNECTION_LOST'
+                    ? t('result.cancelled.CONNECTION_LOST')
+                    : t('result.cancelled.unknown')}
             </p>
-            <button
-              type="button"
-              className="btn-primary battle-cancelled-btn"
-              onClick={handleExit}
-            >
-              {t('result.backToLobby')}
-            </button>
+            <div className="battle-cancelled-actions">
+              <button
+                type="button"
+                className="btn-primary battle-cancelled-btn"
+                onClick={handleExit}
+              >
+                {t('result.backToLobby')}
+              </button>
+              <button
+                type="button"
+                className="btn-secondary battle-cancelled-btn"
+                onClick={handleViewHistory}
+              >
+                {t('result.viewHistory')}
+              </button>
+            </div>
           </div>
         )}
       </div>

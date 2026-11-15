@@ -3,6 +3,7 @@ package com.elingo.community.service;
 import com.elingo.common.dto.CursorResponse;
 import com.elingo.common.event.FileAttachedEvent;
 import com.elingo.common.event.FileDeletedEvent;
+import com.elingo.common.event.NotificationEvent;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.common.util.CursorUtils;
@@ -23,6 +24,7 @@ import com.elingo.community.repository.PostGroupRepository;
 import com.elingo.community.repository.PostLikeRepository;
 import com.elingo.community.repository.PostRepository;
 import com.elingo.community.service.impl.PostServiceImpl;
+import com.elingo.notification.entity.NotificationType;
 import com.elingo.user.entity.Role;
 import com.elingo.user.entity.User;
 import com.elingo.user.repository.UserRepository;
@@ -592,8 +594,8 @@ class PostServiceTest {
     class LikePostTests {
 
         @Test
-        @DisplayName("Like post successfully")
-        void likePost_Success() {
+        @DisplayName("Like post successfully by author (no notification sent)")
+        void likePost_Success_SelfLike_NoNotification() {
             when(postRepository.findById(POST_ID)).thenReturn(Optional.of(testPost));
             when(postLikeRepository.existsByIdPostIdAndIdUserId(POST_ID, USER_ID)).thenReturn(false);
             when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
@@ -602,6 +604,32 @@ class PostServiceTest {
 
             verify(postLikeRepository).save(any(PostLike.class));
             verify(postRepository).updateLikeCount(POST_ID, 1);
+            verify(publisher, never()).publishEvent(any(NotificationEvent.class));
+        }
+
+        @Test
+        @DisplayName("Like post successfully by another user: publishes NotificationEvent")
+        void likePost_Success_OtherUser_PublishesNotificationEvent() {
+            User otherUser = User.builder()
+                    .id(OTHER_USER_ID)
+                    .username("otheruser")
+                    .build();
+            when(postRepository.findById(POST_ID)).thenReturn(Optional.of(testPost));
+            when(postLikeRepository.existsByIdPostIdAndIdUserId(POST_ID, OTHER_USER_ID)).thenReturn(false);
+            when(userRepository.findById(OTHER_USER_ID)).thenReturn(Optional.of(otherUser));
+
+            postService.likePost(POST_ID, OTHER_USER_ID);
+
+            verify(postLikeRepository).save(any(PostLike.class));
+            verify(postRepository).updateLikeCount(POST_ID, 1);
+
+            ArgumentCaptor<NotificationEvent> eventCaptor = ArgumentCaptor.forClass(NotificationEvent.class);
+            verify(publisher).publishEvent(eventCaptor.capture());
+            NotificationEvent event = eventCaptor.getValue();
+            assertThat(event.recipientId()).isEqualTo(testPost.getUser().getId());
+            assertThat(event.type()).isEqualTo(NotificationType.POST_LIKED);
+            assertThat(event.refId()).isEqualTo(POST_ID);
+            assertThat(event.args()).containsEntry("actor", "otheruser");
         }
 
         @Test
