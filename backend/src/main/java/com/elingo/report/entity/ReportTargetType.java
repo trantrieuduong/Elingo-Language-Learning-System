@@ -4,5 +4,6 @@ public enum ReportTargetType {
     POST,
     COMMENT,
     USER,
-    DECK
+    DECK,
+    LESSON
 }

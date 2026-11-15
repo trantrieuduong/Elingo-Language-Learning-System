@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
@@ -37,4 +38,12 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     @Query("SELECT COUNT(c) FROM Comment c WHERE c.id = :commentId OR c.parentComment.id = :commentId")
     long countByCommentOrReplies(@Param("commentId") Long commentId);
+
+    @Query("""
+    select c.user.id from Comment c
+    join c.post p
+    where c.id = :commentId
+      and p.status = com.elingo.community.entity.PostStatus.PUBLISHED
+    """)
+    Optional<Long> findVisibleCommentOwnerId(@Param("commentId") Long commentId);
 }

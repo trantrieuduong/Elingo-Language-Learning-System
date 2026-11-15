@@ -27,7 +27,7 @@ import com.elingo.common.entity.BaseEntity;
 @Table(
         name = "reports",
         indexes = {
-                @Index(name = "idx_report_target", columnList = "target_type, target_id"),
+                @Index(name = "idx_report_reporter", columnList = "reporter_id, created_at"),
                 @Index(name = "idx_report_status", columnList = "status, created_at")
         }
 )

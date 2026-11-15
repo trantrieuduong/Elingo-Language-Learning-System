@@ -83,4 +83,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Modifying
     @Query("UPDATE Post p SET p.commentCount = CASE WHEN (p.commentCount + :delta) < 0 THEN 0 ELSE (p.commentCount + :delta) END WHERE p.id = :postId")
     int updateCommentCount(@Param("postId") Long postId, @Param("delta") int delta);
+
+    @Query("select p.user.id from Post p where p.id = :postId and p.status = com.elingo.community.entity.PostStatus.PUBLISHED")
+    Optional<Long> findPublishedPostOwnerId(@Param("postId") Long postId);
 }
