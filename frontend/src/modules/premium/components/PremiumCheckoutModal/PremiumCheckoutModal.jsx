@@ -14,6 +14,240 @@ import './PremiumCheckoutModal.css';
 const POLLING_INTERVAL_MS = 5000;
 const POLLING_TIMEOUT_MS = 10 * 60 * 1000; // 10 phút
 
+function CheckoutQrSection({ checkoutData, qrLoadError, onQrError, t }) {
+  const hasQr = checkoutData?.qrCodeUrl && !qrLoadError;
+  const wrapperClass = hasQr
+    ? 'premium-checkout-modal__qr-wrapper--has-qr'
+    : 'premium-checkout-modal__qr-wrapper--fallback glass-card';
+
+  return (
+    <div className="premium-checkout-modal__qr-col">
+      <div className={`premium-checkout-modal__qr-wrapper ${wrapperClass}`}>
+        {hasQr ? (
+          <img
+            src={checkoutData.qrCodeUrl}
+            alt="VietQR Payment Code"
+            className="premium-checkout-modal__qr-img"
+            onError={onQrError}
+          />
+        ) : (
+          <div className="premium-checkout-modal__qr-fallback">
+            <span className="material-symbols-outlined">qr_code_2</span>
+            <p className="text-body-sm">{t('checkout.qrFallback')}</p>
+          </div>
+        )}
+      </div>
+
+      <div className="premium-checkout-modal__status-banner">
+        <span className="premium-checkout-modal__spinner premium-checkout-modal__spinner--small" />
+        <span className="text-body-sm text-mid">{t('checkout.statusPending')}</span>
+      </div>
+      <p className="premium-checkout-modal__hint text-label-sm text-disabled">
+        {t('checkout.waitingHint')}
+      </p>
+    </div>
+  );
+}
+
+function CheckoutInfoSection({
+  plan,
+  checkoutData,
+  amountDisplay,
+  onCopySuccess,
+  onCopyError,
+  t,
+}) {
+  const fields = [
+    {
+      label: t('checkout.transferContent'),
+      value: checkoutData?.providerRefCode,
+      isHighlight: true,
+      isRef: true,
+    },
+    {
+      label: t('checkout.bankAccount'),
+      value: checkoutData?.bankAccount,
+    },
+    {
+      label: t('checkout.accountName'),
+      value: checkoutData?.bankAccountName,
+    },
+    {
+      label: t('checkout.bankName'),
+      value: checkoutData?.bankName,
+    },
+  ];
+
+  return (
+    <div className="premium-checkout-modal__info-col">
+      <div className="premium-checkout-modal__summary-card glass-thumb">
+        <div className="premium-checkout-modal__summary-row">
+          <span className="text-body-sm text-disabled">{t('checkout.planName')}</span>
+          <strong className="text-body-md text-high">{plan?.name}</strong>
+        </div>
+        <div className="premium-checkout-modal__summary-row">
+          <span className="text-body-sm text-disabled">{t('checkout.amount')}</span>
+          <div className="premium-checkout-modal__amount-group">
+            <strong className="premium-checkout-modal__amount text-headline-sm">
+              {amountDisplay}
+            </strong>
+            <CopyButton
+              text={checkoutData?.amount}
+              onCopy={onCopySuccess}
+              onError={onCopyError}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="premium-checkout-modal__transfer-details">
+        <h3 className="text-title-md text-high">{t('checkout.transferInfo')}</h3>
+
+        {fields.map((f) => (
+          <div
+            key={f.label}
+            className={`premium-checkout-modal__field glass-thumb ${
+              f.isHighlight ? 'premium-checkout-modal__field--highlight' : ''
+            }`}
+          >
+            <div className="premium-checkout-modal__field-text">
+              <span className="text-label-sm text-body">{f.label}</span>
+              <span
+                className={`premium-checkout-modal__field-val ${
+                  f.isRef ? 'premium-checkout-modal__field-val--ref' : ''
+                }`}
+              >
+                {f.value}
+              </span>
+            </div>
+            <CopyButton
+              text={f.value}
+              onCopy={onCopySuccess}
+              onError={onCopyError}
+            />
+          </div>
+        ))}
+
+        {checkoutData?.transactionId && (
+          <div className="premium-checkout-modal__transaction-id text-label-sm text-disabled">
+            {t('checkout.transactionId')}: #{checkoutData.transactionId}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CheckoutResultSection({ paymentStatus, plan, amountDisplay, onRetry, onSuccessCta, t }) {
+  if (paymentStatus === 'SUCCESS') {
+    return (
+      <div className="premium-checkout-modal__success glass-thumb">
+        <span className="material-symbols-outlined premium-checkout-modal__success-icon">
+          check_circle
+        </span>
+        <h3 className="text-headline-sm">{t('checkout.statusSuccess')}</h3>
+        <p className="text-body-md text-disabled">{plan?.name} • {amountDisplay}</p>
+        <button
+          type="button"
+          className="btn-primary premium-checkout-modal__success-btn"
+          onClick={onSuccessCta}
+        >
+          {t('checkout.successCta')}
+        </button>
+      </div>
+    );
+  }
+
+  const isTimeout = paymentStatus === 'TIMEOUT';
+  const isRefunded = paymentStatus === 'REFUNDED';
+  const icon = isTimeout ? 'timer_off' : 'cancel';
+
+  const description = isTimeout
+    ? t('checkout.statusTimeout')
+    : isRefunded
+    ? t('checkout.statusRefunded')
+    : t('checkout.statusFailed');
+
+  return (
+    <EmptyState
+      icon={icon}
+      isError
+      description={description}
+      actionLabel={t('common:retry')}
+      onAction={onRetry}
+    />
+  );
+}
+
+function CheckoutModalContent({
+  isLoading,
+  checkoutError,
+  paymentStatus,
+  plan,
+  checkoutData,
+  amountDisplay,
+  qrLoadError,
+  onQrError,
+  onRetry,
+  onSuccessCta,
+  onCopySuccess,
+  onCopyError,
+  t,
+}) {
+  if (isLoading) {
+    return (
+      <div className="premium-checkout-modal__loading">
+        <span className="premium-checkout-modal__spinner" />
+        <p className="text-body-md text-disabled">{t('checkout.statusPending')}</p>
+      </div>
+    );
+  }
+
+  if (checkoutError) {
+    return (
+      <EmptyState
+        icon="error"
+        isError
+        description={checkoutError}
+        actionLabel={t('common:retry')}
+        onAction={onRetry}
+      />
+    );
+  }
+
+  if (paymentStatus !== 'PENDING') {
+    return (
+      <CheckoutResultSection
+        paymentStatus={paymentStatus}
+        plan={plan}
+        amountDisplay={amountDisplay}
+        onRetry={onRetry}
+        onSuccessCta={onSuccessCta}
+        t={t}
+      />
+    );
+  }
+
+  return (
+    <div className="premium-checkout-modal__grid">
+      <CheckoutQrSection
+        checkoutData={checkoutData}
+        qrLoadError={qrLoadError}
+        onQrError={onQrError}
+        t={t}
+      />
+      <CheckoutInfoSection
+        plan={plan}
+        checkoutData={checkoutData}
+        amountDisplay={amountDisplay}
+        onCopySuccess={onCopySuccess}
+        onCopyError={onCopyError}
+        t={t}
+      />
+    </div>
+  );
+}
+
 function PremiumCheckoutModal({ plan, onClose, onSuccess, onNavigate }) {
   const { t, i18n } = useTranslation(['premium', 'common']);
 
@@ -27,6 +261,17 @@ function PremiumCheckoutModal({ plan, onClose, onSuccess, onNavigate }) {
   const pollingRef = useRef(null);
   const timeoutRef = useRef(null);
   const isMountedRef = useRef(true);
+
+  const clearTimers = useCallback(() => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  }, []);
 
   // Xử lý phím ESC & khóa scroll
   useEffect(() => {
@@ -46,16 +291,9 @@ function PremiumCheckoutModal({ plan, onClose, onSuccess, onNavigate }) {
       isMountedRef.current = false;
       document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = originalOverflow;
-      if (pollingRef.current) {
-        clearInterval(pollingRef.current);
-        pollingRef.current = null;
-      }
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
-      }
+      clearTimers();
     };
-  }, [onClose]);
+  }, [onClose, clearTimers]);
 
   const initializeCheckout = useCallback(async () => {
     if (!plan?.id) return;
@@ -64,14 +302,6 @@ function PremiumCheckoutModal({ plan, onClose, onSuccess, onNavigate }) {
     setCheckoutError(null);
     setQrLoadError(false);
     setPaymentStatus('PENDING');
-    if (pollingRef.current) {
-      clearInterval(pollingRef.current);
-      pollingRef.current = null;
-    }
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
 
     try {
       const res = await createPremiumCheckoutApi(plan.id);
@@ -98,21 +328,10 @@ function PremiumCheckoutModal({ plan, onClose, onSuccess, onNavigate }) {
   // Polling trạng thái giao dịch & Timeout
   useEffect(() => {
     const transactionId = checkoutData?.transactionId;
-    const isTerminalStatus =
-      paymentStatus === 'SUCCESS' ||
-      paymentStatus === 'FAILED' ||
-      paymentStatus === 'REFUNDED' ||
-      paymentStatus === 'TIMEOUT';
+    const isTerminalStatus = paymentStatus !== 'PENDING';
 
     if (!transactionId || isTerminalStatus) {
-      if (pollingRef.current) {
-        clearInterval(pollingRef.current);
-        pollingRef.current = null;
-      }
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
-      }
+      clearTimers();
       return;
     }
 
@@ -138,24 +357,14 @@ function PremiumCheckoutModal({ plan, onClose, onSuccess, onNavigate }) {
 
     timeoutRef.current = setTimeout(() => {
       if (!isMountedRef.current) return;
-      if (pollingRef.current) {
-        clearInterval(pollingRef.current);
-        pollingRef.current = null;
-      }
+      clearTimers();
       setPaymentStatus('TIMEOUT');
     }, POLLING_TIMEOUT_MS);
 
     return () => {
-      if (pollingRef.current) {
-        clearInterval(pollingRef.current);
-        pollingRef.current = null;
-      }
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
-      }
+      clearTimers();
     };
-  }, [checkoutData?.transactionId, paymentStatus, onSuccess]);
+  }, [checkoutData?.transactionId, paymentStatus, onSuccess, clearTimers]);
 
   const amountDisplay = formatPremiumPrice(
     checkoutData?.amount,
@@ -207,173 +416,21 @@ function PremiumCheckoutModal({ plan, onClose, onSuccess, onNavigate }) {
         </div>
 
         <div className="premium-checkout-modal__body">
-          {isLoading ? (
-            <div className="premium-checkout-modal__loading">
-              <span className="premium-checkout-modal__spinner" />
-              <p className="text-body-md text-disabled">{t('checkout.statusPending')}</p>
-            </div>
-          ) : checkoutError ? (
-            <EmptyState
-              icon="error"
-              isError
-              description={checkoutError}
-              actionLabel={t('common:retry')}
-              onAction={initializeCheckout}
-            />
-          ) : paymentStatus === 'SUCCESS' ? (
-            <div className="premium-checkout-modal__success glass-thumb">
-              <span className="material-symbols-outlined premium-checkout-modal__success-icon">
-                check_circle
-              </span>
-              <h3 className="text-headline-sm">{t('checkout.statusSuccess')}</h3>
-              <p className="text-body-md text-disabled">{plan?.name} • {amountDisplay}</p>
-              <button
-                type="button"
-                className="btn-primary premium-checkout-modal__success-btn"
-                onClick={handleSuccessCta}
-              >
-                {t('checkout.successCta')}
-              </button>
-            </div>
-          ) : paymentStatus === 'FAILED' || paymentStatus === 'REFUNDED' || paymentStatus === 'TIMEOUT' ? (
-            <EmptyState
-              icon={paymentStatus === 'TIMEOUT' ? 'timer_off' : 'cancel'}
-              isError
-              description={
-                paymentStatus === 'TIMEOUT'
-                  ? t('checkout.statusTimeout')
-                  : paymentStatus === 'REFUNDED'
-                  ? t('checkout.statusRefunded')
-                  : t('checkout.statusFailed')
-              }
-              actionLabel={t('common:retry')}
-              onAction={initializeCheckout}
-            />
-          ) : (
-            <div className="premium-checkout-modal__grid">
-              <div className="premium-checkout-modal__qr-col">
-                <div
-                  className={`premium-checkout-modal__qr-wrapper ${
-                    checkoutData?.qrCodeUrl && !qrLoadError
-                      ? 'premium-checkout-modal__qr-wrapper--has-qr'
-                      : 'premium-checkout-modal__qr-wrapper--fallback glass-card'
-                  }`}
-                >
-                  {checkoutData?.qrCodeUrl && !qrLoadError ? (
-                    <img
-                      src={checkoutData.qrCodeUrl}
-                      alt="VietQR Payment Code"
-                      className="premium-checkout-modal__qr-img"
-                      onError={() => setQrLoadError(true)}
-                    />
-                  ) : (
-                    <div className="premium-checkout-modal__qr-fallback">
-                      <span className="material-symbols-outlined">qr_code_2</span>
-                      <p className="text-body-sm">{t('checkout.qrFallback')}</p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="premium-checkout-modal__status-banner">
-                  <span className="premium-checkout-modal__spinner premium-checkout-modal__spinner--small" />
-                  <span className="text-body-sm text-mid">{t('checkout.statusPending')}</span>
-                </div>
-                <p className="premium-checkout-modal__hint text-label-sm text-disabled">
-                  {t('checkout.waitingHint')}
-                </p>
-              </div>
-
-              <div className="premium-checkout-modal__info-col">
-                <div className="premium-checkout-modal__summary-card glass-thumb">
-                  <div className="premium-checkout-modal__summary-row">
-                    <span className="text-body-sm text-disabled">{t('checkout.planName')}</span>
-                    <strong className="text-body-md text-high">{plan?.name}</strong>
-                  </div>
-                  <div className="premium-checkout-modal__summary-row">
-                    <span className="text-body-sm text-disabled">{t('checkout.amount')}</span>
-                    <div className="premium-checkout-modal__amount-group">
-                      <strong className="premium-checkout-modal__amount text-headline-sm">
-                        {amountDisplay}
-                      </strong>
-                      <CopyButton
-                        text={checkoutData?.amount}
-                        onCopy={handleCopySuccess}
-                        onError={handleCopyError}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="premium-checkout-modal__transfer-details">
-                  <h3 className="text-title-md text-high">
-                    {t('checkout.transferInfo')}
-                  </h3>
-
-                  <div className="premium-checkout-modal__field glass-thumb premium-checkout-modal__field--highlight">
-                    <div className="premium-checkout-modal__field-text">
-                      <span className="text-label-sm text-body">{t('checkout.transferContent')}</span>
-                      <span className="premium-checkout-modal__field-val premium-checkout-modal__field-val--ref">
-                        {checkoutData?.providerRefCode}
-                      </span>
-                    </div>
-                    <CopyButton
-                      text={checkoutData?.providerRefCode}
-                      onCopy={handleCopySuccess}
-                      onError={handleCopyError}
-                    />
-                  </div>
-
-                  <div className="premium-checkout-modal__field glass-thumb">
-                    <div className="premium-checkout-modal__field-text">
-                      <span className="text-label-sm text-body">{t('checkout.bankAccount')}</span>
-                      <span className="premium-checkout-modal__field-val">
-                        {checkoutData?.bankAccount}
-                      </span>
-                    </div>
-                    <CopyButton
-                      text={checkoutData?.bankAccount}
-                      onCopy={handleCopySuccess}
-                      onError={handleCopyError}
-                    />
-                  </div>
-
-                  <div className="premium-checkout-modal__field glass-thumb">
-                    <div className="premium-checkout-modal__field-text">
-                      <span className="text-label-sm text-body">{t('checkout.accountName')}</span>
-                      <span className="premium-checkout-modal__field-val">
-                        {checkoutData?.bankAccountName}
-                      </span>
-                    </div>
-                    <CopyButton
-                      text={checkoutData?.bankAccountName}
-                      onCopy={handleCopySuccess}
-                      onError={handleCopyError}
-                    />
-                  </div>
-
-                  <div className="premium-checkout-modal__field glass-thumb">
-                    <div className="premium-checkout-modal__field-text">
-                      <span className="text-label-sm text-body">{t('checkout.bankName')}</span>
-                      <span className="premium-checkout-modal__field-val">
-                        {checkoutData?.bankName}
-                      </span>
-                    </div>
-                    <CopyButton
-                      text={checkoutData?.bankName}
-                      onCopy={handleCopySuccess}
-                      onError={handleCopyError}
-                    />
-                  </div>
-
-                  {checkoutData?.transactionId && (
-                    <div className="premium-checkout-modal__transaction-id text-label-sm text-disabled">
-                      {t('checkout.transactionId')}: #{checkoutData.transactionId}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
+          <CheckoutModalContent
+            isLoading={isLoading}
+            checkoutError={checkoutError}
+            paymentStatus={paymentStatus}
+            plan={plan}
+            checkoutData={checkoutData}
+            amountDisplay={amountDisplay}
+            qrLoadError={qrLoadError}
+            onQrError={() => setQrLoadError(true)}
+            onRetry={initializeCheckout}
+            onSuccessCta={handleSuccessCta}
+            onCopySuccess={handleCopySuccess}
+            onCopyError={handleCopyError}
+            t={t}
+          />
         </div>
 
         <Toast
