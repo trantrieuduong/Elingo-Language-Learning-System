@@ -27,6 +27,7 @@
     "statusSuccess": "Payment successful! Your Premium plan is now active.",
     "statusFailed": "Transaction failed or was cancelled.",
     "statusRefunded": "Transaction has been refunded.",
+    "statusTimeout": "Payment session timed out (10 minutes).",
     "waitingHint": "Please transfer the exact amount and description. Underpaid or incorrect transfers will not be processed. If any error occurs, please contact support email.",
     "qrFallback": "Could not load QR code. Please make a manual bank transfer.",
     "createError": "Unable to initialize checkout. Please try again later.",

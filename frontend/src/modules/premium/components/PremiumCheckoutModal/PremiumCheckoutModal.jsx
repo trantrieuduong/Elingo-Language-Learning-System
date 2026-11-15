@@ -12,6 +12,7 @@ import CopyButton from '../../../../components/CopyButton/CopyButton';
 import './PremiumCheckoutModal.css';
 
 const POLLING_INTERVAL_MS = 5000;
+const POLLING_TIMEOUT_MS = 10 * 60 * 1000; // 10 phút
 
 function PremiumCheckoutModal({ plan, onClose, onSuccess, onNavigate }) {
   const { t, i18n } = useTranslation(['premium', 'common']);
@@ -19,11 +20,12 @@ function PremiumCheckoutModal({ plan, onClose, onSuccess, onNavigate }) {
   const [checkoutData, setCheckoutData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [checkoutError, setCheckoutError] = useState(null);
-  const [paymentStatus, setPaymentStatus] = useState('PENDING'); // PENDING | SUCCESS | FAILED | REFUNDED
+  const [paymentStatus, setPaymentStatus] = useState('PENDING'); // PENDING | SUCCESS | FAILED | REFUNDED | TIMEOUT
   const [qrLoadError, setQrLoadError] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
   const pollingRef = useRef(null);
+  const timeoutRef = useRef(null);
   const isMountedRef = useRef(true);
 
   // Xử lý phím ESC & khóa scroll
@@ -48,6 +50,10 @@ function PremiumCheckoutModal({ plan, onClose, onSuccess, onNavigate }) {
         clearInterval(pollingRef.current);
         pollingRef.current = null;
       }
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
     };
   }, [onClose]);
 
@@ -61,6 +67,10 @@ function PremiumCheckoutModal({ plan, onClose, onSuccess, onNavigate }) {
     if (pollingRef.current) {
       clearInterval(pollingRef.current);
       pollingRef.current = null;
+    }
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
     }
 
     try {
@@ -85,13 +95,23 @@ function PremiumCheckoutModal({ plan, onClose, onSuccess, onNavigate }) {
     initializeCheckout();
   }, [initializeCheckout]);
 
-  // Polling trạng thái giao dịch
+  // Polling trạng thái giao dịch & Timeout
   useEffect(() => {
     const transactionId = checkoutData?.transactionId;
-    if (!transactionId || paymentStatus === 'SUCCESS' || paymentStatus === 'FAILED' || paymentStatus === 'REFUNDED') {
+    const isTerminalStatus =
+      paymentStatus === 'SUCCESS' ||
+      paymentStatus === 'FAILED' ||
+      paymentStatus === 'REFUNDED' ||
+      paymentStatus === 'TIMEOUT';
+
+    if (!transactionId || isTerminalStatus) {
       if (pollingRef.current) {
         clearInterval(pollingRef.current);
         pollingRef.current = null;
+      }
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
       }
       return;
     }
@@ -116,10 +136,23 @@ function PremiumCheckoutModal({ plan, onClose, onSuccess, onNavigate }) {
 
     pollingRef.current = setInterval(checkStatus, POLLING_INTERVAL_MS);
 
+    timeoutRef.current = setTimeout(() => {
+      if (!isMountedRef.current) return;
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+      setPaymentStatus('TIMEOUT');
+    }, POLLING_TIMEOUT_MS);
+
     return () => {
       if (pollingRef.current) {
         clearInterval(pollingRef.current);
         pollingRef.current = null;
+      }
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
       }
     };
   }, [checkoutData?.transactionId, paymentStatus, onSuccess]);
@@ -202,11 +235,17 @@ function PremiumCheckoutModal({ plan, onClose, onSuccess, onNavigate }) {
                 {t('checkout.successCta')}
               </button>
             </div>
-          ) : paymentStatus === 'FAILED' || paymentStatus === 'REFUNDED' ? (
+          ) : paymentStatus === 'FAILED' || paymentStatus === 'REFUNDED' || paymentStatus === 'TIMEOUT' ? (
             <EmptyState
-              icon="cancel"
+              icon={paymentStatus === 'TIMEOUT' ? 'timer_off' : 'cancel'}
               isError
-              description={paymentStatus === 'REFUNDED' ? t('checkout.statusRefunded') : t('checkout.statusFailed')}
+              description={
+                paymentStatus === 'TIMEOUT'
+                  ? t('checkout.statusTimeout')
+                  : paymentStatus === 'REFUNDED'
+                  ? t('checkout.statusRefunded')
+                  : t('checkout.statusFailed')
+              }
               actionLabel={t('common:retry')}
               onAction={initializeCheckout}
             />
