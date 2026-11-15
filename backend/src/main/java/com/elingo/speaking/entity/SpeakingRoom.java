@@ -63,4 +63,8 @@ public class SpeakingRoom extends BaseEntity {
 
     @Column(name = "ended_at")
     LocalDateTime endedAt;
+
+    @Column(name = "is_private", nullable = false)
+    @Builder.Default
+    Boolean isPrivate = false;
 }

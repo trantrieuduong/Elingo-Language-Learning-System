@@ -99,3 +99,6 @@ app:
     min-correct-for-xp: 3
     min-cards-required: 10
     answer-grace-ms: 300
+  speaking:
+    default-max-participants: 4
+    max-participants-limit: 4
