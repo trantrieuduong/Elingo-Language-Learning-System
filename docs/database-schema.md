@@ -525,7 +525,7 @@ CREATE TABLE post_likes (
 CREATE TABLE reports (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   reporter_id BIGINT UNSIGNED NOT NULL,
-  target_type ENUM('POST','COMMENT','USER','DECK') NOT NULL,
+  target_type ENUM('POST','COMMENT','USER','DECK', 'LESSON') NOT NULL,
   target_id BIGINT UNSIGNED NOT NULL,    -- validate ở tầng service
   description VARCHAR(1000),
   status ENUM('PENDING','RESOLVED','REJECTED') NOT NULL DEFAULT 'PENDING',
@@ -536,7 +536,7 @@ CREATE TABLE reports (
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (reporter_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (resolved_by) REFERENCES users(id) ON DELETE SET NULL,
-  INDEX idx_report_target (target_type, target_id),
+  INDEX idx_report_reporter (reporter_id, created_at),
   INDEX idx_report_status (status, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
