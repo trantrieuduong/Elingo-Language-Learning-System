@@ -113,6 +113,7 @@ class XpServiceTest {
             verify(userXpRepository).raiseLevel(USER_ID, 2);
             verify(leaderboardService).recordXpForLeaderboard(USER_ID, AMOUNT);
             verify(badgeAwardService).evaluateAndAward(USER_ID, BadgeConditionType.TOTAL_XP);
+            verify(badgeAwardService).evaluateAndAward(USER_ID, BadgeConditionType.LESSONS_COMPLETED);
 
             ArgumentCaptor<LevelUpEvent> levelUpCaptor = ArgumentCaptor.forClass(LevelUpEvent.class);
             verify(publisher).publishEvent(levelUpCaptor.capture());
@@ -136,7 +137,23 @@ class XpServiceTest {
             verify(userXpRepository).raiseLevel(USER_ID, 1);
             verify(leaderboardService).recordXpForLeaderboard(USER_ID, AMOUNT);
             verify(badgeAwardService).evaluateAndAward(USER_ID, BadgeConditionType.TOTAL_XP);
+            verify(badgeAwardService).evaluateAndAward(USER_ID, BadgeConditionType.WORDS_LEARNED);
             verify(publisher, never()).publishEvent(any(LevelUpEvent.class));
+        }
+
+        @Test
+        @DisplayName("Add experience points successfully with battle win source")
+        void addXp_Success_WithBattleWin() {
+            when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+            when(userXpRepository.findTotalXp(USER_ID)).thenReturn(50);
+            when(levelCatalog.levelFor(50)).thenReturn(1);
+            when(userXpRepository.raiseLevel(USER_ID, 1)).thenReturn(0);
+
+            xpService.addXp(USER_ID, 30, XpSource.BATTLE_WIN, 100L);
+
+            verify(leaderboardService).recordXpForLeaderboard(USER_ID, 30);
+            verify(badgeAwardService).evaluateAndAward(USER_ID, BadgeConditionType.TOTAL_XP);
+            verify(badgeAwardService).evaluateAndAward(USER_ID, BadgeConditionType.BATTLE_WINS);
         }
 
         @Test
@@ -166,6 +183,7 @@ class XpServiceTest {
             verify(xpEventRepository).save(any(XpEvent.class));
             verify(leaderboardService).recordXpForLeaderboard(USER_ID, 0);
             verify(badgeAwardService).evaluateAndAward(USER_ID, BadgeConditionType.TOTAL_XP);
+            verify(badgeAwardService).evaluateAndAward(USER_ID, BadgeConditionType.LESSONS_COMPLETED);
         }
     }
 }

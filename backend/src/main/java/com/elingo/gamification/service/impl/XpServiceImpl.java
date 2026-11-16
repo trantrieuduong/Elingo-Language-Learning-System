@@ -53,11 +53,23 @@ public class XpServiceImpl implements XpService {
 
         leaderboardService.recordXpForLeaderboard(userId, amount);
         badgeAwardService.evaluateAndAward(userId, BadgeConditionType.TOTAL_XP);
+        evaluateSourceSpecificBadges(userId, source);
 
         int level = levelCatalog.levelFor(userXpRepository.findTotalXp(userId));
         if (userXpRepository.raiseLevel(userId, level) == 1) {
             log.info("Level upgraded newLevel={}", level);
             publisher.publishEvent(new LevelUpEvent(userId, level, LocalDateTime.now()));
+        }
+    }
+
+    private void evaluateSourceSpecificBadges(long userId, XpSource source) {
+        if (source == null) return;
+        switch (source) {
+            case BATTLE_WIN -> badgeAwardService.evaluateAndAward(userId, BadgeConditionType.BATTLE_WINS);
+            case LESSON_DICTATION, LESSON_SHADOWING -> badgeAwardService
+                    .evaluateAndAward(userId, BadgeConditionType.LESSONS_COMPLETED);
+            case FLASHCARD_REVIEW -> badgeAwardService.evaluateAndAward(userId, BadgeConditionType.WORDS_LEARNED);
+            default -> { /* No specific badge condition for other sources */ }
         }
     }
 }
