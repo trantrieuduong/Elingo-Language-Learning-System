@@ -7,6 +7,7 @@ app:
     scheduler:
       default-pool-size: ${PROD_SCHEDULER_DEFAULT_POOL_SIZE:2}
       battle-pool-size: ${PROD_SCHEDULER_BATTLE_POOL_SIZE:4}
+      speaking-pool-size: ${PROD_SCHEDULER_SPEAKING_POOL_SIZE:2}
     async:
       email:
         core-pool-size: ${PROD_EMAIL_CORE_POOL_SIZE:2}

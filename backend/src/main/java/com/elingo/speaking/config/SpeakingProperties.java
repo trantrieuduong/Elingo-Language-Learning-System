@@ -9,6 +9,8 @@ public record SpeakingProperties(
         int defaultMaxParticipants,
         int maxParticipantsLimit,
         int signalMaxPayloadBytes,
-        List<String> stunUrls
+        List<String> stunUrls,
+        long reconnectGraceMs,
+        long hostReconnectGraceMs
 ) {
 }

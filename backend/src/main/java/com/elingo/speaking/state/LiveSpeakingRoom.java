@@ -3,9 +3,11 @@ package com.elingo.speaking.state;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -18,6 +20,7 @@ public class LiveSpeakingRoom {
     private final Long roomId;
     private final ReentrantLock lock = new ReentrantLock();
     private final Map<Long, LivePeer> peers = new LinkedHashMap<>();
+    private final Map<Long, ScheduledFuture<?>> graceFutures = new HashMap<>();
     @Setter private volatile Long hostId;
     @Setter private volatile String topic;
     @Setter private volatile Short maxParticipants;
@@ -66,5 +69,24 @@ public class LiveSpeakingRoom {
 
     public boolean isEmpty() {
         return peers.isEmpty();
+    }
+
+    public void putGrace(Long userId, ScheduledFuture<?> f) {
+        cancelGrace(userId);
+        graceFutures.put(userId, f);
+    }
+
+    public boolean cancelGrace(Long userId) {
+        ScheduledFuture<?> f = graceFutures.remove(userId);
+        if (f != null) {
+            f.cancel(false);
+            return true;
+        }
+        return false;
+    }
+
+    public void cancelAllGraces() {
+        graceFutures.values().forEach(f -> f.cancel(false));
+        graceFutures.clear();
     }
 }

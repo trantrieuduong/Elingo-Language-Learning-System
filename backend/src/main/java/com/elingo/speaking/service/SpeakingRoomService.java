@@ -10,6 +10,7 @@ public interface SpeakingRoomService {
     void createRoom(Long userId, CreateSpeakingRoomRequest request);
     void joinRoom(Long userId, String roomCode);
     void leaveRoom(Long userId);
+    void removeMember(Long userId, String roomCode, String reason);
     SpeakingRoomDetailResponse getRoom(String roomCode);
     PageResponse<SpeakingRoomResponse> getOpenRooms(Pageable pageable);
 }

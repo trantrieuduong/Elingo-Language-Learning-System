@@ -36,4 +36,15 @@ public class SchedulerConfig {
         scheduler.setAwaitTerminationSeconds(10);
         return scheduler;
     }
+
+    @Bean(name = "speakingScheduler")
+    public ThreadPoolTaskScheduler speakingScheduler() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(threadPoolProperties.scheduler().speakingPoolSize());
+        scheduler.setThreadNamePrefix("speaking-scheduler-");
+        scheduler.setRemoveOnCancelPolicy(true);
+        scheduler.setWaitForTasksToCompleteOnShutdown(true);
+        scheduler.setAwaitTerminationSeconds(10);
+        return scheduler;
+    }
 }

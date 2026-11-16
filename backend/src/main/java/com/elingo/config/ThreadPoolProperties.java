@@ -11,7 +11,8 @@ public record ThreadPoolProperties(
 
     public record Scheduler(
             @DefaultValue("2") int defaultPoolSize,
-            @DefaultValue("2") int battlePoolSize
+            @DefaultValue("2") int battlePoolSize,
+            @DefaultValue("2") int speakingPoolSize
     ) {}
 
     public record Async(

@@ -52,12 +52,14 @@ public class SpeakingSignalingServiceImpl implements SpeakingSignalingService {
         }
         try {
             boolean alreadyOnline = room.isOnline(userId);
+            LivePeer peer = room.getPeer(userId);
+            boolean wasInGrace = peer != null && !peer.isOnline() && room.cancelGrace(userId);
+
             // Làm mới từ DB (host, topic, trạng thái có thể đã đổi qua REST/WS khác)
             room.setHostId(ctx.hostId());
             room.setStartedAtMs(ctx.startedAtMs());
             room.setPrivate(ctx.isPrivate());
 
-            LivePeer peer = room.getPeer(userId);
             if (peer == null) {
                 peer = new LivePeer(userId, ctx.me().displayName(), ctx.me().avatarUrl(), ctx.me().role());
                 room.putPeer(peer);
@@ -70,8 +72,15 @@ public class SpeakingSignalingServiceImpl implements SpeakingSignalingService {
             // 1. trả room:state cho chính người gửi
             publisher.sendToUser(userId, SpeakingEvents.ROOM_STATE, buildState(room));
 
-            // 2. thông báo cho người khác chỉ khi vừa chuyển từ chưa online -> online
-            if (!alreadyOnline) {
+            // 2. thông báo cho người khác
+            if (wasInGrace) {
+                SpeakingPeerResponse reconnected = toPeer(peer);
+                for (LivePeer other : room.onlinePeers()) {
+                    if (!other.getUserId().equals(userId)) {
+                        publisher.sendToUser(other.getUserId(), SpeakingEvents.PEER_RECONNECTED, reconnected);
+                    }
+                }
+            } else if (!alreadyOnline) {
                 SpeakingPeerResponse joined = toPeer(peer);
                 for (LivePeer other : room.onlinePeers()) {
                     if (!other.getUserId().equals(userId)) {
@@ -79,8 +88,8 @@ public class SpeakingSignalingServiceImpl implements SpeakingSignalingService {
                     }
                 }
             }
-            log.info("Speaking goOnline roomCode={} userId={} alreadyOnline={} online={}",
-                    code, userId, alreadyOnline, room.onlinePeers().size());
+            log.info("Speaking goOnline roomCode={} userId={} alreadyOnline={} wasInGrace={} online={}",
+                    code, userId, alreadyOnline, wasInGrace, room.onlinePeers().size());
         } finally {
             room.unlock();
         }
