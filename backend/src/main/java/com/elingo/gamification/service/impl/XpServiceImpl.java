@@ -44,8 +44,11 @@ public class XpServiceImpl implements XpService {
                 .amount(amount)
                 .build());
 
+        log.info("Xp added amount={} source={} refId={}", amount, source, refId);
+
         int level = levelCatalog.levelFor(userXpRepository.findTotalXp(userId));
         if (userXpRepository.raiseLevel(userId, level) == 1) {
+            log.info("Level upgraded newLevel={}", level);
             publisher.publishEvent(new LevelUpEvent(userId, level, LocalDateTime.now()));
         }
     }
