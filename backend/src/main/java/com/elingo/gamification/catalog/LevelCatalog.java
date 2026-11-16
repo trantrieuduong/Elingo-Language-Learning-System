@@ -32,4 +32,34 @@ public class LevelCatalog {
         }
         return result;
     }
+
+    public List<Level> getAllLevels() {
+        return levels;
+    }
+
+    public Level getByLevelNo(int levelNo) {
+        for (Level l : levels) {
+            if (l.getLevelNo() != null && l.getLevelNo() == levelNo) {
+                return l;
+            }
+        }
+        return null;
+    }
+
+    public Level getNextLevel(int currentLevelNo) {
+        for (Level l : levels) {
+            if (l.getLevelNo() != null && l.getLevelNo() > currentLevelNo) {
+                return l;
+            }
+        }
+        return null;
+    }
+
+    public String getTitleForLevel(int levelNo) {
+        Level level = getByLevelNo(levelNo);
+        if (level != null && level.getTitle() != null && !level.getTitle().isBlank()) {
+            return level.getTitle();
+        }
+        return "Level " + levelNo;
+    }
 }

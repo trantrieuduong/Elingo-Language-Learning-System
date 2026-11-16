@@ -1,6 +1,7 @@
 package com.elingo.gamification.publisher;
 
 import com.elingo.common.websocket.AbstractWsSender;
+import com.elingo.gamification.dto.response.LevelUpWsResponse;
 import com.elingo.gamification.dto.response.XpGainedResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -31,6 +32,18 @@ public class GamificationEventPublisher extends AbstractWsSender {
             log.info("Xp event pushed via websocket amount={}", xpGained);
         } catch (Exception ex) {
             log.warn("Xp event websocket push failed amount={}", xpGained, ex);
+        }
+    }
+
+    /**
+     * Gửi sự kiện thăng cấp (Level Up) cho người dùng qua WebSocket.
+     */
+    public void sendLevelUp(Long userId, LevelUpWsResponse payload) {
+        try {
+            sendToUser(userId, GamificationEvents.LEVEL_UP, payload);
+            log.info("Level up event pushed via websocket userId={} newLevel={}", userId, payload.newLevel());
+        } catch (Exception ex) {
+            log.warn("Level up event websocket push failed userId={} newLevel={}", userId, payload.newLevel(), ex);
         }
     }
 }
