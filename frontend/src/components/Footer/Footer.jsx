@@ -34,16 +34,6 @@ function Footer({ onNavigate }) {
               {t('footer.lessons')}
             </a>
             <a
-              href="/flashcard"
-              className="footer__nav-link"
-              onClick={(e) => {
-                e.preventDefault();
-                handleNav('/flashcard');
-              }}
-            >
-              Flashcard
-            </a>
-            <a
               href="/decks"
               className="footer__nav-link"
               onClick={(e) => {

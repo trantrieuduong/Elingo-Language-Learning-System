@@ -142,11 +142,8 @@
     "title": "Choose the plan that fits your goal",
     "description": "Start free or upgrade to access all premium features without limits.",
     "popularFree": "Free",
-    "popularPro": "Most popular",
     "basic": {
       "name": "Basic Plan",
-      "price": "Free",
-      "period": "/ Forever",
       "description": "Perfect for beginners getting started with natural reflex learning.",
       "btn": "Use for free",
       "features": [
@@ -157,10 +154,7 @@
       ]
     },
     "pro": {
-      "name": "ELINGO Pro Plan",
-      "price": "$3.99",
-      "period": "/ month",
-      "description": "Or save more at $34.99 / year (only ~$2.92 / month).",
+      "description": "Unlock all premium features and choose the duration that works for you.",
       "btn": "Upgrade to Premium",
       "features": [
         "Unlimited vocabulary sets",

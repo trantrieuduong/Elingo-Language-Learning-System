@@ -1,0 +1,286 @@
+/* PremiumCheckoutModal.css — Frosted Glass Minimalist Style */
+
+.premium-checkout-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-md);
+  background-color: var(--color-modal-overlay);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.premium-checkout-modal-container {
+  width: 100%;
+  max-width: 780px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: var(--radius-card-lg);
+  padding: var(--spacing-xl) var(--spacing-xl);
+  position: relative;
+}
+
+.premium-checkout-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-outline-variant);
+}
+
+.premium-checkout-modal__title {
+  color: var(--color-text-high);
+  margin-bottom: var(--spacing-xs);
+}
+
+.premium-checkout-modal__subtitle {
+  color: var(--color-text-body);
+}
+
+.premium-checkout-modal__close-btn {
+  color: var(--color-text-mid);
+  flex-shrink: 0;
+}
+
+.premium-checkout-modal__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-3xl) var(--spacing-md);
+  gap: var(--spacing-md);
+}
+
+.premium-checkout-modal__spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--color-surface-container);
+  border-top-color: var(--color-primary);
+  border-radius: var(--radius-pill);
+  animation: spin 0.8s linear infinite;
+}
+
+.premium-checkout-modal__spinner--small {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+}
+
+.premium-checkout-modal__grid {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: var(--spacing-xl);
+}
+
+@media (max-width: 600px) {
+  .premium-checkout-modal-container {
+    padding: var(--space-5) var(--spacing-md);
+  }
+
+  .premium-checkout-modal__grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+  }
+
+  .premium-checkout-modal__amount {
+    font-size: var(--font-size-title-md);
+  }
+}
+
+/* Cột trái: QR Code */
+.premium-checkout-modal__qr-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-3);
+}
+
+.premium-checkout-modal__qr-wrapper {
+  width: 270px;
+  height: 270px;
+  padding: var(--space-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-input);
+  box-shadow: var(--shadow-thumb);
+  border: 1px solid var(--color-outline-variant);
+}
+
+.premium-checkout-modal__qr-wrapper--has-qr {
+  background: var(--color-on-primary);
+}
+
+.premium-checkout-modal__qr-wrapper--fallback {
+  border-color: var(--color-outline-variant);
+}
+
+.premium-checkout-modal__qr-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+}
+
+.premium-checkout-modal__qr-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  text-align: center;
+}
+
+.premium-checkout-modal__qr-fallback .material-symbols-outlined {
+  font-size: var(--space-12);
+  color: var(--color-secondary);
+}
+
+.premium-checkout-modal__qr-fallback p {
+  color: var(--color-text-mid);
+  line-height: 1.45;
+}
+
+.premium-checkout-modal__status-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-secondary-container);
+  border-radius: var(--radius-pill);
+  margin-top: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+}
+
+.premium-checkout-modal__hint {
+  line-height: 1.4;
+  margin-top: var(--spacing-xs);
+}
+
+/* Cột phải: Thông tin */
+.premium-checkout-modal__info-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.premium-checkout-modal__summary-card {
+  padding: var(--space-3) var(--spacing-md);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-outline-variant);
+}
+
+.premium-checkout-modal__summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-xs);
+}
+
+.premium-checkout-modal__summary-row:last-child {
+  margin-bottom: 0;
+  padding-top: var(--spacing-xs);
+  border-top: 1px dashed var(--color-outline-variant);
+}
+
+.premium-checkout-modal__amount-group {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.premium-checkout-modal__amount {
+  color: var(--color-primary);
+}
+
+.premium-checkout-modal__transfer-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.premium-checkout-modal__field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.premium-checkout-modal__field--highlight {
+  background: var(--color-pastel-soft-blue);
+  border-color: var(--color-primary-container);
+}
+
+.premium-checkout-modal__field-text {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.premium-checkout-modal__field-val {
+  color: var(--color-text-high);
+  font-weight: 600;
+  font-size: var(--font-size-body-md);
+  word-break: break-all;
+}
+
+.premium-checkout-modal__field-val--ref {
+  color: var(--color-primary);
+  font-size: var(--font-size-body-lg);
+  letter-spacing: 0.02em;
+}
+
+.premium-checkout-modal__transaction-id {
+  text-align: right;
+  margin-top: var(--spacing-xs);
+}
+
+/* Trạng thái thành công */
+.premium-checkout-modal__success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--spacing-2xl) var(--spacing-lg);
+  gap: var(--spacing-md);
+  border-radius: var(--radius-card);
+}
+
+.premium-checkout-modal__success-icon {
+  font-size: 56px;
+  color: var(--color-success);
+}
+
+.premium-checkout-modal__success-btn {
+  margin-top: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-xl);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

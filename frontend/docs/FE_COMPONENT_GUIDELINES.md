@@ -71,7 +71,7 @@ LessonCard/
 
 ---
 
-## 4. Component Template
+## 4. Component Template (Tùy chọn phần JSDoc)
 
 ```jsx
 import './ComponentName.css';
@@ -146,7 +146,7 @@ function Input({ id, label, type, value, onChange, error, disabled, autoFocus, .
 
 ```jsx
 // Dùng utility class từ index.css — KHÔNG tự viết glass CSS
-<div className="glass-card" style={{ borderRadius: 'var(--radius-card)' }}>
+<div className="glass-card">
 ```
 
 ### 6.2 Button
@@ -312,6 +312,36 @@ Toast dùng chung vị trí cố định phía trên bên phải, ngay dưới H
 - `Header` và `Footer` được render từ `App.jsx` cho public/user routes; page không tự render thêm bản sao.
 - `Header` nhận `currentPath` để thể hiện route hiện tại. Với cặp action đăng nhập/đăng ký, action của route đang mở dùng `.btn-primary`, action còn lại dùng `.btn-secondary`.
 - Landing navigation dùng anchor section và active state theo vị trí scroll; luôn giữ underline mounted rồi animate opacity/transform, không add/remove underline làm layout giật.
+
+### 7.11 `<PremiumPlanCard>` — `src/components/PremiumPlanCard/`
+
+- Dùng chung layout cho bảng giá Landing và danh sách gói Premium;
+- `plan` gồm `name`, `price`, `currency`, `durationDays` và tùy chọn `description`. Giá được hiển thị theo locale; thời hạn được tính từ `durationDays` và hiển thị sau dấu `/`.
+- Truyền `features` và `popularLabel` qua props riêng; `isFeatured` áp dụng kiểu thẻ nổi bật và nút primary. Truyền `buttonLabel` để hiển thị CTA; nút bị vô hiệu hóa nếu không có `onSelect`.
+
+### 7.12 `<Table>` - `src/components/Table/`
+
+```jsx
+<Table
+  columns={[
+    { key: 'planName', title: 'Tên gói', width: 25 },
+    { key: 'amount', title: 'Số tiền', width: 20, align: 'right' },
+    {
+      key: 'status', title: 'Trạng thái', width: 18,
+      render: (value, row, index) => <Badge status={value} />,
+    },
+  ]}
+  data={transactions}
+  rowKey="id" // string key name hoặc hàm (row, index) => string|number
+  className="my-custom-table"
+/>
+```
+
+- Component bảng dữ liệu dùng chung (cho lịch sử giao dịch, bảng quản trị, ...);
+- Tự động bọc trong `.table-wrapper` hỗ trợ cuộn ngang trên thiết bị di động (`overflow-x: auto`);
+- `columns`: mảng cấu hình các cột gồm `key`, `title`, `width` (phần trăm `%` hoặc chuỗi kích thước), `align` (`'left'|'center'|'right'`), và `render(value, row, index)` tùy biến hiển thị ô;
+- `data`: mảng danh sách dữ liệu các hàng;
+- `rowKey`: tên thuộc tính định danh hàng (mặc định `'id'`) hoặc hàm lấy key duy nhất.
 
 ---
 

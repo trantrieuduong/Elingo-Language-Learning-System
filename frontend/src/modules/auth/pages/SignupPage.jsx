@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Input from '../../../components/Input/Input';
 import { useAuth } from '../../../context/AuthContext';
@@ -21,6 +21,10 @@ function SignupPage({ onNavigate }) {
   const [errors, setErrors] = useState({});
   const [generalError, setGeneralError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, []);
 
   const validate = () => {
     const newErrors = {};

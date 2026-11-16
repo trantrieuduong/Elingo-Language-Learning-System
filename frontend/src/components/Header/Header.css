@@ -8,7 +8,7 @@
   left: 50%;
   transform: translateX(-50%);
   width: calc(100% - 3rem);
-  max-width: 1432px;
+  max-width: var(--header-max-width);
   border-radius: var(--radius-pill);
   z-index: var(--z-overlay);
   isolation: isolate;

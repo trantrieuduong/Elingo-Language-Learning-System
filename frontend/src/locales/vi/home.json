@@ -142,11 +142,8 @@
     "title": "Lựa chọn gói học phù hợp với mục tiêu của bạn",
     "description": "Bắt đầu miễn phí hoặc nâng cấp để tiếp cận toàn bộ tính năng cao cấp không giới hạn.",
     "popularFree": "Miễn phí",
-    "popularPro": "Được yêu thích nhất",
     "basic": {
       "name": "Gói Cơ Bản",
-      "price": "0đ",
-      "period": "/ Vĩnh viễn",
       "description": "Phù hợp cho người mới bắt đầu làm quen với phương pháp học phản xạ tự nhiên.",
       "btn": "Sử dụng miễn phí",
       "features": [
@@ -157,10 +154,7 @@
       ]
     },
     "pro": {
-      "name": "Gói ELINGO Pro",
-      "price": "89.000đ",
-      "period": "/ tháng",
-      "description": "Hoặc tiết kiệm hơn với 799.000đ / năm (chỉ ~66.000đ / tháng).",
+      "description": "Mở khóa trọn bộ tính năng cao cấp và chọn thời hạn phù hợp với bạn.",
       "btn": "Nâng cấp Premium",
       "features": [
         "Không giới hạn bộ từ vựng",

@@ -9,6 +9,7 @@
   padding: var(--spacing-3xl);
   text-align: center;
   border-radius: var(--radius-card-lg);
+  min-height: 280px;
 }
 
 .empty-state--compact {

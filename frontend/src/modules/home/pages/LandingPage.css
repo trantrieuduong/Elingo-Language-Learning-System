@@ -24,8 +24,7 @@
 .landing-feature-card p,
 .landing-step > p,
 .landing-arena p,
-.landing-feed p,
-.landing-plan > div > p {
+.landing-feed p {
   margin: 0;
   color: var(--color-on-surface-variant);
   line-height: var(--line-height-body-md);
@@ -183,8 +182,7 @@
 }
 .landing-hero__word h3,
 .landing-arena h3,
-.landing-feed h3,
-.landing-plan h3 {
+.landing-feed h3 {
   margin: 0;
   font-family: var(--font-display);
   font-size: var(--font-size-headline-md);
@@ -626,81 +624,25 @@
   justify-content: center;
   gap: 32px;
 }
-.landing-plan {
-  position: relative;
+.landing-pricing--single {
+  grid-template-columns: minmax(0, 460px);
+}
+.landing-pricing__status {
   display: flex;
-  min-height: 560px;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 32px;
-  padding: 32px;
-  border-radius: var(--radius-card-lg);
-}
-.landing-plan__popular {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  padding: 5px 12px;
-  border-radius: 50px;
-  color: var(--color-primary);
-  font-family: var(--font-display);
-  font-size: var(--font-size-label-sm);
-  font-weight: 700;
-}
-.landing-plan__title {
-  padding-right: 105px;
-}
-.landing-plan__title > span {
-  padding: 5px 12px;
-  border-radius: 50px;
+  min-height: 120px;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
   color: var(--color-on-surface-variant);
-  font-family: var(--font-display);
-  font-size: var(--font-size-label-sm);
 }
-.landing-plan__price {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin: 16px 0;
+.landing-pricing__status .app-loading-spinner {
+  width: 24px;
+  height: 24px;
 }
-.landing-plan__price strong {
-  font-family: var(--font-display);
-  font-size: var(--font-size-display-lg);
-  font-weight: 800;
-  color: var(--color-text-high);
-}
-.landing-plan--pro .landing-plan__price strong {
-  color: var(--color-primary);
-}
-.landing-plan__price span {
-  color: var(--color-on-surface-variant);
-  font-size: var(--font-size-body-md);
-}
-.landing-plan ul {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin: 24px 0 0;
-  padding: 0;
-  list-style: none;
-}
-.landing-plan li {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  font-family: var(--font-body);
-  font-size: var(--font-size-body-md);
-  line-height: var(--line-height-body-md);
-  color: var(--color-text-high);
-}
-.landing-plan li .material-symbols-outlined {
-  flex: 0 0 auto;
-  font-size: 20px;
-  color: var(--color-primary);
-}
-.landing-plan .btn-primary,
-.landing-plan .btn-secondary {
-  width: 100%;
+.landing-pricing__empty-state {
+  grid-column: 1 / -1;
+  width: min(100%, 720px);
+  margin-inline: auto;
 }
 .landing-final-cta {
   margin-top: 32px;
@@ -771,9 +713,6 @@
   .landing-steps {
     grid-template-columns: repeat(2, 1fr);
   }
-  .landing-plan {
-    min-height: auto;
-  }
 }
 @media (max-width: 600px) {
   .landing-hero__stats,
@@ -811,15 +750,6 @@
   }
   .landing-overview__card {
     min-height: auto;
-  }
-  .landing-plan__title {
-    padding-right: 0;
-  }
-  .landing-plan__popular {
-    position: static;
-    display: inline-flex;
-    width: fit-content;
-    margin-bottom: 16px;
   }
   .landing-final-cta__panel {
     padding: 48px 24px;

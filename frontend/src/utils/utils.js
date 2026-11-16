@@ -132,3 +132,45 @@ export const formatCount = (num) => {
   if (num >= 1_000) return `${(num / 1_000).toFixed(1)}K`;
   return String(num);
 };
+
+/**
+ * Tách thời hạn tính theo ngày thành đơn vị dễ đọc.
+ * @param {number} durationDays
+ * @returns {{ unit: 'lifetime' | 'year' | 'month' | 'day', count: number }}
+ */
+export const getDurationParts = (durationDays) => {
+  if (durationDays === 0) {
+    return { unit: 'lifetime', count: 1 };
+  }
+
+  if (!Number.isFinite(durationDays) || durationDays <= 0) {
+    return { unit: 'day', count: 0 };
+  }
+
+  if (durationDays % 365 === 0) {
+    return { unit: 'year', count: durationDays / 365 };
+  }
+
+  if (durationDays % 30 === 0) {
+    return { unit: 'month', count: durationDays / 30 };
+  }
+
+  return { unit: 'day', count: durationDays };
+};
+
+/**
+ * Format giá theo locale và mã tiền tệ.
+ * @param {number|string} price
+ * @param {string} currency
+ * @param {string} locale
+ * @returns {string}
+ */
+export const formatPremiumPrice = (price, currency, locale) => {
+  const numericPrice =
+    price === '' || price === null || price === undefined ? Number.NaN : Number(price);
+  const formattedPrice = Number.isFinite(numericPrice)
+    ? new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(numericPrice)
+    : price;
+
+  return currency ? `${formattedPrice} ${currency}` : formattedPrice;
+};

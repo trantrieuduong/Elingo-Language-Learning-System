@@ -1,12 +1,13 @@
 .toast.glass-card {
+  --toast-side-margin: max(1.5rem, calc((100vw - var(--header-max-width)) / 2));
   position: fixed;
-  top: 90px;
-  right: var(--spacing-xl);
+  top: calc(var(--header-total-offset) + var(--spacing-md));
+  right: var(--toast-side-margin);
   z-index: var(--z-toast);
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  max-width: min(480px, calc(100vw - 2 * var(--spacing-xl)));
+  max-width: min(480px, calc(100vw - 2 * var(--toast-side-margin)));
   padding: var(--spacing-sm) var(--spacing-lg);
   border-radius: var(--radius-pill);
   box-shadow: var(--shadow-pill);
@@ -51,9 +52,18 @@
   }
 }
 
+@media (max-width: 1024px) {
+  .toast.glass-card {
+    top: calc(var(--header-total-offset) + var(--spacing-sm));
+    right: 0.75rem;
+    max-width: calc(100vw - 1.5rem);
+  }
+}
+
 @media (max-width: 600px) {
-  .toast {
-    right: var(--spacing-md);
-    max-width: calc(100vw - 2 * var(--spacing-md));
+  .toast.glass-card {
+    top: calc(var(--header-total-offset) + var(--spacing-xs));
+    right: 0.5rem;
+    max-width: calc(100vw - 1rem);
   }
 }

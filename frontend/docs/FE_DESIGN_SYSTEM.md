@@ -310,12 +310,13 @@ Focus:
 
 ## 12. Responsive
 
-Breakpoint chính là **`max-width: 1024px`** để chuyển layout desktop sang một cột. Được dùng thêm breakpoint hẹp khi nội dung thực sự cần: **`max-width: 600px`** cho điện thoại và **`max-width: 360px`** cho màn hình rất hẹp. Không tạo breakpoint tùy tiện ngoài ba mốc này nếu chưa có lý do cụ thể.
+Breakpoint chính là **`max-width: 1024px`** để chuyển layout desktop sang hai cột và **`max-width: 600px`** để chuyển layout mobile sang một cột. Có thể dùng thêm breakpoint **`max-width: 360px`** cho màn hình rất hẹp khi nội dung thực sự cần. Không tạo breakpoint tùy tiện ngoài ba mốc này nếu chưa có lý do cụ thể.
 
 | Breakpoint | Columns | Margin | Max Width |
 |---|---|---|---|
 | Desktop > 1024px | 12 cols | 48px | 1200px |
-| Mobile ≤ 1024px | 1 col | 16px | — |
+| Tablet 601–1024px | 2 cols | 16px | — |
+| Mobile ≤ 600px | 1 col | 16px | — |
 
 > `.container` class: `max-width: 1200px`, `margin: 0 auto`, `padding-inline: 48px` (desktop) / `16px` (mobile).
 
