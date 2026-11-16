@@ -3,11 +3,14 @@ package com.elingo.gamification.service.impl;
 import com.elingo.common.event.LevelUpEvent;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
+import com.elingo.gamification.entity.BadgeConditionType;
 import com.elingo.gamification.entity.XpEvent;
 import com.elingo.gamification.entity.XpSource;
 import com.elingo.gamification.repository.UserXpRepository;
 import com.elingo.gamification.repository.XpEventRepository;
-import com.elingo.gamification.service.LevelCatalog;
+import com.elingo.gamification.service.BadgeAwardService;
+import com.elingo.gamification.service.LeaderboardService;
+import com.elingo.gamification.catalog.LevelCatalog;
 import com.elingo.gamification.service.XpService;
 import com.elingo.user.entity.User;
 import com.elingo.user.repository.UserRepository;
@@ -29,6 +32,8 @@ public class XpServiceImpl implements XpService {
     private final ApplicationEventPublisher publisher;
     private final UserRepository userRepository;
     private final LevelCatalog levelCatalog;
+    private final LeaderboardService leaderboardService;
+    private final BadgeAwardService badgeAwardService;
 
     @Override
     @Transactional
@@ -45,6 +50,9 @@ public class XpServiceImpl implements XpService {
                 .build());
 
         log.info("Xp added amount={} source={} refId={}", amount, source, refId);
+
+        leaderboardService.recordXpForLeaderboard(userId, amount);
+        badgeAwardService.evaluateAndAward(userId, BadgeConditionType.TOTAL_XP);
 
         int level = levelCatalog.levelFor(userXpRepository.findTotalXp(userId));
         if (userXpRepository.raiseLevel(userId, level) == 1) {

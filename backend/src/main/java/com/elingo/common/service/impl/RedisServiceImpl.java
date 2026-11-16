@@ -3,12 +3,14 @@ package com.elingo.common.service.impl;
 import com.elingo.common.service.RedisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -67,5 +69,40 @@ public class RedisServiceImpl implements RedisService {
     @Override
     public void expireAt(String key, Instant at) {
         stringRedisTemplate.expireAt(key, at);
+    }
+
+    @Override
+    public void expire(String key, Duration duration) {
+        stringRedisTemplate.expire(key, duration);
+    }
+
+    @Override
+    public Boolean zAdd(String key, String value, double score) {
+        return stringRedisTemplate.opsForZSet().add(key, value, score);
+    }
+
+    @Override
+    public Double zIncrBy(String key, String value, double delta) {
+        return stringRedisTemplate.opsForZSet().incrementScore(key, value, delta);
+    }
+
+    @Override
+    public Double zScore(String key, String value) {
+        return stringRedisTemplate.opsForZSet().score(key, value);
+    }
+
+    @Override
+    public Long zReverseRank(String key, String value) {
+        return stringRedisTemplate.opsForZSet().reverseRank(key, value);
+    }
+
+    @Override
+    public Long zCard(String key) {
+        return stringRedisTemplate.opsForZSet().zCard(key);
+    }
+
+    @Override
+    public Set<ZSetOperations.TypedTuple<String>> zReverseRangeWithScores(String key, long start, long end) {
+        return stringRedisTemplate.opsForZSet().reverseRangeWithScores(key, start, end);
     }
 }

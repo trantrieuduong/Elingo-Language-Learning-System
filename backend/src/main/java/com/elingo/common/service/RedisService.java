@@ -1,7 +1,10 @@
 package com.elingo.common.service;
 
+import org.springframework.data.redis.core.ZSetOperations;
+
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Set;
 
 public interface RedisService {
     void save(String key, String value, long timeoutInMinutes);
@@ -19,4 +22,12 @@ public interface RedisService {
     boolean setBit(String key, long offset, boolean value);
 
     void expireAt(String key, Instant at);
+    void expire(String key, Duration duration);
+
+    Boolean zAdd(String key, String value, double score);
+    Double zIncrBy(String key, String value, double delta);
+    Double zScore(String key, String value);
+    Long zReverseRank(String key, String value);
+    Long zCard(String key);
+    Set<ZSetOperations.TypedTuple<String>> zReverseRangeWithScores(String key, long start, long end);
 }

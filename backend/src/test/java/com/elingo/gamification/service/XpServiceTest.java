@@ -3,10 +3,12 @@ package com.elingo.gamification.service;
 import com.elingo.common.event.LevelUpEvent;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
+import com.elingo.gamification.entity.BadgeConditionType;
 import com.elingo.gamification.entity.XpEvent;
 import com.elingo.gamification.entity.XpSource;
 import com.elingo.gamification.repository.UserXpRepository;
 import com.elingo.gamification.repository.XpEventRepository;
+import com.elingo.gamification.catalog.LevelCatalog;
 import com.elingo.gamification.service.impl.XpServiceImpl;
 import com.elingo.user.entity.User;
 import com.elingo.user.repository.UserRepository;
@@ -51,6 +53,12 @@ class XpServiceTest {
     @Mock
     private LevelCatalog levelCatalog;
 
+    @Mock
+    private LeaderboardService leaderboardService;
+
+    @Mock
+    private BadgeAwardService badgeAwardService;
+
     @InjectMocks
     private XpServiceImpl xpService;
 
@@ -67,6 +75,8 @@ class XpServiceTest {
         ReflectionTestUtils.setField(xpService, "publisher", publisher);
         ReflectionTestUtils.setField(xpService, "userRepository", userRepository);
         ReflectionTestUtils.setField(xpService, "levelCatalog", levelCatalog);
+        ReflectionTestUtils.setField(xpService, "leaderboardService", leaderboardService);
+        ReflectionTestUtils.setField(xpService, "badgeAwardService", badgeAwardService);
 
         testUser = User.builder()
                 .id(USER_ID)
@@ -101,6 +111,8 @@ class XpServiceTest {
 
             verify(levelCatalog).levelFor(120);
             verify(userXpRepository).raiseLevel(USER_ID, 2);
+            verify(leaderboardService).recordXpForLeaderboard(USER_ID, AMOUNT);
+            verify(badgeAwardService).evaluateAndAward(USER_ID, BadgeConditionType.TOTAL_XP);
 
             ArgumentCaptor<LevelUpEvent> levelUpCaptor = ArgumentCaptor.forClass(LevelUpEvent.class);
             verify(publisher).publishEvent(levelUpCaptor.capture());
@@ -122,6 +134,8 @@ class XpServiceTest {
             verify(userXpRepository).upsertAddXp(USER_ID, AMOUNT);
             verify(xpEventRepository).save(any(XpEvent.class));
             verify(userXpRepository).raiseLevel(USER_ID, 1);
+            verify(leaderboardService).recordXpForLeaderboard(USER_ID, AMOUNT);
+            verify(badgeAwardService).evaluateAndAward(USER_ID, BadgeConditionType.TOTAL_XP);
             verify(publisher, never()).publishEvent(any(LevelUpEvent.class));
         }
 
@@ -150,6 +164,8 @@ class XpServiceTest {
 
             verify(userXpRepository).upsertAddXp(USER_ID, 0);
             verify(xpEventRepository).save(any(XpEvent.class));
+            verify(leaderboardService).recordXpForLeaderboard(USER_ID, 0);
+            verify(badgeAwardService).evaluateAndAward(USER_ID, BadgeConditionType.TOTAL_XP);
         }
     }
 }

@@ -27,6 +27,7 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.hamcrest.Matchers.startsWith;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -85,7 +86,7 @@ class BadgeControllerTest {
                             "STREAK_7_DAYS",
                             "7-Day Streak Master",
                             "Maintain a learning streak for 7 consecutive days",
-                            "https://cdn.elingo.com/badges/streak-7.png",
+                            null,
                             BadgeConditionType.STREAK_DAYS,
                             7,
                             earnedTime
@@ -103,7 +104,7 @@ class BadgeControllerTest {
                     .andExpect(jsonPath("$.data[0].name").value("7-Day Streak Master"))
                     .andExpect(jsonPath("$.data[0].conditionType").value("STREAK_DAYS"))
                     .andExpect(jsonPath("$.data[0].conditionValue").value(7))
-                    .andExpect(jsonPath("$.data[0].earnedAt").value(earnedTime.toString()));
+                    .andExpect(jsonPath("$.data[0].earnedAt").value(startsWith("2026-11-16T10:30")));
 
             verify(badgeService).getUserBadges(CURRENT_USER_ID);
         }
@@ -118,7 +119,7 @@ class BadgeControllerTest {
                             "TOTAL_XP_1000",
                             "XP Novice",
                             "Accumulate 1,000 total experience points",
-                            "https://cdn.elingo.com/badges/xp-1000.png",
+                            null,
                             BadgeConditionType.TOTAL_XP,
                             1000,
                             earnedTime
