@@ -4,6 +4,8 @@ public final class SpeakingEvents {
     private SpeakingEvents() {}
 
     public static final String ROOM_STATE = "room:state";
+    public static final String ROOM_CREATED = "room:created";
+    public static final String ROOM_LEFT = "room:left";
     public static final String PEER_JOINED = "peer:joined";
     public static final String PEER_LEFT = "peer:left";
     public static final String PEER_DISCONNECTED = "peer:disconnected"; 

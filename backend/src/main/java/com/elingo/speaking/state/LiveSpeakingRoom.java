@@ -21,15 +21,17 @@ public class LiveSpeakingRoom {
     @Setter private volatile Long hostId;
     @Setter private volatile String topic;
     @Setter private volatile Short maxParticipants;
+    @Setter private volatile boolean isPrivate;
     @Setter private volatile Long startedAtMs;
 
     public LiveSpeakingRoom(String roomCode, Long roomId, Long hostId,
-                            String topic, Short maxParticipants, Long startedAtMs) {
+                            String topic, Short maxParticipants, boolean isPrivate, Long startedAtMs) {
         this.roomCode = roomCode;
         this.roomId = roomId;
         this.hostId = hostId;
         this.topic = topic;
         this.maxParticipants = maxParticipants;
+        this.isPrivate = isPrivate;
         this.startedAtMs = startedAtMs;
     }
 
@@ -49,7 +51,7 @@ public class LiveSpeakingRoom {
         LivePeer p = peers.get(userId);
         return p != null && p.isOnline();
     }
-    
+
     public List<LivePeer> onlinePeers() {
         return peers.values().stream().filter(LivePeer::isOnline).toList();
     }
@@ -57,7 +59,7 @@ public class LiveSpeakingRoom {
     public void putPeer(LivePeer p) {
         peers.put(p.getUserId(), p);
     }
-    
+
     public LivePeer removePeer(Long userId) {
         return peers.remove(userId);
     }

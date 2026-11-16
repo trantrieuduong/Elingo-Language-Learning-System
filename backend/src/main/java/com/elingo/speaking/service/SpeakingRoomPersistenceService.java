@@ -10,17 +10,17 @@ import java.util.List;
 
 public interface SpeakingRoomPersistenceService {
     SpeakingRoomDetailResponse createRoom(Long userId, String topic, Integer maxParticipants, Boolean isPrivate);
-    SpeakingRoomDetailResponse joinRoom(Long userId, String roomCode);
+    GoOnlineContext joinRoom(Long userId, String roomCode);
     LeaveResult leaveRoom(Long userId, String roomCode);
+    String findActiveRoomCode(Long userId);
     SpeakingRoomDetailResponse getRoomDetail(String roomCode);
     PageResponse<SpeakingRoomResponse> getOpenRooms(Pageable pageable);
-    EnterContext loadRoomForEnter(Long userId, String roomCode);
 
     record LeaveResult(String roomCode, String topic, long durationSeconds,
                        Long newHostId,
                        boolean roomClosed) {}
 
-    record EnterContext(Long roomId, String roomCode, String topic, Long hostId,
-                        Short maxParticipants, Long startedAtMs,
-                        SpeakingPeerResponse me, List<SpeakingPeerResponse> members) {}
+    record GoOnlineContext(Long roomId, String roomCode, String topic, Long hostId,
+                           Short maxParticipants, boolean isPrivate, Long startedAtMs,
+                           SpeakingPeerResponse me, List<SpeakingPeerResponse> members) {}
 }

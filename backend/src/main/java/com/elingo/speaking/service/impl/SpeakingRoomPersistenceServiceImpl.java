@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Slf4j(topic = "SPEAKING-ROOM-SERVICE")
+@Slf4j(topic = "SPEAKING-ROOM-PERSISTENCE-SERVICE")
 @Service
 @RequiredArgsConstructor
 public class SpeakingRoomPersistenceServiceImpl implements SpeakingRoomPersistenceService {
@@ -48,7 +48,6 @@ public class SpeakingRoomPersistenceServiceImpl implements SpeakingRoomPersisten
     @Override
     @Transactional
     public SpeakingRoomDetailResponse createRoom(Long userId, String topic, Integer maxParticipants, Boolean isPrivate) {
-        
         // Kiểm tra user chưa tham gia phòng nào
         if (participantRepository.existsByUserIdAndLeftAtIsNull(userId)) {
             throw new AppException(AppError.SPEAKING_ALREADY_IN_ROOM);
@@ -90,7 +89,7 @@ public class SpeakingRoomPersistenceServiceImpl implements SpeakingRoomPersisten
 
     @Override
     @Transactional
-    public SpeakingRoomDetailResponse joinRoom(Long userId, String rawCode) {
+    public GoOnlineContext joinRoom(Long userId, String rawCode) {
         String code = SpeakingRoomCode.normalize(rawCode);
         SpeakingRoom room = roomRepository.findByRoomCodeForUpdate(code)
                 .orElseThrow(() -> new AppException(AppError.SPEAKING_ROOM_NOT_FOUND));
@@ -100,7 +99,7 @@ public class SpeakingRoomPersistenceServiceImpl implements SpeakingRoomPersisten
 
         // Đã ở chính phòng này -> idempotent (F5, mở lại trang)
         if (participantRepository.findByRoomIdAndUserIdAndLeftAtIsNull(room.getId(), userId).isPresent()) {
-            return buildDetail(room);
+            return buildJoinContext(room, userId);
         }
 
         // Đảm bảo mỗi user chỉ tham gia một phòng tại một thời điểm
@@ -123,7 +122,7 @@ public class SpeakingRoomPersistenceServiceImpl implements SpeakingRoomPersisten
             room.setStartedAt(LocalDateTime.now());
         }
         log.info("Speaking room joined roomCode={} userId={}", code, userId);
-        return buildDetail(room);
+        return buildJoinContext(room, userId);
     }
 
     @Override
@@ -163,6 +162,14 @@ public class SpeakingRoomPersistenceServiceImpl implements SpeakingRoomPersisten
 
     @Override
     @Transactional(readOnly = true)
+    public String findActiveRoomCode(Long userId) {
+        return participantRepository.findActiveByUserId(userId)
+                .orElseThrow(() -> new AppException(AppError.SPEAKING_PARTICIPANT_NOT_FOUND))
+                .getRoom().getRoomCode();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public SpeakingRoomDetailResponse getRoomDetail(String rawCode) {
         String code = SpeakingRoomCode.normalize(rawCode);
         SpeakingRoom room = roomRepository.findByRoomCodeWithHost(code)
@@ -175,7 +182,6 @@ public class SpeakingRoomPersistenceServiceImpl implements SpeakingRoomPersisten
 
     @Override
     @Transactional(readOnly = true)
-    // Lấy danh sách phòng và số thành viên đang hoạt động theo từng phòng
     public PageResponse<SpeakingRoomResponse> getOpenRooms(Pageable pageable) {
         Page<SpeakingRoom> page = roomRepository.findOpenRooms(
                 PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()));
@@ -201,16 +207,8 @@ public class SpeakingRoomPersistenceServiceImpl implements SpeakingRoomPersisten
                 room.getHost().getId(), room.getStartedAt(), room.getCreatedAt(), peers);
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    // Lấy thông tin phòng và danh sách thành viên để chuẩn bị tham gia phòng
-    public EnterContext loadRoomForEnter(Long userId, String rawCode) {
-        String code = SpeakingRoomCode.normalize(rawCode);
-        SpeakingRoom room = roomRepository.findByRoomCodeWithHost(code)
-                .orElseThrow(() -> new AppException(AppError.SPEAKING_ROOM_NOT_FOUND));
-        if (room.getStatus() == SpeakingRoomStatus.CLOSED) {
-            throw new AppException(AppError.SPEAKING_ROOM_CLOSED);
-        }
+    // Xây context tham gia phòng từ trạng thái DB hiện tại 
+    private GoOnlineContext buildJoinContext(SpeakingRoom room, Long userId) {
         List<SpeakingParticipant> members = participantRepository.findActiveByRoomId(room.getId());
         SpeakingParticipant mePart = members.stream()
                 .filter(p -> p.getUser().getId().equals(userId))
@@ -223,8 +221,9 @@ public class SpeakingRoomPersistenceServiceImpl implements SpeakingRoomPersisten
         SpeakingPeerResponse me = mapper.toPeer(mePart);
         List<SpeakingPeerResponse> memberResponses = members.stream().map(mapper::toPeer).toList();
 
-        return new EnterContext(
-                room.getId(), code, room.getTopic(), room.getHost().getId(),
-                room.getMaxParticipants(), startedAtMs, me, memberResponses);
+        return new GoOnlineContext(
+                room.getId(), room.getRoomCode(), room.getTopic(), room.getHost().getId(),
+                room.getMaxParticipants(), Boolean.TRUE.equals(room.getIsPrivate()),
+                startedAtMs, me, memberResponses);
     }
 }

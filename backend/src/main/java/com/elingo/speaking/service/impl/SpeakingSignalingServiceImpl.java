@@ -7,8 +7,7 @@ import com.elingo.speaking.dto.request.SpeakingSignalRequest;
 import com.elingo.speaking.dto.response.RoomStateResponse;
 import com.elingo.speaking.dto.response.SpeakingPeerResponse;
 import com.elingo.speaking.dto.response.SpeakingSignalResponse;
-import com.elingo.speaking.service.SpeakingRoomPersistenceService;
-import com.elingo.speaking.service.SpeakingRoomPersistenceService.EnterContext;
+import com.elingo.speaking.service.SpeakingRoomPersistenceService.GoOnlineContext;
 import com.elingo.speaking.service.SpeakingSignalingService;
 import com.elingo.speaking.state.LivePeer;
 import com.elingo.speaking.state.LiveSpeakingRoom;
@@ -20,21 +19,20 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Slf4j(topic = "SPEAKING-SIGNALING-SERVICE")
 @Service
 @RequiredArgsConstructor
 public class SpeakingSignalingServiceImpl implements SpeakingSignalingService {
 
-    private final SpeakingRoomPersistenceService persistence;
     private final SpeakingLiveRegistry registry;
     private final SpeakingEventPublisher publisher;
     private final SpeakingProperties props;
 
     @Override
-    public void enter(Long userId, String rawCode) {
-        String code = SpeakingRoomCode.normalize(rawCode);
-        // Kiểm tra quyền + phòng chưa đóng
-        EnterContext ctx = persistence.loadRoomForEnter(userId, code);
+    public void goOnline(Long userId, GoOnlineContext ctx) {
+        String code = ctx.roomCode();
 
         // Nếu đang online ở phòng khác (do F5/phòng cũ) thì bỏ qua phòng cũ trong RAM
         LiveSpeakingRoom stale = registry.getByUser(userId);
@@ -42,20 +40,22 @@ public class SpeakingSignalingServiceImpl implements SpeakingSignalingService {
             removePeerSilently(stale, userId);
         }
 
-        // Vòng lặp tránh race condition: nếu room bị xóa giữa chừng thì tạo lại
+        // Vòng lặp: lấy/tạo phòng và khóa. Nếu removeRoom chạy xen giữa thì tạo lại
         LiveSpeakingRoom room;
         while (true) {
             room = registry.getOrCreate(code, () -> new LiveSpeakingRoom(
                     ctx.roomCode(), ctx.roomId(), ctx.hostId(), ctx.topic(),
-                    ctx.maxParticipants(), ctx.startedAtMs()));
+                    ctx.maxParticipants(), ctx.isPrivate(), ctx.startedAtMs()));
             room.lock();
             if (registry.get(code) == room) break;
             room.unlock();
         }
         try {
             boolean alreadyOnline = room.isOnline(userId);
+            // Làm mới từ DB (host, topic, trạng thái có thể đã đổi qua REST/WS khác)
             room.setHostId(ctx.hostId());
             room.setStartedAtMs(ctx.startedAtMs());
+            room.setPrivate(ctx.isPrivate());
 
             LivePeer peer = room.getPeer(userId);
             if (peer == null) {
@@ -79,7 +79,7 @@ public class SpeakingSignalingServiceImpl implements SpeakingSignalingService {
                     }
                 }
             }
-            log.info("Speaking enter roomCode={} userId={} alreadyOnline={} online={}",
+            log.info("Speaking goOnline roomCode={} userId={} alreadyOnline={} online={}",
                     code, userId, alreadyOnline, room.onlinePeers().size());
         } finally {
             room.unlock();
@@ -129,9 +129,10 @@ public class SpeakingSignalingServiceImpl implements SpeakingSignalingService {
     private RoomStateResponse buildState(LiveSpeakingRoom room) {
         return new RoomStateResponse(
                 room.getRoomCode(), room.getTopic(), room.getHostId(),
-                room.getMaxParticipants(), room.getStartedAtMs(),
-                System.currentTimeMillis(),
-                room.onlinePeers().stream().map(this::toPeer).toList());
+                room.getMaxParticipants(), room.isPrivate(),
+                room.getStartedAtMs(), System.currentTimeMillis(),
+                room.onlinePeers().stream().map(this::toPeer).toList(),
+                List.of()); // mutedUserIds
     }
 
     private SpeakingPeerResponse toPeer(LivePeer p) {

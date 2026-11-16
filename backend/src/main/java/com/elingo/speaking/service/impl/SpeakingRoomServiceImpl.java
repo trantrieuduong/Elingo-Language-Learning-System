@@ -3,13 +3,16 @@ package com.elingo.speaking.service.impl;
 import com.elingo.common.dto.PageResponse;
 import com.elingo.speaking.dto.request.CreateSpeakingRoomRequest;
 import com.elingo.speaking.dto.response.PeerLeftResponse;
+import com.elingo.speaking.dto.response.RoomCreatedResponse;
 import com.elingo.speaking.dto.response.SpeakingRoomDetailResponse;
 import com.elingo.speaking.dto.response.SpeakingRoomResponse;
 import com.elingo.speaking.dto.response.SpeakingSessionSummaryResponse;
 import com.elingo.speaking.entity.ParticipantRole;
 import com.elingo.speaking.service.SpeakingRoomPersistenceService;
+import com.elingo.speaking.service.SpeakingRoomPersistenceService.GoOnlineContext;
 import com.elingo.speaking.service.SpeakingRoomPersistenceService.LeaveResult;
 import com.elingo.speaking.service.SpeakingRoomService;
+import com.elingo.speaking.service.SpeakingSignalingService;
 import com.elingo.speaking.state.LivePeer;
 import com.elingo.speaking.state.LiveSpeakingRoom;
 import com.elingo.speaking.state.SpeakingLiveRegistry;
@@ -30,27 +33,33 @@ public class SpeakingRoomServiceImpl implements SpeakingRoomService {
     private final SpeakingRoomPersistenceService persistence;
     private final SpeakingLiveRegistry registry;
     private final SpeakingEventPublisher publisher;
+    private final SpeakingSignalingService signalingService;
 
     // Khóa đồng bộ theo user, tránh tạo hoặc tham gia nhiều phòng đồng thời
     private final ConcurrentHashMap<Long, Object> userLocks = new ConcurrentHashMap<>();
 
     @Override
-    public SpeakingRoomDetailResponse createRoom(Long userId, CreateSpeakingRoomRequest request) {
+    public void createRoom(Long userId, CreateSpeakingRoomRequest request) {
+        SpeakingRoomDetailResponse room;
         synchronized (userLocks.computeIfAbsent(userId, k -> new Object())) {
-            return persistence.createRoom(userId, request.topic(), request.maxParticipants(), request.isPrivate());
+            room = persistence.createRoom(userId, request.topic(), request.maxParticipants(), request.isPrivate());
         }
+        publisher.sendToUser(userId, SpeakingEvents.ROOM_CREATED, new RoomCreatedResponse(room.roomCode()));
     }
 
     @Override
-    public SpeakingRoomDetailResponse joinRoom(Long userId, String roomCode) {
+    public void joinRoom(Long userId, String roomCode) {
+        GoOnlineContext ctx;
         synchronized (userLocks.computeIfAbsent(userId, k -> new Object())) {
-            return persistence.joinRoom(userId, roomCode);
+            ctx = persistence.joinRoom(userId, roomCode);   // DB; idempotent nếu đã là thành viên
         }
+        signalingService.goOnline(userId, ctx);   // RAM + room:state + peer:joined
     }
 
     @Override
-    public SpeakingSessionSummaryResponse leaveRoom(Long userId, String roomCode) {
-        LeaveResult r = persistence.leaveRoom(userId, roomCode);   // đã commit
+    public void leaveRoom(Long userId) {
+        String roomCode = persistence.findActiveRoomCode(userId);
+        LeaveResult r = persistence.leaveRoom(userId, roomCode);
 
         LiveSpeakingRoom room = registry.get(r.roomCode());
         if (room != null) {
@@ -60,7 +69,6 @@ public class SpeakingRoomServiceImpl implements SpeakingRoomService {
                 registry.unbindUser(userId, r.roomCode());
                 if (r.newHostId() != null) {
                     room.setHostId(r.newHostId());
-                    // Cập nhật role peer mới thành HOST trong RAM
                     LivePeer newHost = room.getPeer(r.newHostId());
                     if (newHost != null) newHost.setRole(ParticipantRole.HOST);
                 }
@@ -74,7 +82,8 @@ public class SpeakingRoomServiceImpl implements SpeakingRoomService {
             }
         }
 
-        return new SpeakingSessionSummaryResponse(r.roomCode(), r.topic(), r.durationSeconds());
+        publisher.sendToUser(userId, SpeakingEvents.ROOM_LEFT,
+                new SpeakingSessionSummaryResponse(r.roomCode(), r.topic(), r.durationSeconds()));
     }
 
     @Override

@@ -7,8 +7,10 @@ public record RoomStateResponse(
         String topic,
         Long hostId,
         Short maxParticipants,
+        boolean isPrivate,
         Long startedAtMs,
         long serverNowMs,
-        List<SpeakingPeerResponse> peers
+        List<SpeakingPeerResponse> peers,
+        List<Long> mutedUserIds
 ) {
 }

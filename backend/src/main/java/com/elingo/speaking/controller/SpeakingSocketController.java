@@ -1,7 +1,9 @@
 package com.elingo.speaking.controller;
 
-import com.elingo.speaking.dto.request.EnterRoomRequest;
+import com.elingo.speaking.dto.request.CreateSpeakingRoomRequest;
+import com.elingo.speaking.dto.request.JoinSpeakingRoomRequest;
 import com.elingo.speaking.dto.request.SpeakingSignalRequest;
+import com.elingo.speaking.service.SpeakingRoomService;
 import com.elingo.speaking.service.SpeakingSignalingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -15,11 +17,22 @@ import java.security.Principal;
 @RequiredArgsConstructor
 public class SpeakingSocketController {
 
+    private final SpeakingRoomService speakingRoomService;
     private final SpeakingSignalingService signalingService;
 
-    @MessageMapping("/speaking/enter")
-    public void enter(@Valid @Payload EnterRoomRequest request, Principal principal) {
-        signalingService.enter(Long.parseLong(principal.getName()), request.roomCode());
+    @MessageMapping("/speaking/create")
+    public void create(@Valid @Payload CreateSpeakingRoomRequest request, Principal principal) {
+        speakingRoomService.createRoom(Long.parseLong(principal.getName()), request);
+    }
+
+    @MessageMapping("/speaking/join")
+    public void join(@Valid @Payload JoinSpeakingRoomRequest request, Principal principal) {
+        speakingRoomService.joinRoom(Long.parseLong(principal.getName()), request.roomCode());
+    }
+
+    @MessageMapping("/speaking/leave")
+    public void leave(Principal principal) {
+        speakingRoomService.leaveRoom(Long.parseLong(principal.getName()));
     }
 
     @MessageMapping("/speaking/signal")

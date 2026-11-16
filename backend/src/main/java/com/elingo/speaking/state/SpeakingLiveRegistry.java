@@ -13,7 +13,7 @@ import java.util.function.Supplier;
 public class SpeakingLiveRegistry {
 
     private final Map<String, LiveSpeakingRoom> rooms = new ConcurrentHashMap<>();
-    private final Map<Long, String> codeByUser = new ConcurrentHashMap<>();   // chỉ người đã enter
+    private final Map<Long, String> codeByUser = new ConcurrentHashMap<>();   // chỉ người đã join (online)
 
     public LiveSpeakingRoom getOrCreate(String code, Supplier<LiveSpeakingRoom> factory) {
         return rooms.computeIfAbsent(code, k -> factory.get());
