@@ -36,6 +36,17 @@ public class SecurityConfig {
     private static final HttpMethod[] GET_ONLY = { HttpMethod.GET };
     private static final HttpMethod[] POST_ONLY = { HttpMethod.POST };
     private static final HttpMethod[] ALL_METHODS = HttpMethod.values();
+
+    /**
+     * Danh sách các pattern cần ưu tiên bắt buộc xác thực (authenticated) trước khi duyệt PUBLIC_ENDPOINTS.
+     * Cần thiết vì các wildcard như /users/* hoặc /users/* /badges trong PUBLIC_ENDPOINTS sẽ khớp luôn cả segment "me".
+     * Khi có thêm các endpoint cá nhân hoặc tài nguyên nhạy cảm có nguy cơ bị wildcard match nhầm, hãy bổ sung vào đây.
+     */
+    private static final List<String> AUTHENTICATED_ENDPOINTS = List.of(
+            "/users/me",
+            "/users/me/**"
+    );
+
     private static final Map<String, HttpMethod[]> PUBLIC_ENDPOINTS = Map.ofEntries(
             Map.entry("/auth/login",        POST_ONLY),
             Map.entry("/auth/signup",       POST_ONLY),
@@ -57,7 +68,14 @@ public class SecurityConfig {
             Map.entry("/cefr-levels",       GET_ONLY),
             Map.entry("/post-groups",       GET_ONLY),
             Map.entry("/posts",             GET_ONLY),
-            Map.entry("/users/*/posts",     GET_ONLY)
+            Map.entry("/users/*",           GET_ONLY),
+            Map.entry("/users/*/posts",     GET_ONLY),
+            Map.entry("/users/*/badges",    GET_ONLY),
+            Map.entry("/users/*/levels",    GET_ONLY),
+            Map.entry("/users/*/streaks",   GET_ONLY),
+            Map.entry("/gamification/leaderboards",     GET_ONLY),
+            Map.entry("/gamification/levels",           GET_ONLY),
+            Map.entry("/gamification/leaderboards/history", GET_ONLY)
     );
 
     public SecurityConfig(CustomUserDetailsService customUserDetailsService,
@@ -74,11 +92,15 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> {
+                    // Ưu tiên bảo vệ các endpoint bắt buộc xác thực trước
+                    AUTHENTICATED_ENDPOINTS.forEach(pattern -> auth.requestMatchers(pattern).authenticated());
+
                     PUBLIC_ENDPOINTS.forEach((path, methods) -> {
                         for (HttpMethod method : methods) {
                             auth.requestMatchers(method, path).permitAll();
                         }
                     });
+                    
                     auth.anyRequest().authenticated();
                 })
                 .sessionManagement(session -> session

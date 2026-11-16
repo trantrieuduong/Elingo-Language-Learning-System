@@ -5,9 +5,10 @@ import com.elingo.common.dto.ApiResponse;
 import com.elingo.common.dto.PageResponse;
 import com.elingo.gamification.dto.response.LeaderboardItemResponse;
 import com.elingo.gamification.dto.response.LeaderboardResponse;
-import com.elingo.gamification.dto.response.MyLeaderboardRankResponse;
+import com.elingo.gamification.dto.response.LevelResponse;
 import com.elingo.gamification.entity.LeaderboardPeriodType;
 import com.elingo.gamification.service.LeaderboardService;
+import com.elingo.gamification.service.LevelService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -22,16 +23,68 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController
-@RequestMapping("/gamification/leaderboards")
-@RequiredArgsConstructor
-@Tag(name = "Leaderboard Controller",
-        description = "Endpoints for realtime and historical leaderboard rankings")
-public class LeaderboardController {
+import java.util.List;
 
+@RestController
+@RequestMapping("/gamification")
+@RequiredArgsConstructor
+@Tag(
+        name = "Gamification Controller",
+        description = "Endpoints for system-wide gamification features: level roadmaps and global leaderboards"
+)
+public class GamificationController {
+
+    private final LevelService levelService;
     private final LeaderboardService leaderboardService;
 
-    @GetMapping
+    @GetMapping("/levels")
+    @Operation(
+            summary = "Get all levels roadmap",
+            description = "Retrieves the complete list of gamification levels configured in the system, ordered by required XP milestones."
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "Levels retrieved successfully",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiResponse.class),
+                    examples = @ExampleObject(
+                            name = "LevelRoadmapSuccessResponse",
+                            summary = "Sample level roadmap response",
+                            value = """
+                                    {
+                                      "success": true,
+                                      "data": [
+                                        {
+                                          "levelNo": 1,
+                                          "requiredXp": 0,
+                                          "title": "Novice"
+                                        },
+                                        {
+                                          "levelNo": 2,
+                                          "requiredXp": 100,
+                                          "title": "Explorer"
+                                        },
+                                        {
+                                          "levelNo": 3,
+                                          "requiredXp": 300,
+                                          "title": "Challenger"
+                                        }
+                                      ]
+                                    }
+                                    """
+                    )
+            )
+    )
+    public ApiResponse<List<LevelResponse>> getAllLevels() {
+        List<LevelResponse> response = levelService.getAllLevels();
+        return ApiResponse.<List<LevelResponse>>builder()
+                .success(true)
+                .data(response)
+                .build();
+    }
+
+    @GetMapping("/leaderboards")
     @Operation(
             summary = "Get realtime leaderboard",
             description = "Retrieves the current active leaderboard (weekly or monthly) computed in realtime from Redis, including paginated user rankings and the authenticated user's current rank."
@@ -91,9 +144,9 @@ public class LeaderboardController {
             @CurrentUserId
             Long currentUserId,
 
-            @Parameter(description = "Leaderboard time period (WEEKLY or MONTHLY). Defaults to WEEKLY.",
-                    example = "WEEKLY")
-            @RequestParam(defaultValue = "WEEKLY") LeaderboardPeriodType periodType,
+            @Parameter(description = "Leaderboard time period (WEEKLY or MONTHLY). Defaults to WEEKLY.", example = "WEEKLY")
+            @RequestParam(defaultValue = "WEEKLY")
+            LeaderboardPeriodType periodType,
 
             @PageableDefault(size = 20)
             Pageable pageable) {
@@ -105,49 +158,7 @@ public class LeaderboardController {
                 .build();
     }
 
-    @GetMapping("/me")
-    @Operation(
-            summary = "Get authenticated user's rank",
-            description = "Retrieves the authenticated user's ranking position, accumulated XP, and the XP gap to the next higher rank in the specified period."
-    )
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "200",
-            description = "User rank retrieved successfully",
-            content = @Content(
-                    mediaType = "application/json",
-                    schema = @Schema(implementation = ApiResponse.class),
-                    examples = @ExampleObject(
-                            name = "MyRankSuccessResponse",
-                            summary = "Sample user rank response",
-                            value = """
-                                    {
-                                      "success": true,
-                                      "data": {
-                                        "rank": 5,
-                                        "totalXp": 850,
-                                        "diffToNextRank": 50,
-                                        "periodType": "WEEKLY",
-                                        "periodKey": "2026-W46"
-                                      }
-                                    }
-                                    """
-                    )
-            )
-    )
-    public ApiResponse<MyLeaderboardRankResponse> getMyRank(
-            @CurrentUserId Long currentUserId,
-
-            @Parameter(description = "Leaderboard time period (WEEKLY or MONTHLY). Defaults to WEEKLY.", example = "WEEKLY")
-            @RequestParam(defaultValue = "WEEKLY") LeaderboardPeriodType periodType) {
-
-        MyLeaderboardRankResponse response = leaderboardService.getMyRank(currentUserId, periodType);
-        return ApiResponse.<MyLeaderboardRankResponse>builder()
-                .success(true)
-                .data(response)
-                .build();
-    }
-
-    @GetMapping("/history")
+    @GetMapping("/leaderboards/history")
     @Operation(
             summary = "Get historical leaderboard snapshot",
             description = "Retrieves archived leaderboard rankings from persistent database snapshots for a finalized past week or month."
@@ -194,10 +205,12 @@ public class LeaderboardController {
     )
     public ApiResponse<PageResponse<LeaderboardItemResponse>> getHistoricalLeaderboard(
             @Parameter(description = "Leaderboard period type (WEEKLY or MONTHLY)", example = "WEEKLY", required = true)
-            @RequestParam LeaderboardPeriodType periodType,
+            @RequestParam
+            LeaderboardPeriodType periodType,
 
             @Parameter(description = "Archived period key (e.g., '2026-W45' for weekly, '2026-10' for monthly)", example = "2026-W45", required = true)
-            @RequestParam String periodKey,
+            @RequestParam
+            String periodKey,
 
             @PageableDefault(size = 20)
             Pageable pageable) {
