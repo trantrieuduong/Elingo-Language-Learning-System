@@ -4,5 +4,6 @@ public enum BadgeConditionType {
     STREAK_DAYS,
     TOTAL_XP,
     BATTLE_WINS,
-    LESSONS_COMPLETED
+    LESSONS_COMPLETED,
+    WORDS_LEARNED
 }

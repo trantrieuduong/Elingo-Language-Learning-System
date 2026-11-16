@@ -1,4 +1,4 @@
-package com.elingo.gamification.service;
+package com.elingo.gamification.catalog;
 
 import com.elingo.gamification.entity.Level;
 import com.elingo.gamification.repository.LevelRepository;

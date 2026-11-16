@@ -3,6 +3,7 @@ package com.elingo.gamification.service;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.gamification.config.GamificationProperties;
+import com.elingo.gamification.entity.BadgeConditionType;
 import com.elingo.gamification.entity.DailyCheckin;
 import com.elingo.gamification.entity.LearningStreak;
 import com.elingo.gamification.entity.XpSource;
@@ -29,6 +30,7 @@ public class CheckInRecorder {
     private final GamificationProperties props;
     private final UserRepository userRepository;
     private final GamificationEventPublisher gamificationEventPublisher;
+    private final BadgeAwardService badgeAwardService;
 
     @Transactional
     public void record(long userId, LocalDate date) {
@@ -55,6 +57,7 @@ public class CheckInRecorder {
 
         xpService.addXp(userId, reward, XpSource.DAILY_CHECKIN, null);
         gamificationEventPublisher.sendXpGained(userId, reward);
+        badgeAwardService.evaluateAndAward(userId, BadgeConditionType.STREAK_DAYS);
         log.info("Daily check-in recorded date={} streak={} reward={}", date, streak, reward);
     }
 }

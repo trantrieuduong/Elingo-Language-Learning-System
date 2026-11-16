@@ -78,4 +78,12 @@ public interface UserCardStateRepository extends JpaRepository<UserCardState, Lo
     """)
     List<LearnedCount> countLearnedByTopics(@Param("userId") Long userId,
                                             @Param("topicIds") Collection<Long> topicIds);
+
+    @Query("""
+    select count(s.id)
+    from UserCardState s
+    where s.user.id = :userId
+      and (s.srsNextReviewAt is not null or s.flagsHidden = true)
+    """)
+    long countLearnedCardsByUserId(@Param("userId") Long userId);
 }
