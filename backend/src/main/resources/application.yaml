@@ -102,3 +102,6 @@ app:
   speaking:
     default-max-participants: 4
     max-participants-limit: 4
+    signal-max-payload-bytes: 6144
+    stun-urls:
+      - stun:stun.l.google.com:19302

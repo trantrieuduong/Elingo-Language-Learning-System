@@ -5,9 +5,11 @@ import com.elingo.common.dto.ApiResponse;
 import com.elingo.common.dto.PageResponse;
 import com.elingo.speaking.dto.request.CreateSpeakingRoomRequest;
 import com.elingo.speaking.dto.request.JoinSpeakingRoomRequest;
+import com.elingo.speaking.dto.response.IceConfigResponse;
 import com.elingo.speaking.dto.response.SpeakingRoomDetailResponse;
 import com.elingo.speaking.dto.response.SpeakingRoomResponse;
 import com.elingo.speaking.dto.response.SpeakingSessionSummaryResponse;
+import com.elingo.speaking.service.SpeakingIceService;
 import com.elingo.speaking.service.SpeakingRoomService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 public class SpeakingRoomController {
 
     private final SpeakingRoomService speakingRoomService;
+    private final SpeakingIceService iceService;
 
     @PostMapping
     @Operation(summary = "Create a speaking room; the caller becomes HOST")
@@ -41,6 +44,16 @@ public class SpeakingRoomController {
     public ApiResponse<PageResponse<SpeakingRoomResponse>> list(@PageableDefault(size = 10) Pageable pageable) {
         PageResponse<SpeakingRoomResponse> data = speakingRoomService.getOpenRooms(pageable);
         return ApiResponse.<PageResponse<SpeakingRoomResponse>>builder()
+                .success(true)
+                .data(data)
+                .build();
+    }
+
+    @GetMapping("/ice-config")
+    @Operation(summary = "Get STUN/TURN servers for WebRTC peer connections")
+    public ApiResponse<IceConfigResponse> iceConfig(@CurrentUserId Long userId) {
+        IceConfigResponse data = iceService.getIceConfig(userId);
+        return ApiResponse.<IceConfigResponse>builder()
                 .success(true)
                 .data(data)
                 .build();

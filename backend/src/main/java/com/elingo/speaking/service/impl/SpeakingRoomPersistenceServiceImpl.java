@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -198,5 +199,32 @@ public class SpeakingRoomPersistenceServiceImpl implements SpeakingRoomPersisten
                 room.getRoomCode(), room.getTopic(), room.getMaxParticipants(), room.getStatus(),
                 Boolean.TRUE.equals(room.getIsPrivate()),
                 room.getHost().getId(), room.getStartedAt(), room.getCreatedAt(), peers);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    // Lấy thông tin phòng và danh sách thành viên để chuẩn bị tham gia phòng
+    public EnterContext loadRoomForEnter(Long userId, String rawCode) {
+        String code = SpeakingRoomCode.normalize(rawCode);
+        SpeakingRoom room = roomRepository.findByRoomCodeWithHost(code)
+                .orElseThrow(() -> new AppException(AppError.SPEAKING_ROOM_NOT_FOUND));
+        if (room.getStatus() == SpeakingRoomStatus.CLOSED) {
+            throw new AppException(AppError.SPEAKING_ROOM_CLOSED);
+        }
+        List<SpeakingParticipant> members = participantRepository.findActiveByRoomId(room.getId());
+        SpeakingParticipant mePart = members.stream()
+                .filter(p -> p.getUser().getId().equals(userId))
+                .findFirst()
+                .orElseThrow(() -> new AppException(AppError.SPEAKING_ROOM_ACCESS_DENIED));
+
+        Long startedAtMs = room.getStartedAt() == null ? null
+                : room.getStartedAt().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+
+        SpeakingPeerResponse me = mapper.toPeer(mePart);
+        List<SpeakingPeerResponse> memberResponses = members.stream().map(mapper::toPeer).toList();
+
+        return new EnterContext(
+                room.getId(), code, room.getTopic(), room.getHost().getId(),
+                room.getMaxParticipants(), startedAtMs, me, memberResponses);
     }
 }

@@ -150,6 +150,7 @@ public enum AppError {
     SPEAKING_ROOM_ACCESS_DENIED("SPEAKING_ROOM_ACCESS_DENIED", "You do not have access to this speaking room", HttpStatus.FORBIDDEN),
     SPEAKING_PARTICIPANT_NOT_FOUND("SPEAKING_PARTICIPANT_NOT_FOUND", "Participant not found in speaking room", HttpStatus.NOT_FOUND),
     SPEAKING_ALREADY_IN_ROOM("SPEAKING_ALREADY_IN_ROOM", "You are already in another speaking room", HttpStatus.BAD_REQUEST),
+    SPEAKING_SIGNAL_INVALID("SPEAKING_SIGNAL_INVALID", "Invalid speaking signal", HttpStatus.BAD_REQUEST),
     HOST_CANNOT_LEAVE_WITHOUT_CLOSING("HOST_CANNOT_LEAVE_WITHOUT_CLOSING", "Host must end the room or transfer host role before leaving", HttpStatus.BAD_REQUEST),
 
     // ==========================================
