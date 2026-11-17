@@ -34,6 +34,8 @@ springdoc:
     operations-sorter: alpha
 
 app:
+  mail:
+    from: "Elingo <no-reply@elingo.pro>"
   thread-pool:
     scheduler:
       default-pool-size: 2
