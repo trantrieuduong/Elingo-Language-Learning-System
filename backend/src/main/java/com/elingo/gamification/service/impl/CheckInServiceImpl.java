@@ -31,7 +31,7 @@ public class CheckInServiceImpl implements CheckInService {
             bitSetByMe = true;
             redis.expireAt(key, date.plusDays(2).atStartOfDay(ZoneId.systemDefault()).toInstant());
         } catch (RuntimeException e) {
-            log.warn("Redis unavailable, falling back to DB. userId={}", userId, e);
+            log.warn("Check-in bitmap lookup failed key={}", key, e);
         }
 
         try {
@@ -47,7 +47,7 @@ public class CheckInServiceImpl implements CheckInService {
             redis.setBit(key, userId, false);
         }
         catch (RuntimeException e) {
-            log.warn("Clear bit failed bit={} userId={}", key, userId, e);
+            log.warn("Check-in bitmap rollback failed key={}", key, e);
         }
     }
 }

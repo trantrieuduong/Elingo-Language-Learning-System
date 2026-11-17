@@ -38,9 +38,10 @@ public class LearningXpListener {
             if (xpPolicy.allow(event.userId(), event.xpSource(), event.occurredAt().toLocalDate())) {
                 xpService.addXp(event.userId(), rule.xp(), event.xpSource(), event.refId());
                 gamificationEventPublisher.sendXpGained(event.userId(), rule.xp());
+                log.info("Learning xp processed source={} refId={} amount={}", event.xpSource(), event.refId(), rule.xp());
             }
         } catch (Exception ex) {
-            log.error("XP failed userId={} source={} refId={}", event.userId(), event.xpSource(), event.refId(), ex);
+            log.error("Learning xp processing failed source={} refId={}", event.xpSource(), event.refId(), ex);
         }
     }
 }

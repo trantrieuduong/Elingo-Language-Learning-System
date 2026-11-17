@@ -25,7 +25,7 @@ public class XpPolicy {
             String key = "xp:cap:%d:%s:%s".formatted(userId, source, date);
             return redis.incrementWithTtl(key, Duration.ofDays(2)) <= limit;
         } catch (RuntimeException e) {
-            log.warn("Redis unavailable, skip daily cap", e);
+            log.warn("Daily xp cap check failed source={} date={}", source, date, e);
             return true;
         }
     }

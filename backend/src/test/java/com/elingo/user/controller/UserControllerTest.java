@@ -2,11 +2,24 @@ package com.elingo.user.controller;
 
 import com.elingo.common.annotation.CurrentUserId;
 import com.elingo.common.dto.CursorResponse;
+import com.elingo.common.exception.AppError;
+import com.elingo.common.exception.AppException;
+import com.elingo.common.exception.GlobalExceptionHandler;
 import com.elingo.common.service.RateLimiterService;
 import com.elingo.community.dto.response.AuthorResponse;
 import com.elingo.community.dto.response.PostResponse;
 import com.elingo.community.entity.PostStatus;
 import com.elingo.community.service.PostService;
+import com.elingo.gamification.dto.response.MyLeaderboardRankResponse;
+import com.elingo.gamification.dto.response.StreakResponse;
+import com.elingo.gamification.dto.response.UserBadgeEarnedResponse;
+import com.elingo.gamification.dto.response.UserLevelProgressResponse;
+import com.elingo.gamification.entity.BadgeConditionType;
+import com.elingo.gamification.entity.LeaderboardPeriodType;
+import com.elingo.gamification.service.BadgeService;
+import com.elingo.gamification.service.LeaderboardService;
+import com.elingo.gamification.service.LevelService;
+import com.elingo.gamification.service.StreakService;
 import com.elingo.user.dto.request.ChangePasswordRequest;
 import com.elingo.user.dto.request.SendOTPUpdateEmailRequest;
 import com.elingo.user.dto.request.SetPasswordRequest;
@@ -38,6 +51,7 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -64,16 +78,30 @@ class UserControllerTest {
     @Mock
     private RateLimiterService limiter;
 
+    @Mock
+    private BadgeService badgeService;
+
+    @Mock
+    private LeaderboardService leaderboardService;
+
+    @Mock
+    private LevelService levelService;
+
+    @Mock
+    private StreakService streakService;
+
     @InjectMocks
     private UserController userController;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final Long USER_ID = 1L;
+    private static final Long TARGET_USER_ID = 2L;
 
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(userController)
+                .setControllerAdvice(new GlobalExceptionHandler())
                 .setCustomArgumentResolvers(new HandlerMethodArgumentResolver() {
                     @Override
                     public boolean supportsParameter(MethodParameter parameter) {
@@ -184,29 +212,33 @@ class UserControllerTest {
         @Test
         @DisplayName("Get user posts successfully with default parameters")
         void getUserPosts_Success_DefaultParams() throws Exception {
-            PostResponse post = buildPostResponse(100L);
-            CursorResponse<PostResponse> responseMock = new CursorResponse<>(List.of(post), "cursorNext", true);
+            Long targetUserId = 2L;
+            PostResponse post = buildPostResponse(10L);
+            CursorResponse<PostResponse> responseMock = new CursorResponse<>(List.of(post), "next-cursor-123", true);
 
-            when(postService.getUserPosts(USER_ID, null, 20, USER_ID)).thenReturn(responseMock);
+            when(postService.getUserPosts(eq(targetUserId), isNull(), eq(20), eq(USER_ID)))
+                    .thenReturn(responseMock);
 
-            mockMvc.perform(get("/users/{id}/posts", USER_ID))
+            mockMvc.perform(get("/users/{id}/posts", targetUserId))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.items.length()").value(1))
-                    .andExpect(jsonPath("$.data.items[0].id").value(100))
-                    .andExpect(jsonPath("$.data.nextCursor").value("cursorNext"))
+                    .andExpect(jsonPath("$.data.items[0].id").value(10L))
+                    .andExpect(jsonPath("$.data.items[0].title").value("Post Title"))
+                    .andExpect(jsonPath("$.data.nextCursor").value("next-cursor-123"))
                     .andExpect(jsonPath("$.data.hasMore").value(true));
 
-            verify(postService).getUserPosts(USER_ID, null, 20, USER_ID);
+            verify(postService).getUserPosts(targetUserId, null, 20, USER_ID);
         }
 
         @Test
-        @DisplayName("Get user posts successfully with custom query parameters")
+        @DisplayName("Get user posts successfully with explicit cursor and limit")
         void getUserPosts_Success_CustomParams() throws Exception {
             Long targetUserId = 2L;
             CursorResponse<PostResponse> responseMock = new CursorResponse<>(List.of(), null, false);
 
-            when(postService.getUserPosts(targetUserId, "cursor123", 10, USER_ID)).thenReturn(responseMock);
+            when(postService.getUserPosts(eq(targetUserId), eq("cursor123"), eq(10), eq(USER_ID)))
+                    .thenReturn(responseMock);
 
             mockMvc.perform(get("/users/{id}/posts", targetUserId)
                             .param("cursor", "cursor123")
@@ -329,6 +361,216 @@ class UserControllerTest {
                     .andExpect(jsonPath("$.data.fullName").value("New Name"));
 
             verify(userService).updateProfile(eq(USER_ID), any(UpdateProfileRequest.class));
+        }
+    }
+
+    // ==========================================
+    // Gamification Endpoints Tests
+    // ==========================================
+
+    @Nested
+    @DisplayName("getMyBadges")
+    class GetMyBadgesTests {
+
+        @Test
+        @DisplayName("Should return earned badges of current user successfully")
+        void getMyBadges_Success() throws Exception {
+            UserBadgeEarnedResponse badge = new UserBadgeEarnedResponse(
+                    1L, "STREAK_7_DAYS", "7-Day Streak Master", "Desc", null, BadgeConditionType.STREAK_DAYS, 7, LocalDateTime.now()
+            );
+
+            when(badgeService.getUserBadges(USER_ID)).thenReturn(List.of(badge));
+
+            mockMvc.perform(get("/users/me/badges"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.length()").value(1))
+                    .andExpect(jsonPath("$.data[0].code").value("STREAK_7_DAYS"));
+
+            verify(badgeService).getUserBadges(USER_ID);
+        }
+    }
+
+    @Nested
+    @DisplayName("getUserBadges")
+    class GetUserBadgesTests {
+
+        @Test
+        @DisplayName("Should return earned badges of target user successfully")
+        void getUserBadges_Success() throws Exception {
+            UserBadgeEarnedResponse badge = new UserBadgeEarnedResponse(
+                    2L, "TOTAL_XP_100", "XP Novice", "Desc", null, BadgeConditionType.TOTAL_XP, 100, LocalDateTime.now()
+            );
+
+            when(badgeService.getUserBadges(TARGET_USER_ID)).thenReturn(List.of(badge));
+
+            mockMvc.perform(get("/users/{userId}/badges", TARGET_USER_ID))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.length()").value(1))
+                    .andExpect(jsonPath("$.data[0].code").value("TOTAL_XP_100"));
+
+            verify(badgeService).getUserBadges(TARGET_USER_ID);
+        }
+
+        @Test
+        @DisplayName("Should return 404 when target user does not exist")
+        void getUserBadges_UserNotFound() throws Exception {
+            when(badgeService.getUserBadges(TARGET_USER_ID)).thenThrow(new AppException(AppError.USER_NOT_FOUND));
+
+            mockMvc.perform(get("/users/{userId}/badges", TARGET_USER_ID))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.errors[0].code").value("USER_NOT_FOUND"));
+
+            verify(badgeService).getUserBadges(TARGET_USER_ID);
+        }
+    }
+
+    @Nested
+    @DisplayName("getMyRank")
+    class GetMyRankTests {
+
+        @Test
+        @DisplayName("Should return current user rank successfully")
+        void getMyRank_Success() throws Exception {
+            MyLeaderboardRankResponse rank = new MyLeaderboardRankResponse(
+                    3, 500, 20, LeaderboardPeriodType.WEEKLY, "2026-W46"
+            );
+
+            when(leaderboardService.getMyRank(USER_ID, LeaderboardPeriodType.WEEKLY)).thenReturn(rank);
+
+            mockMvc.perform(get("/users/me/rank"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.rank").value(3))
+                    .andExpect(jsonPath("$.data.totalXp").value(500))
+                    .andExpect(jsonPath("$.data.diffToNextRank").value(20));
+
+            verify(leaderboardService).getMyRank(USER_ID, LeaderboardPeriodType.WEEKLY);
+        }
+    }
+
+    @Nested
+    @DisplayName("getMyLevels")
+    class GetMyLevelsTests {
+
+        @Test
+        @DisplayName("Should return level progress for current user successfully")
+        void getMyLevels_Success() throws Exception {
+            UserLevelProgressResponse progress = new UserLevelProgressResponse(
+                    USER_ID, (short) 2, "Explorer", 150, 100, (short) 3, "Challenger", 300, 150, 25.0
+            );
+
+            when(levelService.getUserLevelProgress(USER_ID)).thenReturn(progress);
+
+            mockMvc.perform(get("/users/me/levels"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.userId").value(USER_ID))
+                    .andExpect(jsonPath("$.data.currentLevel").value(2))
+                    .andExpect(jsonPath("$.data.progressPercent").value(25.0));
+
+            verify(levelService).getUserLevelProgress(USER_ID);
+        }
+    }
+
+    @Nested
+    @DisplayName("getUserLevels")
+    class GetUserLevelsTests {
+
+        @Test
+        @DisplayName("Should return level progress for target user successfully")
+        void getUserLevels_Success() throws Exception {
+            UserLevelProgressResponse progress = new UserLevelProgressResponse(
+                    TARGET_USER_ID, (short) 1, "Novice", 50, 0, (short) 2, "Explorer", 100, 50, 50.0
+            );
+
+            when(levelService.getUserLevelProgress(TARGET_USER_ID)).thenReturn(progress);
+
+            mockMvc.perform(get("/users/{userId}/levels", TARGET_USER_ID))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.userId").value(TARGET_USER_ID))
+                    .andExpect(jsonPath("$.data.currentLevel").value(1));
+
+            verify(levelService).getUserLevelProgress(TARGET_USER_ID);
+        }
+
+        @Test
+        @DisplayName("Should return 404 when user not found")
+        void getUserLevels_UserNotFound() throws Exception {
+            when(levelService.getUserLevelProgress(TARGET_USER_ID)).thenThrow(new AppException(AppError.USER_NOT_FOUND));
+
+            mockMvc.perform(get("/users/{userId}/levels", TARGET_USER_ID))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.errors[0].code").value("USER_NOT_FOUND"));
+
+            verify(levelService).getUserLevelProgress(TARGET_USER_ID);
+        }
+    }
+
+    @Nested
+    @DisplayName("getMyStreaks")
+    class GetMyStreaksTests {
+
+        @Test
+        @DisplayName("Should return current user streak progress successfully")
+        void getMyStreaks_Success() throws Exception {
+            StreakResponse response = new StreakResponse(
+                    USER_ID, 5, 10, LocalDate.now(), true, 5, List.of(LocalDate.of(2026, 11, 1), LocalDate.of(2026, 11, 2))
+            );
+
+            when(streakService.getUserStreak(eq(USER_ID), isNull(), isNull())).thenReturn(response);
+
+            mockMvc.perform(get("/users/me/streaks"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.currentStreak").value(5))
+                    .andExpect(jsonPath("$.data.longestStreak").value(10))
+                    .andExpect(jsonPath("$.data.checkedInToday").value(true));
+
+            verify(streakService).getUserStreak(eq(USER_ID), isNull(), isNull());
+        }
+    }
+
+    @Nested
+    @DisplayName("getUserStreaks")
+    class GetUserStreaksTests {
+
+        @Test
+        @DisplayName("Should return target user streak progress successfully")
+        void getUserStreaks_Success() throws Exception {
+            StreakResponse response = new StreakResponse(
+                    TARGET_USER_ID, 2, 4, LocalDate.now(), false, 2, List.of(LocalDate.of(2026, 11, 1))
+            );
+
+            when(streakService.getUserStreak(eq(TARGET_USER_ID), eq(2026), eq(11))).thenReturn(response);
+
+            mockMvc.perform(get("/users/{userId}/streaks", TARGET_USER_ID)
+                            .param("year", "2026")
+                            .param("month", "11"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.userId").value(TARGET_USER_ID))
+                    .andExpect(jsonPath("$.data.currentStreak").value(2));
+
+            verify(streakService).getUserStreak(eq(TARGET_USER_ID), eq(2026), eq(11));
+        }
+
+        @Test
+        @DisplayName("Should return 404 when user not found")
+        void getUserStreaks_UserNotFound() throws Exception {
+            when(streakService.getUserStreak(eq(TARGET_USER_ID), isNull(), isNull()))
+                    .thenThrow(new AppException(AppError.USER_NOT_FOUND));
+
+            mockMvc.perform(get("/users/{userId}/streaks", TARGET_USER_ID))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.errors[0].code").value("USER_NOT_FOUND"));
+
+            verify(streakService).getUserStreak(eq(TARGET_USER_ID), isNull(), isNull());
         }
     }
 }

@@ -2,7 +2,7 @@ package com.elingo.config;
 
 import com.elingo.gamification.entity.Level;
 import com.elingo.gamification.repository.LevelRepository;
-import com.elingo.gamification.service.LevelCatalog;
+import com.elingo.gamification.catalog.LevelCatalog;
 import com.elingo.vocabulary.entity.CefrLevel;
 import com.elingo.vocabulary.repository.CefrLevelRepository;
 import lombok.RequiredArgsConstructor;
