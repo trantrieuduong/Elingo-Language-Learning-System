@@ -3,10 +3,13 @@ package com.elingo.speaking.service.impl;
 import com.elingo.common.dto.PageResponse;
 import com.elingo.common.exception.AppException;
 import com.elingo.speaking.dto.request.CreateSpeakingRoomRequest;
+import com.elingo.speaking.dto.response.BanRemovedResponse;
 import com.elingo.speaking.dto.response.HostChangedResponse;
 import com.elingo.speaking.dto.response.PeerLeftResponse;
 import com.elingo.speaking.dto.response.RoomClosedResponse;
 import com.elingo.speaking.dto.response.RoomCreatedResponse;
+import com.elingo.speaking.dto.response.RoomKickedResponse;
+import com.elingo.speaking.dto.response.SpeakingBannedUserResponse;
 import com.elingo.speaking.dto.response.SpeakingRoomDetailResponse;
 import com.elingo.speaking.dto.response.SpeakingRoomResponse;
 import com.elingo.speaking.dto.response.SpeakingSessionSummaryResponse;
@@ -29,6 +32,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j(topic = "SPEAKING-ROOM-SERVICE")
@@ -126,6 +130,44 @@ public class SpeakingRoomServiceImpl implements SpeakingRoomService {
         }
         publisher.sendToUser(userId, SpeakingEvents.ROOM_LEFT,
                 new SpeakingSessionSummaryResponse(r.roomCode(), r.topic(), r.durationSeconds()));
+    }
+
+    @Override
+    public void kickMember(Long hostId, String roomCode, Long targetUserId) {
+        SpeakingRoomDetailResponse detail = persistence.kickMember(hostId, roomCode, targetUserId);
+        LiveSpeakingRoom room = registry.get(detail.roomCode());
+        if (room != null) {
+            room.lock();
+            try {
+                LivePeer target = room.getPeer(targetUserId);
+                if (target != null) {
+                    room.cancelGrace(targetUserId); // hủy cả thời gian chờ quay lại
+                    if (target.isOnline()) {
+                        publisher.sendToUser(targetUserId, SpeakingEvents.ROOM_KICKED, new RoomKickedResponse(detail.roomCode()));
+                    }
+                    room.removePeer(targetUserId);
+                    registry.unbindUser(targetUserId, detail.roomCode());
+                    for (LivePeer other : room.onlinePeers()) { // gồm cả host
+                        publisher.sendToUser(other.getUserId(), SpeakingEvents.PEER_LEFT,
+                                new PeerLeftResponse(targetUserId, "KICKED"));
+                    }
+                }
+            } finally {
+                room.unlock();
+            }
+            eventPublisher.publishEvent(new SpeakingMemberRemovedEvent(detail.roomCode()));
+        }
+    }
+
+    @Override
+    public List<SpeakingBannedUserResponse> listBans(Long hostId, String roomCode) {
+        return persistence.listBans(hostId, roomCode);
+    }
+
+    @Override
+    public void unbanMember(Long hostId, String roomCode, Long targetUserId) {
+        persistence.unbanMember(hostId, roomCode, targetUserId);
+        publisher.sendToUser(hostId, SpeakingEvents.BAN_REMOVED, new BanRemovedResponse(targetUserId)); // chỉ host nhận
     }
 
     private void afterLeave(Long userId, LeaveResult r, String reason) {

@@ -4,6 +4,7 @@ import com.elingo.common.annotation.CurrentUserId;
 import com.elingo.common.dto.ApiResponse;
 import com.elingo.common.dto.PageResponse;
 import com.elingo.speaking.dto.response.IceConfigResponse;
+import com.elingo.speaking.dto.response.SpeakingBannedUserResponse;
 import com.elingo.speaking.dto.response.SpeakingRoomDetailResponse;
 import com.elingo.speaking.dto.response.SpeakingRoomResponse;
 import com.elingo.speaking.service.SpeakingIceService;
@@ -14,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/speaking-rooms")
@@ -40,6 +43,16 @@ public class SpeakingRoomController {
     public ApiResponse<IceConfigResponse> iceConfig(@CurrentUserId Long userId) {
         IceConfigResponse data = iceService.getIceConfig(userId);
         return ApiResponse.<IceConfigResponse>builder()
+                .success(true)
+                .data(data)
+                .build();
+    }
+
+    @GetMapping("/{roomCode}/bans")
+    @Operation(summary = "Host views the kicked list of the room")
+    public ApiResponse<List<SpeakingBannedUserResponse>> bans(@CurrentUserId Long userId, @PathVariable String roomCode) {
+        List<SpeakingBannedUserResponse> data = speakingRoomService.listBans(userId, roomCode);
+        return ApiResponse.<List<SpeakingBannedUserResponse>>builder()
                 .success(true)
                 .data(data)
                 .build();

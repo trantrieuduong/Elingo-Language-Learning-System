@@ -4,6 +4,7 @@ import com.elingo.common.dto.PageResponse;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.speaking.config.SpeakingProperties;
+import com.elingo.speaking.dto.response.SpeakingBannedUserResponse;
 import com.elingo.speaking.dto.response.SpeakingPeerResponse;
 import com.elingo.speaking.dto.response.SpeakingRoomDetailResponse;
 import com.elingo.speaking.dto.response.SpeakingRoomResponse;
@@ -95,6 +96,10 @@ public class SpeakingRoomPersistenceServiceImpl implements SpeakingRoomPersisten
                 .orElseThrow(() -> new AppException(AppError.SPEAKING_ROOM_NOT_FOUND));
         if (room.getStatus() == SpeakingRoomStatus.CLOSED) {
             throw new AppException(AppError.SPEAKING_ROOM_CLOSED);
+        }
+
+        if (participantRepository.existsByRoomIdAndUserIdAndKickedAtIsNotNull(room.getId(), userId)) {
+            throw new AppException(AppError.SPEAKING_BANNED);
         }
 
         // Đã ở chính phòng này -> idempotent (F5, mở lại trang)
@@ -191,6 +196,51 @@ public class SpeakingRoomPersistenceServiceImpl implements SpeakingRoomPersisten
         room.setStatus(SpeakingRoomStatus.CLOSED);
         room.setEndedAt(now);
         return new EndResult(room.getRoomCode(), room.getTopic(), duration);
+    }
+
+    @Override
+    @Transactional
+    public SpeakingRoomDetailResponse kickMember(Long hostId, String rawCode, Long targetUserId) {
+        SpeakingRoom room = lockOpenRoom(rawCode);
+        requireHost(room, hostId);
+        if (targetUserId.equals(hostId)) throw new AppException(AppError.INVALID_REQUEST); // không tự kick mình
+        SpeakingParticipant p = participantRepository.findByRoomIdAndUserIdAndLeftAtIsNull(room.getId(), targetUserId)
+                .orElseThrow(() -> new AppException(AppError.SPEAKING_PARTICIPANT_NOT_FOUND));
+        LocalDateTime now = LocalDateTime.now();
+        p.setLeftAt(now); // đánh dấu rời phòng
+        p.setKickedAt(now); // đánh dấu bị chặn
+        log.info("Speaking member kicked roomCode={} hostId={} targetId={}", room.getRoomCode(), hostId, targetUserId);
+        return buildDetail(room);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<SpeakingBannedUserResponse> listBans(Long hostId, String rawCode) {
+        SpeakingRoom room = roomRepository.findByRoomCodeWithHost(SpeakingRoomCode.normalize(rawCode))
+                .orElseThrow(() -> new AppException(AppError.SPEAKING_ROOM_NOT_FOUND));
+        if (room.getStatus() == SpeakingRoomStatus.CLOSED) {
+            throw new AppException(AppError.SPEAKING_ROOM_CLOSED);
+        }
+        requireHost(room, hostId);
+        return toBannedList(room.getId());
+    }
+
+    @Override
+    @Transactional
+    public List<SpeakingBannedUserResponse> unbanMember(Long hostId, String rawCode, Long targetUserId) {
+        SpeakingRoom room = lockOpenRoom(rawCode);
+        requireHost(room, hostId);
+        SpeakingParticipant p = participantRepository.findFirstByRoomIdAndUserIdAndKickedAtIsNotNull(room.getId(), targetUserId)
+                .orElseThrow(() -> new AppException(AppError.SPEAKING_PARTICIPANT_NOT_FOUND));
+        p.setKickedAt(null);                                                                       // từ giờ joinRoom không chặn nữa
+        return toBannedList(room.getId());
+    }
+
+    private List<SpeakingBannedUserResponse> toBannedList(Long roomId) {
+        return participantRepository.findKickedByRoomId(roomId).stream()
+                .map(p -> new SpeakingBannedUserResponse(p.getUser().getId(), p.getUser().getFullName(),
+                        p.getUser().getAvatarUrl(), p.getKickedAt()))
+                .toList();
     }
 
     private SpeakingRoom lockOpenRoom(String rawCode) {

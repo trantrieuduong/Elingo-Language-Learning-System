@@ -32,6 +32,17 @@ public interface SpeakingParticipantRepository extends JpaRepository<SpeakingPar
     @Query("update SpeakingParticipant p set p.leftAt = :now where p.room.id = :roomId and p.leftAt is null")
     int closeOpenParticipants(@Param("roomId") Long roomId, @Param("now") LocalDateTime now);
 
+    boolean existsByRoomIdAndUserIdAndKickedAtIsNotNull(Long roomId, Long userId);
+
+    Optional<SpeakingParticipant> findFirstByRoomIdAndUserIdAndKickedAtIsNotNull(Long roomId, Long userId);
+
+    @Query("""
+            select p from SpeakingParticipant p join fetch p.user
+            where p.room.id = :roomId and p.kickedAt is not null
+            order by p.kickedAt desc, p.id desc
+            """)
+    List<SpeakingParticipant> findKickedByRoomId(@Param("roomId") Long roomId);
+
     interface RoomCountProjection {
         Long getRoomId();
         long getTotal();

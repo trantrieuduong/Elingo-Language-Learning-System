@@ -15,5 +15,7 @@ public final class SpeakingEvents {
     public static final String SIGNAL = "signal";
     public static final String PEER_MIC = "peer:mic";
     public static final String MUTE_REQUESTED = "mute:requested";
+    public static final String ROOM_KICKED = "room:kicked";
+    public static final String BAN_REMOVED = "ban:removed";
     public static final String ERROR = "error";
 }

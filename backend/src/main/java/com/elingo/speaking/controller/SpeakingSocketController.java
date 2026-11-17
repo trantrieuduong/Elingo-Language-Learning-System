@@ -3,10 +3,12 @@ package com.elingo.speaking.controller;
 import com.elingo.speaking.dto.request.CreateSpeakingRoomRequest;
 import com.elingo.speaking.dto.request.EndSpeakingRoomRequest;
 import com.elingo.speaking.dto.request.JoinSpeakingRoomRequest;
+import com.elingo.speaking.dto.request.KickMemberRequest;
 import com.elingo.speaking.dto.request.SpeakingMicRequest;
 import com.elingo.speaking.dto.request.SpeakingMuteRequest;
 import com.elingo.speaking.dto.request.SpeakingSignalRequest;
 import com.elingo.speaking.dto.request.TransferHostRequest;
+import com.elingo.speaking.dto.request.UnbanMemberRequest;
 import com.elingo.speaking.service.SpeakingRoomService;
 import com.elingo.speaking.service.SpeakingSignalingService;
 import jakarta.validation.Valid;
@@ -62,5 +64,15 @@ public class SpeakingSocketController {
     @MessageMapping("/speaking/mute")
     public void mute(@Valid @Payload SpeakingMuteRequest request, Principal principal) {
         signalingService.requestMute(Long.parseLong(principal.getName()), request);
+    }
+
+    @MessageMapping("/speaking/kick")
+    public void kick(@Valid @Payload KickMemberRequest request, Principal principal) {
+        speakingRoomService.kickMember(Long.parseLong(principal.getName()), request.roomCode(), request.userId());
+    }
+
+    @MessageMapping("/speaking/unban")
+    public void unban(@Valid @Payload UnbanMemberRequest request, Principal principal) {
+        speakingRoomService.unbanMember(Long.parseLong(principal.getName()), request.roomCode(), request.userId());
     }
 }
