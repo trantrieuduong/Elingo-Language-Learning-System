@@ -53,9 +53,6 @@ spring:
     redis:
       host: ${PROD_REDIS_HOST:redis}
       port: ${PROD_REDIS_PORT:6379}
-    web:
-      pageable:
-        one-indexed-parameters: true
   jpa:
     hibernate:
       ddl-auto: ${PROD_DDL_AUTO:validate}

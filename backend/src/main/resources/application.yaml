@@ -15,6 +15,11 @@ spring:
           auth: true # Bật tính năng xác thực người dùng (phải cung cấp username, password)
           starttls:
             enable: true # Bật cơ chế bảo mật STARTTLS (kết nối mã hóa an toàn (TLS))
+  data:
+    web:
+      pageable:
+        one-indexed-parameters: true
+        max-page-size: 100
 
 jwt:
   access-token-time: 15 # minute

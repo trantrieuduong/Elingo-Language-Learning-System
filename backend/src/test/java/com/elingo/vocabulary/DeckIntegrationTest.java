@@ -291,11 +291,11 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
 
             performGetDecks("?page=1&size=20")
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.content.length()").value(5))
-                    .andExpect(jsonPath("$.data.page").value(2))
+                    .andExpect(jsonPath("$.data.content.length()").value(20))
+                    .andExpect(jsonPath("$.data.page").value(1))
                     .andExpect(jsonPath("$.data.totalElements").value(25))
                     .andExpect(jsonPath("$.data.totalPages").value(2))
-                    .andExpect(jsonPath("$.data.isLast").value(true));
+                    .andExpect(jsonPath("$.data.isLast").value(false));
         }
 
         // ─────── filter: CEFR level ───────
