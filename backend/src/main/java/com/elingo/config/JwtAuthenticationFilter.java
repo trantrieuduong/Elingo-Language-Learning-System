@@ -36,14 +36,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final ObjectMapper objectMapper;
+    private final SecurityEndpoints securityEndpoints;
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getServletPath();
-        return path.startsWith("/swagger-ui")
-                || path.startsWith("/v3/api-docs")
-                || path.equals("/swagger-ui.html")
-                || path.startsWith("/webhooks/payments");
+        return securityEndpoints.isPublic(request);
     }
 
     @Override
