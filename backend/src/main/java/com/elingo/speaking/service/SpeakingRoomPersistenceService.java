@@ -12,6 +12,8 @@ public interface SpeakingRoomPersistenceService {
     SpeakingRoomDetailResponse createRoom(Long userId, String topic, Integer maxParticipants, Boolean isPrivate);
     GoOnlineContext joinRoom(Long userId, String roomCode);
     LeaveResult leaveRoom(Long userId, String roomCode);
+    SpeakingRoomDetailResponse transferHost(Long userId, String roomCode, Long newHostId);
+    EndResult endRoom(Long userId, String roomCode);
     String findActiveRoomCode(Long userId);
     SpeakingRoomDetailResponse getRoomDetail(String roomCode);
     PageResponse<SpeakingRoomResponse> getOpenRooms(Pageable pageable);
@@ -19,6 +21,8 @@ public interface SpeakingRoomPersistenceService {
     record LeaveResult(String roomCode, String topic, long durationSeconds,
                        Long newHostId,
                        boolean roomClosed) {}
+
+    record EndResult(String roomCode, String topic, long durationSeconds) {}
 
     record GoOnlineContext(Long roomId, String roomCode, String topic, Long hostId,
                            Short maxParticipants, boolean isPrivate, Long startedAtMs,

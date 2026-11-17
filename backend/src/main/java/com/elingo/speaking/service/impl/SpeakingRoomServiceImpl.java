@@ -13,6 +13,7 @@ import com.elingo.speaking.dto.response.SpeakingSessionSummaryResponse;
 import com.elingo.speaking.entity.ParticipantRole;
 import com.elingo.speaking.event.SpeakingMemberRemovedEvent;
 import com.elingo.speaking.service.SpeakingRoomPersistenceService;
+import com.elingo.speaking.service.SpeakingRoomPersistenceService.EndResult;
 import com.elingo.speaking.service.SpeakingRoomPersistenceService.GoOnlineContext;
 import com.elingo.speaking.service.SpeakingRoomPersistenceService.LeaveResult;
 import com.elingo.speaking.service.SpeakingRoomService;
@@ -80,6 +81,51 @@ public class SpeakingRoomServiceImpl implements SpeakingRoomService {
             // đã rời / phòng không còn -> bỏ qua
             log.debug("removeMember skipped roomCode={} userId={} code={}", roomCode, userId, ex.getAppError().getCode());
         }
+    }
+
+    @Override
+    public void transferHost(Long userId, String roomCode, Long newHostId) {
+        SpeakingRoomDetailResponse detail = persistence.transferHost(userId, roomCode, newHostId);
+        LiveSpeakingRoom room = registry.get(detail.roomCode());
+        if (room != null) {
+            room.lock();
+            try {
+                room.setHostId(newHostId);
+                LivePeer oldHost = room.getPeer(userId);
+                if (oldHost != null) oldHost.setRole(ParticipantRole.GUEST);
+                LivePeer newHost = room.getPeer(newHostId);
+                if (newHost != null) newHost.setRole(ParticipantRole.HOST);
+                for (LivePeer p : room.onlinePeers()) { // gồm cả người chuyển
+                    publisher.sendToUser(p.getUserId(), SpeakingEvents.HOST_CHANGED, new HostChangedResponse(newHostId));
+                }
+            } finally {
+                room.unlock();
+            }
+        }
+    }
+
+    @Override
+    public void endRoom(Long userId, String roomCode) {
+        EndResult r = persistence.endRoom(userId, roomCode);
+        LiveSpeakingRoom room = registry.get(r.roomCode());
+        if (room != null) {
+            room.lock();
+            try {
+                for (LivePeer p : room.onlinePeers()) {
+                    if (!p.getUserId().equals(userId)) { // host nhận room:left bên dưới
+                        publisher.sendToUser(p.getUserId(), SpeakingEvents.ROOM_CLOSED,
+                                new RoomClosedResponse(r.roomCode(), "ENDED_BY_HOST"));
+                    }
+                }
+                room.cancelAllGraces(); // người đang chờ quay lại sẽ nhận lỗi khi join
+                registry.unbindUser(userId, r.roomCode()); // host không còn thuộc phòng trong RAM
+                registry.removeRoom(room);
+            } finally {
+                room.unlock();
+            }
+        }
+        publisher.sendToUser(userId, SpeakingEvents.ROOM_LEFT,
+                new SpeakingSessionSummaryResponse(r.roomCode(), r.topic(), r.durationSeconds()));
     }
 
     private void afterLeave(Long userId, LeaveResult r, String reason) {

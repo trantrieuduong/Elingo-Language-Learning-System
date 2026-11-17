@@ -161,6 +161,54 @@ public class SpeakingRoomPersistenceServiceImpl implements SpeakingRoomPersisten
     }
 
     @Override
+    @Transactional
+    public SpeakingRoomDetailResponse transferHost(Long userId, String rawCode, Long newHostId) {
+        SpeakingRoom room = lockOpenRoom(rawCode);
+        requireHost(room, userId); // SPEAKING_NOT_HOST nếu không phải host
+        if (newHostId.equals(userId)) {
+            throw new AppException(AppError.INVALID_REQUEST);
+        }
+        SpeakingParticipant target = participantRepository.findByRoomIdAndUserIdAndLeftAtIsNull(room.getId(), newHostId)
+                .orElseThrow(() -> new AppException(AppError.SPEAKING_PARTICIPANT_NOT_FOUND));
+        SpeakingParticipant me = participantRepository.findByRoomIdAndUserIdAndLeftAtIsNull(room.getId(), userId)
+                .orElseThrow(() -> new AppException(AppError.SPEAKING_PARTICIPANT_NOT_FOUND));
+        me.setRole(ParticipantRole.GUEST);
+        target.setRole(ParticipantRole.HOST);
+        room.setHost(target.getUser());
+        return buildDetail(room);
+    }
+
+    @Override
+    @Transactional
+    public EndResult endRoom(Long userId, String rawCode) {
+        SpeakingRoom room = lockOpenRoom(rawCode);
+        requireHost(room, userId);
+        LocalDateTime now = LocalDateTime.now();
+        SpeakingParticipant me = participantRepository.findByRoomIdAndUserIdAndLeftAtIsNull(room.getId(), userId)
+                .orElseThrow(() -> new AppException(AppError.SPEAKING_PARTICIPANT_NOT_FOUND));
+        long duration = Math.max(0, Duration.between(me.getJoinedAt(), now).getSeconds());
+        participantRepository.closeOpenParticipants(room.getId(), now);
+        room.setStatus(SpeakingRoomStatus.CLOSED);
+        room.setEndedAt(now);
+        return new EndResult(room.getRoomCode(), room.getTopic(), duration);
+    }
+
+    private SpeakingRoom lockOpenRoom(String rawCode) {
+        SpeakingRoom room = roomRepository.findByRoomCodeForUpdate(SpeakingRoomCode.normalize(rawCode))
+                .orElseThrow(() -> new AppException(AppError.SPEAKING_ROOM_NOT_FOUND));
+        if (room.getStatus() == SpeakingRoomStatus.CLOSED) {
+            throw new AppException(AppError.SPEAKING_ROOM_CLOSED);
+        }
+        return room;
+    }
+
+    private void requireHost(SpeakingRoom room, Long userId) {
+        if (!room.getHost().getId().equals(userId)) {
+            throw new AppException(AppError.SPEAKING_NOT_HOST);
+        }
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public String findActiveRoomCode(Long userId) {
         return participantRepository.findActiveByUserId(userId)

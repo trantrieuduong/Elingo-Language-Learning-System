@@ -14,6 +14,7 @@ public class LivePeer {
     private final String avatarUrl;
     private volatile ParticipantRole role;
     @Setter private volatile boolean online = true;
+    @Setter private volatile boolean micMuted; // mặc định false; chỉ RAM, không lưu DB
 
     public LivePeer(Long userId, String displayName, String avatarUrl, ParticipantRole role) {
         this.userId = userId;

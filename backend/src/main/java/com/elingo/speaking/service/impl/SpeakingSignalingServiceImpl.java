@@ -3,7 +3,11 @@ package com.elingo.speaking.service.impl;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.speaking.config.SpeakingProperties;
+import com.elingo.speaking.dto.request.SpeakingMicRequest;
+import com.elingo.speaking.dto.request.SpeakingMuteRequest;
 import com.elingo.speaking.dto.request.SpeakingSignalRequest;
+import com.elingo.speaking.dto.response.MuteRequestedResponse;
+import com.elingo.speaking.dto.response.PeerMicResponse;
 import com.elingo.speaking.dto.response.RoomStateResponse;
 import com.elingo.speaking.dto.response.SpeakingPeerResponse;
 import com.elingo.speaking.dto.response.SpeakingSignalResponse;
@@ -18,8 +22,6 @@ import com.elingo.speaking.websocket.SpeakingEvents;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Slf4j(topic = "SPEAKING-SIGNALING-SERVICE")
 @Service
@@ -132,6 +134,55 @@ public class SpeakingSignalingServiceImpl implements SpeakingSignalingService {
                 req.payload().toString().length());
     }
 
+    @Override
+    public void reportMic(Long userId, SpeakingMicRequest req) {
+        LiveSpeakingRoom room = registry.get(SpeakingRoomCode.normalize(req.roomCode()));
+        if (room == null) {
+            throw new AppException(AppError.SPEAKING_ROOM_ACCESS_DENIED);
+        }
+        room.lock();
+        try {
+            LivePeer me = room.getPeer(userId);
+            if (me == null || !me.isOnline()) {
+                throw new AppException(AppError.SPEAKING_ROOM_ACCESS_DENIED);
+            }
+            if (me.isMicMuted() == req.muted()) return; // không đổi -> không phát (tránh lặp)
+            me.setMicMuted(req.muted());
+            for (LivePeer other : room.onlinePeers()) {
+                if (!other.getUserId().equals(userId)) {
+                    publisher.sendToUser(other.getUserId(), SpeakingEvents.PEER_MIC, new PeerMicResponse(userId, req.muted()));
+                }
+            }
+        } finally {
+            room.unlock();
+        }
+    }
+
+    @Override
+    public void requestMute(Long hostId, SpeakingMuteRequest req) {
+        LiveSpeakingRoom room = registry.get(SpeakingRoomCode.normalize(req.roomCode()));
+        if (room == null) throw new AppException(AppError.SPEAKING_ROOM_ACCESS_DENIED);
+        room.lock();
+        try {
+            if (!room.isOnline(hostId)) {
+                throw new AppException(AppError.SPEAKING_ROOM_ACCESS_DENIED);
+            }
+            if (!hostId.equals(room.getHostId())) {
+                throw new AppException(AppError.SPEAKING_NOT_HOST);
+            }
+            if (hostId.equals(req.targetUserId())) {
+                throw new AppException(AppError.INVALID_REQUEST); // tự tắt mic mình dùng nút mic thường
+            }
+            if (!room.isOnline(req.targetUserId())) {
+                throw new AppException(AppError.SPEAKING_PARTICIPANT_NOT_FOUND);
+            }
+
+            publisher.sendToUser(req.targetUserId(), SpeakingEvents.MUTE_REQUESTED, new MuteRequestedResponse(hostId));
+        } finally {
+            room.unlock();
+        }
+    }
+
     /**
      * Private helper methods
      */
@@ -141,7 +192,7 @@ public class SpeakingSignalingServiceImpl implements SpeakingSignalingService {
                 room.getMaxParticipants(), room.isPrivate(),
                 room.getStartedAtMs(), System.currentTimeMillis(),
                 room.onlinePeers().stream().map(this::toPeer).toList(),
-                List.of()); // mutedUserIds
+                room.onlinePeers().stream().filter(LivePeer::isMicMuted).map(LivePeer::getUserId).toList());
     }
 
     private SpeakingPeerResponse toPeer(LivePeer p) {

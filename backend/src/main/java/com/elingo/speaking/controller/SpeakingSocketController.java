@@ -1,8 +1,12 @@
 package com.elingo.speaking.controller;
 
 import com.elingo.speaking.dto.request.CreateSpeakingRoomRequest;
+import com.elingo.speaking.dto.request.EndSpeakingRoomRequest;
 import com.elingo.speaking.dto.request.JoinSpeakingRoomRequest;
+import com.elingo.speaking.dto.request.SpeakingMicRequest;
+import com.elingo.speaking.dto.request.SpeakingMuteRequest;
 import com.elingo.speaking.dto.request.SpeakingSignalRequest;
+import com.elingo.speaking.dto.request.TransferHostRequest;
 import com.elingo.speaking.service.SpeakingRoomService;
 import com.elingo.speaking.service.SpeakingSignalingService;
 import jakarta.validation.Valid;
@@ -35,8 +39,28 @@ public class SpeakingSocketController {
         speakingRoomService.leaveRoom(Long.parseLong(principal.getName()));
     }
 
+    @MessageMapping("/speaking/transfer-host")
+    public void transferHost(@Valid @Payload TransferHostRequest request, Principal principal) {
+        speakingRoomService.transferHost(Long.parseLong(principal.getName()), request.roomCode(), request.newHostId());
+    }
+
+    @MessageMapping("/speaking/end")
+    public void end(@Valid @Payload EndSpeakingRoomRequest request, Principal principal) {
+        speakingRoomService.endRoom(Long.parseLong(principal.getName()), request.roomCode());
+    }
+
     @MessageMapping("/speaking/signal")
     public void signal(@Valid @Payload SpeakingSignalRequest request, Principal principal) {
         signalingService.relaySignal(Long.parseLong(principal.getName()), request);
+    }
+
+    @MessageMapping("/speaking/mic")
+    public void mic(@Valid @Payload SpeakingMicRequest request, Principal principal) {
+        signalingService.reportMic(Long.parseLong(principal.getName()), request);
+    }
+
+    @MessageMapping("/speaking/mute")
+    public void mute(@Valid @Payload SpeakingMuteRequest request, Principal principal) {
+        signalingService.requestMute(Long.parseLong(principal.getName()), request);
     }
 }

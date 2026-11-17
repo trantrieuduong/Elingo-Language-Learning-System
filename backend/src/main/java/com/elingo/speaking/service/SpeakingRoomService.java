@@ -11,6 +11,8 @@ public interface SpeakingRoomService {
     void joinRoom(Long userId, String roomCode);
     void leaveRoom(Long userId);
     void removeMember(Long userId, String roomCode, String reason);
+    void transferHost(Long userId, String roomCode, Long newHostId);
+    void endRoom(Long userId, String roomCode);
     SpeakingRoomDetailResponse getRoom(String roomCode);
     PageResponse<SpeakingRoomResponse> getOpenRooms(Pageable pageable);
 }
