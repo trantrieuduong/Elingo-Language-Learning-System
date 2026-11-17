@@ -1,5 +1,6 @@
 package com.elingo.speaking.service;
 
+import com.elingo.speaking.dto.request.SpeakingChatRequest;
 import com.elingo.speaking.dto.request.SpeakingMicRequest;
 import com.elingo.speaking.dto.request.SpeakingMuteRequest;
 import com.elingo.speaking.dto.request.SpeakingSignalRequest;
@@ -10,4 +11,5 @@ public interface SpeakingSignalingService {
     void relaySignal(Long fromUserId, SpeakingSignalRequest request);
     void reportMic(Long userId, SpeakingMicRequest req);
     void requestMute(Long hostId, SpeakingMuteRequest req);
+    void chat(Long userId, SpeakingChatRequest req);
 }

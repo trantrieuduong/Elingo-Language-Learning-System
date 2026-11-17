@@ -4,6 +4,7 @@ import com.elingo.speaking.dto.request.CreateSpeakingRoomRequest;
 import com.elingo.speaking.dto.request.EndSpeakingRoomRequest;
 import com.elingo.speaking.dto.request.JoinSpeakingRoomRequest;
 import com.elingo.speaking.dto.request.KickMemberRequest;
+import com.elingo.speaking.dto.request.SpeakingChatRequest;
 import com.elingo.speaking.dto.request.SpeakingMicRequest;
 import com.elingo.speaking.dto.request.SpeakingMuteRequest;
 import com.elingo.speaking.dto.request.SpeakingSignalRequest;
@@ -74,5 +75,10 @@ public class SpeakingSocketController {
     @MessageMapping("/speaking/unban")
     public void unban(@Valid @Payload UnbanMemberRequest request, Principal principal) {
         speakingRoomService.unbanMember(Long.parseLong(principal.getName()), request.roomCode(), request.userId());
+    }
+
+    @MessageMapping("/speaking/chat")
+    public void chat(@Valid @Payload SpeakingChatRequest request, Principal principal) {
+        signalingService.chat(Long.parseLong(principal.getName()), request);
     }
 }

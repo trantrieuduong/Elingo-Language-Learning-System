@@ -3,9 +3,11 @@ package com.elingo.speaking.service.impl;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.speaking.config.SpeakingProperties;
+import com.elingo.speaking.dto.request.SpeakingChatRequest;
 import com.elingo.speaking.dto.request.SpeakingMicRequest;
 import com.elingo.speaking.dto.request.SpeakingMuteRequest;
 import com.elingo.speaking.dto.request.SpeakingSignalRequest;
+import com.elingo.speaking.dto.response.ChatMessageResponse;
 import com.elingo.speaking.dto.response.MuteRequestedResponse;
 import com.elingo.speaking.dto.response.PeerMicResponse;
 import com.elingo.speaking.dto.response.RoomStateResponse;
@@ -178,6 +180,32 @@ public class SpeakingSignalingServiceImpl implements SpeakingSignalingService {
             }
 
             publisher.sendToUser(req.targetUserId(), SpeakingEvents.MUTE_REQUESTED, new MuteRequestedResponse(hostId));
+        } finally {
+            room.unlock();
+        }
+    }
+
+    @Override
+    public void chat(Long userId, SpeakingChatRequest req) {
+        LiveSpeakingRoom room = registry.get(SpeakingRoomCode.normalize(req.roomCode()));
+        if (room == null) {
+            throw new AppException(AppError.SPEAKING_ROOM_ACCESS_DENIED);
+        }
+        String text = req.text().trim();
+        if (text.isEmpty()) {
+            throw new AppException(AppError.INVALID_REQUEST);
+        }
+        room.lock();
+        try {
+            LivePeer me = room.getPeer(userId);
+            if (me == null || !me.isOnline()) {
+                throw new AppException(AppError.SPEAKING_ROOM_ACCESS_DENIED);
+            }
+
+            ChatMessageResponse msg = new ChatMessageResponse(userId, me.getDisplayName(), text, System.currentTimeMillis());
+            for (LivePeer p : room.onlinePeers()) { // gồm cả người gửi
+                publisher.sendToUser(p.getUserId(), SpeakingEvents.CHAT_MESSAGE, msg);
+            }
         } finally {
             room.unlock();
         }
