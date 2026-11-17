@@ -36,6 +36,8 @@ public class EmailServiceImpl implements EmailService {
 
     @Value("${app.otp.expiration-minutes:15}")
     private long otpExpirationMinutes;
+    @Value("${app.mail.from}")
+    private String mailFrom;
 
     @Async("emailTaskExecutor")
     @Override
@@ -64,6 +66,7 @@ public class EmailServiceImpl implements EmailService {
 
             Context context = new Context();
             context.setVariables(properties);
+            mimeMessageHelper.setFrom(mailFrom);
             mimeMessageHelper.setTo(toEmail);
             mimeMessageHelper.setSubject(subject);
 
@@ -117,6 +120,7 @@ public class EmailServiceImpl implements EmailService {
 
             Context context = new Context();
             context.setVariables(properties);
+            mimeMessageHelper.setFrom(mailFrom);
             mimeMessageHelper.setTo(toEmail);
             mimeMessageHelper.setSubject(subject);
 
