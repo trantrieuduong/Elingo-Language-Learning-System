@@ -683,3 +683,41 @@ CREATE TABLE notifications (
 ```
 
 ---
+
+## 11. Admin Audit Log
+
+Bảng nhật ký hoạt động của quản trị viên (Admin Audit Log), phục vụ giám sát bảo mật, tra soát vi phạm và đối soát thay đổi dữ liệu hệ thống.
+
+Đặc tính kỹ thuật:
+- **Chỉ ghi thêm (Append-only / Immutable)**: Bản ghi chỉ được thêm mới (`INSERT`), không sửa đổi (`UPDATE`) hay xóa (`DELETE`). Không có trường `updated_at`.
+- **Lưu trữ chuỗi linh hoạt**: Cột `action` và `target_type` được lưu trữ dưới dạng `VARCHAR(50)` thay vì kiểu `ENUM` cứng, giúp dễ dàng mở rộng thêm thao tác mới mà không cần `ALTER TABLE`.
+- **Độ dài an toàn**: Giới hạn `target_id` tối đa 64 ký tự, `detail` tối đa 1000 ký tự và `ip_address` tối đa 45 ký tự (đáp ứng cả định dạng IPv4 và IPv6).
+
+```sql
+CREATE TABLE admin_audit_logs (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  admin_id BIGINT UNSIGNED NOT NULL,
+  action VARCHAR(50) NOT NULL,
+  target_type VARCHAR(50) NOT NULL,
+  target_id VARCHAR(64) NULL,
+  detail VARCHAR(1000) NULL,
+  ip_address VARCHAR(45) NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_audit_target (target_type, target_id),
+  INDEX idx_audit_admin_created (admin_id, created_at),
+  INDEX idx_audit_created (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+
+### Danh mục giá trị tham chiếu
+
+- **AdminAuditAction**:
+  - Người dùng: `USER_LOCK`, `USER_UNLOCK`, `USER_ROLE_CHANGE`
+  - Nội dung học tập: `SYSTEM_DECK_PUBLISH`, `SYSTEM_DECK_ARCHIVE`, `SYSTEM_DECK_CREATE`, `USER_DECK_DELETE`, `LESSON_CREATE`, `LESSON_UPDATE`, `LESSON_DELETE`, `SEGMENT_CREATE`, `SEGMENT_UPDATE`, `SEGMENT_DELETE`
+  - Kiểm duyệt cộng đồng: `POST_APPROVE`, `POST_REJECT`
+  - Báo cáo vi phạm: `REPORT_RESOLVE`, `REPORT_REJECT`
+  - Gói & Thanh toán: `PLAN_CREATE`, `PLAN_UPDATE`, `PLAN_DISABLE`, `SUBSCRIPTION_GRANT`, `SUBSCRIPTION_REVOKE`
+- **AdminAuditTargetType**:
+  - `USER`, `DECK`, `TOPIC`, `CARD`, `LESSON`, `LESSON_SEGMENT`, `CEFR_LEVEL`, `TAG`, `LEVEL`, `BADGE`, `POST`, `COMMENT`, `REPORT`, `PREMIUM_PLAN`, `SUBSCRIPTION`, `TRANSACTION`
+
+---
