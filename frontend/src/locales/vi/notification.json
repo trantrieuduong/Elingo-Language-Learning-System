@@ -1,0 +1,38 @@
+{
+  "title": "Thông báo",
+  "markAllAsRead": "Đánh dấu tất cả đã đọc",
+  "markAsRead": "Đánh dấu đã đọc",
+  "loadMore": "Xem thêm",
+  "loading": "Đang tải thông báo...",
+  "empty": "Chưa có thông báo nào",
+  "emptyDesc": "Khi có thông báo mới, chúng sẽ xuất hiện tại đây.",
+  "loadErrorTitle": "Tải thông báo thất bại",
+  "POST_LIKED": {
+    "title": "{{actor}} đã thích bài đăng của bạn",
+    "content": "{{content}}"
+  },
+  "POST_COMMENTED": {
+    "title": "{{actor}} đã bình luận về bài đăng của bạn",
+    "content": "{{content}}"
+  },
+  "COMMENT_REPLIED": {
+    "title": "{{actor}} đã trả lời bình luận của bạn",
+    "content": "{{content}}"
+  },
+  "BADGE_EARNED": {
+    "title": "Bạn đã nhận được huy hiệu mới",
+    "content": "Chúc mừng! Bạn đã nhận được huy hiệu {{badgeName}}"
+  },
+  "SUBSCRIPTION_ACTIVATED": {
+    "title": "Gói Premium đã được kích hoạt",
+    "content": "Gói {{planName}} của bạn có hiệu lực đến {{expiresAt}}"
+  },
+  "SUBSCRIPTION_EXPIRING": {
+    "title": "Gói Premium của bạn sắp hết hạn",
+    "content": "Gói {{planName}} của bạn sẽ hết hạn vào ngày {{expiresAt}}."
+  },
+  "REPORT_RESOLVED": {
+    "title": "Báo cáo của bạn đã được xử lý",
+    "content": "{{content}}"
+  }
+}

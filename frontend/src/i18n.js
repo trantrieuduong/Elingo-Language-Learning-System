@@ -18,6 +18,7 @@ import progressVI from './locales/vi/progress.json';
 import reportVI from './locales/vi/report.json';
 import speakingVI from './locales/vi/speaking.json';
 import userVI from './locales/vi/user.json';
+import notificationVI from './locales/vi/notification.json';
 
 // Namespaces EN
 import commonEN from './locales/en/common.json';
@@ -35,6 +36,7 @@ import progressEN from './locales/en/progress.json';
 import reportEN from './locales/en/report.json';
 import speakingEN from './locales/en/speaking.json';
 import userEN from './locales/en/user.json';
+import notificationEN from './locales/en/notification.json';
 
 const resources = {
   vi: {
@@ -53,6 +55,7 @@ const resources = {
     report: reportVI,
     speaking: speakingVI,
     user: userVI,
+    notification: notificationVI,
   },
   en: {
     common: commonEN,
@@ -70,6 +73,7 @@ const resources = {
     report: reportEN,
     speaking: speakingEN,
     user: userEN,
+    notification: notificationEN,
   },
 };
 

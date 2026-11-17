@@ -316,23 +316,7 @@ deleteAdmin{Entity}Api   → deleteAdminLessonApi
 
 ## 6. Context & State Management
 
-### 6.1 Context Pattern (bắt buộc)
-
-```jsx
-const SomeContext = createContext(null)
-
-export const SomeProvider = ({ children }) => { ... }
-
-export const useSome = () => {
-  const context = useContext(SomeContext)
-  if (!context) {
-    throw new Error('useSome phải được sử dụng trong SomeProvider')
-  }
-  return context
-}
-```
-
-### 6.2 Global Contexts (wrap ở main.jsx)
+### 6.1 Global Contexts (wrap ở main.jsx)
 
 - **`ThemeProvider`** → `useTheme()`: theme state + toggle + persist localStorage
   - Dark mode: CSS selector `[data-theme='dark']` trên `<html>` — KHÔNG dùng `prefers-color-scheme`
@@ -340,11 +324,11 @@ export const useSome = () => {
   - Auth pages gọi qua `useAuth()` thay vì gọi `authApi` trực tiếp.
   - `AuthContext` chịu trách nhiệm lưu `accessToken`, load `/users/me`, persist `user`, và trả `{ success, message }` cho page.
 
-### 6.3 Feature-level Context
+### 6.2 Feature-level Context
 
 Đặt trong `modules/moduleName/context/` (ví dụ: `BattleSocketContext.jsx`, `SpeakingRoomContext.jsx`)
 
-### 6.4 Local State Conventions
+### 6.3 Local State Conventions
 
 ```js
 const [loading, setLoading] = useState(true)         // init loading = true
