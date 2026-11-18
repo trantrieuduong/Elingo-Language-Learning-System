@@ -1,5 +1,6 @@
 package com.elingo.vocabulary.mapper;
 
+import com.elingo.admin.content.dto.request.SystemDeckRequest;
 import com.elingo.vocabulary.dto.request.UserDeckRequest;
 import com.elingo.vocabulary.dto.response.DeckResponse;
 import com.elingo.vocabulary.entity.Deck;
@@ -17,4 +18,14 @@ public interface DeckMapper {
     DeckResponse toDeckResponse(Deck deck);
 
     void updateDeck(@MappingTarget Deck deck, UserDeckRequest request);
+
+    @Mapping(target = "coverImageUrl", ignore = true)
+    @Mapping(target = "tags", ignore = true)
+    @Mapping(target = "cefrLevels", ignore = true)
+    Deck toDeck(SystemDeckRequest request);
+
+    @Mapping(target = "coverImageUrl", ignore = true)
+    @Mapping(target = "tags", ignore = true)
+    @Mapping(target = "cefrLevels", ignore = true)
+    void updateSystemDeck(@MappingTarget Deck deck, SystemDeckRequest request);
 }

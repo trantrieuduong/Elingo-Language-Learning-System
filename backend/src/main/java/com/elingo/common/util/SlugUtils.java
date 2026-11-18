@@ -10,7 +10,7 @@ public class SlugUtils {
 
     private SlugUtils() {}
 
-    public static String generateSlug(String title) {
+    public static String generateUniqueSlug(String title) {
         if (title == null || title.trim().isEmpty()) {
             return "";
         }

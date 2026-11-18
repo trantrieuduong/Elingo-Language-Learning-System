@@ -3,6 +3,7 @@ package com.elingo.vocabulary.repository;
 import com.elingo.vocabulary.entity.Deck;
 import com.elingo.vocabulary.entity.DeckStatus;
 import com.elingo.vocabulary.entity.OwnerType;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -19,6 +20,10 @@ public interface DeckRepository extends JpaRepository<Deck, Long>, JpaSpecificat
         Long getOwnerId();
         Boolean getIsPremium();
     }
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select d from Deck d where d.id = :id")
+    Optional<Deck> findByIdForUpdate(@Param("id") Long id);
 
     long countByOwnerTypeAndOwnerId(OwnerType ownerType, Long ownerId);
 

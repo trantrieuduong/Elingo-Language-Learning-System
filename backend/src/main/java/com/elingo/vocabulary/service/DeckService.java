@@ -1,5 +1,8 @@
 package com.elingo.vocabulary.service;
 
+import com.elingo.admin.content.dto.request.AdminDeckSearchRequest;
+import com.elingo.admin.content.dto.request.SystemDeckRequest;
+import com.elingo.admin.content.dto.request.UpdateDeckStatusRequest;
 import com.elingo.common.dto.PageResponse;
 import com.elingo.vocabulary.dto.request.DeckSearchRequest;
 import com.elingo.vocabulary.dto.request.UserDeckRequest;
@@ -21,4 +24,12 @@ public interface DeckService {
     DeckResponse updateUserDeck(Long userId, Long deckId, UserDeckRequest request);
     DeckResponse setUserDeckPublished(Long userId, Long deckId, boolean published);
     void deleteUserDeck(Long userId, Long deckId);
+
+    // Admin operations
+    PageResponse<DeckResponse> searchDecksForAdmin(AdminDeckSearchRequest request, Pageable pageable);
+    DeckResponse getDeckByIdForAdmin(Long deckId);
+    DeckResponse createSystemDeck(SystemDeckRequest request);
+    DeckResponse updateSystemDeck(Long deckId, SystemDeckRequest request);
+    DeckResponse updateDeckStatus(Long deckId, UpdateDeckStatusRequest request);
+    void deleteUserDeckByAdmin(Long deckId, String reason);
 }
