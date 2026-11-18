@@ -36,12 +36,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final ObjectMapper objectMapper;
-    private final SecurityEndpoints securityEndpoints;
-
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        return securityEndpoints.isPublic(request);
-    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
