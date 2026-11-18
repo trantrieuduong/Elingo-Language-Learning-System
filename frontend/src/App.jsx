@@ -42,7 +42,6 @@ const PRIVATE_USER_PATHS = [
   '/gamification',
   '/premium/my-subscription',
   '/profile',
-  '/notification',
 ];
 
 function App() {
@@ -245,8 +244,6 @@ function App() {
         return <PlaceholderPage title="Profile" path={currentPath} />;
       case '/decks':
         return <DeckListPage onNavigate={navigate} />;
-      case '/notification':
-        return <PlaceholderPage title="Notifications" path={currentPath} />;
       default:
         return <NotFoundPage onNavigate={navigate} />;
     }

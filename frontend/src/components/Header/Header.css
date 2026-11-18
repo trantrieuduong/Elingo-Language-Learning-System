@@ -143,6 +143,7 @@
 
 .header .header__nav-dropdown-menu.glass-card,
 .header .header__dropdown-menu.glass-card,
+.header .notification-panel.glass-card,
 .header .header__mobile-nav.glass-capsule {
   background: var(--color-surface-container-lowest);
   backdrop-filter: none;
@@ -246,6 +247,34 @@
 .header__logout-button:hover:not(:disabled) {
   color: var(--color-error);
   background: var(--color-error-container);
+}
+
+/* ── Notification Bell & Panel ── */
+.header__notification-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.header__notification-btn {
+  position: relative;
+}
+
+.header__notification-badge {
+  position: absolute;
+  top: -4px;
+  right: -6px;
+  padding: 0 4px;
+  min-width: 18px;
+  height: 18px;
+  font-size: 10px;
+  line-height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--color-surface, #ffffff);
+  pointer-events: none;
 }
 
 /* ── User Dropdown ── */

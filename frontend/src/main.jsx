@@ -7,6 +7,7 @@ import { AuthProvider } from './context/AuthContext.jsx';
 import { ThemeProvider } from './context/ThemeContext.jsx';
 import { SocketErrorProvider } from './context/SocketErrorContext.jsx';
 import { XpProvider } from './modules/gamification/context/XpContext.jsx';
+import { NotificationProvider } from './modules/notification/context/NotificationContext.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -14,7 +15,9 @@ createRoot(document.getElementById('root')).render(
       <AuthProvider>
         <SocketErrorProvider>
           <XpProvider>
-            <App />
+            <NotificationProvider>
+              <App />
+            </NotificationProvider>
           </XpProvider>
         </SocketErrorProvider>
       </AuthProvider>

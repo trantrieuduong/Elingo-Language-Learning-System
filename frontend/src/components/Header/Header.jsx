@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useNotification } from '../../modules/notification/context/NotificationContext';
+import NotificationPanel from '../../modules/notification/components/NotificationPanel/NotificationPanel';
 import './Header.css';
 
 /**
@@ -15,9 +17,12 @@ function Header({ onNavigate, currentPath }) {
   const { t, i18n } = useTranslation('nav');
   const { user, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
+  const { unreadCount, loadInitialNotifications } = useNotification();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const notificationRef = useRef(null);
   const [openDropdownKey, setOpenDropdownKey] = useState(null);
   const [mobileExpandedKeys, setMobileExpandedKeys] = useState({});
   const navContainerRef = useRef(null);
@@ -91,6 +96,9 @@ function Header({ onNavigate, currentPath }) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsUserDropdownOpen(false);
       }
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        setIsNotificationOpen(false);
+      }
       if (navContainerRef.current && !navContainerRef.current.contains(event.target)) {
         setOpenDropdownKey(null);
       }
@@ -98,6 +106,7 @@ function Header({ onNavigate, currentPath }) {
     const handleKeyDown = (event) => {
       if (event.key === 'Escape') {
         setIsUserDropdownOpen(false);
+        setIsNotificationOpen(false);
         setOpenDropdownKey(null);
       }
     };
@@ -113,6 +122,7 @@ function Header({ onNavigate, currentPath }) {
   // ── Đóng mobile menu & dropdown khi navigate ──
   useEffect(() => {
     setIsMenuOpen(false);
+    setIsNotificationOpen(false);
     if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
     setOpenDropdownKey(null);
   }, [currentPath]);
@@ -309,10 +319,34 @@ function Header({ onNavigate, currentPath }) {
 
           {user ? (
             <>
-              {/* Notification bell */}
-              <button type="button" className="btn-icon" onClick={() => handleNav('/notification')}>
-                <span className="material-symbols-outlined">notifications</span>
-              </button>
+              {/* Notification bell & panel */}
+              <div className="header__notification-wrapper" ref={notificationRef}>
+                <button
+                  type="button"
+                  className="btn-icon header__notification-btn"
+                  onClick={() => {
+                    const nextState = !isNotificationOpen;
+                    setIsNotificationOpen(nextState);
+                    if (nextState && loadInitialNotifications) {
+                      loadInitialNotifications();
+                    }
+                  }}
+                >
+                  <span className="material-symbols-outlined">notifications</span>
+                  {unreadCount > 0 && (
+                    <span className="header__notification-badge badge badge--primary">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {isNotificationOpen && (
+                  <NotificationPanel
+                    onClose={() => setIsNotificationOpen(false)}
+                    onNavigate={handleNav}
+                  />
+                )}
+              </div>
 
               {/* User dropdown */}
               <div className="header__user-dropdown" ref={dropdownRef}>

@@ -1,0 +1,108 @@
+.notification-panel {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  right: 0;
+  width: 380px;
+  max-width: 90vw;
+  height: 580px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface-container-lowest);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid var(--color-outline-variant);
+  box-shadow: var(--shadow-floating, var(--shadow-xl));
+  border-radius: var(--radius-card-lg);
+  padding: var(--space-3) 0;
+  z-index: var(--z-dropdown);
+  overflow: hidden;
+}
+
+.notification-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-4) var(--space-3);
+  border-bottom: 1px solid var(--glass-card-border);
+}
+
+.notification-panel__title-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.notification-panel__title {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-on-surface);
+}
+
+.notification-panel__badge {
+  font-size: var(--font-size-label-sm);
+  padding: 0.1rem 0.5rem;
+}
+
+.notification-panel__read-all-btn {
+  font-size: var(--font-size-label-sm);
+  color: var(--color-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  transition: opacity var(--transition-fast);
+}
+
+.notification-panel__read-all-btn:hover {
+  text-decoration: underline;
+  opacity: 0.8;
+}
+
+.notification-panel__list {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+}
+
+.notification-panel__loading,
+.notification-panel__empty,
+.notification-panel__error {
+  padding: var(--space-6) var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-panel__loading .page-loading {
+  min-height: auto;
+  padding: var(--space-4) 0;
+}
+
+.notification-panel__footer {
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  justify-content: center;
+  border-top: 1px solid var(--glass-card-border);
+}
+
+.notification-panel__load-more-btn {
+  width: 100%;
+  padding: var(--space-2);
+  font-size: var(--font-size-label-md);
+}
+
+@media (max-width: 600px) {
+  .notification-panel {
+    position: fixed;
+    top: 4.5rem;
+    left: var(--space-4);
+    right: var(--space-4);
+    width: auto;
+    max-width: none;
+    height: auto;
+    max-height: calc(100vh - 5.5rem);
+  }
+}

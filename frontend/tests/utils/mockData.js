@@ -40,3 +40,18 @@ export const MOCK_AUTH_CONTEXT_DEFAULT = {
   logout: vi.fn(),
   updateUser: vi.fn(),
 }
+
+export const MOCK_NOTIFICATION_CONTEXT_DEFAULT = {
+  notifications: [],
+  unreadCount: 0,
+  isLoadingFirstPage: false,
+  isLoadingMore: false,
+  isLast: true,
+  hasError: false,
+  fetchUnreadCount: vi.fn(),
+  loadInitialNotifications: vi.fn(),
+  loadMoreNotifications: vi.fn(),
+  markAsRead: vi.fn(),
+  markAllAsRead: vi.fn(),
+}
+

@@ -428,8 +428,7 @@
   overflow-wrap: anywhere;
 }
 
-/* ── Responsive Mobile (<= 640px) ── */
-@media (max-width: 640px) {
+@media (max-width: 600px) {
   .vocabulary-flashcard:not(.vocabulary-flashcard--compact) {
     height: clamp(260px, 68svh, 640px);
     min-height: 0;

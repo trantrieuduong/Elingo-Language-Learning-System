@@ -4,11 +4,13 @@ import userEvent from '@testing-library/user-event'
 import Header from '@/components/Header/Header'
 import { useAuth } from '@/context/AuthContext'
 import { useTheme } from '@/context/ThemeContext'
-import { MOCK_AUTH_CONTEXT_DEFAULT, MOCK_USER } from '../../utils/mockData'
+import { useNotification } from '@/modules/notification/context/NotificationContext'
+import { MOCK_AUTH_CONTEXT_DEFAULT, MOCK_NOTIFICATION_CONTEXT_DEFAULT, MOCK_USER } from '../../utils/mockData'
 import { tr } from '../../utils/i18n'
 
 vi.mock('@/context/AuthContext')
 vi.mock('@/context/ThemeContext')
+vi.mock('@/modules/notification/context/NotificationContext')
 
 const ACTIVE_NAV = 'header__nav-link--active'
 const getDesktopNav = () => document.querySelector('.header__nav')
@@ -19,6 +21,7 @@ describe('Header', () => {
   const mockLogout = vi.fn()
   const mockToggleTheme = vi.fn()
   const mockNavigate = vi.fn()
+  const mockLoadInitialNotifications = vi.fn()
 
   const mockAuth = (overrides = {}) =>
     useAuth.mockReturnValue({ ...MOCK_AUTH_CONTEXT_DEFAULT, logout: mockLogout, ...overrides })
@@ -26,10 +29,18 @@ describe('Header', () => {
   const mockTheme = (isDark = false) =>
     useTheme.mockReturnValue({ isDark, toggleTheme: mockToggleTheme })
 
+  const mockNotification = (overrides = {}) =>
+    useNotification.mockReturnValue({
+      ...MOCK_NOTIFICATION_CONTEXT_DEFAULT,
+      loadInitialNotifications: mockLoadInitialNotifications,
+      ...overrides,
+  })
+
   beforeEach(() => {
     mockLogout.mockResolvedValue(undefined)
     mockAuth()
     mockTheme()
+    mockNotification()
   })
 
   // ─────────────────────────────────────────────────────────────
@@ -235,12 +246,18 @@ describe('Header', () => {
       expect(feedLink).not.toHaveClass('header__dropdown-item--active')
     })
 
-    it('click chuông thông báo điều hướng tới /notification', async () => {
+    it('click chuông thông báo mở/đóng notification panel', async () => {
       const user = userEvent.setup()
       render(<Header onNavigate={mockNavigate} currentPath="/learning" />)
 
-      await user.click(screen.getByText('notifications').closest('button'))
-      expect(mockNavigate).toHaveBeenCalledWith('/notification')
+      const bellBtn = screen.getByText('notifications').closest('button')
+      expect(document.querySelector('.notification-panel')).not.toBeInTheDocument()
+
+      await user.click(bellBtn)
+      expect(document.querySelector('.notification-panel')).toBeInTheDocument()
+
+      await user.click(bellBtn)
+      expect(document.querySelector('.notification-panel')).not.toBeInTheDocument()
     })
 
     it('không gắn scroll listener khi đã đăng nhập (kể cả ở "/")', () => {

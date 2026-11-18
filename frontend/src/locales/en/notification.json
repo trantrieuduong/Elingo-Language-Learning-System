@@ -1,0 +1,38 @@
+{
+  "title": "Notifications",
+  "markAllAsRead": "Mark all as read",
+  "markAsRead": "Mark as read",
+  "loadMore": "Load more",
+  "loading": "Loading notifications...",
+  "empty": "No notifications yet",
+  "emptyDesc": "When you receive new notifications, they will appear here.",
+  "loadErrorTitle": "Failed to load notifications",
+  "POST_LIKED": {
+    "title": "{{actor}} has liked your post.",
+    "content": "{{content}}"
+  },
+  "POST_COMMENTED": {
+    "title": "{{actor}} commented on your post",
+    "content": "{{content}}"
+  },
+  "COMMENT_REPLIED": {
+    "title": "{{actor}} replied to your comment",
+    "content": "{{content}}"
+  },
+  "BADGE_EARNED": {
+    "title": "You received a new badge",
+    "content": "Congratulations! You have earned the {{badgeName}} badge."
+  },
+  "SUBSCRIPTION_ACTIVATED": {
+    "title": "Premium is activated",
+    "content": "Your {{planName}} plan is active until {{expiresAt}}"
+  },
+  "SUBSCRIPTION_EXPIRING": {
+    "title": "Premium is about to expire",
+    "content": "The {{planName}} package will expire on {{expiresAt}}."
+  },
+  "REPORT_RESOLVED": {
+    "title": "Your report has been processed",
+    "content": "{{content}}"
+  }
+}
