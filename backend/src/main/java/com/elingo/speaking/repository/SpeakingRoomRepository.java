@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 public interface SpeakingRoomRepository extends JpaRepository<SpeakingRoom, Long> {
@@ -21,6 +23,21 @@ public interface SpeakingRoomRepository extends JpaRepository<SpeakingRoom, Long
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select r from SpeakingRoom r where r.roomCode = :roomCode")
     Optional<SpeakingRoom> findByRoomCodeForUpdate(@Param("roomCode") String roomCode);
+
+    @Query("""
+            select r.roomCode from SpeakingRoom r
+            where r.status in (com.elingo.speaking.entity.SpeakingRoomStatus.WAITING,
+                               com.elingo.speaking.entity.SpeakingRoomStatus.ACTIVE)
+              and r.createdAt < :before
+            """)
+    List<String> findOpenRoomCodesCreatedBefore(@Param("before") LocalDateTime before);
+
+    @Query("""
+            select r.roomCode from SpeakingRoom r
+            where r.status in (com.elingo.speaking.entity.SpeakingRoomStatus.WAITING,
+                               com.elingo.speaking.entity.SpeakingRoomStatus.ACTIVE)
+            """)
+    List<String> findAllOpenRoomCodes();
 
     @Query(value = """
             select r from SpeakingRoom r join fetch r.host h

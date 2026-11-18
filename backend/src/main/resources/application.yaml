@@ -106,5 +106,7 @@ app:
     signal-max-payload-bytes: 6144
     reconnect-grace-ms: 20000
     host-reconnect-grace-ms: 300000
+    waiting-room-ttl-ms: 900000
+    cleanup-interval-ms: 60000
     stun-urls:
       - stun:stun.l.google.com:19302

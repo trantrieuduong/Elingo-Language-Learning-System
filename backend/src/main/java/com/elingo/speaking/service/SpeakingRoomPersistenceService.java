@@ -7,6 +7,7 @@ import com.elingo.speaking.dto.response.SpeakingRoomDetailResponse;
 import com.elingo.speaking.dto.response.SpeakingRoomResponse;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface SpeakingRoomPersistenceService {
@@ -18,6 +19,9 @@ public interface SpeakingRoomPersistenceService {
     SpeakingRoomDetailResponse kickMember(Long hostId, String roomCode, Long targetUserId);
     List<SpeakingBannedUserResponse> listBans(Long hostId, String roomCode);
     List<SpeakingBannedUserResponse> unbanMember(Long hostId, String roomCode, Long targetUserId);
+    List<String> findStaleRoomCodes(LocalDateTime before);
+    boolean forceCloseRoom(String roomCode);
+    int closeAllOpenRooms();
     String findActiveRoomCode(Long userId);
     SpeakingRoomDetailResponse getRoomDetail(String roomCode);
     PageResponse<SpeakingRoomResponse> getOpenRooms(Pageable pageable);

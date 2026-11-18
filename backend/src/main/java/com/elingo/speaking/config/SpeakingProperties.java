@@ -11,6 +11,8 @@ public record SpeakingProperties(
         int signalMaxPayloadBytes,
         List<String> stunUrls,
         long reconnectGraceMs,
-        long hostReconnectGraceMs
+        long hostReconnectGraceMs,
+        long waitingRoomTtlMs,
+        long cleanupIntervalMs
 ) {
 }

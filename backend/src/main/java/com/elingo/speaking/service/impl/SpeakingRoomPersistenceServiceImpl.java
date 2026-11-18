@@ -236,6 +236,42 @@ public class SpeakingRoomPersistenceServiceImpl implements SpeakingRoomPersisten
         return toBannedList(room.getId());
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<String> findStaleRoomCodes(LocalDateTime before) {
+        return roomRepository.findOpenRoomCodesCreatedBefore(before);
+    }
+
+    @Override
+    @Transactional
+    public boolean forceCloseRoom(String roomCode) {
+        return closeLocked(roomCode, LocalDateTime.now());
+    }
+
+    @Override
+    @Transactional
+    public int closeAllOpenRooms() {
+        LocalDateTime now = LocalDateTime.now();
+        int n = 0;
+        for (String code : roomRepository.findAllOpenRoomCodes()) {
+            if (closeLocked(code, now)) {
+                n++;
+            }
+        }
+        return n;
+    }
+
+    private boolean closeLocked(String roomCode, LocalDateTime now) {
+        SpeakingRoom room = roomRepository.findByRoomCodeForUpdate(roomCode).orElse(null);
+        if (room == null || room.getStatus() == SpeakingRoomStatus.CLOSED) {
+            return false;
+        }
+        participantRepository.closeOpenParticipants(room.getId(), now);
+        room.setStatus(SpeakingRoomStatus.CLOSED);
+        room.setEndedAt(now);
+        return true;
+    }
+
     private List<SpeakingBannedUserResponse> toBannedList(Long roomId) {
         return participantRepository.findKickedByRoomId(roomId).stream()
                 .map(p -> new SpeakingBannedUserResponse(p.getUser().getId(), p.getUser().getFullName(),
