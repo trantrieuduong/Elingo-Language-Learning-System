@@ -1,6 +1,7 @@
 package com.elingo.premium.gateway.sepay;
 
-import com.elingo.premium.config.PremiumProperties;
+import com.elingo.common.enums.SystemConfigKey;
+import com.elingo.common.service.SystemConfigService;
 import com.elingo.premium.gateway.InvalidSignatureException;
 import com.elingo.premium.gateway.WebhookEvent;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,25 +31,17 @@ import static org.mockito.Mockito.when;
 class SepayGatewayTest {
 
     @Mock
-    private PremiumProperties premiumProperties;
+    private SystemConfigService systemConfigService;
 
     private ObjectMapper objectMapper;
     private SepayGateway sepayGateway;
 
     private static final String SECRET_KEY = "test-sepay-secret-key";
-    private PremiumProperties.Sepay sepayConfig;
-    private PremiumProperties.BankTransfer bankTransferConfig;
 
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
-        sepayGateway = new SepayGateway(premiumProperties, objectMapper);
-
-        sepayConfig = new PremiumProperties.Sepay();
-        sepayConfig.setSecretKey(SECRET_KEY);
-
-        bankTransferConfig = new PremiumProperties.BankTransfer();
-        bankTransferConfig.setCodePrefix("ELGO");
+        sepayGateway = new SepayGateway(systemConfigService, objectMapper);
     }
 
     private String calculateHmac(String data, String secret) throws Exception {
@@ -70,7 +63,7 @@ class SepayGatewayTest {
         @Test
         @DisplayName("Should parse and verify webhook successfully when signature and payload are valid")
         void parseAndVerify_Success_WhenSignatureValid() throws Exception {
-            when(premiumProperties.getSepay()).thenReturn(sepayConfig);
+            when(systemConfigService.getString(SystemConfigKey.SEPAY_SECRET_KEY)).thenReturn(SECRET_KEY);
 
             long nowSeconds = Instant.now().getEpochSecond();
             String rawBody = """
@@ -103,8 +96,8 @@ class SepayGatewayTest {
         @Test
         @DisplayName("Should extract refCode from content field when code field is null")
         void parseAndVerify_ExtractsRefCodeFromContent_WhenCodeIsNull() throws Exception {
-            when(premiumProperties.getSepay()).thenReturn(sepayConfig);
-            when(premiumProperties.getBankTransfer()).thenReturn(bankTransferConfig);
+            when(systemConfigService.getString(SystemConfigKey.SEPAY_SECRET_KEY)).thenReturn(SECRET_KEY);
+            when(systemConfigService.getString(SystemConfigKey.BANK_CODE_PREFIX, "ELGO")).thenReturn("ELGO");
 
             long nowSeconds = Instant.now().getEpochSecond();
             String rawBody = """
@@ -128,7 +121,7 @@ class SepayGatewayTest {
 
             assertThat(event).isNotNull();
             assertThat(event.eventId()).isEqualTo("78910");
-            assertThat(event.refCode()).isEqualTo("ELGO_XYZ999"); // chuẩn hóa uppercase
+            assertThat(event.refCode()).isEqualTo("ELGO_XYZ999");
             assertThat(event.amount()).isEqualByComparingTo(new BigDecimal("199000"));
             assertThat(event.success()).isTrue();
         }
@@ -170,7 +163,7 @@ class SepayGatewayTest {
         @Test
         @DisplayName("Should throw InvalidSignatureException when HMAC signature mismatches")
         void parseAndVerify_ThrowsException_WhenSignatureMismatch() {
-            when(premiumProperties.getSepay()).thenReturn(sepayConfig);
+            when(systemConfigService.getString(SystemConfigKey.SEPAY_SECRET_KEY)).thenReturn(SECRET_KEY);
 
             long nowSeconds = Instant.now().getEpochSecond();
             Map<String, String> headers = Map.of(

@@ -1,6 +1,7 @@
 package com.elingo.premium.gateway.sepay;
 
-import com.elingo.premium.config.PremiumProperties;
+import com.elingo.common.enums.SystemConfigKey;
+import com.elingo.common.service.SystemConfigService;
 import com.elingo.premium.gateway.InvalidSignatureException;
 import com.elingo.premium.gateway.PaymentGateway;
 import com.elingo.premium.gateway.WebhookEvent;
@@ -35,7 +36,7 @@ public class SepayGateway implements PaymentGateway {
     private static final String SIGNATURE_PREFIX = "sha256=";
     private static final long MAX_ALLOWED_TIMESTAMP_DRIFT_SECONDS = 120; // 2 phút
 
-    private final PremiumProperties premiumProperties;
+    private final SystemConfigService systemConfigService;
     private final ObjectMapper objectMapper;
 
     @Override
@@ -119,9 +120,9 @@ public class SepayGateway implements PaymentGateway {
             throw new InvalidSignatureException("Webhook request expired");
         }
 
-        String secretKey = premiumProperties.getSepay().getSecretKey();
+        String secretKey = systemConfigService.getString(SystemConfigKey.SEPAY_SECRET_KEY);
         if (secretKey == null || secretKey.isBlank()) {
-            log.error("SePay webhook secret key is not configured");
+            log.error("SePay webhook secret key is not configured in SystemConfig");
             throw new InvalidSignatureException("SePay webhook secret not configured");
         }
 
@@ -163,9 +164,9 @@ public class SepayGateway implements PaymentGateway {
     }
 
     private String extractRefCodeFromContent(String content) {
-        String prefix = premiumProperties.getBankTransfer().getCodePrefix();
+        String prefix = systemConfigService.getString(SystemConfigKey.BANK_CODE_PREFIX, "ELGO");
         if (prefix == null || prefix.isBlank()) {
-            return null;
+            prefix = "ELGO";
         }
 
         Pattern pattern = Pattern.compile("(?i)\\b(" + Pattern.quote(prefix) + "[A-Za-z0-9_-]+)\\b");

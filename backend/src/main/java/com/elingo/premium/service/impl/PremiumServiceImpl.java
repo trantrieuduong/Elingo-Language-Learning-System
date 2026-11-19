@@ -1,9 +1,10 @@
 package com.elingo.premium.service.impl;
 
 import com.elingo.common.dto.PageResponse;
+import com.elingo.common.enums.SystemConfigKey;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
-import com.elingo.premium.config.PremiumProperties;
+import com.elingo.common.service.SystemConfigService;
 import com.elingo.premium.dto.PaymentQrInfo;
 import com.elingo.premium.dto.request.CreateCheckoutRequest;
 import com.elingo.premium.dto.response.CheckoutResponse;
@@ -47,7 +48,7 @@ public class PremiumServiceImpl implements PremiumService {
     private final UserRepository userRepository;
     private final PremiumMapper premiumMapper;
     private final PaymentQrService paymentQrService;
-    private final PremiumProperties premiumProperties;
+    private final SystemConfigService systemConfigService;
 
     @Override
     @Transactional(readOnly = true)
@@ -69,7 +70,7 @@ public class PremiumServiceImpl implements PremiumService {
             throw new AppException(AppError.PREMIUM_PLAN_INACTIVE);
         }
 
-        String prefix = premiumProperties.getBankTransfer().getCodePrefix();
+        String prefix = systemConfigService.getString(SystemConfigKey.BANK_CODE_PREFIX, "ELGO");
         String refCode = generateUniqueRefCode(prefix);
 
         PaymentTransaction transaction = PaymentTransaction.builder()
