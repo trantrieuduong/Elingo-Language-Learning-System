@@ -1,4 +1,4 @@
-package com.elingo.vocabulary.service;
+package com.elingo.file.util;
 
 import com.elingo.common.enums.MediaKind;
 import com.elingo.common.enums.SystemFileModule;
@@ -7,7 +7,6 @@ import com.elingo.common.event.FileDeletedEvent;
 import com.elingo.common.event.SystemFileAttachedEvent;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
-import com.elingo.file.util.FileKey;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -49,7 +48,7 @@ public class MediaKeyResolver {
 
     /** Cập nhật file cho người dùng (uploads/). */
     public Resolved forUpdate(String newKey, String oldKey, MediaKind kind) {
-        List<String> obsolete = (!isBlank(oldKey) && FileKey.isInZone(oldKey, FileKey.UPLOADS_PREFIX))
+        List<String> obsolete = (!isBlank(oldKey) && FileKey.isPermanentKey(oldKey))
                 ? List.of(oldKey) : List.of();
 
         if (isBlank(newKey)) {                                   // xóa file
@@ -66,7 +65,7 @@ public class MediaKeyResolver {
 
     /** Cập nhật file cho hệ thống của Admin (system/{module}/). */
     public Resolved forUpdate(String newKey, String oldKey, SystemFileModule module) {
-        List<String> obsolete = (!isBlank(oldKey) && FileKey.isInZone(oldKey, FileKey.UPLOADS_PREFIX))
+        List<String> obsolete = (!isBlank(oldKey) && FileKey.isPermanentKey(oldKey))
                 ? List.of(oldKey) : List.of();
 
         if (isBlank(newKey)) {                                   // xóa file

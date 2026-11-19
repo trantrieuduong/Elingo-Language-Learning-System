@@ -6,10 +6,11 @@ import com.elingo.admin.content.dto.request.UpdateSystemCardRequest;
 import com.elingo.admin.content.dto.response.OrphanedCardCleanupResponse;
 import com.elingo.admin.content.dto.response.OrphanedCardStatsResponse;
 import com.elingo.common.dto.PageResponse;
-import com.elingo.common.enums.MediaKind;
+import com.elingo.common.enums.SystemFileModule;
 import com.elingo.common.event.FileDeletedEvent;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
+import com.elingo.file.util.MediaKeyResolver;
 import com.elingo.vocabulary.config.FlashcardProperties;
 import com.elingo.vocabulary.dto.request.CreateUserCardRequest;
 import com.elingo.vocabulary.dto.request.UpdateUserCardRequest;
@@ -510,12 +511,12 @@ class CardServiceTest {
             CardPhoneticRequest phoneticReq = new CardPhoneticRequest("/kæt/", "verified/audio.mp3", "en-US");
             CreateSystemCardRequest req = createSystemCardRequest("verified/img.png", List.of(phoneticReq));
 
-            MediaKeyResolver.Resolved resolvedImage = new MediaKeyResolver.Resolved("uploads/img.png", "verified/img.png", List.of());
-            MediaKeyResolver.Resolved resolvedAudio = new MediaKeyResolver.Resolved("uploads/audio.mp3", "verified/audio.mp3", List.of());
+            MediaKeyResolver.Resolved resolvedImage = new MediaKeyResolver.Resolved("system/cards/img.png", "verified/img.png", List.of());
+            MediaKeyResolver.Resolved resolvedAudio = new MediaKeyResolver.Resolved("system/phonetics/audio.mp3", "verified/audio.mp3", List.of());
 
             when(topicRepository.findByIdForUpdate(TOPIC_ID)).thenReturn(Optional.of(sysTopic));
-            when(mediaKeyResolver.forCreate("verified/img.png", MediaKind.IMAGE)).thenReturn(resolvedImage);
-            when(mediaKeyResolver.forCreate("verified/audio.mp3", MediaKind.AUDIO)).thenReturn(resolvedAudio);
+            when(mediaKeyResolver.forCreate("verified/img.png", SystemFileModule.CARDS)).thenReturn(resolvedImage);
+            when(mediaKeyResolver.forCreate("verified/audio.mp3", SystemFileModule.PHONETICS)).thenReturn(resolvedAudio);
             when(cardRepository.findFirstByTopicIdOrderByOrderDesc(TOPIC_ID)).thenReturn(Optional.empty());
             when(cardMapper.toCard(req)).thenReturn(new Card());
             when(cardPhoneticMapper.toCardPhonetic(phoneticReq)).thenReturn(new CardPhonetic());
@@ -528,12 +529,12 @@ class CardServiceTest {
             ArgumentCaptor<Card> captor = ArgumentCaptor.forClass(Card.class);
             verify(cardRepository).save(captor.capture());
             Card persisted = captor.getValue();
-            assertThat(persisted.getImageUrl()).isEqualTo("uploads/img.png");
+            assertThat(persisted.getImageUrl()).isEqualTo("system/cards/img.png");
             assertThat(persisted.getDeck()).isSameAs(sysDeck);
             assertThat(persisted.getTopic()).isSameAs(sysTopic);
             assertThat(persisted.getOrder()).isEqualTo(1);
             assertThat(persisted.getPhonetics()).hasSize(1);
-            assertThat(persisted.getPhonetics().get(0).getAudioUrl()).isEqualTo("uploads/audio.mp3");
+            assertThat(persisted.getPhonetics().get(0).getAudioUrl()).isEqualTo("system/phonetics/audio.mp3");
 
             verify(topicRepository).adjustCardCount(TOPIC_ID, 1);
             verify(deckRepository).adjustCardCount(DECK_ID, 1);
@@ -552,7 +553,7 @@ class CardServiceTest {
             MediaKeyResolver.Resolved emptyImage = new MediaKeyResolver.Resolved(null, null, List.of());
 
             when(topicRepository.findByIdForUpdate(TOPIC_ID)).thenReturn(Optional.of(sysTopic));
-            when(mediaKeyResolver.forCreate(null, MediaKind.IMAGE)).thenReturn(emptyImage);
+            when(mediaKeyResolver.forCreate(null, SystemFileModule.CARDS)).thenReturn(emptyImage);
             when(cardRepository.findFirstByTopicIdOrderByOrderDesc(TOPIC_ID)).thenReturn(Optional.empty());
             when(cardMapper.toCard(req)).thenReturn(new Card());
             when(cardRepository.save(any(Card.class))).thenReturn(sysCard);
@@ -604,12 +605,12 @@ class CardServiceTest {
             CardPhoneticRequest phonetic2 = new CardPhoneticRequest("/kæt/", "verified/audio.mp3", "en-UK");
             CreateSystemCardRequest req = createSystemCardRequest(null, List.of(phonetic1, phonetic2));
 
-            MediaKeyResolver.Resolved resolvedAudio = new MediaKeyResolver.Resolved("uploads/audio.mp3", "verified/audio.mp3", List.of());
+            MediaKeyResolver.Resolved resolvedAudio = new MediaKeyResolver.Resolved("system/phonetics/audio.mp3", "verified/audio.mp3", List.of());
 
             when(topicRepository.findByIdForUpdate(TOPIC_ID)).thenReturn(Optional.of(sysTopic));
-            when(mediaKeyResolver.forCreate(null, MediaKind.IMAGE)).thenReturn(new MediaKeyResolver.Resolved(null, null, List.of()));
+            when(mediaKeyResolver.forCreate(null, SystemFileModule.CARDS)).thenReturn(new MediaKeyResolver.Resolved(null, null, List.of()));
             when(cardMapper.toCard(req)).thenReturn(new Card());
-            when(mediaKeyResolver.forCreate("verified/audio.mp3", MediaKind.AUDIO)).thenReturn(resolvedAudio);
+            when(mediaKeyResolver.forCreate("verified/audio.mp3", SystemFileModule.PHONETICS)).thenReturn(resolvedAudio);
             when(cardPhoneticMapper.toCardPhonetic(phonetic1)).thenReturn(new CardPhonetic());
 
             assertThatThrownBy(() -> cardService.createSystemCard(req))
@@ -628,7 +629,7 @@ class CardServiceTest {
             CreateSystemCardRequest req = createSystemCardRequest(null, List.of(phonetic));
 
             when(topicRepository.findByIdForUpdate(TOPIC_ID)).thenReturn(Optional.of(sysTopic));
-            when(mediaKeyResolver.forCreate(null, MediaKind.IMAGE)).thenReturn(new MediaKeyResolver.Resolved(null, null, List.of()));
+            when(mediaKeyResolver.forCreate(null, SystemFileModule.CARDS)).thenReturn(new MediaKeyResolver.Resolved(null, null, List.of()));
             when(cardMapper.toCard(req)).thenReturn(new Card());
 
             assertThatThrownBy(() -> cardService.createSystemCard(req))
@@ -664,12 +665,12 @@ class CardServiceTest {
             CardPhoneticRequest phoneticReq = new CardPhoneticRequest("/dɒɡ/", "verified/new_audio.mp3", "en-US");
             UpdateSystemCardRequest req = updateSystemCardRequest("verified/new_img.png", List.of(phoneticReq));
 
-            MediaKeyResolver.Resolved resolvedImage = new MediaKeyResolver.Resolved("uploads/new_img.png", "verified/new_img.png", List.of("uploads/old_img.png"));
-            MediaKeyResolver.Resolved resolvedAudio = new MediaKeyResolver.Resolved("uploads/new_audio.mp3", "verified/new_audio.mp3", List.of());
+            MediaKeyResolver.Resolved resolvedImage = new MediaKeyResolver.Resolved("system/cards/new_img.png", "verified/new_img.png", List.of("uploads/old_img.png"));
+            MediaKeyResolver.Resolved resolvedAudio = new MediaKeyResolver.Resolved("system/phonetics/new_audio.mp3", "verified/new_audio.mp3", List.of());
 
             when(cardRepository.findById(CARD_ID)).thenReturn(Optional.of(existingCard));
-            when(mediaKeyResolver.forUpdate("verified/new_img.png", "uploads/old_img.png", MediaKind.IMAGE)).thenReturn(resolvedImage);
-            when(mediaKeyResolver.forCreate("verified/new_audio.mp3", MediaKind.AUDIO)).thenReturn(resolvedAudio);
+            when(mediaKeyResolver.forUpdate("verified/new_img.png", "uploads/old_img.png", SystemFileModule.CARDS)).thenReturn(resolvedImage);
+            when(mediaKeyResolver.forCreate("verified/new_audio.mp3", SystemFileModule.PHONETICS)).thenReturn(resolvedAudio);
             when(cardPhoneticMapper.toCardPhonetic(phoneticReq)).thenReturn(new CardPhonetic());
             when(cardMapper.toCardResponse(existingCard)).thenReturn(cardResponse("dog"));
 
@@ -677,13 +678,52 @@ class CardServiceTest {
 
             assertThat(result.term()).isEqualTo("dog");
             verify(cardMapper).updateCardAdmin(existingCard, req);
-            assertThat(existingCard.getImageUrl()).isEqualTo("uploads/new_img.png");
+            assertThat(existingCard.getImageUrl()).isEqualTo("system/cards/new_img.png");
             verify(mediaKeyResolver).publish(resolvedImage);
             verify(mediaKeyResolver).publish(resolvedAudio);
 
             ArgumentCaptor<FileDeletedEvent> eventCaptor = ArgumentCaptor.forClass(FileDeletedEvent.class);
             verify(eventPublisher).publishEvent(eventCaptor.capture());
             assertThat(eventCaptor.getValue().fileKeys()).containsExactly("uploads/old_audio.mp3");
+        }
+
+        @Test
+        @DisplayName("Update system card successfully: replaces system audio and deletes obsolete system audio")
+        void updateSystemCard_Success_WithSystemAudioReplacement() {
+            Deck sysDeck = systemDeck();
+            Topic sysTopic = Topic.builder().id(TOPIC_ID).deck(sysDeck).build();
+            String oldSystemAudio = "system/phonetics/old_pronounce.mp3";
+            Card existingCard = Card.builder()
+                    .id(CARD_ID)
+                    .deck(sysDeck)
+                    .topic(sysTopic)
+                    .term("cat")
+                    .imageUrl("system/cards/cat.png")
+                    .phonetics(new ArrayList<>(List.of(
+                            CardPhonetic.builder().audioUrl(oldSystemAudio).build()
+                    )))
+                    .build();
+
+            CardPhoneticRequest phoneticReq = new CardPhoneticRequest("/kæt/", "verified/new_pronounce.mp3", "en-US");
+            UpdateSystemCardRequest req = updateSystemCardRequest("system/cards/cat.png", List.of(phoneticReq));
+
+            MediaKeyResolver.Resolved resolvedImage = new MediaKeyResolver.Resolved("system/cards/cat.png", null, List.of());
+            MediaKeyResolver.Resolved resolvedAudio = new MediaKeyResolver.Resolved("system/phonetics/new_pronounce.mp3", "verified/new_pronounce.mp3", List.of());
+
+            when(cardRepository.findById(CARD_ID)).thenReturn(Optional.of(existingCard));
+            when(mediaKeyResolver.forUpdate("system/cards/cat.png", "system/cards/cat.png", SystemFileModule.CARDS)).thenReturn(resolvedImage);
+            when(mediaKeyResolver.forCreate("verified/new_pronounce.mp3", SystemFileModule.PHONETICS)).thenReturn(resolvedAudio);
+            when(cardPhoneticMapper.toCardPhonetic(phoneticReq)).thenReturn(new CardPhonetic());
+            when(cardMapper.toCardResponse(existingCard)).thenReturn(cardResponse("cat"));
+
+            cardService.updateSystemCard(CARD_ID, req);
+
+            verify(mediaKeyResolver).publish(resolvedImage);
+            verify(mediaKeyResolver).publish(resolvedAudio);
+
+            ArgumentCaptor<FileDeletedEvent> eventCaptor = ArgumentCaptor.forClass(FileDeletedEvent.class);
+            verify(eventPublisher).publishEvent(eventCaptor.capture());
+            assertThat(eventCaptor.getValue().fileKeys()).containsExactly(oldSystemAudio);
         }
 
         @Test
@@ -704,10 +744,43 @@ class CardServiceTest {
             CardPhoneticRequest phoneticReq = new CardPhoneticRequest("/kæt/", "uploads/audio.mp3", "en-US");
             UpdateSystemCardRequest req = updateSystemCardRequest("uploads/img.png", List.of(phoneticReq));
 
-            MediaKeyResolver.Resolved resolvedImage = new MediaKeyResolver.Resolved("uploads/img.png", null, List.of());
+            MediaKeyResolver.Resolved resolvedImage = new MediaKeyResolver.Resolved("system/cards/img.png", null, List.of());
 
             when(cardRepository.findById(CARD_ID)).thenReturn(Optional.of(existingCard));
-            when(mediaKeyResolver.forUpdate("uploads/img.png", "uploads/img.png", MediaKind.IMAGE)).thenReturn(resolvedImage);
+            when(mediaKeyResolver.forUpdate("uploads/img.png", "uploads/img.png", SystemFileModule.CARDS)).thenReturn(resolvedImage);
+            when(cardPhoneticMapper.toCardPhonetic(phoneticReq)).thenReturn(new CardPhonetic());
+            when(cardMapper.toCardResponse(existingCard)).thenReturn(cardResponse("cat"));
+
+            cardService.updateSystemCard(CARD_ID, req);
+
+            verify(mediaKeyResolver).publish(resolvedImage);
+            verifyNoInteractions(eventPublisher);
+        }
+
+        @Test
+        @DisplayName("Update system card successfully: retains existing deep system audio path")
+        void updateSystemCard_Success_RetainDeepSystemAudio() {
+            Deck sysDeck = systemDeck();
+            Topic sysTopic = Topic.builder().id(TOPIC_ID).deck(sysDeck).build();
+            String deepAudio = "system/decks/common-1000/animals/audio/cat.mp3";
+            String deepImage = "system/decks/common-1000/animals/image/cat.png";
+            Card existingCard = Card.builder()
+                    .id(CARD_ID)
+                    .deck(sysDeck)
+                    .topic(sysTopic)
+                    .imageUrl(deepImage)
+                    .phonetics(new ArrayList<>(List.of(
+                            CardPhonetic.builder().audioUrl(deepAudio).build()
+                    )))
+                    .build();
+
+            CardPhoneticRequest phoneticReq = new CardPhoneticRequest("/kæt/", deepAudio, "en-US");
+            UpdateSystemCardRequest req = updateSystemCardRequest(deepImage, List.of(phoneticReq));
+
+            MediaKeyResolver.Resolved resolvedImage = new MediaKeyResolver.Resolved(deepImage, null, List.of());
+
+            when(cardRepository.findById(CARD_ID)).thenReturn(Optional.of(existingCard));
+            when(mediaKeyResolver.forUpdate(deepImage, deepImage, SystemFileModule.CARDS)).thenReturn(resolvedImage);
             when(cardPhoneticMapper.toCardPhonetic(phoneticReq)).thenReturn(new CardPhonetic());
             when(cardMapper.toCardResponse(existingCard)).thenReturn(cardResponse("cat"));
 
@@ -771,9 +844,9 @@ class CardServiceTest {
             UpdateSystemCardRequest req = updateSystemCardRequest(null, List.of(phonetic1, phonetic2));
 
             when(cardRepository.findById(CARD_ID)).thenReturn(Optional.of(existingCard));
-            when(mediaKeyResolver.forUpdate(any(), any(), eq(MediaKind.IMAGE))).thenReturn(new MediaKeyResolver.Resolved(null, null, List.of()));
-            when(mediaKeyResolver.forCreate("verified/audio.mp3", MediaKind.AUDIO))
-                    .thenReturn(new MediaKeyResolver.Resolved("uploads/audio.mp3", "verified/audio.mp3", List.of()));
+            when(mediaKeyResolver.forUpdate(any(), any(), eq(SystemFileModule.CARDS))).thenReturn(new MediaKeyResolver.Resolved(null, null, List.of()));
+            when(mediaKeyResolver.forCreate("verified/audio.mp3", SystemFileModule.PHONETICS))
+                    .thenReturn(new MediaKeyResolver.Resolved("system/phonetics/audio.mp3", "verified/audio.mp3", List.of()));
             when(cardPhoneticMapper.toCardPhonetic(phonetic1)).thenReturn(new CardPhonetic());
 
             assertThatThrownBy(() -> cardService.updateSystemCard(CARD_ID, req))
@@ -790,7 +863,7 @@ class CardServiceTest {
             UpdateSystemCardRequest req = updateSystemCardRequest(null, List.of(phonetic));
 
             when(cardRepository.findById(CARD_ID)).thenReturn(Optional.of(existingCard));
-            when(mediaKeyResolver.forUpdate(any(), any(), eq(MediaKind.IMAGE))).thenReturn(new MediaKeyResolver.Resolved(null, null, List.of()));
+            when(mediaKeyResolver.forUpdate(any(), any(), eq(SystemFileModule.CARDS))).thenReturn(new MediaKeyResolver.Resolved(null, null, List.of()));
 
             assertThatThrownBy(() -> cardService.updateSystemCard(CARD_ID, req))
                     .isInstanceOf(AppException.class)

@@ -25,7 +25,7 @@ import com.elingo.vocabulary.repository.specification.DeckFilter;
 import com.elingo.vocabulary.repository.specification.DeckSpecifications;
 import com.elingo.vocabulary.service.DeckAccessPolicy;
 import com.elingo.vocabulary.service.DeckService;
-import com.elingo.vocabulary.service.MediaKeyResolver;
+import com.elingo.file.util.MediaKeyResolver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

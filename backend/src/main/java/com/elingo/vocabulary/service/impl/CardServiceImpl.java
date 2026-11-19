@@ -23,7 +23,7 @@ import com.elingo.vocabulary.repository.DeckRepository;
 import com.elingo.vocabulary.repository.TopicRepository;
 import com.elingo.vocabulary.service.CardService;
 import com.elingo.vocabulary.service.DeckAccessPolicy;
-import com.elingo.vocabulary.service.MediaKeyResolver;
+import com.elingo.file.util.MediaKeyResolver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -305,7 +305,7 @@ public class CardServiceImpl implements CardService {
         card.getPhonetics().addAll(next);
 
         return oldAudios.stream()
-                .filter(a -> !used.contains(a) && FileKey.isInZone(a, FileKey.UPLOADS_PREFIX))
+                .filter(a -> !used.contains(a) && FileKey.isPermanentKey(a))
                 .toList();
     }
 
