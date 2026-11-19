@@ -1,19 +1,10 @@
 app:
+  config-encryption-key: ${DEV_CONFIG_ENCRYPTION_KEY:0d3ad204de788e7ee2c5cf22d69ec946003aba98ffd642d07cbef987c7de7b93} # dev, test only
   front-end-domain: "http://localhost:5173"
   google:
     client-id: ${DEV_GOOGLE_CLIENT_ID}
-  premium:
-    bank-transfer:
-      code-prefix: ${DEV_BANK_TRANSFER_CODE_PREFIX:ELGO}
-      bank-name: ${DEV_BANK_NAME}
-      bank-account: ${DEV_BANK_ACCOUNT}
-      bank-account-name: ${DEV_BANK_ACCOUNT_NAME}
-      qr-template: ${DEV_BANK_TRANSFER_QR_TEMPLATE:compact}
-    sepay:
-      secret-key: ${DEV_SEPAY_WEBHOOK_SECRET}
   community:
     moderation:
-      openai-api-key: ${DEV_OPENAI_API_KEY}
       scheduler:
         enabled: ${DEV_MODERATION_SCHEDULER_ENABLED:false}
       moderation-service:

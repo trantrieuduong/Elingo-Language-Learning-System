@@ -1,6 +1,10 @@
 package com.elingo.vocabulary.service;
 
+import com.elingo.admin.content.dto.request.AdminDeckSearchRequest;
+import com.elingo.admin.content.dto.request.SystemDeckRequest;
+import com.elingo.admin.content.dto.request.UpdateDeckStatusRequest;
 import com.elingo.common.dto.PageResponse;
+import com.elingo.common.enums.MediaKind;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.progress.service.ProgressService;
@@ -11,20 +15,23 @@ import com.elingo.vocabulary.dto.request.DeckSearchRequest;
 import com.elingo.vocabulary.dto.request.UserDeckRequest;
 import com.elingo.vocabulary.dto.response.DeckResponse;
 import com.elingo.vocabulary.dto.response.TopicResponse;
+import com.elingo.vocabulary.entity.CefrLevel;
 import com.elingo.vocabulary.entity.Deck;
 import com.elingo.vocabulary.entity.DeckStatus;
 import com.elingo.vocabulary.entity.OwnerType;
+import com.elingo.vocabulary.entity.Tag;
 import com.elingo.vocabulary.entity.Topic;
 import com.elingo.vocabulary.mapper.DeckMapper;
 import com.elingo.vocabulary.mapper.TopicMapper;
+import com.elingo.vocabulary.repository.CefrLevelRepository;
 import com.elingo.vocabulary.repository.DeckRepository;
+import com.elingo.vocabulary.repository.TagRepository;
 import com.elingo.vocabulary.repository.TopicRepository;
 import com.elingo.vocabulary.service.impl.DeckServiceImpl;
 import com.elingo.vocabulary.support.TestDeckAccessView;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -56,7 +63,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-@Tag("unit")
+@org.junit.jupiter.api.Tag("unit")
 class DeckServiceTest {
 
     @Mock
@@ -82,6 +89,15 @@ class DeckServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private TagRepository tagRepository;
+
+    @Mock
+    private CefrLevelRepository cefrLevelRepository;
+
+    @Mock
+    private MediaKeyResolver mediaKeyResolver;
 
     @InjectMocks
     private DeckServiceImpl deckService;
@@ -120,6 +136,16 @@ class DeckServiceTest {
                 .build();
     }
 
+    private Deck systemDeck(String title) {
+        return Deck.builder()
+                .id(DECK_ID)
+                .title(title)
+                .slug("system-deck")
+                .ownerType(OwnerType.SYSTEM)
+                .status(DeckStatus.DRAFT)
+                .build();
+    }
+
     // ─────────────────────── getPublishedDecks ───────────────────────
 
     @Nested
@@ -129,289 +155,55 @@ class DeckServiceTest {
         @Test
         @DisplayName("Get published decks successfully: no filter returns first page")
         void getPublishedDecks_Success_NoFilter() {
-            DeckResponse deck1 = buildDeckResponse("Animals");
-            DeckResponse deck2 = buildDeckResponse("Colors");
-            Page<Deck> entityPage = new PageImpl<>(
-                    List.of(new Deck(), new Deck()), PageRequest.of(0, PAGE_SIZE), 2);
-
-            when(deckRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(entityPage);
-            when(deckMapper.toDeckResponse(any(), eq(0))).thenReturn(deck1, deck2);
-
             DeckSearchRequest request = new DeckSearchRequest(null, null, null, null, null);
-            PageResponse<DeckResponse> result =
-                    deckService.getPublishedDecks(request, PageRequest.of(0, PAGE_SIZE), USER_ID);
+            Pageable pageable = PageRequest.of(0, PAGE_SIZE, Sort.by("createdAt").descending());
+            Deck deck = userDeck("A");
+            Page<Deck> page = new PageImpl<>(List.of(deck), pageable, 1);
+            DeckResponse response = buildDeckResponse("A");
 
-            assertThat(result.content()).hasSize(2);
-            assertThat(result.totalElements()).isEqualTo(2);
-            assertThat(result.page()).isEqualTo(1);
-            assertThat(result.size()).isEqualTo(PAGE_SIZE);
-            assertThat(result.isLast()).isTrue();
-            verify(deckRepository).findAll(any(Specification.class), any(Pageable.class));
-        }
+            when(deckRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
+            when(deckMapper.toDeckResponse(deck, null)).thenReturn(response);
 
-        @Test
-        @DisplayName("Get published decks successfully: learned count is attached per deck")
-        void getPublishedDecks_Success_LearnedCountAttached() {
-            Deck animals = Deck.builder().id(1L).build();
-            Deck colors = Deck.builder().id(2L).build();
-            DeckResponse animalsResponse = buildDeckResponse("Animals");
-            DeckResponse colorsResponse = buildDeckResponse("Colors");
-            Page<Deck> entityPage = new PageImpl<>(List.of(animals, colors), PageRequest.of(0, PAGE_SIZE), 2);
-
-            when(deckRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(entityPage);
-            when(progressService.getLearnedCardCountByDeck(USER_ID, List.of(1L, 2L)))
-                    .thenReturn(Map.of(1L, 7));
-            when(deckMapper.toDeckResponse(animals, 7)).thenReturn(animalsResponse);
-            when(deckMapper.toDeckResponse(colors, 0)).thenReturn(colorsResponse);
-
-            PageResponse<DeckResponse> result = deckService.getPublishedDecks(
-                    new DeckSearchRequest(null, null, null, null, null),
-                    PageRequest.of(0, PAGE_SIZE), USER_ID);
-
-            assertThat(result.content()).containsExactly(animalsResponse, colorsResponse);
-        }
-
-        @Test
-        @DisplayName("Get published decks successfully: anonymous user gets no learned count lookup")
-        void getPublishedDecks_Success_Anonymous() {
-            Page<Deck> entityPage = new PageImpl<>(List.of(new Deck()), PageRequest.of(0, PAGE_SIZE), 1);
-            DeckResponse response = buildDeckResponse("Animals");
-
-            when(deckRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(entityPage);
-            when(deckMapper.toDeckResponse(any(), eq(null))).thenReturn(response);
-
-            PageResponse<DeckResponse> result = deckService.getPublishedDecks(
-                    new DeckSearchRequest(null, null, null, null, null),
-                    PageRequest.of(0, PAGE_SIZE), null);
+            PageResponse<DeckResponse> result = deckService.getPublishedDecks(request, pageable, null);
 
             assertThat(result.content()).containsExactly(response);
+            assertThat(result.totalElements()).isEqualTo(1L);
             verifyNoInteractions(progressService);
         }
 
         @Test
-        @DisplayName("Get published decks successfully: filter by CEFR level ID is passed to repository")
-        void getPublishedDecks_Success_FilterByCefrCode() {
-            DeckResponse b2Deck = buildDeckResponse("B2 Vocabulary");
-            Page<Deck> entityPage = new PageImpl<>(List.of(new Deck()), PageRequest.of(0, PAGE_SIZE), 1);
+        @DisplayName("Get published decks successfully: attaches user learning progress when logged in")
+        void getPublishedDecks_Success_WithUserProgress() {
+            DeckSearchRequest request = new DeckSearchRequest(null, null, null, null, null);
+            Pageable pageable = PageRequest.of(0, PAGE_SIZE);
+            Deck deck = userDeck("A");
+            Page<Deck> page = new PageImpl<>(List.of(deck), pageable, 1);
+            DeckResponse response = buildDeckResponse("A");
 
-            when(deckRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(entityPage);
-            when(deckMapper.toDeckResponse(any(), eq(0))).thenReturn(b2Deck);
+            when(deckRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
+            when(progressService.getLearnedCardCountByDeck(USER_ID, List.of(DECK_ID)))
+                    .thenReturn(Map.of(DECK_ID, 7));
+            when(deckMapper.toDeckResponse(deck, 7)).thenReturn(response);
 
-            DeckSearchRequest request = new DeckSearchRequest(null, null, Set.of(1L), null, null);
-            PageResponse<DeckResponse> result =
-                    deckService.getPublishedDecks(request, PageRequest.of(0, PAGE_SIZE), USER_ID);
+            PageResponse<DeckResponse> result = deckService.getPublishedDecks(request, pageable, USER_ID);
 
-            assertThat(result.content()).hasSize(1);
-            assertThat(result.content().getFirst().title()).isEqualTo("B2 Vocabulary");
-            verify(deckRepository).findAll(any(Specification.class), any(Pageable.class));
+            assertThat(result.content()).containsExactly(response);
+            verify(progressService).getLearnedCardCountByDeck(USER_ID, List.of(DECK_ID));
         }
 
         @Test
-        @DisplayName("Get published decks successfully: filter by tag ID is passed to repository")
-        void getPublishedDecks_Success_FilterByTagCode() {
-            Page<Deck> entityPage = new PageImpl<>(List.of(), PageRequest.of(0, PAGE_SIZE), 0);
+        @DisplayName("Get published decks successfully: empty page skips progress lookup")
+        void getPublishedDecks_Success_EmptyPage() {
+            DeckSearchRequest request = new DeckSearchRequest(null, null, null, null, null);
+            Pageable pageable = PageRequest.of(0, PAGE_SIZE);
+            Page<Deck> empty = new PageImpl<>(List.of(), pageable, 0);
 
-            when(deckRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(entityPage);
+            when(deckRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(empty);
 
-            DeckSearchRequest request = new DeckSearchRequest(null, Set.of(1L), null, null, null);
-            PageResponse<DeckResponse> result =
-                    deckService.getPublishedDecks(request, PageRequest.of(0, PAGE_SIZE), USER_ID);
+            PageResponse<DeckResponse> result = deckService.getPublishedDecks(request, pageable, null);
 
             assertThat(result.content()).isEmpty();
-            assertThat(result.totalElements()).isZero();
-            verify(deckRepository).findAll(any(Specification.class), any(Pageable.class));
-        }
-
-        @Test
-        @DisplayName("Get published decks successfully: filter by keyword is passed to repository")
-        void getPublishedDecks_Success_FilterByKeyword() {
-            DeckResponse deck = buildDeckResponse("English Animals");
-            Page<Deck> entityPage = new PageImpl<>(List.of(new Deck()), PageRequest.of(0, PAGE_SIZE), 1);
-
-            when(deckRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(entityPage);
-            when(deckMapper.toDeckResponse(any(), eq(0))).thenReturn(deck);
-
-            DeckSearchRequest request = new DeckSearchRequest("animals", null, null, null, null);
-            PageResponse<DeckResponse> result =
-                    deckService.getPublishedDecks(request, PageRequest.of(0, PAGE_SIZE), USER_ID);
-
-            assertThat(result.content()).hasSize(1);
-            verify(deckRepository).findAll(any(Specification.class), any(Pageable.class));
-        }
-
-        @Test
-        @DisplayName("Get published decks successfully: filter by premium is passed to repository")
-        void getPublishedDecks_Success_FilterByPremium() {
-            Page<Deck> entityPage = new PageImpl<>(List.of(), PageRequest.of(0, PAGE_SIZE), 0);
-
-            when(deckRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(entityPage);
-
-            DeckSearchRequest request = new DeckSearchRequest(null, null, null, true, null);
-            PageResponse<DeckResponse> result =
-                    deckService.getPublishedDecks(request, PageRequest.of(0, PAGE_SIZE), USER_ID);
-
-            assertThat(result.content()).isEmpty();
-        }
-
-        @Test
-        @DisplayName("Get published decks successfully: returns empty page when no deck matches filter")
-        void getPublishedDecks_Success_ReturnsEmptyPage() {
-            Page<Deck> entityPage = new PageImpl<>(List.of(), PageRequest.of(0, PAGE_SIZE), 0);
-
-            when(deckRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(entityPage);
-
-            DeckSearchRequest request = new DeckSearchRequest(null, null, Set.of(2L), null, null);
-            PageResponse<DeckResponse> result =
-                    deckService.getPublishedDecks(request, PageRequest.of(0, PAGE_SIZE), USER_ID);
-
-            assertThat(result.content()).isEmpty();
-            assertThat(result.totalElements()).isZero();
-            assertThat(result.totalPages()).isZero();
-            assertThat(result.isLast()).isTrue();
-        }
-    }
-
-    // ─────────────────────── getTopicsByDeckId ───────────────────────
-
-    @Nested
-    @DisplayName("getTopicsByDeckId")
-    class GetTopicsByDeckIdTests {
-
-        @Test
-        @DisplayName("Get topics by deck id successfully: learned count is attached per topic")
-        void getTopicsByDeckId_Success() {
-            Topic animals = Topic.builder().id(1L).name("Animals").slug("animals").order(1).build();
-            Topic colors = Topic.builder().id(2L).name("Colors").slug("colors").order(2).build();
-            TopicResponse animalsResponse = new TopicResponse(1L, "Animals", "animals", 1, 5, 2);
-            TopicResponse colorsResponse = new TopicResponse(2L, "Colors", "colors", 2, 5, 0);
-
-            when(deckRepository.findAccessViewById(DECK_ID)).thenReturn(Optional.of(accessView(DECK_ID)));
-            when(topicRepository.findByDeckId(eq(DECK_ID), any(Sort.class))).thenReturn(List.of(animals, colors));
-            when(progressService.getLearnedCardCountByTopic(USER_ID, List.of(1L, 2L)))
-                    .thenReturn(Map.of(1L, 2));
-            when(topicMapper.toTopicResponse(animals, 2)).thenReturn(animalsResponse);
-            when(topicMapper.toTopicResponse(colors, 0)).thenReturn(colorsResponse);
-
-            List<TopicResponse> result = deckService.getTopicsByDeckId(DECK_ID, USER_ID);
-
-            assertThat(result).containsExactly(animalsResponse, colorsResponse);
-            verify(accessPolicy).assertCanLearn(any(), eq(USER_ID));
-        }
-
-        @Test
-        @DisplayName("Get topics by deck id successfully: empty deck returns empty list without progress lookup")
-        void getTopicsByDeckId_Success_EmptyDeck() {
-            when(deckRepository.findAccessViewById(DECK_ID)).thenReturn(Optional.of(accessView(DECK_ID)));
-            when(topicRepository.findByDeckId(eq(DECK_ID), any(Sort.class))).thenReturn(List.of());
-
-            assertThat(deckService.getTopicsByDeckId(DECK_ID, USER_ID)).isEmpty();
             verifyNoInteractions(progressService);
-        }
-
-        @Test
-        @DisplayName("Get topics by deck id successfully: anonymous user gets no learned count")
-        void getTopicsByDeckId_Success_Anonymous() {
-            Topic animals = Topic.builder().id(1L).name("Animals").slug("animals").order(1).build();
-            TopicResponse response = new TopicResponse(1L, "Animals", "animals", 1, 5, null);
-
-            when(deckRepository.findAccessViewById(DECK_ID)).thenReturn(Optional.of(accessView(DECK_ID)));
-            when(topicRepository.findByDeckId(eq(DECK_ID), any(Sort.class))).thenReturn(List.of(animals));
-            when(topicMapper.toTopicResponse(animals, null)).thenReturn(response);
-
-            assertThat(deckService.getTopicsByDeckId(DECK_ID, null)).containsExactly(response);
-            verifyNoInteractions(progressService);
-        }
-
-        @Test
-        @DisplayName("Get topics by deck id failed: deck not found")
-        void getTopicsByDeckId_Fail_DeckNotFound() {
-            when(deckRepository.findAccessViewById(DECK_ID)).thenReturn(Optional.empty());
-
-            assertThatThrownBy(() -> deckService.getTopicsByDeckId(DECK_ID, USER_ID))
-                    .isInstanceOf(AppException.class)
-                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
-                            .isEqualTo(AppError.DECK_NOT_FOUND));
-
-            verify(topicRepository, never()).findByDeckId(any(), any());
-        }
-
-        @Test
-        @DisplayName("Get topics by deck id failed: deck is not accessible")
-        void getTopicsByDeckId_Fail_AccessDenied() {
-            when(deckRepository.findAccessViewById(DECK_ID)).thenReturn(Optional.of(accessView(DECK_ID)));
-            doThrow(new AppException(AppError.DECK_NOT_FOUND))
-                    .when(accessPolicy).assertCanLearn(any(), eq(USER_ID));
-
-            assertThatThrownBy(() -> deckService.getTopicsByDeckId(DECK_ID, USER_ID))
-                    .isInstanceOf(AppException.class)
-                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
-                            .isEqualTo(AppError.DECK_NOT_FOUND));
-
-            verify(topicRepository, never()).findByDeckId(any(), any());
-        }
-
-        @Test
-        @DisplayName("Get topics by deck id failed: premium deck without subscription")
-        void getTopicsByDeckId_Fail_PremiumRequired() {
-            when(deckRepository.findAccessViewById(DECK_ID)).thenReturn(Optional.of(accessView(DECK_ID)));
-            doThrow(new AppException(AppError.PREMIUM_REQUIRED))
-                    .when(accessPolicy).assertCanLearn(any(), eq(USER_ID));
-
-            assertThatThrownBy(() -> deckService.getTopicsByDeckId(DECK_ID, USER_ID))
-                    .isInstanceOf(AppException.class)
-                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
-                            .isEqualTo(AppError.PREMIUM_REQUIRED));
-        }
-    }
-
-    // ─────────────────────── getTopicsByDeckSlug ───────────────────────
-
-    @Nested
-    @DisplayName("getTopicsByDeckSlug")
-    class GetTopicsByDeckSlugTests {
-
-        @Test
-        @DisplayName("Get topics by deck slug successfully")
-        void getTopicsByDeckSlug_Success() {
-            Topic animals = Topic.builder().id(1L).name("Animals").slug("animals").order(1).build();
-            TopicResponse response = new TopicResponse(1L, "Animals", "animals", 1, 5, 3);
-
-            when(deckRepository.findAccessViewBySlug("oxford-3000"))
-                    .thenReturn(Optional.of(accessView(DECK_ID)));
-            when(topicRepository.findByDeckId(eq(DECK_ID), any(Sort.class))).thenReturn(List.of(animals));
-            when(progressService.getLearnedCardCountByTopic(USER_ID, List.of(1L)))
-                    .thenReturn(Map.of(1L, 3));
-            when(topicMapper.toTopicResponse(animals, 3)).thenReturn(response);
-
-            assertThat(deckService.getTopicsByDeckSlug("oxford-3000", USER_ID)).containsExactly(response);
-            verify(accessPolicy).assertCanLearn(any(), eq(USER_ID));
-        }
-
-        @Test
-        @DisplayName("Get topics by deck slug failed: deck not found")
-        void getTopicsByDeckSlug_Fail_DeckNotFound() {
-            when(deckRepository.findAccessViewBySlug("missing")).thenReturn(Optional.empty());
-
-            assertThatThrownBy(() -> deckService.getTopicsByDeckSlug("missing", USER_ID))
-                    .isInstanceOf(AppException.class)
-                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
-                            .isEqualTo(AppError.DECK_NOT_FOUND));
-
-            verify(topicRepository, never()).findByDeckId(any(), any());
-        }
-
-        @Test
-        @DisplayName("Get topics by deck slug failed: premium deck without subscription")
-        void getTopicsByDeckSlug_Fail_PremiumRequired() {
-            when(deckRepository.findAccessViewBySlug("premium-deck"))
-                    .thenReturn(Optional.of(accessView(DECK_ID)));
-            doThrow(new AppException(AppError.PREMIUM_REQUIRED))
-                    .when(accessPolicy).assertCanLearn(any(), eq(USER_ID));
-
-            assertThatThrownBy(() -> deckService.getTopicsByDeckSlug("premium-deck", USER_ID))
-                    .isInstanceOf(AppException.class)
-                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
-                            .isEqualTo(AppError.PREMIUM_REQUIRED));
         }
     }
 
@@ -422,51 +214,206 @@ class DeckServiceTest {
     class GetDeckByIdTests {
 
         @Test
-        @DisplayName("Get deck by id successfully: checks access and maps deck")
-        void getDeckById_Success() {
-            DeckRepository.DeckAccessView deckAccess = accessView(DECK_ID);
-            Deck deck = userDeck("My deck");
-            DeckResponse response = buildDeckResponse("My deck");
+        @DisplayName("Get deck by ID successfully: anonymous user")
+        void getDeckById_Success_Anonymous() {
+            Deck deck = userDeck("A");
+            DeckResponse response = buildDeckResponse("A");
 
-            when(deckRepository.findAccessViewById(DECK_ID)).thenReturn(Optional.of(deckAccess));
+            when(deckRepository.findAccessViewById(DECK_ID)).thenReturn(Optional.of(accessView(DECK_ID)));
             when(deckRepository.findById(DECK_ID)).thenReturn(Optional.of(deck));
             when(deckMapper.toDeckResponse(deck)).thenReturn(response);
 
-            assertThat(deckService.getDeckById(DECK_ID, USER_ID)).isSameAs(response);
+            DeckResponse result = deckService.getDeckById(DECK_ID, null);
 
-            verify(accessPolicy).assertCanView(deckAccess, USER_ID);
-            verify(deckRepository).findById(DECK_ID);
-            verify(deckMapper).toDeckResponse(deck);
+            assertThat(result).isSameAs(response);
+            verify(accessPolicy).assertCanView(any(), eq(null));
         }
 
         @Test
-        @DisplayName("Get deck by id failed: caller cannot view deck")
-        void getDeckById_Fail_AccessDenied() {
-            DeckRepository.DeckAccessView deckAccess = accessView(DECK_ID);
-            when(deckRepository.findAccessViewById(DECK_ID)).thenReturn(Optional.of(deckAccess));
-            doThrow(new AppException(AppError.DECK_NOT_FOUND))
-                    .when(accessPolicy).assertCanView(deckAccess, USER_ID);
+        @DisplayName("Get deck by ID successfully: logged-in user")
+        void getDeckById_Success_LoggedIn() {
+            Deck deck = userDeck("A");
+            DeckResponse response = buildDeckResponse("A");
 
-            assertThatThrownBy(() -> deckService.getDeckById(DECK_ID, USER_ID))
-                    .isInstanceOf(AppException.class)
-                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
-                            .isEqualTo(AppError.DECK_NOT_FOUND));
+            when(deckRepository.findAccessViewById(DECK_ID)).thenReturn(Optional.of(accessView(DECK_ID)));
+            when(deckRepository.findById(DECK_ID)).thenReturn(Optional.of(deck));
+            when(deckMapper.toDeckResponse(deck)).thenReturn(response);
 
-            verify(deckRepository, never()).findById(DECK_ID);
-            verifyNoInteractions(deckMapper);
+            DeckResponse result = deckService.getDeckById(DECK_ID, USER_ID);
+
+            assertThat(result).isSameAs(response);
+            verify(accessPolicy).assertCanView(any(), eq(USER_ID));
         }
 
         @Test
-        @DisplayName("Get deck by id failed: deck does not exist")
-        void getDeckById_Fail_DeckNotFound() {
+        @DisplayName("Get deck by ID failed: access view not found")
+        void getDeckById_Fail_AccessViewNotFound() {
             when(deckRepository.findAccessViewById(DECK_ID)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> deckService.getDeckById(DECK_ID, USER_ID))
                     .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.DECK_NOT_FOUND));
+
+            verifyNoInteractions(accessPolicy);
+        }
+
+        @Test
+        @DisplayName("Get deck by ID failed: access denied by policy")
+        void getDeckById_Fail_AccessDenied() {
+            when(deckRepository.findAccessViewById(DECK_ID)).thenReturn(Optional.of(accessView(DECK_ID)));
+            doThrow(new AppException(AppError.DECK_ACCESS_DENIED))
+                    .when(accessPolicy).assertCanView(any(), eq(USER_ID));
+
+            assertThatThrownBy(() -> deckService.getDeckById(DECK_ID, USER_ID))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.DECK_ACCESS_DENIED));
+
+            verify(deckRepository, never()).findById(any());
+        }
+
+        @Test
+        @DisplayName("Get deck by ID failed: deck entity disappeared")
+        void getDeckById_Fail_EntityNotFound() {
+            when(deckRepository.findAccessViewById(DECK_ID)).thenReturn(Optional.of(accessView(DECK_ID)));
+            when(deckRepository.findById(DECK_ID)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> deckService.getDeckById(DECK_ID, USER_ID))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.DECK_NOT_FOUND));
+        }
+    }
+
+    // ─────────────────────── getTopicsByDeckId ───────────────────────
+
+    @Nested
+    @DisplayName("getTopicsByDeckId")
+    class GetTopicsByDeckIdTests {
+
+        @Test
+        @DisplayName("Get topics by deck ID successfully: maps topics with user learning progress")
+        void getTopicsByDeckId_Success_WithUserProgress() {
+            Topic topic = Topic.builder().id(20L).name("Topic 1").build();
+            TopicResponse topicResponse = new TopicResponse(20L, "Topic 1", "topic-1", 1, 10, 3);
+
+            when(deckRepository.findAccessViewById(DECK_ID)).thenReturn(Optional.of(accessView(DECK_ID)));
+            when(topicRepository.findByDeckId(eq(DECK_ID), any(Sort.class))).thenReturn(List.of(topic));
+            when(progressService.getLearnedCardCountByTopic(USER_ID, List.of(20L)))
+                    .thenReturn(Map.of(20L, 3));
+            when(topicMapper.toTopicResponse(topic, 3)).thenReturn(topicResponse);
+
+            List<TopicResponse> result = deckService.getTopicsByDeckId(DECK_ID, USER_ID);
+
+            assertThat(result).containsExactly(topicResponse);
+            verify(accessPolicy).assertCanLearn(any(), eq(USER_ID));
+            verify(progressService).getLearnedCardCountByTopic(USER_ID, List.of(20L));
+        }
+
+        @Test
+        @DisplayName("Get topics by deck ID successfully: anonymous user skips progress lookup")
+        void getTopicsByDeckId_Success_Anonymous() {
+            Topic topic = Topic.builder().id(20L).name("Topic 1").build();
+            TopicResponse topicResponse = new TopicResponse(20L, "Topic 1", "topic-1", 1, 10, null);
+
+            when(deckRepository.findAccessViewById(DECK_ID)).thenReturn(Optional.of(accessView(DECK_ID)));
+            when(topicRepository.findByDeckId(eq(DECK_ID), any(Sort.class))).thenReturn(List.of(topic));
+            when(topicMapper.toTopicResponse(topic, null)).thenReturn(topicResponse);
+
+            List<TopicResponse> result = deckService.getTopicsByDeckId(DECK_ID, null);
+
+            assertThat(result).containsExactly(topicResponse);
+            verify(accessPolicy).assertCanLearn(any(), eq(null));
+            verifyNoInteractions(progressService);
+        }
+
+        @Test
+        @DisplayName("Get topics by deck ID successfully: returns empty list when deck has no topics")
+        void getTopicsByDeckId_Success_Empty() {
+            when(deckRepository.findAccessViewById(DECK_ID)).thenReturn(Optional.of(accessView(DECK_ID)));
+            when(topicRepository.findByDeckId(eq(DECK_ID), any(Sort.class))).thenReturn(List.of());
+
+            List<TopicResponse> result = deckService.getTopicsByDeckId(DECK_ID, USER_ID);
+
+            assertThat(result).isEmpty();
+            verifyNoInteractions(progressService);
+        }
+
+        @Test
+        @DisplayName("Get topics by deck ID failed: deck not found")
+        void getTopicsByDeckId_Fail_DeckNotFound() {
+            when(deckRepository.findAccessViewById(DECK_ID)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> deckService.getTopicsByDeckId(DECK_ID, USER_ID))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.DECK_NOT_FOUND));
+
+            verifyNoInteractions(accessPolicy, topicRepository);
+        }
+
+        @Test
+        @DisplayName("Get topics by deck ID failed: access denied")
+        void getTopicsByDeckId_Fail_AccessDenied() {
+            when(deckRepository.findAccessViewById(DECK_ID)).thenReturn(Optional.of(accessView(DECK_ID)));
+            doThrow(new AppException(AppError.DECK_ACCESS_DENIED))
+                    .when(accessPolicy).assertCanLearn(any(), eq(USER_ID));
+
+            assertThatThrownBy(() -> deckService.getTopicsByDeckId(DECK_ID, USER_ID))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.DECK_ACCESS_DENIED));
+
+            verifyNoInteractions(topicRepository);
+        }
+    }
+
+    // ─────────────────────── getTopicsByDeckSlug ───────────────────────
+
+    @Nested
+    @DisplayName("getTopicsByDeckSlug")
+    class GetTopicsByDeckSlugTests {
+
+        @Test
+        @DisplayName("Get topics by deck slug successfully: maps topics with user progress")
+        void getTopicsByDeckSlug_Success() {
+            Topic topic = Topic.builder().id(20L).name("Topic 1").build();
+            TopicResponse topicResponse = new TopicResponse(20L, "Topic 1", "topic-1", 1, 10, 3);
+
+            when(deckRepository.findAccessViewBySlug("my-deck")).thenReturn(Optional.of(accessView(DECK_ID)));
+            when(topicRepository.findByDeckId(eq(DECK_ID), any(Sort.class))).thenReturn(List.of(topic));
+            when(progressService.getLearnedCardCountByTopic(USER_ID, List.of(20L)))
+                    .thenReturn(Map.of(20L, 3));
+            when(topicMapper.toTopicResponse(topic, 3)).thenReturn(topicResponse);
+
+            List<TopicResponse> result = deckService.getTopicsByDeckSlug("my-deck", USER_ID);
+
+            assertThat(result).containsExactly(topicResponse);
+            verify(accessPolicy).assertCanLearn(any(), eq(USER_ID));
+        }
+
+        @Test
+        @DisplayName("Get topics by deck slug failed: slug not found")
+        void getTopicsByDeckSlug_Fail_SlugNotFound() {
+            when(deckRepository.findAccessViewBySlug("unknown")).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> deckService.getTopicsByDeckSlug("unknown", USER_ID))
+                    .isInstanceOf(AppException.class)
                     .satisfies(ex -> assertThat(((AppException) ex).getAppError())
                             .isEqualTo(AppError.DECK_NOT_FOUND));
 
-            verifyNoInteractions(accessPolicy, deckMapper);
+            verifyNoInteractions(accessPolicy, topicRepository);
+        }
+
+        @Test
+        @DisplayName("Get topics by deck slug failed: access denied")
+        void getTopicsByDeckSlug_Fail_AccessDenied() {
+            when(deckRepository.findAccessViewBySlug("my-deck")).thenReturn(Optional.of(accessView(DECK_ID)));
+            doThrow(new AppException(AppError.DECK_ACCESS_DENIED))
+                    .when(accessPolicy).assertCanLearn(any(), eq(USER_ID));
+
+            assertThatThrownBy(() -> deckService.getTopicsByDeckSlug("my-deck", USER_ID))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.DECK_ACCESS_DENIED));
+
+            verifyNoInteractions(topicRepository);
         }
     }
 
@@ -514,7 +461,7 @@ class DeckServiceTest {
             UserDeckRequest request = new UserDeckRequest("My Deck", "my description");
             DeckResponse response = buildDeckResponse("My Deck");
 
-            when(userRepository.findById(USER_ID)).thenReturn(Optional.of(owner));
+            when(userRepository.findByIdForUpdate(USER_ID)).thenReturn(Optional.of(owner));
             when(deckRepository.countByOwnerTypeAndOwnerId(OwnerType.USER, USER_ID)).thenReturn(0L);
             when(deckRepository.save(any(Deck.class))).thenAnswer(inv -> inv.getArgument(0));
             when(deckMapper.toDeckResponse(any(Deck.class))).thenReturn(response);
@@ -535,21 +482,21 @@ class DeckServiceTest {
         @Test
         @DisplayName("Create user deck failed: user not found")
         void createUserDeck_Fail_UserNotFound() {
-            when(userRepository.findById(USER_ID)).thenReturn(Optional.empty());
+            when(userRepository.findByIdForUpdate(USER_ID)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> deckService.createUserDeck(USER_ID, new UserDeckRequest("My Deck", null)))
                     .isInstanceOf(AppException.class)
                     .satisfies(ex -> assertThat(((AppException) ex).getAppError())
                             .isEqualTo(AppError.USER_NOT_FOUND));
 
-            verify(deckRepository, never()).save(any());
+            verify(deckRepository, never()).save(any(Deck.class));
         }
 
         @Test
         @DisplayName("Create user deck failed: deck limit reached")
         void createUserDeck_Fail_DeckLimitExceeded() {
             User owner = User.builder().id(USER_ID).username("tester").build();
-            when(userRepository.findById(USER_ID)).thenReturn(Optional.of(owner));
+            when(userRepository.findByIdForUpdate(USER_ID)).thenReturn(Optional.of(owner));
             when(deckRepository.countByOwnerTypeAndOwnerId(OwnerType.USER, USER_ID))
                     .thenReturn((long) MAX_DECKS_PER_USER);
 
@@ -558,7 +505,7 @@ class DeckServiceTest {
                     .satisfies(ex -> assertThat(((AppException) ex).getAppError())
                             .isEqualTo(AppError.DECK_LIMIT_EXCEEDED));
 
-            verify(deckRepository, never()).save(any());
+            verify(deckRepository, never()).save(any(Deck.class));
         }
     }
 
@@ -750,17 +697,19 @@ class DeckServiceTest {
         @Test
         @DisplayName("Delete user deck successfully")
         void deleteUserDeck_Success() {
+            Deck deck = userDeck("My Deck");
             when(deckRepository.findAccessViewById(DECK_ID)).thenReturn(Optional.of(accessView(DECK_ID)));
+            when(deckRepository.findById(DECK_ID)).thenReturn(Optional.of(deck));
 
             deckService.deleteUserDeck(USER_ID, DECK_ID);
 
-            verify(deckRepository).deleteById(DECK_ID);
+            verify(deckRepository).delete(deck);
             verify(accessPolicy).assertCanEdit(any(), eq(USER_ID));
         }
 
         @Test
-        @DisplayName("Delete user deck failed: deck not found")
-        void deleteUserDeck_Fail_DeckNotFound() {
+        @DisplayName("Delete user deck failed: deck access view not found")
+        void deleteUserDeck_Fail_DeckNotFound_AccessViewMissing() {
             when(deckRepository.findAccessViewById(DECK_ID)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> deckService.deleteUserDeck(USER_ID, DECK_ID))
@@ -768,7 +717,21 @@ class DeckServiceTest {
                     .satisfies(ex -> assertThat(((AppException) ex).getAppError())
                             .isEqualTo(AppError.DECK_NOT_FOUND));
 
-            verify(deckRepository, never()).deleteById(any());
+            verify(deckRepository, never()).delete(any(Deck.class));
+        }
+
+        @Test
+        @DisplayName("Delete user deck failed: deck entity disappeared")
+        void deleteUserDeck_Fail_EntityNotFound() {
+            when(deckRepository.findAccessViewById(DECK_ID)).thenReturn(Optional.of(accessView(DECK_ID)));
+            when(deckRepository.findById(DECK_ID)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> deckService.deleteUserDeck(USER_ID, DECK_ID))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.DECK_NOT_FOUND));
+
+            verify(deckRepository, never()).delete(any(Deck.class));
         }
 
         @Test
@@ -783,7 +746,410 @@ class DeckServiceTest {
                     .satisfies(ex -> assertThat(((AppException) ex).getAppError())
                             .isEqualTo(AppError.DECK_ACCESS_DENIED));
 
-            verify(deckRepository, never()).deleteById(any());
+            verify(deckRepository, never()).delete(any(Deck.class));
+        }
+    }
+
+    // ─────────────────────── searchDecksForAdmin ───────────────────────
+
+    @Nested
+    @DisplayName("searchDecksForAdmin")
+    class SearchDecksForAdminTests {
+
+        @Test
+        @DisplayName("Search decks for admin successfully")
+        void searchDecksForAdmin_Success() {
+            AdminDeckSearchRequest request = new AdminDeckSearchRequest("deck", OwnerType.SYSTEM, DeckStatus.PUBLISHED, false, Set.of(), Set.of());
+            Pageable pageable = PageRequest.of(0, 20);
+            Deck deck = systemDeck("Title");
+            Page<Deck> page = new PageImpl<>(List.of(deck), pageable, 1);
+            DeckResponse response = buildDeckResponse("Title");
+
+            when(deckRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
+            when(deckMapper.toDeckResponse(deck)).thenReturn(response);
+
+            PageResponse<DeckResponse> result = deckService.searchDecksForAdmin(request, pageable);
+
+            assertThat(result.content()).containsExactly(response);
+            assertThat(result.totalElements()).isEqualTo(1L);
+        }
+    }
+
+    // ─────────────────────── getDeckByIdForAdmin ───────────────────────
+
+    @Nested
+    @DisplayName("getDeckByIdForAdmin")
+    class GetDeckByIdForAdminTests {
+
+        @Test
+        @DisplayName("Get deck by ID for admin successfully")
+        void getDeckByIdForAdmin_Success() {
+            Deck deck = systemDeck("Title");
+            DeckResponse response = buildDeckResponse("Title");
+
+            when(deckRepository.findById(DECK_ID)).thenReturn(Optional.of(deck));
+            when(deckMapper.toDeckResponse(deck)).thenReturn(response);
+
+            DeckResponse result = deckService.getDeckByIdForAdmin(DECK_ID);
+
+            assertThat(result).isSameAs(response);
+            verify(deckRepository).findById(DECK_ID);
+        }
+
+        @Test
+        @DisplayName("Get deck by ID for admin failed: deck not found")
+        void getDeckByIdForAdmin_Fail_DeckNotFound() {
+            when(deckRepository.findById(DECK_ID)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> deckService.getDeckByIdForAdmin(DECK_ID))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.DECK_NOT_FOUND));
+        }
+    }
+
+    // ─────────────────────── createSystemDeck ───────────────────────
+
+    @Nested
+    @DisplayName("createSystemDeck")
+    class CreateSystemDeckTests {
+
+        @Test
+        @DisplayName("Create system deck successfully with media, tags, and cefr levels")
+        void createSystemDeck_Success_WithMediaTagsAndCefr() {
+            SystemDeckRequest request = new SystemDeckRequest("System Deck", "desc", "verified/cover.png", true, Set.of(1L), Set.of(2L));
+            Tag tag = Tag.builder().id(1L).build();
+            CefrLevel cefr = CefrLevel.builder().id(2L).build();
+            MediaKeyResolver.Resolved coverResolved = new MediaKeyResolver.Resolved("uploads/cover.png", "verified/cover.png", List.of());
+            Deck mappedDeck = new Deck();
+            Deck savedDeck = systemDeck("System Deck");
+            DeckResponse response = buildDeckResponse("System Deck");
+
+            when(mediaKeyResolver.forCreate("verified/cover.png", MediaKind.IMAGE)).thenReturn(coverResolved);
+            when(deckMapper.toDeck(request)).thenReturn(mappedDeck);
+            when(tagRepository.findAllById(Set.of(1L))).thenReturn(List.of(tag));
+            when(cefrLevelRepository.findAllById(Set.of(2L))).thenReturn(List.of(cefr));
+            when(deckRepository.save(any(Deck.class))).thenReturn(savedDeck);
+            when(deckMapper.toDeckResponse(savedDeck)).thenReturn(response);
+
+            DeckResponse result = deckService.createSystemDeck(request);
+
+            assertThat(result).isSameAs(response);
+            ArgumentCaptor<Deck> captor = ArgumentCaptor.forClass(Deck.class);
+            verify(deckRepository).save(captor.capture());
+            Deck persisted = captor.getValue();
+            assertThat(persisted.getCoverImageUrl()).isEqualTo("uploads/cover.png");
+            assertThat(persisted.getStatus()).isEqualTo(DeckStatus.DRAFT);
+            assertThat(persisted.getOwnerType()).isEqualTo(OwnerType.SYSTEM);
+            assertThat(persisted.getOwner()).isNull();
+            assertThat(persisted.getTopicCount()).isZero();
+            assertThat(persisted.getCardCount()).isZero();
+            assertThat(persisted.getTags()).containsExactly(tag);
+            assertThat(persisted.getCefrLevels()).containsExactly(cefr);
+            verify(mediaKeyResolver).publish(coverResolved);
+        }
+
+        @Test
+        @DisplayName("Create system deck successfully without media, tags, and cefr levels")
+        void createSystemDeck_Success_WithoutMediaTagsAndCefr() {
+            SystemDeckRequest request = new SystemDeckRequest("System Deck", null, null, false, null, null);
+            MediaKeyResolver.Resolved emptyCover = new MediaKeyResolver.Resolved(null, null, List.of());
+            Deck mappedDeck = new Deck();
+            Deck savedDeck = systemDeck("System Deck");
+            DeckResponse response = buildDeckResponse("System Deck");
+
+            when(mediaKeyResolver.forCreate(null, MediaKind.IMAGE)).thenReturn(emptyCover);
+            when(deckMapper.toDeck(request)).thenReturn(mappedDeck);
+            when(deckRepository.save(any(Deck.class))).thenReturn(savedDeck);
+            when(deckMapper.toDeckResponse(savedDeck)).thenReturn(response);
+
+            DeckResponse result = deckService.createSystemDeck(request);
+
+            assertThat(result).isSameAs(response);
+            verify(deckRepository).save(any(Deck.class));
+            verify(mediaKeyResolver).publish(emptyCover);
+            verify(tagRepository, never()).findAllById(any());
+            verify(cefrLevelRepository, never()).findAllById(any());
+        }
+
+        @Test
+        @DisplayName("Create system deck failed: tag not found")
+        void createSystemDeck_Fail_TagNotFound() {
+            SystemDeckRequest request = new SystemDeckRequest("System Deck", "desc", null, false, Set.of(1L, 2L), null);
+            MediaKeyResolver.Resolved emptyCover = new MediaKeyResolver.Resolved(null, null, List.of());
+            Tag tag1 = Tag.builder().id(1L).build();
+
+            when(mediaKeyResolver.forCreate(null, MediaKind.IMAGE)).thenReturn(emptyCover);
+            when(deckMapper.toDeck(request)).thenReturn(new Deck());
+            when(tagRepository.findAllById(Set.of(1L, 2L))).thenReturn(List.of(tag1));
+
+            assertThatThrownBy(() -> deckService.createSystemDeck(request))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.TAG_NOT_FOUND));
+
+            verify(deckRepository, never()).save(any(Deck.class));
+        }
+
+        @Test
+        @DisplayName("Create system deck failed: CEFR level not found")
+        void createSystemDeck_Fail_CefrLevelNotFound() {
+            SystemDeckRequest request = new SystemDeckRequest("System Deck", "desc", null, false, null, Set.of(1L, 2L));
+            MediaKeyResolver.Resolved emptyCover = new MediaKeyResolver.Resolved(null, null, List.of());
+            CefrLevel cefr1 = CefrLevel.builder().id(1L).build();
+
+            when(mediaKeyResolver.forCreate(null, MediaKind.IMAGE)).thenReturn(emptyCover);
+            when(deckMapper.toDeck(request)).thenReturn(new Deck());
+            when(cefrLevelRepository.findAllById(Set.of(1L, 2L))).thenReturn(List.of(cefr1));
+
+            assertThatThrownBy(() -> deckService.createSystemDeck(request))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.CEFR_LEVEL_NOT_FOUND));
+
+            verify(deckRepository, never()).save(any(Deck.class));
+        }
+    }
+
+    // ─────────────────────── updateSystemDeck ───────────────────────
+
+    @Nested
+    @DisplayName("updateSystemDeck")
+    class UpdateSystemDeckTests {
+
+        @Test
+        @DisplayName("Update system deck successfully")
+        void updateSystemDeck_Success() {
+            SystemDeckRequest request = new SystemDeckRequest("New Title", "desc", "verified/new_cover.png", false, Set.of(1L), Set.of());
+            Deck existingDeck = systemDeck("Old Title");
+            existingDeck.setCoverImageUrl("uploads/old_cover.png");
+            Tag tag = Tag.builder().id(1L).build();
+            MediaKeyResolver.Resolved coverResolved = new MediaKeyResolver.Resolved("uploads/new_cover.png", "verified/new_cover.png", List.of("uploads/old_cover.png"));
+            DeckResponse response = buildDeckResponse("New Title");
+
+            when(deckRepository.findById(DECK_ID)).thenReturn(Optional.of(existingDeck));
+            when(mediaKeyResolver.forUpdate("verified/new_cover.png", "uploads/old_cover.png", MediaKind.IMAGE)).thenReturn(coverResolved);
+            when(tagRepository.findAllById(Set.of(1L))).thenReturn(List.of(tag));
+            when(deckMapper.toDeckResponse(existingDeck)).thenReturn(response);
+
+            DeckResponse result = deckService.updateSystemDeck(DECK_ID, request);
+
+            assertThat(result).isSameAs(response);
+            verify(deckMapper).updateSystemDeck(existingDeck, request);
+            assertThat(existingDeck.getCoverImageUrl()).isEqualTo("uploads/new_cover.png");
+            assertThat(existingDeck.getTags()).containsExactly(tag);
+            verify(mediaKeyResolver).publish(coverResolved);
+        }
+
+        @Test
+        @DisplayName("Update system deck failed: deck not found")
+        void updateSystemDeck_Fail_DeckNotFound() {
+            SystemDeckRequest request = new SystemDeckRequest("New Title", null, null, false, null, null);
+            when(deckRepository.findById(DECK_ID)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> deckService.updateSystemDeck(DECK_ID, request))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.DECK_NOT_FOUND));
+
+            verify(deckMapper, never()).updateSystemDeck(any(), any());
+        }
+
+        @Test
+        @DisplayName("Update system deck failed: deck is not system owned")
+        void updateSystemDeck_Fail_DeckNotSystem() {
+            SystemDeckRequest request = new SystemDeckRequest("New Title", null, null, false, null, null);
+            Deck userOwnedDeck = userDeck("User Deck");
+            when(deckRepository.findById(DECK_ID)).thenReturn(Optional.of(userOwnedDeck));
+
+            assertThatThrownBy(() -> deckService.updateSystemDeck(DECK_ID, request))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.DECK_NOT_SYSTEM));
+
+            verify(deckMapper, never()).updateSystemDeck(any(), any());
+        }
+
+        @Test
+        @DisplayName("Update system deck failed: tag not found")
+        void updateSystemDeck_Fail_TagNotFound() {
+            SystemDeckRequest request = new SystemDeckRequest("New Title", null, null, false, Set.of(1L, 2L), null);
+            Deck existingDeck = systemDeck("Title");
+            MediaKeyResolver.Resolved emptyCover = new MediaKeyResolver.Resolved(null, null, List.of());
+
+            when(deckRepository.findById(DECK_ID)).thenReturn(Optional.of(existingDeck));
+            when(mediaKeyResolver.forUpdate(null, null, MediaKind.IMAGE)).thenReturn(emptyCover);
+            when(tagRepository.findAllById(Set.of(1L, 2L))).thenReturn(List.of());
+
+            assertThatThrownBy(() -> deckService.updateSystemDeck(DECK_ID, request))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.TAG_NOT_FOUND));
+        }
+
+        @Test
+        @DisplayName("Update system deck failed: CEFR level not found")
+        void updateSystemDeck_Fail_CefrLevelNotFound() {
+            SystemDeckRequest request = new SystemDeckRequest("New Title", null, null, false, null, Set.of(1L, 2L));
+            Deck existingDeck = systemDeck("Title");
+            MediaKeyResolver.Resolved emptyCover = new MediaKeyResolver.Resolved(null, null, List.of());
+
+            when(deckRepository.findById(DECK_ID)).thenReturn(Optional.of(existingDeck));
+            when(mediaKeyResolver.forUpdate(null, null, MediaKind.IMAGE)).thenReturn(emptyCover);
+            when(cefrLevelRepository.findAllById(Set.of(1L, 2L))).thenReturn(List.of());
+
+            assertThatThrownBy(() -> deckService.updateSystemDeck(DECK_ID, request))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.CEFR_LEVEL_NOT_FOUND));
+        }
+    }
+
+    // ─────────────────────── updateDeckStatus ───────────────────────
+
+    @Nested
+    @DisplayName("updateDeckStatus")
+    class UpdateDeckStatusTests {
+
+        @Test
+        @DisplayName("Update status to PUBLISHED successfully with cards")
+        void updateDeckStatus_Publish_Success() {
+            Deck deck = systemDeck("System Deck");
+            deck.setCardCount(5);
+            deck.setStatus(DeckStatus.DRAFT);
+            UpdateDeckStatusRequest request = new UpdateDeckStatusRequest(DeckStatus.PUBLISHED);
+            DeckResponse response = buildDeckResponse("System Deck");
+
+            when(deckRepository.findById(DECK_ID)).thenReturn(Optional.of(deck));
+            when(deckMapper.toDeckResponse(deck)).thenReturn(response);
+
+            DeckResponse result = deckService.updateDeckStatus(DECK_ID, request);
+
+            assertThat(result).isSameAs(response);
+            assertThat(deck.getStatus()).isEqualTo(DeckStatus.PUBLISHED);
+            assertThat(deck.getPublishedAt()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("Update status to PUBLISHED successfully when already published: keeps publishedAt")
+        void updateDeckStatus_Publish_AlreadyPublished() {
+            LocalDateTime publishedAt = LocalDateTime.now().minusDays(2);
+            Deck deck = systemDeck("System Deck");
+            deck.setCardCount(5);
+            deck.setStatus(DeckStatus.PUBLISHED);
+            deck.setPublishedAt(publishedAt);
+            UpdateDeckStatusRequest request = new UpdateDeckStatusRequest(DeckStatus.PUBLISHED);
+
+            when(deckRepository.findById(DECK_ID)).thenReturn(Optional.of(deck));
+            when(deckMapper.toDeckResponse(deck)).thenReturn(buildDeckResponse("System Deck"));
+
+            deckService.updateDeckStatus(DECK_ID, request);
+
+            assertThat(deck.getPublishedAt()).isEqualTo(publishedAt);
+        }
+
+        @Test
+        @DisplayName("Update status to PUBLISHED failed: deck has no cards")
+        void updateDeckStatus_Publish_Fail_DeckEmpty() {
+            Deck deck = systemDeck("System Deck");
+            deck.setCardCount(0);
+            UpdateDeckStatusRequest request = new UpdateDeckStatusRequest(DeckStatus.PUBLISHED);
+
+            when(deckRepository.findById(DECK_ID)).thenReturn(Optional.of(deck));
+
+            assertThatThrownBy(() -> deckService.updateDeckStatus(DECK_ID, request))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.DECK_EMPTY));
+        }
+
+        @Test
+        @DisplayName("Update status to ARCHIVED successfully")
+        void updateDeckStatus_Archive_Success() {
+            Deck deck = systemDeck("System Deck");
+            deck.setStatus(DeckStatus.PUBLISHED);
+            UpdateDeckStatusRequest request = new UpdateDeckStatusRequest(DeckStatus.ARCHIVED);
+
+            when(deckRepository.findById(DECK_ID)).thenReturn(Optional.of(deck));
+            when(deckMapper.toDeckResponse(deck)).thenReturn(buildDeckResponse("System Deck"));
+
+            deckService.updateDeckStatus(DECK_ID, request);
+
+            assertThat(deck.getStatus()).isEqualTo(DeckStatus.ARCHIVED);
+        }
+
+        @Test
+        @DisplayName("Update status to DRAFT successfully: clears publishedAt")
+        void updateDeckStatus_Draft_Success() {
+            Deck deck = systemDeck("System Deck");
+            deck.setStatus(DeckStatus.PUBLISHED);
+            deck.setPublishedAt(LocalDateTime.now());
+            UpdateDeckStatusRequest request = new UpdateDeckStatusRequest(DeckStatus.DRAFT);
+
+            when(deckRepository.findById(DECK_ID)).thenReturn(Optional.of(deck));
+            when(deckMapper.toDeckResponse(deck)).thenReturn(buildDeckResponse("System Deck"));
+
+            deckService.updateDeckStatus(DECK_ID, request);
+
+            assertThat(deck.getStatus()).isEqualTo(DeckStatus.DRAFT);
+            assertThat(deck.getPublishedAt()).isNull();
+        }
+
+        @Test
+        @DisplayName("Update status failed: deck not found")
+        void updateDeckStatus_Fail_DeckNotFound() {
+            when(deckRepository.findById(DECK_ID)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> deckService.updateDeckStatus(DECK_ID, new UpdateDeckStatusRequest(DeckStatus.PUBLISHED)))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.DECK_NOT_FOUND));
+        }
+
+        @Test
+        @DisplayName("Update status failed: deck is not system owned")
+        void updateDeckStatus_Fail_DeckNotSystem() {
+            Deck userOwnedDeck = userDeck("User Deck");
+            when(deckRepository.findById(DECK_ID)).thenReturn(Optional.of(userOwnedDeck));
+
+            assertThatThrownBy(() -> deckService.updateDeckStatus(DECK_ID, new UpdateDeckStatusRequest(DeckStatus.PUBLISHED)))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.DECK_NOT_SYSTEM));
+        }
+    }
+
+    // ─────────────────────── deleteUserDeckByAdmin ───────────────────────
+
+    @Nested
+    @DisplayName("deleteUserDeckByAdmin")
+    class DeleteUserDeckByAdminTests {
+
+        @Test
+        @DisplayName("Delete user deck by admin successfully")
+        void deleteUserDeckByAdmin_Success() {
+            Deck userOwnedDeck = userDeck("User Deck");
+            when(deckRepository.findById(DECK_ID)).thenReturn(Optional.of(userOwnedDeck));
+
+            deckService.deleteUserDeckByAdmin(DECK_ID, "Policy violation");
+
+            verify(deckRepository).delete(userOwnedDeck);
+        }
+
+        @Test
+        @DisplayName("Delete user deck by admin failed: deck not found")
+        void deleteUserDeckByAdmin_Fail_DeckNotFound() {
+            when(deckRepository.findById(DECK_ID)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> deckService.deleteUserDeckByAdmin(DECK_ID, "Violation"))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.DECK_NOT_FOUND));
+
+            verify(deckRepository, never()).delete(any(Deck.class));
+        }
+
+        @Test
+        @DisplayName("Delete user deck by admin failed: cannot delete system deck")
+        void deleteUserDeckByAdmin_Fail_CannotDeleteSystemDeck() {
+            Deck sysDeck = systemDeck("System Deck");
+            when(deckRepository.findById(DECK_ID)).thenReturn(Optional.of(sysDeck));
+
+            assertThatThrownBy(() -> deckService.deleteUserDeckByAdmin(DECK_ID, "Violation"))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.CANNOT_DELETE_SYSTEM_DECK));
+
+            verify(deckRepository, never()).delete(any(Deck.class));
         }
     }
 }

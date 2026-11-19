@@ -2,6 +2,7 @@ server:
   forward-headers-strategy: framework
 
 app:
+  config-encryption-key: ${PROD_CONFIG_ENCRYPTION_KEY}
   front-end-domain: "https://elingo.pro"
   thread-pool:
     scheduler:
@@ -22,18 +23,8 @@ app:
         queue-capacity: ${PROD_GAMIFICATION_QUEUE_CAPACITY:1000}
   google:
     client-id: ${PROD_GOOGLE_CLIENT_ID}
-  premium:
-    bank-transfer:
-      code-prefix: ${PROD_BANK_TRANSFER_CODE_PREFIX:ELGO}
-      bank-name: ${PROD_BANK_NAME}
-      bank-account: ${PROD_BANK_ACCOUNT}
-      bank-account-name: ${PROD_BANK_ACCOUNT_NAME}
-      qr-template: ${PROD_BANK_TRANSFER_QR_TEMPLATE:compact}
-    sepay:
-      secret-key: ${PROD_SEPAY_WEBHOOK_SECRET}
   community:
     moderation:
-      openai-api-key: ${PROD_OPENAI_API_KEY}
       scheduler:
         enabled: ${PROD_MODERATION_SCHEDULER_ENABLED:true}
       moderation-service:

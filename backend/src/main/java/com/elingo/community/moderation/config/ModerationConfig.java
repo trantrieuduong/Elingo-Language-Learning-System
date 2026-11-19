@@ -1,5 +1,7 @@
 package com.elingo.community.moderation.config;
 
+import com.elingo.common.enums.SystemConfigKey;
+import com.elingo.common.service.SystemConfigService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
@@ -35,12 +37,17 @@ public class ModerationConfig {
 
     @Bean(name = "openAiRestClient")
     RestClient openAiRestClient(RestClient.Builder builder,
-                                ModerationProperties props) {
+                                SystemConfigService systemConfigService) {
         return builder.clone()
                 .requestFactory(requestFactory(OPENAI_CONNECT, OPENAI_READ))
-                .baseUrl(props.openaiBaseUrl())
-                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + props.openaiApiKey())
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+                .requestInterceptor((request, body, execution) -> {
+                    String apiKey = systemConfigService.getString(SystemConfigKey.MODERATION_OPENAI_API_KEY);
+                    if (apiKey != null && !apiKey.isBlank()) {
+                        request.getHeaders().set(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey);
+                    }
+                    return execution.execute(request, body);
+                })
                 .build();
     }
 

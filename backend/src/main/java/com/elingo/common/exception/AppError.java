@@ -66,6 +66,9 @@ public enum AppError {
     // 3. Vocabulary (Bộ từ vựng, Chủ đề, Thẻ từ)
     // ==========================================
     DECK_LIMIT_EXCEEDED("DECK_LIMIT_EXCEEDED", "You have reached the maximum decks per user", HttpStatus.BAD_REQUEST),
+    CANNOT_DELETE_SYSTEM_DECK("CANNOT_DELETE_SYSTEM_DECK", "System decks cannot be permanently deleted, archive instead", HttpStatus.BAD_REQUEST),
+    DECK_NOT_USER("DECK_NOT_USER", "Only user-created decks can be deleted via this endpoint", HttpStatus.BAD_REQUEST),
+    DECK_NOT_SYSTEM("DECK_NOT_SYSTEM", "This operation is only applicable to system decks", HttpStatus.BAD_REQUEST),
     TOPIC_LIMIT_EXCEEDED("TOPIC_LIMIT_EXCEEDED", "You have reached the maximum topics per deck", HttpStatus.BAD_REQUEST),
     CARD_LIMIT_EXCEEDED("CARD_LIMIT_EXCEEDED", "You have reached the maximum cards per topic", HttpStatus.BAD_REQUEST),
     DECK_NOT_FOUND("DECK_NOT_FOUND", "Vocabulary deck not found or has not been published", HttpStatus.NOT_FOUND),
@@ -209,6 +212,12 @@ public enum AppError {
     // ==========================================
     NOTIFICATION_NOT_FOUND("NOTIFICATION_NOT_FOUND", "Notification not found", HttpStatus.NOT_FOUND),
     NOTIFICATION_ACCESS_DENIED("NOTIFICATION_ACCESS_DENIED", "You do not have permission to access this notification", HttpStatus.FORBIDDEN),
+
+    // ==========================================
+    // 13. System Config (Cấu hình hệ thống)
+    // ==========================================
+    SYSTEM_CONFIG_NOT_FOUND("SYSTEM_CONFIG_NOT_FOUND", "System config not found", HttpStatus.NOT_FOUND),
+    SYSTEM_CONFIG_VALUE_INVALID("SYSTEM_CONFIG_VALUE_INVALID", "Invalid system config value", HttpStatus.BAD_REQUEST),
     ;
 
     private final String code;

@@ -1,5 +1,7 @@
 package com.elingo.vocabulary.service;
 
+import com.elingo.admin.content.dto.request.CreateSystemTopicRequest;
+import com.elingo.admin.content.dto.request.UpdateSystemTopicRequest;
 import com.elingo.vocabulary.dto.request.CreateUserTopicRequest;
 import com.elingo.vocabulary.dto.request.UpdateUserTopicRequest;
 import com.elingo.vocabulary.dto.response.CardResponse;
@@ -14,4 +16,11 @@ public interface TopicService {
     TopicResponse createUserTopic(Long userId, CreateUserTopicRequest request);
     TopicResponse updateUserTopic(Long userId, Long topicId, UpdateUserTopicRequest request);
     void deleteUserTopic(Long userId, Long topicId);
+
+    // Admin operations
+    List<TopicResponse> getTopicsByDeckIdForAdmin(Long deckId);
+    TopicResponse createSystemTopic(CreateSystemTopicRequest request);
+    TopicResponse updateSystemTopic(Long topicId, UpdateSystemTopicRequest request);
+    void reorderSystemTopics(Long deckId, List<Long> orderedIds);
+    void deleteSystemTopic(Long topicId);
 }

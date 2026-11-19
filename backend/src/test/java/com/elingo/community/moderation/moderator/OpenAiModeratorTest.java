@@ -1,5 +1,7 @@
 package com.elingo.community.moderation.moderator;
 
+import com.elingo.common.enums.SystemConfigKey;
+import com.elingo.common.service.SystemConfigService;
 import com.elingo.community.entity.ModerationAction;
 import com.elingo.community.moderation.config.ModerationProperties;
 import com.elingo.community.moderation.exception.ModerationUnavailableException;
@@ -11,6 +13,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -19,26 +24,32 @@ import org.springframework.web.client.RestClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.lenient;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
+@ExtendWith(MockitoExtension.class)
 @Tag("unit")
 class OpenAiModeratorTest {
 
     private static final String BASE_URL = "https://api.openai.com";
     private static final String ENDPOINT = "https://api.openai.com/v1/moderations";
 
+    @Mock
+    private SystemConfigService systemConfigService;
+
     private MockRestServiceServer mockServer;
     private OpenAiModerator moderator;
 
     @BeforeEach
     void setUp() {
+        lenient().when(systemConfigService.getString(SystemConfigKey.MODERATION_OPENAI_API_KEY)).thenReturn("sk-test-openai-key");
+        lenient().when(systemConfigService.getString(SystemConfigKey.MODERATION_OPENAI_MODEL)).thenReturn("omni-moderation-latest");
+        lenient().when(systemConfigService.getString(SystemConfigKey.MODERATION_OPENAI_BASE_URL)).thenReturn(BASE_URL);
+
         ModerationProperties properties = new ModerationProperties(
-                "omni-moderation-latest",
-                BASE_URL,
-                "sk-test-openai-key",
                 new ModerationProperties.Scheduler(true, 30, 5, 3),
                 new ModerationProperties.Policy(0.7, 0.5, 12),
                 new ModerationProperties.ModerationService("http://localhost:8000", "token")
@@ -48,7 +59,7 @@ class OpenAiModeratorTest {
         mockServer = MockRestServiceServer.bindTo(builder).build();
         RestClient restClient = builder.build();
 
-        moderator = new OpenAiModerator(restClient, properties);
+        moderator = new OpenAiModerator(restClient, properties, systemConfigService);
     }
 
     // ========================================================================

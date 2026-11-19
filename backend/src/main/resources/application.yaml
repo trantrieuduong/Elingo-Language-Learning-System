@@ -55,8 +55,6 @@ app:
         queue-capacity: 100
   community:
     moderation:
-      openai-model: omni-moderation-latest
-      openai-base-url: https://api.openai.com # OpenAI SDK
       scheduler:
         fixed-delay-seconds: 30
         batch-size: 5

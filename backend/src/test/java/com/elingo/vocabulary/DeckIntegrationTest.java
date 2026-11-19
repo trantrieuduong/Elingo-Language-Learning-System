@@ -151,6 +151,12 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
                 .header("Authorization", "Bearer " + authToken));
     }
 
+    private ResultActions performGetDeckById(Long deckId) throws Exception {
+        return mockMvc.perform(get("/decks/{deckId}", deckId)
+                .header("Authorization", "Bearer " + authToken));
+    }
+
+
     private ResultActions performGetTopicsByDeckId(Long deckId) throws Exception {
         return mockMvc.perform(get("/decks/{deckId}/topics", deckId)
                 .header("Authorization", "Bearer " + authToken));
@@ -455,6 +461,73 @@ public class DeckIntegrationTest extends BaseIntegrationTest {
         @DisplayName("Get published decks: Fail because of invalid tag ID")
         void testGetPublishedDecks_Fail_InvalidTagCode() throws Exception {
             performGetDecks("?tagIds=-1")
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.errors[0].code").value("INVALID_REQUEST"));
+        }
+    }
+
+    @Nested
+    @DisplayName("getDeckById")
+    class GetDeckByIdTests {
+
+        @Test
+        @DisplayName("Get deck by ID: Success for published deck")
+        void testGetDeckById_Success_PublishedDeck() throws Exception {
+            Deck deck = persistPublishedDeck("Animals Deck", "animals-deck-id", Set.of(), Set.of());
+
+            performGetDeckById(deck.getId())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.id").value(deck.getId()))
+                    .andExpect(jsonPath("$.data.title").value("Animals Deck"));
+        }
+
+        @Test
+        @DisplayName("Get deck by ID: Success for owned private deck")
+        void testGetDeckById_Success_OwnedPrivateDeck() throws Exception {
+            Deck deck = persistUserDeck(testUser, "Private Deck", "priv-deck-id", DeckStatus.DRAFT, 2);
+
+            performGetDeckById(deck.getId())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.id").value(deck.getId()))
+                    .andExpect(jsonPath("$.data.title").value("Private Deck"));
+        }
+
+        @Test
+        @DisplayName("Get deck by ID: Fail because deck does not exist")
+        void testGetDeckById_Fail_NotFound() throws Exception {
+            performGetDeckById(99999L)
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.errors[0].code").value("DECK_NOT_FOUND"));
+        }
+
+        @Test
+        @DisplayName("Get deck by ID: Fail because deck belongs to another user and is not published")
+        void testGetDeckById_Fail_NotFound_OtherUserPrivateDeck() throws Exception {
+            User otherUser = userRepository.save(User.builder()
+                    .username("other_deck_tester")
+                    .email("other_deck_tester@elingo.test")
+                    .passwordHash(passwordEncoder.encode("Password123@"))
+                    .fullName("Other Deck Tester")
+                    .isActive(true)
+                    .isVerified(true)
+                    .role(Role.USER)
+                    .build());
+            Deck deck = persistUserDeck(otherUser, "Other Private Deck", "other-priv-deck-id", DeckStatus.DRAFT, 0);
+
+            performGetDeckById(deck.getId())
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.errors[0].code").value("DECK_NOT_FOUND"));
+        }
+
+        @Test
+        @DisplayName("Get deck by ID: Fail because deck ID is invalid")
+        void testGetDeckById_Fail_InvalidDeckId() throws Exception {
+            performGetDeckById(0L)
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.success").value(false))
                     .andExpect(jsonPath("$.errors[0].code").value("INVALID_REQUEST"));

@@ -1,5 +1,7 @@
 package com.elingo.vocabulary.mapper;
 
+import com.elingo.admin.content.dto.request.CreateSystemTopicRequest;
+import com.elingo.admin.content.dto.request.UpdateSystemTopicRequest;
 import com.elingo.vocabulary.dto.request.UpdateUserTopicRequest;
 import com.elingo.vocabulary.dto.response.TopicResponse;
 import com.elingo.vocabulary.entity.Topic;
@@ -14,5 +16,19 @@ public interface TopicMapper {
 
     TopicResponse toTopicResponse(Topic topic);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "deck", ignore = true)
+    @Mapping(target = "slug", ignore = true)
+    @Mapping(target = "order", ignore = true)
+    @Mapping(target = "cardCount", ignore = true)
     void update(@MappingTarget Topic topic, UpdateUserTopicRequest request);
+
+    Topic toTopic(CreateSystemTopicRequest request);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "deck", ignore = true)
+    @Mapping(target = "slug", ignore = true)
+    @Mapping(target = "order", ignore = true)
+    @Mapping(target = "cardCount", ignore = true)
+    void updateSystemTopic(@MappingTarget Topic topic, UpdateSystemTopicRequest request);
 }
