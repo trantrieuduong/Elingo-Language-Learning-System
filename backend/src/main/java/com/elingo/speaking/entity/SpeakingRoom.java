@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -28,6 +29,9 @@ import com.elingo.common.entity.BaseEntity;
         name = "speaking_rooms",
         uniqueConstraints = {
                 @UniqueConstraint(name = "uk_speaking_room_code", columnNames = "room_code")
+        },
+        indexes = {
+                @Index(name = "idx_room_status_created", columnList = "status, created_at")
         }
 )
 @Data
@@ -63,4 +67,8 @@ public class SpeakingRoom extends BaseEntity {
 
     @Column(name = "ended_at")
     LocalDateTime endedAt;
+
+    @Column(name = "is_private", nullable = false)
+    @Builder.Default
+    Boolean isPrivate = false;
 }

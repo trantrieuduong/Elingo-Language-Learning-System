@@ -28,7 +28,8 @@ import com.elingo.common.entity.BaseEntity;
 @Table(
         name = "speaking_participants",
         indexes = {
-                @Index(name = "idx_room_active", columnList = "room_id, left_at")
+                @Index(name = "idx_room_active", columnList = "room_id, left_at"),
+                @Index(name = "idx_room_user", columnList = "room_id, user_id")
         }
 )
 @Data
@@ -61,4 +62,7 @@ public class SpeakingParticipant extends BaseEntity {
 
     @Column(name = "left_at")
     LocalDateTime leftAt;
+
+    @Column(name = "kicked_at")
+    LocalDateTime kickedAt;
 }

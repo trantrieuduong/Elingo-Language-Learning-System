@@ -40,6 +40,7 @@ app:
     scheduler:
       default-pool-size: 2
       battle-pool-size: 2
+      speaking-pool-size: 2
     async:
       app:
         core-pool-size: 2
@@ -107,3 +108,13 @@ app:
     min-correct-for-xp: 3
     min-cards-required: 10
     answer-grace-ms: 300
+  speaking:
+    default-max-participants: 4
+    max-participants-limit: 4
+    signal-max-payload-bytes: 6144
+    reconnect-grace-ms: 20000
+    host-reconnect-grace-ms: 300000
+    waiting-room-ttl-ms: 900000
+    cleanup-interval-ms: 60000
+    stun-urls:
+      - stun:stun.l.google.com:19302
