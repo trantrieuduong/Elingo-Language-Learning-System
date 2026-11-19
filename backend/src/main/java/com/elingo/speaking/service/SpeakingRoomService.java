@@ -2,6 +2,7 @@ package com.elingo.speaking.service;
 
 import com.elingo.common.dto.PageResponse;
 import com.elingo.speaking.dto.request.CreateSpeakingRoomRequest;
+import com.elingo.speaking.dto.request.SpeakingRoomSearchRequest;
 import com.elingo.speaking.dto.response.SpeakingBannedUserResponse;
 import com.elingo.speaking.dto.response.SpeakingRoomDetailResponse;
 import com.elingo.speaking.dto.response.SpeakingRoomResponse;
@@ -20,5 +21,5 @@ public interface SpeakingRoomService {
     List<SpeakingBannedUserResponse> listBans(Long hostId, String roomCode);
     void unbanMember(Long hostId, String roomCode, Long targetUserId);
     SpeakingRoomDetailResponse getRoom(String roomCode);
-    PageResponse<SpeakingRoomResponse> getOpenRooms(Pageable pageable);
+    PageResponse<SpeakingRoomResponse> getOpenRooms(SpeakingRoomSearchRequest request, Pageable pageable);
 }

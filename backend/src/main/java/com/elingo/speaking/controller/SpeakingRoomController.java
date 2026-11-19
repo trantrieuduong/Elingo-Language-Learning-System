@@ -3,6 +3,7 @@ package com.elingo.speaking.controller;
 import com.elingo.common.annotation.CurrentUserId;
 import com.elingo.common.dto.ApiResponse;
 import com.elingo.common.dto.PageResponse;
+import com.elingo.speaking.dto.request.SpeakingRoomSearchRequest;
 import com.elingo.speaking.dto.response.IceConfigResponse;
 import com.elingo.speaking.dto.response.SpeakingBannedUserResponse;
 import com.elingo.speaking.dto.response.SpeakingRoomDetailResponse;
@@ -11,6 +12,7 @@ import com.elingo.speaking.service.SpeakingIceService;
 import com.elingo.speaking.service.SpeakingRoomService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -29,9 +31,11 @@ public class SpeakingRoomController {
     private final SpeakingIceService iceService;
 
     @GetMapping
-    @Operation(summary = "List open speaking rooms (WAITING/ACTIVE and not full)")
-    public ApiResponse<PageResponse<SpeakingRoomResponse>> list(@PageableDefault(size = 10) Pageable pageable) {
-        PageResponse<SpeakingRoomResponse> data = speakingRoomService.getOpenRooms(pageable);
+    @Operation(summary = "List open speaking rooms (WAITING/ACTIVE and not full) with optional keyword and capacity filter")
+    public ApiResponse<PageResponse<SpeakingRoomResponse>> list(
+            @ModelAttribute @Valid SpeakingRoomSearchRequest request,
+            @PageableDefault(size = 10) Pageable pageable) {
+        PageResponse<SpeakingRoomResponse> data = speakingRoomService.getOpenRooms(request, pageable);
         return ApiResponse.<PageResponse<SpeakingRoomResponse>>builder()
                 .success(true)
                 .data(data)

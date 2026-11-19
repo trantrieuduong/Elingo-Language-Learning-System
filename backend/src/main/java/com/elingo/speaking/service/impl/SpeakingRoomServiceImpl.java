@@ -3,6 +3,7 @@ package com.elingo.speaking.service.impl;
 import com.elingo.common.dto.PageResponse;
 import com.elingo.common.exception.AppException;
 import com.elingo.speaking.dto.request.CreateSpeakingRoomRequest;
+import com.elingo.speaking.dto.request.SpeakingRoomSearchRequest;
 import com.elingo.speaking.dto.response.BanRemovedResponse;
 import com.elingo.speaking.dto.response.HostChangedResponse;
 import com.elingo.speaking.dto.response.PeerLeftResponse;
@@ -212,7 +213,7 @@ public class SpeakingRoomServiceImpl implements SpeakingRoomService {
     }
 
     @Override
-    public PageResponse<SpeakingRoomResponse> getOpenRooms(Pageable pageable) {
-        return persistence.getOpenRooms(pageable);
+    public PageResponse<SpeakingRoomResponse> getOpenRooms(SpeakingRoomSearchRequest request, Pageable pageable) {
+        return persistence.getOpenRooms(request, pageable);
     }
 }

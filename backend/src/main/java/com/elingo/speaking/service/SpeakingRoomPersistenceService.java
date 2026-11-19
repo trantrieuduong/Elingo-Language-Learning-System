@@ -1,6 +1,7 @@
 package com.elingo.speaking.service;
 
 import com.elingo.common.dto.PageResponse;
+import com.elingo.speaking.dto.request.SpeakingRoomSearchRequest;
 import com.elingo.speaking.dto.response.SpeakingBannedUserResponse;
 import com.elingo.speaking.dto.response.SpeakingPeerResponse;
 import com.elingo.speaking.dto.response.SpeakingRoomDetailResponse;
@@ -24,7 +25,7 @@ public interface SpeakingRoomPersistenceService {
     int closeAllOpenRooms();
     String findActiveRoomCode(Long userId);
     SpeakingRoomDetailResponse getRoomDetail(String roomCode);
-    PageResponse<SpeakingRoomResponse> getOpenRooms(Pageable pageable);
+    PageResponse<SpeakingRoomResponse> getOpenRooms(SpeakingRoomSearchRequest request, Pageable pageable);
 
     record LeaveResult(String roomCode, String topic, long durationSeconds,
                        Long newHostId,

@@ -4,6 +4,7 @@ import com.elingo.common.dto.PageResponse;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.speaking.config.SpeakingProperties;
+import com.elingo.speaking.dto.request.SpeakingRoomSearchRequest;
 import com.elingo.speaking.dto.response.SpeakingBannedUserResponse;
 import com.elingo.speaking.dto.response.SpeakingPeerResponse;
 import com.elingo.speaking.dto.response.SpeakingRoomDetailResponse;
@@ -16,6 +17,8 @@ import com.elingo.speaking.mapper.SpeakingMapper;
 import com.elingo.speaking.repository.SpeakingParticipantRepository;
 import com.elingo.speaking.repository.SpeakingParticipantRepository.RoomCountProjection;
 import com.elingo.speaking.repository.SpeakingRoomRepository;
+import com.elingo.speaking.repository.specification.SpeakingRoomFilter;
+import com.elingo.speaking.repository.specification.SpeakingRoomSpecifications;
 import com.elingo.speaking.service.SpeakingRoomPersistenceService;
 import com.elingo.speaking.util.SpeakingRoomCode;
 import com.elingo.user.entity.User;
@@ -25,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -316,13 +320,27 @@ public class SpeakingRoomPersistenceServiceImpl implements SpeakingRoomPersisten
 
     @Override
     @Transactional(readOnly = true)
-    public PageResponse<SpeakingRoomResponse> getOpenRooms(Pageable pageable) {
-        Page<SpeakingRoom> page = roomRepository.findOpenRooms(
-                PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()));
+    public PageResponse<SpeakingRoomResponse> getOpenRooms(SpeakingRoomSearchRequest request, Pageable pageable) {
+        String keyword = (request != null && request.keyword() != null && !request.keyword().isBlank())
+                ? request.keyword().trim() : null;
+        Integer maxParticipants = request != null ? request.maxParticipants() : null;
+
+        Pageable sortedPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "createdAt", "id")
+        );
+
+        Page<SpeakingRoom> page = roomRepository.findAll(
+                SpeakingRoomSpecifications.openLobby(new SpeakingRoomFilter(keyword, maxParticipants)),
+                sortedPageable
+        );
+
         List<Long> ids = page.getContent().stream().map(SpeakingRoom::getId).toList();
         Map<Long, Long> counts = ids.isEmpty() ? Map.of()
                 : participantRepository.countActiveByRoomIds(ids).stream()
                         .collect(Collectors.toMap(RoomCountProjection::getRoomId, RoomCountProjection::getTotal));
+
         return PageResponse.of(page.map(r -> new SpeakingRoomResponse(
                 r.getRoomCode(), r.getTopic(), r.getMaxParticipants(), r.getStatus(),
                 Boolean.TRUE.equals(r.getIsPrivate()),

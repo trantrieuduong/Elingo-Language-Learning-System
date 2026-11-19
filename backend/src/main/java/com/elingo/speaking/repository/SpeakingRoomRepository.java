@@ -4,7 +4,10 @@ import com.elingo.speaking.entity.SpeakingRoom;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,7 +16,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-public interface SpeakingRoomRepository extends JpaRepository<SpeakingRoom, Long> {
+public interface SpeakingRoomRepository extends JpaRepository<SpeakingRoom, Long>, JpaSpecificationExecutor<SpeakingRoom> {
 
     boolean existsByRoomCode(String roomCode);
 
@@ -23,6 +26,10 @@ public interface SpeakingRoomRepository extends JpaRepository<SpeakingRoom, Long
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select r from SpeakingRoom r where r.roomCode = :roomCode")
     Optional<SpeakingRoom> findByRoomCodeForUpdate(@Param("roomCode") String roomCode);
+
+    @Override
+    @EntityGraph(attributePaths = "host")
+    Page<SpeakingRoom> findAll(Specification<SpeakingRoom> spec, Pageable pageable);
 
     @Query("""
             select r.roomCode from SpeakingRoom r
@@ -38,21 +45,4 @@ public interface SpeakingRoomRepository extends JpaRepository<SpeakingRoom, Long
                                com.elingo.speaking.entity.SpeakingRoomStatus.ACTIVE)
             """)
     List<String> findAllOpenRoomCodes();
-
-    @Query(value = """
-            select r from SpeakingRoom r join fetch r.host h
-            where r.status in (com.elingo.speaking.entity.SpeakingRoomStatus.WAITING,
-                               com.elingo.speaking.entity.SpeakingRoomStatus.ACTIVE)
-              and r.isPrivate = false
-              and (select count(p) from SpeakingParticipant p where p.room = r and p.leftAt is null) < r.maxParticipants
-            order by r.createdAt desc, r.id desc
-            """,
-           countQuery = """
-            select count(r) from SpeakingRoom r
-            where r.status in (com.elingo.speaking.entity.SpeakingRoomStatus.WAITING,
-                               com.elingo.speaking.entity.SpeakingRoomStatus.ACTIVE)
-              and r.isPrivate = false
-              and (select count(p) from SpeakingParticipant p where p.room = r and p.leftAt is null) < r.maxParticipants
-            """)
-    Page<SpeakingRoom> findOpenRooms(Pageable pageable);
 }
