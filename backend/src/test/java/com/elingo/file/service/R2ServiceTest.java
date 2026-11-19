@@ -554,4 +554,49 @@ class R2ServiceTest {
             verify(s3Client, never()).deleteObject(any(DeleteObjectRequest.class));
         }
     }
+
+    // ========================================================================
+    // promoteToSystem — copy verified -> system/module/
+    // ========================================================================
+    @Nested
+    @DisplayName("promoteToSystem")
+    class PromoteToSystem {
+
+        private static final String VERIFIED_KEY = "verified/12/a.png";
+        private static final String SYSTEM_KEY = "system/decks/a.png";
+
+        @Test
+        @DisplayName("normal: copy straight from verified/ to system/, no HEAD and no delete verified/")
+        void success() {
+            r2Service.promoteToSystem(VERIFIED_KEY, SYSTEM_KEY);
+
+            verify(s3Client).copyObject(any(CopyObjectRequest.class));
+            verify(s3Client, never()).headObject(any(HeadObjectRequest.class));
+            verify(s3Client, never()).deleteObject(any(DeleteObjectRequest.class));
+        }
+
+        @Test
+        @DisplayName("key filename mismatch -> IllegalArgumentException, no R2 touch")
+        void filenameMismatch() {
+            assertThatThrownBy(() -> r2Service.promoteToSystem(VERIFIED_KEY, "system/decks/b.png"))
+                    .isInstanceOf(IllegalArgumentException.class);
+            verify(s3Client, never()).copyObject(any(CopyObjectRequest.class));
+        }
+
+        @Test
+        @DisplayName("source not in verified zone -> IllegalArgumentException")
+        void sourceNotVerified() {
+            assertThatThrownBy(() -> r2Service.promoteToSystem("staging/12/a.png", SYSTEM_KEY))
+                    .isInstanceOf(IllegalArgumentException.class);
+            verify(s3Client, never()).copyObject(any(CopyObjectRequest.class));
+        }
+
+        @Test
+        @DisplayName("destination not in system zone -> IllegalArgumentException")
+        void destNotSystem() {
+            assertThatThrownBy(() -> r2Service.promoteToSystem(VERIFIED_KEY, "uploads/12/a.png"))
+                    .isInstanceOf(IllegalArgumentException.class);
+            verify(s3Client, never()).copyObject(any(CopyObjectRequest.class));
+        }
+    }
 }

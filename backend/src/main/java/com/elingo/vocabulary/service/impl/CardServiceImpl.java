@@ -6,7 +6,7 @@ import com.elingo.admin.content.dto.request.UpdateSystemCardRequest;
 import com.elingo.admin.content.dto.response.OrphanedCardCleanupResponse;
 import com.elingo.admin.content.dto.response.OrphanedCardStatsResponse;
 import com.elingo.common.dto.PageResponse;
-import com.elingo.common.enums.MediaKind;
+import com.elingo.common.enums.SystemFileModule;
 import com.elingo.common.event.FileDeletedEvent;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
@@ -23,7 +23,7 @@ import com.elingo.vocabulary.repository.DeckRepository;
 import com.elingo.vocabulary.repository.TopicRepository;
 import com.elingo.vocabulary.service.CardService;
 import com.elingo.vocabulary.service.DeckAccessPolicy;
-import com.elingo.vocabulary.service.MediaKeyResolver;
+import com.elingo.file.util.MediaKeyResolver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -139,7 +139,7 @@ public class CardServiceImpl implements CardService {
         Deck deck = topic.getDeck();
         assertSystemDeck(deck);
 
-        var image = mediaKeyResolver.forCreate(request.imageUrl(), MediaKind.IMAGE);
+        var image = mediaKeyResolver.forCreate(request.imageUrl(), SystemFileModule.CARDS);
         List<MediaKeyResolver.Resolved> audios = new ArrayList<>();
 
         Card card = cardMapper.toCard(request);
@@ -168,7 +168,7 @@ public class CardServiceImpl implements CardService {
                 .orElseThrow(() -> new AppException(AppError.CARD_NOT_FOUND));
         assertSystemCard(card);
 
-        var image = mediaKeyResolver.forUpdate(request.imageUrl(), card.getImageUrl(), MediaKind.IMAGE);
+        var image = mediaKeyResolver.forUpdate(request.imageUrl(), card.getImageUrl(), SystemFileModule.CARDS);
         cardMapper.updateCardAdmin(card, request);
         card.setImageUrl(image.key());
 
@@ -305,7 +305,7 @@ public class CardServiceImpl implements CardService {
         card.getPhonetics().addAll(next);
 
         return oldAudios.stream()
-                .filter(a -> !used.contains(a) && FileKey.isInZone(a, FileKey.UPLOADS_PREFIX))
+                .filter(a -> !used.contains(a) && FileKey.isPermanentKey(a))
                 .toList();
     }
 
@@ -343,18 +343,18 @@ public class CardServiceImpl implements CardService {
     }
 
     /**
-     * null/blank → không có audio; uploads/ → giữ file cũ; còn lại → file mới (verified/).
+     * null/blank → không có audio; key vĩnh viễn (uploads/ hoặc system/) → giữ file cũ; còn lại → file mới (verified/).
      */
     private String resolveAudioKey(String key, Set<String> oldAudios,
                                    List<MediaKeyResolver.Resolved> attachments) {
         if (key == null || key.isBlank()) return null;
 
-        if (FileKey.isInZone(key, FileKey.UPLOADS_PREFIX)) {
+        if (FileKey.isPermanentKey(key)) {
             if (!oldAudios.contains(key)) throw new AppException(AppError.INVALID_REQUEST);
             return key;
         }
 
-        var resolved = mediaKeyResolver.forCreate(key, MediaKind.AUDIO);
+        var resolved = mediaKeyResolver.forCreate(key, SystemFileModule.PHONETICS);
         attachments.add(resolved);
         return resolved.key();
     }

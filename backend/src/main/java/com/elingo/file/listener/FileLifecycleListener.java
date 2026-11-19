@@ -2,6 +2,7 @@ package com.elingo.file.listener;
 
 import com.elingo.common.event.FileAttachedEvent;
 import com.elingo.common.event.FileDeletedEvent;
+import com.elingo.common.event.SystemFileAttachedEvent;
 import com.elingo.common.exception.AppException;
 import com.elingo.file.service.R2Service;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,25 @@ public class FileLifecycleListener {
             log.debug("File promotion stopped, already reported uploadsKey={}", uploadsKey);
         } catch (Exception e) {
             log.warn("File promotion skipped verifiedKey={} uploadsKey={}", verifiedKey, uploadsKey, e);
+        }
+    }
+
+    /** File hệ thống đã được bản ghi của Admin tham chiếu, rời vùng chờ sang vùng system/{module}/. */
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onSystemFileAttached(SystemFileAttachedEvent event) {
+        String verifiedKey = event.verifiedFileKey();
+        String systemKey = event.systemFileKey();
+        if (verifiedKey.isBlank() || systemKey.isBlank()) {
+            return;
+        }
+
+        log.info("System file attached verifiedKey={} systemKey={}", verifiedKey, systemKey);
+        try {
+            r2Service.promoteToSystem(verifiedKey, systemKey);
+        } catch (AppException e) {
+            log.debug("System file promotion stopped, already reported systemKey={}", systemKey);
+        } catch (Exception e) {
+            log.warn("System file promotion skipped verifiedKey={} systemKey={}", verifiedKey, systemKey, e);
         }
     }
 

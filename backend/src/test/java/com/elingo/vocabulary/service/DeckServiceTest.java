@@ -4,9 +4,10 @@ import com.elingo.admin.content.dto.request.AdminDeckSearchRequest;
 import com.elingo.admin.content.dto.request.SystemDeckRequest;
 import com.elingo.admin.content.dto.request.UpdateDeckStatusRequest;
 import com.elingo.common.dto.PageResponse;
-import com.elingo.common.enums.MediaKind;
+import com.elingo.common.enums.SystemFileModule;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
+import com.elingo.file.util.MediaKeyResolver;
 import com.elingo.progress.service.ProgressService;
 import com.elingo.user.entity.User;
 import com.elingo.user.repository.UserRepository;
@@ -820,12 +821,12 @@ class DeckServiceTest {
             SystemDeckRequest request = new SystemDeckRequest("System Deck", "desc", "verified/cover.png", true, Set.of(1L), Set.of(2L));
             Tag tag = Tag.builder().id(1L).build();
             CefrLevel cefr = CefrLevel.builder().id(2L).build();
-            MediaKeyResolver.Resolved coverResolved = new MediaKeyResolver.Resolved("uploads/cover.png", "verified/cover.png", List.of());
+            MediaKeyResolver.Resolved coverResolved = new MediaKeyResolver.Resolved("system/decks/cover.png", "verified/cover.png", List.of());
             Deck mappedDeck = new Deck();
             Deck savedDeck = systemDeck("System Deck");
             DeckResponse response = buildDeckResponse("System Deck");
 
-            when(mediaKeyResolver.forCreate("verified/cover.png", MediaKind.IMAGE)).thenReturn(coverResolved);
+            when(mediaKeyResolver.forCreate("verified/cover.png", SystemFileModule.DECKS)).thenReturn(coverResolved);
             when(deckMapper.toDeck(request)).thenReturn(mappedDeck);
             when(tagRepository.findAllById(Set.of(1L))).thenReturn(List.of(tag));
             when(cefrLevelRepository.findAllById(Set.of(2L))).thenReturn(List.of(cefr));
@@ -838,7 +839,7 @@ class DeckServiceTest {
             ArgumentCaptor<Deck> captor = ArgumentCaptor.forClass(Deck.class);
             verify(deckRepository).save(captor.capture());
             Deck persisted = captor.getValue();
-            assertThat(persisted.getCoverImageUrl()).isEqualTo("uploads/cover.png");
+            assertThat(persisted.getCoverImageUrl()).isEqualTo("system/decks/cover.png");
             assertThat(persisted.getStatus()).isEqualTo(DeckStatus.DRAFT);
             assertThat(persisted.getOwnerType()).isEqualTo(OwnerType.SYSTEM);
             assertThat(persisted.getOwner()).isNull();
@@ -858,7 +859,7 @@ class DeckServiceTest {
             Deck savedDeck = systemDeck("System Deck");
             DeckResponse response = buildDeckResponse("System Deck");
 
-            when(mediaKeyResolver.forCreate(null, MediaKind.IMAGE)).thenReturn(emptyCover);
+            when(mediaKeyResolver.forCreate(null, SystemFileModule.DECKS)).thenReturn(emptyCover);
             when(deckMapper.toDeck(request)).thenReturn(mappedDeck);
             when(deckRepository.save(any(Deck.class))).thenReturn(savedDeck);
             when(deckMapper.toDeckResponse(savedDeck)).thenReturn(response);
@@ -879,7 +880,7 @@ class DeckServiceTest {
             MediaKeyResolver.Resolved emptyCover = new MediaKeyResolver.Resolved(null, null, List.of());
             Tag tag1 = Tag.builder().id(1L).build();
 
-            when(mediaKeyResolver.forCreate(null, MediaKind.IMAGE)).thenReturn(emptyCover);
+            when(mediaKeyResolver.forCreate(null, SystemFileModule.DECKS)).thenReturn(emptyCover);
             when(deckMapper.toDeck(request)).thenReturn(new Deck());
             when(tagRepository.findAllById(Set.of(1L, 2L))).thenReturn(List.of(tag1));
 
@@ -897,7 +898,7 @@ class DeckServiceTest {
             MediaKeyResolver.Resolved emptyCover = new MediaKeyResolver.Resolved(null, null, List.of());
             CefrLevel cefr1 = CefrLevel.builder().id(1L).build();
 
-            when(mediaKeyResolver.forCreate(null, MediaKind.IMAGE)).thenReturn(emptyCover);
+            when(mediaKeyResolver.forCreate(null, SystemFileModule.DECKS)).thenReturn(emptyCover);
             when(deckMapper.toDeck(request)).thenReturn(new Deck());
             when(cefrLevelRepository.findAllById(Set.of(1L, 2L))).thenReturn(List.of(cefr1));
 
@@ -922,11 +923,11 @@ class DeckServiceTest {
             Deck existingDeck = systemDeck("Old Title");
             existingDeck.setCoverImageUrl("uploads/old_cover.png");
             Tag tag = Tag.builder().id(1L).build();
-            MediaKeyResolver.Resolved coverResolved = new MediaKeyResolver.Resolved("uploads/new_cover.png", "verified/new_cover.png", List.of("uploads/old_cover.png"));
+            MediaKeyResolver.Resolved coverResolved = new MediaKeyResolver.Resolved("system/decks/new_cover.png", "verified/new_cover.png", List.of("uploads/old_cover.png"));
             DeckResponse response = buildDeckResponse("New Title");
 
             when(deckRepository.findById(DECK_ID)).thenReturn(Optional.of(existingDeck));
-            when(mediaKeyResolver.forUpdate("verified/new_cover.png", "uploads/old_cover.png", MediaKind.IMAGE)).thenReturn(coverResolved);
+            when(mediaKeyResolver.forUpdate("verified/new_cover.png", "uploads/old_cover.png", SystemFileModule.DECKS)).thenReturn(coverResolved);
             when(tagRepository.findAllById(Set.of(1L))).thenReturn(List.of(tag));
             when(deckMapper.toDeckResponse(existingDeck)).thenReturn(response);
 
@@ -934,7 +935,7 @@ class DeckServiceTest {
 
             assertThat(result).isSameAs(response);
             verify(deckMapper).updateSystemDeck(existingDeck, request);
-            assertThat(existingDeck.getCoverImageUrl()).isEqualTo("uploads/new_cover.png");
+            assertThat(existingDeck.getCoverImageUrl()).isEqualTo("system/decks/new_cover.png");
             assertThat(existingDeck.getTags()).containsExactly(tag);
             verify(mediaKeyResolver).publish(coverResolved);
         }
@@ -974,7 +975,7 @@ class DeckServiceTest {
             MediaKeyResolver.Resolved emptyCover = new MediaKeyResolver.Resolved(null, null, List.of());
 
             when(deckRepository.findById(DECK_ID)).thenReturn(Optional.of(existingDeck));
-            when(mediaKeyResolver.forUpdate(null, null, MediaKind.IMAGE)).thenReturn(emptyCover);
+            when(mediaKeyResolver.forUpdate(null, null, SystemFileModule.DECKS)).thenReturn(emptyCover);
             when(tagRepository.findAllById(Set.of(1L, 2L))).thenReturn(List.of());
 
             assertThatThrownBy(() -> deckService.updateSystemDeck(DECK_ID, request))
@@ -990,7 +991,7 @@ class DeckServiceTest {
             MediaKeyResolver.Resolved emptyCover = new MediaKeyResolver.Resolved(null, null, List.of());
 
             when(deckRepository.findById(DECK_ID)).thenReturn(Optional.of(existingDeck));
-            when(mediaKeyResolver.forUpdate(null, null, MediaKind.IMAGE)).thenReturn(emptyCover);
+            when(mediaKeyResolver.forUpdate(null, null, SystemFileModule.DECKS)).thenReturn(emptyCover);
             when(cefrLevelRepository.findAllById(Set.of(1L, 2L))).thenReturn(List.of());
 
             assertThatThrownBy(() -> deckService.updateSystemDeck(DECK_ID, request))

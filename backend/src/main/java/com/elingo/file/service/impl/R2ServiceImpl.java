@@ -312,6 +312,55 @@ public class R2ServiceImpl implements R2Service, InitializingBean {
         }
     }
 
+    @Override
+    public void promoteToSystem(String verifiedKey, String systemKey) {
+        validateSystemPromotion(verifiedKey, systemKey);
+
+        try {
+            CopyObjectRequest copyRequest = CopyObjectRequest.builder()
+                    .destinationBucket(bucket)
+                    .destinationKey(systemKey)
+                    .copySource(bucket + "/" + verifiedKey)
+                    .build();
+            s3Client.copyObject(copyRequest);
+            log.info("System file promoted verifiedKey={} systemKey={}", verifiedKey, systemKey);
+        } catch (NoSuchKeyException e) {
+            handleMissingVerifiedKey(verifiedKey, systemKey);
+        } catch (S3Exception e) {
+            if (e.statusCode() == 404 || "NoSuchKey".equals(e.awsErrorDetails() != null ? e.awsErrorDetails().errorCode() : null)) {
+                handleMissingVerifiedKey(verifiedKey, systemKey);
+            } else {
+                log.error("System file copy failed source={} destination={}", verifiedKey, systemKey, e);
+                throw new AppException(AppError.FILE_UPLOAD_FAILED);
+            }
+        }
+    }
+
+    private void validateSystemPromotion(String verifiedKey, String systemKey) {
+        if (verifiedKey == null || systemKey == null) {
+            throw new IllegalArgumentException("Keys cannot be null");
+        }
+        if (!FileKey.isInZone(verifiedKey, FileKey.VERIFIED_PREFIX)) {
+            throw new IllegalArgumentException(
+                    "Source key must be in verified zone: " + verifiedKey);
+        }
+        if (!FileKey.isInZone(systemKey, FileKey.SYSTEM_PREFIX)) {
+            throw new IllegalArgumentException(
+                    "Destination key must be in system zone: " + systemKey);
+        }
+
+        int verifiedSlash = verifiedKey.lastIndexOf('/');
+        int systemSlash = systemKey.lastIndexOf('/');
+        String verifiedFilename = verifiedSlash >= 0 ? verifiedKey.substring(verifiedSlash + 1) : verifiedKey;
+        String systemFilename = systemSlash >= 0 ? systemKey.substring(systemSlash + 1) : systemKey;
+
+        if (!Objects.equals(verifiedFilename, systemFilename)) {
+            throw new IllegalArgumentException(
+                    "Promoted system key must keep the same file name but was: %s and %s"
+                            .formatted(verifiedKey, systemKey));
+        }
+    }
+
     private void handleMissingVerifiedKey(String verifiedKey, String uploadsKey) {
         if (readMetadata(uploadsKey).isPresent()) {
             log.debug("File already promoted uploadsKey={}", uploadsKey);
