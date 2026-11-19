@@ -1,23 +1,14 @@
 app:
+  config-encryption-key: ${TEST_CONFIG_ENCRYPTION_KEY:0d3ad204de788e7ee2c5cf22d69ec946003aba98ffd642d07cbef987c7de7b93} # dev, test only
   front-end-domain: "http://localhost:5173"
   google:
     client-id: ${TEST_GOOGLE_CLIENT_ID:test}
-  premium:
-    bank-transfer:
-      code-prefix: ELGO
-      bank-name: MBBank
-      bank-account: "0987654321"
-      bank-account-name: ELINGO
-      qr-template: compact
-    sepay:
-      secret-key: test-sepay-secret-key
   ffmpeg:
     path: ffmpeg
     ffprobe-path: ffprobe
     max-concurrent: 1
   community:
     moderation:
-      openai-api-key: test-key
       scheduler:
         enabled: false
       moderation-service:
