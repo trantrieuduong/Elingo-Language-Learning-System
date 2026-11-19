@@ -17,6 +17,7 @@
     "level": "Cấp độ",
     "topic": "Chủ đề"
   },
+  "firstFilesSelected": "Đã chọn {{slots}} tệp đầu tiên để không vượt quá giới hạn.",
   "hidePassword": "Ẩn mật khẩu",
   "pageNotFound": "Không tìm thấy trang",
   "pagination": {

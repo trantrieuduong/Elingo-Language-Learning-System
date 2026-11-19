@@ -1,1 +1,27 @@
-{}
+{
+  "modalTitle": "Submit a report",
+  "report": "Report",
+  "targetTypes": {
+    "POST": "post",
+    "COMMENT": "comment",
+    "USER": "user",
+    "DECK": "deck",
+    "LESSON": "lesson"
+  },
+  "descriptionLabel": "Violation reason & details",
+  "descriptionPlaceholder": "Describe the violation in detail to help admins review quickly (10-1000 characters)...",
+  "attachImages": "Proof images (up to {{max}} images)",
+  "chooseFiles": "Choose images",
+  "submit": "Submit report",
+  "submitting": "Submitting...",
+  "cancel": "Cancel",
+  "successMessage": "Thank you! Your report has been submitted to administrators for review.",
+  "errors": {
+    "descriptionRequired": "Please enter a report description.",
+    "descriptionMin": "Report description must be at least 10 characters.",
+    "descriptionMax": "Report description cannot exceed 1000 characters.",
+    "uploadFailed": "Image upload failed, please try again.",
+    "submitFailed": "Could not submit report at this time. Please try again later.",
+    "selfReportNotAllowed": "You cannot report your own content."
+  }
+}

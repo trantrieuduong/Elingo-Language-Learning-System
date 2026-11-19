@@ -130,7 +130,7 @@ function PostFormModal({
       ...prev,
       media:
         acceptedFiles.length > remainingSlots
-          ? t('community:postForm.errors.firstFilesSelected', { slots: remainingSlots })
+          ? t('common:firstFilesSelected', { slots: remainingSlots })
           : undefined,
     }));
   };
@@ -432,12 +432,12 @@ function PostFormModal({
                       ) : (
                         <img src={item.url} alt="" className="post-form-modal__preview-asset" />
                       )}
+                      {item.type === 'video' && (
+                        <span className="post-form-modal__preview-tag">
+                          {t('community:postCard.videoBadge')}
+                        </span>
+                      )}
                       <div className="post-form-modal__preview-bar">
-                        {item.type === 'video' && (
-                          <span className="post-form-modal__preview-tag">
-                            {t('community:postCard.videoBadge')}
-                          </span>
-                        )}
                         <button
                           type="button"
                           disabled={isFormBusy}

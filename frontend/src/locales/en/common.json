@@ -17,6 +17,7 @@
     "level": "Level",
     "topic": "Topic"
   },
+  "firstFilesSelected": "Selected the first {{slots}} files to stay within the limit.",
   "hidePassword": "Hide password",
   "pageNotFound": "Page not found",
   "pagination": {

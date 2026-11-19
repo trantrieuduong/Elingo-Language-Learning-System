@@ -109,7 +109,6 @@
       "contentRequired": "Content cannot be empty.",
       "contentMaxLength": "Content cannot exceed {{max}} characters.",
       "mediaMaxFiles": "You can only upload up to {{max}} files.",
-      "firstFilesSelected": "Selected the first {{slots}} files to stay within the limit.",
       "uploadFailed": "Unable to upload files or publish the post. Please try again.",
       "updateFailed": "Unable to update the post. Please try again.",
       "loadPostFailed": "Unable to load the post details. Please try again."

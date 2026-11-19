@@ -1,1 +1,27 @@
-{}
+{
+  "modalTitle": "Gửi báo cáo",
+  "report": "Báo cáo",
+  "targetTypes": {
+    "POST": "bài viết",
+    "COMMENT": "bình luận",
+    "USER": "người dùng",
+    "DECK": "bộ thẻ",
+    "LESSON": "bài học"
+  },
+  "descriptionLabel": "Lý do và chi tiết vi phạm",
+  "descriptionPlaceholder": "Mô tả cụ thể vi phạm để quản trị viên xử lý nhanh chóng (10-1000 ký tự)",
+  "attachImages": "Ảnh minh chứng (tối đa {{max}} ảnh)",
+  "chooseFiles": "Chọn ảnh",
+  "submit": "Gửi báo cáo",
+  "submitting": "Đang gửi báo cáo...",
+  "cancel": "Hủy bỏ",
+  "successMessage": "Cảm ơn bạn! Báo cáo đã được gửi tới ban quản trị để xem xét.",
+  "errors": {
+    "descriptionRequired": "Vui lòng nhập lý do báo cáo.",
+    "descriptionMin": "Lý do báo cáo phải có ít nhất 10 ký tự.",
+    "descriptionMax": "Lý do báo cáo không được vượt quá 1000 ký tự.",
+    "uploadFailed": "Tải ảnh lên thất bại, vui lòng thử lại.",
+    "submitFailed": "Không thể gửi báo cáo lúc này. Vui lòng thử lại sau.",
+    "selfReportNotAllowed": "Bạn không thể tự báo cáo nội dung của chính mình."
+  }
+}

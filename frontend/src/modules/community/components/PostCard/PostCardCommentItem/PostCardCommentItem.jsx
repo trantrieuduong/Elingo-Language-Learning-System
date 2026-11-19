@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import OptionsModal from '../../../../../components/OptionsModal/OptionsModal';
 import OptionsMenu from '../../../../../components/OptionsMenu/OptionsMenu';
 import ConfirmModal from '../../../../../components/ConfirmModal/ConfirmModal';
+import Toast from '../../../../../components/Toast/Toast';
+import ReportModal from '../../../../report/components/ReportModal';
 import { formatRelativeTime } from '../../../../../utils/utils';
 import PostCardCommentInput from '../PostCardCommentInput/PostCardCommentInput';
 import PostCardLikeButton from '../PostCardActions/PostCardLikeButton';
@@ -25,6 +27,8 @@ function PostCardCommentItem({
 }) {
   const { t, i18n } = useTranslation();
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -44,22 +48,36 @@ function PostCardCommentItem({
     currentUserId != null &&
     comment.author?.id != null &&
     String(currentUserId) === String(comment.author.id);
+  const canReport = Boolean(currentUserId && !isOwnComment);
+
   const commentOptions = [
-    {
-      id: 'edit-comment',
-      label: t('community:comments.edit'),
-      icon: 'edit',
-      disabled: !onUpdateComment,
-      onSelect: () => setIsEditing(true),
-    },
-    {
-      id: 'delete-comment',
-      label: t('community:comments.delete'),
-      icon: 'delete',
-      variant: 'danger',
-      disabled: !onDeleteComment,
-      onSelect: () => setIsDeleteConfirmOpen(true),
-    },
+    ...(isOwnComment
+      ? [
+          {
+            id: 'edit-comment',
+            label: t('community:comments.edit'),
+            icon: 'edit',
+            onSelect: () => setIsEditing(true),
+          },
+          {
+            id: 'delete-comment',
+            label: t('community:comments.delete'),
+            icon: 'delete',
+            variant: 'danger',
+            onSelect: () => setIsDeleteConfirmOpen(true),
+          },
+        ]
+      : []),
+    ...(canReport
+      ? [
+          {
+            id: 'report-comment',
+            label: t('report:report'),
+            icon: 'flag',
+            onSelect: () => setIsReportModalOpen(true),
+          },
+        ]
+      : []),
   ];
 
   const handleConfirmDelete = async () => {
@@ -147,7 +165,7 @@ function PostCardCommentItem({
           <time className="post-card-comment-item__time" dateTime={comment.createdAt}>
             {formatRelativeTime(comment.createdAt, locale)}
           </time>
-          {isOwnComment && (
+          {!!currentUserId && (
             <div className="post-card-comment-item__options">
               <OptionsMenu onClick={() => setIsOptionsModalOpen(true)} />
               <OptionsModal
@@ -166,6 +184,21 @@ function PostCardCommentItem({
                 onCancel={() => setIsDeleteConfirmOpen(false)}
                 isDanger
                 isLoading={isDeleting}
+              />
+              <ReportModal
+                isOpen={isReportModalOpen}
+                targetType="COMMENT"
+                targetId={comment.id}
+                targetLabel={comment.content}
+                onClose={() => setIsReportModalOpen(false)}
+                onSuccess={() => {
+                  setToastMessage(t('report:successMessage'));
+                }}
+              />
+              <Toast
+                message={toastMessage}
+                variant="success"
+                onDismiss={() => setToastMessage('')}
               />
             </div>
           )}

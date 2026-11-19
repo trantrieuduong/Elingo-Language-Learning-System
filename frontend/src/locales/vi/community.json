@@ -109,7 +109,6 @@
       "contentRequired": "Nội dung không được để trống.",
       "contentMaxLength": "Nội dung không được vượt quá {{max}} ký tự.",
       "mediaMaxFiles": "Bạn chỉ có thể tải lên tối đa {{max}} tệp.",
-      "firstFilesSelected": "Đã chọn {{slots}} tệp đầu tiên để không vượt quá giới hạn.",
       "uploadFailed": "Không thể tải tệp lên hoặc đăng bài viết. Vui lòng thử lại.",
       "updateFailed": "Không thể cập nhật bài viết. Vui lòng thử lại.",
       "loadPostFailed": "Không thể tải thông tin bài viết. Vui lòng thử lại."

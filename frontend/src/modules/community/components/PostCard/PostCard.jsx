@@ -12,6 +12,7 @@ import useCommunityComments from '../../hooks/useCommunityComments';
 import OptionsModal from '../../../../components/OptionsModal/OptionsModal';
 import ConfirmModal from '../../../../components/ConfirmModal/ConfirmModal';
 import Toast from '../../../../components/Toast/Toast';
+import ReportModal from '../../../report/components/ReportModal';
 import './PostCard.css';
 
 /**
@@ -46,6 +47,7 @@ function PostCard({
   const [isCommentOpen, setIsCommentOpen] = useState(false);
   const [isLikePending, setIsLikePending] = useState(false);
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [optionsToast, setOptionsToast] = useState({ message: '', variant: 'success' });
@@ -84,7 +86,7 @@ function PostCard({
   });
 
   const isPublished = status === 'PUBLISHED';
-  const canEdit = Boolean(user?.id && author?.id) && String(user.id) === String(author.id);
+  const isOwnPost = Boolean(user?.id && author?.id) && String(user.id) === String(author.id);
 
   const displayedLikeCount = likeCount + (isLiked ? 1 : 0) - (likedByMe ? 1 : 0);
 
@@ -146,7 +148,7 @@ function PostCard({
   };
 
   const postOptions = [
-    ...(canEdit && onEdit
+    ...(isOwnPost
       ? [
           {
             id: 'edit-post',
@@ -154,10 +156,6 @@ function PostCard({
             icon: 'edit',
             onSelect: () => onEdit(postId),
           },
-        ]
-      : []),
-    ...(canEdit && onDelete
-      ? [
           {
             id: 'delete-post',
             label: t('community:postCard.deletePost'),
@@ -173,6 +171,16 @@ function PostCard({
       icon: 'content_copy',
       onSelect: handleCopyPostLink,
     },
+    ...(!isOwnPost && user?.id
+      ? [
+          {
+            id: 'report-post',
+            label: t('report:report'),
+            icon: 'flag',
+            onSelect: () => setIsReportModalOpen(true),
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -256,6 +264,19 @@ function PostCard({
           onClose={() => setIsOptionsModalOpen(false)}
         />
       )}
+      <ReportModal
+        isOpen={isReportModalOpen}
+        targetType="POST"
+        targetId={postId}
+        targetLabel={title}
+        onClose={() => setIsReportModalOpen(false)}
+        onSuccess={() => {
+          setOptionsToast({
+            message: t('report:successMessage'),
+            variant: 'success',
+          });
+        }}
+      />
       <ConfirmModal
         isOpen={isDeleteConfirmOpen}
         title={t('community:postCard.deleteConfirmTitle')}
