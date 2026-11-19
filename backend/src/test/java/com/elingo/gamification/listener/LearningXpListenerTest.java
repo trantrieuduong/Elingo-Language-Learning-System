@@ -50,10 +50,10 @@ class LearningXpListenerTest {
     @BeforeEach
     void setUp() {
         props = new GamificationProperties(Map.of(
-                XpSource.LESSON_DICTATION, new GamificationProperties.Rule(30, 5),
+                XpSource.SEGMENT_DICTATION, new GamificationProperties.Rule(30, 5),
                 XpSource.DAILY_CHECKIN, new GamificationProperties.Rule(10, 5),
                 XpSource.FLASHCARD_REVIEW, new GamificationProperties.Rule(25, 5),
-                XpSource.LESSON_SHADOWING, new GamificationProperties.Rule(40, 5)
+                XpSource.SEGMENT_SHADOWING, new GamificationProperties.Rule(40, 5)
         ));
 
         listener = new LearningXpListener(
@@ -72,15 +72,15 @@ class LearningXpListenerTest {
         @Test
         @DisplayName("Process experience points event successfully with allowed policy")
         void on_Success_AllowedPolicy() {
-            XpGainedEvent event = new XpGainedEvent(USER_ID, REF_ID, XpSource.LESSON_DICTATION, OCCURRED_AT);
+            XpGainedEvent event = new XpGainedEvent(USER_ID, REF_ID, XpSource.SEGMENT_DICTATION, OCCURRED_AT);
 
-            when(xpPolicy.allow(USER_ID, XpSource.LESSON_DICTATION, OCCURRED_AT.toLocalDate())).thenReturn(true);
+            when(xpPolicy.allow(USER_ID, XpSource.SEGMENT_DICTATION, OCCURRED_AT.toLocalDate())).thenReturn(true);
 
             listener.on(event);
 
             verify(checkInService).ensureCheckedIn(USER_ID, OCCURRED_AT);
-            verify(xpPolicy).allow(USER_ID, XpSource.LESSON_DICTATION, OCCURRED_AT.toLocalDate());
-            verify(xpService).addXp(USER_ID, 30, XpSource.LESSON_DICTATION, REF_ID);
+            verify(xpPolicy).allow(USER_ID, XpSource.SEGMENT_DICTATION, OCCURRED_AT.toLocalDate());
+            verify(xpService).addXp(USER_ID, 30, XpSource.SEGMENT_DICTATION, REF_ID);
             verify(gamificationEventPublisher).sendXpGained(USER_ID, 30);
         }
 
@@ -127,7 +127,7 @@ class LearningXpListenerTest {
         @Test
         @DisplayName("Process successfully when check in service throws exception then recovers")
         void on_Success_CheckInExceptionRecovered() {
-            XpGainedEvent event = new XpGainedEvent(USER_ID, REF_ID, XpSource.LESSON_SHADOWING, OCCURRED_AT);
+            XpGainedEvent event = new XpGainedEvent(USER_ID, REF_ID, XpSource.SEGMENT_SHADOWING, OCCURRED_AT);
 
             doThrow(new RuntimeException("Redis down")).when(checkInService).ensureCheckedIn(USER_ID, OCCURRED_AT);
 

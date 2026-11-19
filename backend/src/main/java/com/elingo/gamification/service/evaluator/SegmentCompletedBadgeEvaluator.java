@@ -2,23 +2,23 @@ package com.elingo.gamification.service.evaluator;
 
 import com.elingo.gamification.entity.BadgeConditionType;
 import com.elingo.gamification.service.BadgeEvaluator;
-import com.elingo.learning.lesson.repository.UserLessonProgressRepository;
+import com.elingo.learning.lesson.repository.UserSegmentProgressRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class LessonsCompletedBadgeEvaluator implements BadgeEvaluator {
+public class SegmentCompletedBadgeEvaluator implements BadgeEvaluator {
 
-    private final UserLessonProgressRepository lessonProgressRepository;
+    private final UserSegmentProgressRepository segmentProgressRepository;
 
     @Override
     public BadgeConditionType supportsType() {
-        return BadgeConditionType.LESSONS_COMPLETED;
+        return BadgeConditionType.SEGMENT_COMPLETED;
     }
 
     @Override
     public long getCurrentProgress(long userId) {
-        return lessonProgressRepository.countCompletedLessonsByUserId(userId);
+        return segmentProgressRepository.countCompletedSegmentsByUserId(userId);
     }
 }

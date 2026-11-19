@@ -97,7 +97,7 @@ class XpServiceTest {
             when(levelCatalog.levelFor(120)).thenReturn(2);
             when(userXpRepository.raiseLevel(USER_ID, 2)).thenReturn(1);
 
-            xpService.addXp(USER_ID, AMOUNT, XpSource.LESSON_DICTATION, REF_ID);
+            xpService.addXp(USER_ID, AMOUNT, XpSource.SEGMENT_DICTATION, REF_ID);
 
             verify(userXpRepository).upsertAddXp(USER_ID, AMOUNT);
 
@@ -105,7 +105,7 @@ class XpServiceTest {
             verify(xpEventRepository).save(eventCaptor.capture());
             XpEvent savedEvent = eventCaptor.getValue();
             assertThat(savedEvent.getUser()).isEqualTo(testUser);
-            assertThat(savedEvent.getSource()).isEqualTo(XpSource.LESSON_DICTATION);
+            assertThat(savedEvent.getSource()).isEqualTo(XpSource.SEGMENT_DICTATION);
             assertThat(savedEvent.getRefId()).isEqualTo(REF_ID);
             assertThat(savedEvent.getAmount()).isEqualTo(AMOUNT);
 
@@ -113,7 +113,7 @@ class XpServiceTest {
             verify(userXpRepository).raiseLevel(USER_ID, 2);
             verify(leaderboardService).recordXpForLeaderboard(USER_ID, AMOUNT);
             verify(badgeAwardService).evaluateAndAward(USER_ID, BadgeConditionType.TOTAL_XP);
-            verify(badgeAwardService).evaluateAndAward(USER_ID, BadgeConditionType.LESSONS_COMPLETED);
+            verify(badgeAwardService).evaluateAndAward(USER_ID, BadgeConditionType.SEGMENT_COMPLETED);
 
             ArgumentCaptor<LevelUpEvent> levelUpCaptor = ArgumentCaptor.forClass(LevelUpEvent.class);
             verify(publisher).publishEvent(levelUpCaptor.capture());
@@ -177,13 +177,13 @@ class XpServiceTest {
             when(levelCatalog.levelFor(10)).thenReturn(1);
             when(userXpRepository.raiseLevel(USER_ID, 1)).thenReturn(0);
 
-            xpService.addXp(USER_ID, 0, XpSource.LESSON_SHADOWING, null);
+            xpService.addXp(USER_ID, 0, XpSource.SEGMENT_SHADOWING, null);
 
             verify(userXpRepository).upsertAddXp(USER_ID, 0);
             verify(xpEventRepository).save(any(XpEvent.class));
             verify(leaderboardService).recordXpForLeaderboard(USER_ID, 0);
             verify(badgeAwardService).evaluateAndAward(USER_ID, BadgeConditionType.TOTAL_XP);
-            verify(badgeAwardService).evaluateAndAward(USER_ID, BadgeConditionType.LESSONS_COMPLETED);
+            verify(badgeAwardService).evaluateAndAward(USER_ID, BadgeConditionType.SEGMENT_COMPLETED);
         }
     }
 }
