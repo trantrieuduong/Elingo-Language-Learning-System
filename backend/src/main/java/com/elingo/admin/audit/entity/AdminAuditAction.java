@@ -45,4 +45,7 @@ public enum AdminAuditAction {
     PLAN_DISABLE,
     SUBSCRIPTION_GRANT,
     SUBSCRIPTION_REVOKE,
+
+    // Cấu hình hệ thống
+    SYSTEM_CONFIG_UPDATE,
 }
