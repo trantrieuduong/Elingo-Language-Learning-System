@@ -1,6 +1,8 @@
 package com.elingo.vocabulary.service.impl;
 
+import com.elingo.admin.content.dto.request.*;
 import com.elingo.common.dto.PageResponse;
+import com.elingo.common.enums.MediaKind;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.common.util.SlugUtils;
@@ -12,27 +14,29 @@ import com.elingo.vocabulary.dto.request.DeckSearchRequest;
 import com.elingo.vocabulary.dto.request.UserDeckRequest;
 import com.elingo.vocabulary.dto.response.DeckResponse;
 import com.elingo.vocabulary.dto.response.TopicResponse;
-import com.elingo.vocabulary.entity.Deck;
-import com.elingo.vocabulary.entity.DeckStatus;
-import com.elingo.vocabulary.entity.OwnerType;
-import com.elingo.vocabulary.entity.Topic;
+import com.elingo.vocabulary.entity.*;
 import com.elingo.vocabulary.mapper.DeckMapper;
 import com.elingo.vocabulary.mapper.TopicMapper;
+import com.elingo.vocabulary.repository.CefrLevelRepository;
 import com.elingo.vocabulary.repository.DeckRepository;
+import com.elingo.vocabulary.repository.TagRepository;
 import com.elingo.vocabulary.repository.TopicRepository;
 import com.elingo.vocabulary.repository.specification.DeckFilter;
 import com.elingo.vocabulary.repository.specification.DeckSpecifications;
 import com.elingo.vocabulary.service.DeckAccessPolicy;
 import com.elingo.vocabulary.service.DeckService;
+import com.elingo.vocabulary.service.MediaKeyResolver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -50,6 +54,9 @@ public class DeckServiceImpl implements DeckService {
     private final DeckAccessPolicy accessPolicy;
     private final FlashcardProperties flashcardProperties;
     private final UserRepository userRepository;
+    private final TagRepository tagRepository;
+    private final CefrLevelRepository cefrLevelRepository;
+    private final MediaKeyResolver mediaKeyResolver;
 
     @Override
     @Transactional(readOnly = true)
@@ -113,7 +120,7 @@ public class DeckServiceImpl implements DeckService {
     @Override
     @Transactional
     public DeckResponse createUserDeck(Long userId, UserDeckRequest request) {
-        User owner = userRepository.findById(userId)
+        User owner = userRepository.findByIdForUpdate(userId)
                 .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
 
         if (deckRepository.countByOwnerTypeAndOwnerId(OwnerType.USER, userId) >= flashcardProperties
@@ -122,7 +129,7 @@ public class DeckServiceImpl implements DeckService {
 
         Deck deck = deckRepository.save(Deck.builder()
                 .title(request.title())
-                .slug(SlugUtils.generateSlug(request.title()))
+                .slug(SlugUtils.generateUniqueSlug(request.title()))
                 .description(request.description())
                 .isPremium(false)
                 .ownerType(OwnerType.USER)
@@ -167,7 +174,6 @@ public class DeckServiceImpl implements DeckService {
         }
 
         log.info("User deck publication changed deckId={} published={}", deckId, published);
-
         return deckMapper.toDeckResponse(deck);
     }
 
@@ -175,11 +181,150 @@ public class DeckServiceImpl implements DeckService {
     @Transactional
     public void deleteUserDeck(Long userId, Long deckId) {
         assertCanEdit(userId, deckId);
+        Deck deck = deckRepository.findById(deckId)
+                .orElseThrow(() -> new AppException(AppError.DECK_NOT_FOUND));
 
-        // topics are removed and cards detached by the database (@OnDelete), no cascade needed here
-        deckRepository.deleteById(deckId);
+        deckRepository.delete(deck);
+        log.info("User deck deleted deckId={}", deckId);
+    }
 
-        log.info("User Deck deleted deckId={}", deckId);
+    // ==========================================
+    // Admin Operations
+    // ==========================================
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<DeckResponse> searchDecksForAdmin(AdminDeckSearchRequest request, Pageable pageable) {
+        Specification<Deck> spec = DeckSpecifications.from(DeckFilter.fromAdminRequest(request));
+        Page<Deck> page = deckRepository.findAll(spec, pageable);
+        return PageResponse.of(page.map(deckMapper::toDeckResponse));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public DeckResponse getDeckByIdForAdmin(Long deckId) {
+        Deck deck = deckRepository.findById(deckId)
+                .orElseThrow(() -> new AppException(AppError.DECK_NOT_FOUND));
+        return deckMapper.toDeckResponse(deck);
+    }
+
+    @Override
+    @Transactional
+    public DeckResponse createSystemDeck(SystemDeckRequest request) {
+        var cover = mediaKeyResolver.forCreate(request.coverImageUrl(), MediaKind.IMAGE);
+
+        Deck deck = deckMapper.toDeck(request);
+        deck.setSlug(SlugUtils.generateUniqueSlug(request.title()));
+        deck.setStatus(DeckStatus.DRAFT);
+        deck.setOwnerType(OwnerType.SYSTEM);
+        deck.setOwner(null);
+        deck.setCoverImageUrl(cover.key());
+        deck.setTopicCount(0);
+        deck.setCardCount(0);
+        deck.setTags(resolveTags(request.tagIds()));
+        deck.setCefrLevels(resolveCefrLevels(request.cefrLevelIds()));
+
+        Deck saved = deckRepository.save(deck);
+        mediaKeyResolver.publish(cover);
+
+        log.info("System deck created deckId={} slug={}", saved.getId(), saved.getSlug());
+        return deckMapper.toDeckResponse(saved);
+    }
+
+    @Override
+    @Transactional
+    public DeckResponse updateSystemDeck(Long deckId, SystemDeckRequest request) {
+        Deck deck = deckRepository.findById(deckId)
+                .orElseThrow(() -> new AppException(AppError.DECK_NOT_FOUND));
+
+        if (deck.getOwnerType() != OwnerType.SYSTEM) {
+            throw new AppException(AppError.DECK_NOT_SYSTEM);
+        }
+
+        var cover = mediaKeyResolver.forUpdate(request.coverImageUrl(),
+                deck.getCoverImageUrl(), MediaKind.IMAGE);
+
+        deckMapper.updateSystemDeck(deck, request);
+        deck.setCoverImageUrl(cover.key());
+        deck.setTags(resolveTags(request.tagIds()));
+        deck.setCefrLevels(resolveCefrLevels(request.cefrLevelIds()));
+
+        mediaKeyResolver.publish(cover);
+
+        log.info("System deck updated deckId={}", deckId);
+        return deckMapper.toDeckResponse(deck);
+    }
+
+    @Override
+    @Transactional
+    public DeckResponse updateDeckStatus(Long deckId, UpdateDeckStatusRequest request) {
+        Deck deck = deckRepository.findById(deckId)
+                .orElseThrow(() -> new AppException(AppError.DECK_NOT_FOUND));
+
+        if (deck.getOwnerType() != OwnerType.SYSTEM) {
+            throw new AppException(AppError.DECK_NOT_SYSTEM);
+        }
+
+        DeckStatus targetStatus = request.status();
+        switch (targetStatus) {
+            case DeckStatus.PUBLISHED -> {
+                if (deck.getCardCount() == 0) {
+                    throw new AppException(AppError.DECK_EMPTY);
+                }
+                if (deck.getStatus() != DeckStatus.PUBLISHED) {
+                    deck.setStatus(DeckStatus.PUBLISHED);
+                    deck.setPublishedAt(LocalDateTime.now());
+                }
+            }
+            case DeckStatus.ARCHIVED -> deck.setStatus(DeckStatus.ARCHIVED);
+            default -> {
+                deck.setStatus(DeckStatus.DRAFT);
+                deck.setPublishedAt(null);
+            }
+        }
+
+        log.info("System deck status changed deckId={} status={}", deckId, deck.getStatus());
+        return deckMapper.toDeckResponse(deck);
+    }
+
+    @Override
+    @Transactional
+    public void deleteUserDeckByAdmin(Long deckId, String reason) {
+        Deck deck = deckRepository.findById(deckId)
+                .orElseThrow(() -> new AppException(AppError.DECK_NOT_FOUND));
+
+        if (deck.getOwnerType() == OwnerType.SYSTEM) {
+            throw new AppException(AppError.CANNOT_DELETE_SYSTEM_DECK);
+        }
+
+        deckRepository.delete(deck);
+        log.info("User deck deleted by admin deckId={} reason={}", deckId, reason);
+    }
+
+    // ==========================================
+    // Helper Methods
+    // ==========================================
+    private Set<Tag> resolveTags(Set<Long> tagIds) {
+        if (tagIds == null || tagIds.isEmpty()) {
+            return new HashSet<>();
+        }
+        List<Tag> tags = tagRepository.findAllById(tagIds);
+        if (tags.size() != tagIds.size())
+            throw new AppException(AppError.TAG_NOT_FOUND);
+
+        return new HashSet<>(tags);
+    }
+
+    private Set<CefrLevel> resolveCefrLevels(Set<Long> cefrLevelIds) {
+        if (cefrLevelIds == null || cefrLevelIds.isEmpty()) {
+            return new HashSet<>();
+        }
+
+        List<CefrLevel> cefrLevels = cefrLevelRepository.findAllById(cefrLevelIds);
+        if (cefrLevels.size() != cefrLevelIds.size())
+            throw new AppException(AppError.CEFR_LEVEL_NOT_FOUND);
+
+        return new HashSet<>(cefrLevels);
     }
 
     private List<TopicResponse> getTopicResponseInDeck(Long userId, Long deckId) {

@@ -1,5 +1,7 @@
 package com.elingo.vocabulary.service;
 
+import com.elingo.admin.content.dto.request.CreateSystemTopicRequest;
+import com.elingo.admin.content.dto.request.UpdateSystemTopicRequest;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.learning.flashcard.dto.response.CardLearningState;
@@ -11,6 +13,7 @@ import com.elingo.vocabulary.dto.response.CardResponse;
 import com.elingo.vocabulary.dto.response.TopicResponse;
 import com.elingo.vocabulary.entity.Card;
 import com.elingo.vocabulary.entity.Deck;
+import com.elingo.vocabulary.entity.OwnerType;
 import com.elingo.vocabulary.entity.Topic;
 import com.elingo.vocabulary.mapper.CardMapper;
 import com.elingo.vocabulary.mapper.TopicMapper;
@@ -29,6 +32,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 import java.util.Map;
@@ -91,12 +95,20 @@ class TopicServiceTest {
         limits.setMaxTopicsPerDeck(MAX_TOPICS_PER_DECK);
         lenient().when(flashcardProperties.getUserDeckLimit()).thenReturn(limits);
 
-        deck = Deck.builder().id(DECK_ID).build();
+        deck = Deck.builder().id(DECK_ID).ownerType(OwnerType.USER).build();
         topic = Topic.builder().id(TOPIC_ID).deck(deck).name("Animals").slug("animals").order(1).build();
     }
 
     private DeckRepository.DeckAccessView accessView() {
         return TestDeckAccessView.published(DECK_ID);
+    }
+
+    private Deck systemDeck() {
+        return Deck.builder().id(DECK_ID).ownerType(OwnerType.SYSTEM).build();
+    }
+
+    private Topic systemTopic() {
+        return Topic.builder().id(TOPIC_ID).deck(systemDeck()).name("Animals").slug("animals").order(1).build();
     }
 
     private Card buildCard(Long id, int order, String term) {
@@ -220,9 +232,9 @@ class TopicServiceTest {
             TopicResponse response = new TopicResponse(TOPIC_ID, "Animals", "animals", 4, 0, null);
 
             when(deckRepository.findAccessViewById(DECK_ID)).thenReturn(Optional.of(accessView()));
+            when(deckRepository.findByIdForUpdate(DECK_ID)).thenReturn(Optional.of(deck));
             when(topicRepository.countByDeckId(DECK_ID)).thenReturn(3L);
             when(topicRepository.findFirstByDeckIdOrderByOrderDesc(DECK_ID)).thenReturn(Optional.of(lastTopic));
-            when(deckRepository.getReferenceById(DECK_ID)).thenReturn(deck);
             when(topicRepository.save(any(Topic.class))).thenAnswer(inv -> {
                 Topic saved = inv.getArgument(0);
                 saved.setId(TOPIC_ID);
@@ -249,9 +261,9 @@ class TopicServiceTest {
         @DisplayName("Create user topic successfully: first topic starts at order 1")
         void createUserTopic_Success_FirstOrder() {
             when(deckRepository.findAccessViewById(DECK_ID)).thenReturn(Optional.of(accessView()));
+            when(deckRepository.findByIdForUpdate(DECK_ID)).thenReturn(Optional.of(deck));
             when(topicRepository.countByDeckId(DECK_ID)).thenReturn(0L);
             when(topicRepository.findFirstByDeckIdOrderByOrderDesc(DECK_ID)).thenReturn(Optional.empty());
-            when(deckRepository.getReferenceById(DECK_ID)).thenReturn(deck);
             when(topicRepository.save(any(Topic.class))).thenAnswer(inv -> inv.getArgument(0));
             when(topicMapper.toTopicResponse(any(Topic.class)))
                     .thenReturn(new TopicResponse(TOPIC_ID, "Animals", "animals", 1, 0, null));
@@ -264,9 +276,24 @@ class TopicServiceTest {
         }
 
         @Test
-        @DisplayName("Create user topic failed: deck not found")
-        void createUserTopic_Fail_DeckNotFound() {
+        @DisplayName("Create user topic failed: deck access view not found")
+        void createUserTopic_Fail_DeckNotFound_AccessViewMissing() {
             when(deckRepository.findAccessViewById(DECK_ID)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> topicService.createUserTopic(USER_ID,
+                    new CreateUserTopicRequest(DECK_ID, "Animals")))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.DECK_NOT_FOUND));
+
+            verify(topicRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Create user topic failed: deck entity disappeared from database")
+        void createUserTopic_Fail_DeckNotFound_EntityDisappeared() {
+            when(deckRepository.findAccessViewById(DECK_ID)).thenReturn(Optional.of(accessView()));
+            when(deckRepository.findByIdForUpdate(DECK_ID)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> topicService.createUserTopic(USER_ID,
                     new CreateUserTopicRequest(DECK_ID, "Animals")))
@@ -297,6 +324,7 @@ class TopicServiceTest {
         @DisplayName("Create user topic failed: topic limit reached")
         void createUserTopic_Fail_TopicLimitExceeded() {
             when(deckRepository.findAccessViewById(DECK_ID)).thenReturn(Optional.of(accessView()));
+            when(deckRepository.findByIdForUpdate(DECK_ID)).thenReturn(Optional.of(deck));
             when(topicRepository.countByDeckId(DECK_ID)).thenReturn((long) MAX_TOPICS_PER_DECK);
 
             assertThatThrownBy(() -> topicService.createUserTopic(USER_ID,
@@ -389,10 +417,12 @@ class TopicServiceTest {
         @DisplayName("Delete user topic successfully: counters drop by the detached card count")
         void deleteUserTopic_Success_WithDetachedCards() {
             when(deckRepository.findAccessViewByTopicId(TOPIC_ID)).thenReturn(Optional.of(accessView()));
+            when(topicRepository.findByIdForUpdate(TOPIC_ID)).thenReturn(Optional.of(topic));
             when(cardRepository.detachByTopicId(TOPIC_ID)).thenReturn(3);
 
             topicService.deleteUserTopic(USER_ID, TOPIC_ID);
 
+            verify(cardRepository).detachByTopicId(TOPIC_ID);
             verify(topicRepository).deleteById(TOPIC_ID);
             verify(deckRepository).adjustTopicCount(DECK_ID, -1);
             verify(deckRepository).adjustCardCount(DECK_ID, -3);
@@ -402,18 +432,20 @@ class TopicServiceTest {
         @DisplayName("Delete user topic successfully: no card counter update when topic is empty")
         void deleteUserTopic_Success_NoDetachedCards() {
             when(deckRepository.findAccessViewByTopicId(TOPIC_ID)).thenReturn(Optional.of(accessView()));
+            when(topicRepository.findByIdForUpdate(TOPIC_ID)).thenReturn(Optional.of(topic));
             when(cardRepository.detachByTopicId(TOPIC_ID)).thenReturn(0);
 
             topicService.deleteUserTopic(USER_ID, TOPIC_ID);
 
+            verify(cardRepository).detachByTopicId(TOPIC_ID);
             verify(topicRepository).deleteById(TOPIC_ID);
             verify(deckRepository).adjustTopicCount(DECK_ID, -1);
             verify(deckRepository, never()).adjustCardCount(any(), anyInt());
         }
 
         @Test
-        @DisplayName("Delete user topic failed: topic not found")
-        void deleteUserTopic_Fail_TopicNotFound() {
+        @DisplayName("Delete user topic failed: topic access view not found")
+        void deleteUserTopic_Fail_TopicNotFound_AccessViewMissing() {
             when(deckRepository.findAccessViewByTopicId(TOPIC_ID)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> topicService.deleteUserTopic(USER_ID, TOPIC_ID))
@@ -421,6 +453,22 @@ class TopicServiceTest {
                     .satisfies(ex -> assertThat(((AppException) ex).getAppError())
                             .isEqualTo(AppError.TOPIC_NOT_FOUND));
 
+            verify(cardRepository, never()).detachByTopicId(any());
+            verify(topicRepository, never()).deleteById(any());
+        }
+
+        @Test
+        @DisplayName("Delete user topic failed: topic entity disappeared from database")
+        void deleteUserTopic_Fail_TopicNotFound_EntityDisappeared() {
+            when(deckRepository.findAccessViewByTopicId(TOPIC_ID)).thenReturn(Optional.of(accessView()));
+            when(topicRepository.findByIdForUpdate(TOPIC_ID)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> topicService.deleteUserTopic(USER_ID, TOPIC_ID))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.TOPIC_NOT_FOUND));
+
+            verify(cardRepository, never()).detachByTopicId(any());
             verify(topicRepository, never()).deleteById(any());
         }
 
@@ -435,6 +483,334 @@ class TopicServiceTest {
                     .isInstanceOf(AppException.class)
                     .satisfies(ex -> assertThat(((AppException) ex).getAppError())
                             .isEqualTo(AppError.DECK_ACCESS_DENIED));
+
+            verify(cardRepository, never()).detachByTopicId(any());
+            verify(topicRepository, never()).deleteById(any());
+        }
+    }
+
+    // ─────────────────────── getTopicsByDeckIdForAdmin ───────────────────────
+
+    @Nested
+    @DisplayName("getTopicsByDeckIdForAdmin")
+    class GetTopicsByDeckIdForAdminTests {
+
+        @Test
+        @DisplayName("Get topics by deck ID for admin successfully")
+        void getTopicsByDeckIdForAdmin_Success() {
+            TopicResponse response = new TopicResponse(TOPIC_ID, "Animals", "animals", 1, 0, null);
+
+            when(deckRepository.existsById(DECK_ID)).thenReturn(true);
+            when(topicRepository.findByDeckId(eq(DECK_ID), any(Sort.class))).thenReturn(List.of(topic));
+            when(topicMapper.toTopicResponse(topic)).thenReturn(response);
+
+            List<TopicResponse> result = topicService.getTopicsByDeckIdForAdmin(DECK_ID);
+
+            assertThat(result).containsExactly(response);
+            verify(deckRepository).existsById(DECK_ID);
+            verify(topicRepository).findByDeckId(eq(DECK_ID), any(Sort.class));
+        }
+
+        @Test
+        @DisplayName("Get topics by deck ID for admin failed: deck not found")
+        void getTopicsByDeckIdForAdmin_Fail_DeckNotFound() {
+            when(deckRepository.existsById(DECK_ID)).thenReturn(false);
+
+            assertThatThrownBy(() -> topicService.getTopicsByDeckIdForAdmin(DECK_ID))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.DECK_NOT_FOUND));
+
+            verify(topicRepository, never()).findByDeckId(any(), any());
+        }
+    }
+
+    // ─────────────────────── createSystemTopic ───────────────────────
+
+    @Nested
+    @DisplayName("createSystemTopic")
+    class CreateSystemTopicTests {
+
+        @Test
+        @DisplayName("Create system topic successfully")
+        void createSystemTopic_Success() {
+            Deck sysDeck = systemDeck();
+            Topic sysTopic = Topic.builder().id(TOPIC_ID).deck(sysDeck).name("Animals").slug("animals").order(1).build();
+            CreateSystemTopicRequest request = new CreateSystemTopicRequest(DECK_ID, "Animals");
+            TopicResponse response = new TopicResponse(TOPIC_ID, "Animals", "animals", 1, 0, null);
+
+            when(deckRepository.findByIdForUpdate(DECK_ID)).thenReturn(Optional.of(sysDeck));
+            when(topicRepository.findFirstByDeckIdOrderByOrderDesc(DECK_ID)).thenReturn(Optional.empty());
+            when(topicMapper.toTopic(request)).thenReturn(new Topic());
+            when(topicRepository.save(any(Topic.class))).thenReturn(sysTopic);
+            when(topicMapper.toTopicResponse(sysTopic)).thenReturn(response);
+
+            TopicResponse result = topicService.createSystemTopic(request);
+
+            assertThat(result).isSameAs(response);
+            ArgumentCaptor<Topic> captor = ArgumentCaptor.forClass(Topic.class);
+            verify(topicRepository).save(captor.capture());
+            Topic persisted = captor.getValue();
+            assertThat(persisted.getDeck()).isSameAs(sysDeck);
+            assertThat(persisted.getSlug()).isNotBlank();
+            assertThat(persisted.getOrder()).isEqualTo(1);
+            assertThat(persisted.getCardCount()).isZero();
+            verify(deckRepository).adjustTopicCount(DECK_ID, 1);
+        }
+
+        @Test
+        @DisplayName("Create system topic failed: deck not found")
+        void createSystemTopic_Fail_DeckNotFound() {
+            CreateSystemTopicRequest request = new CreateSystemTopicRequest(DECK_ID, "Animals");
+            when(deckRepository.findByIdForUpdate(DECK_ID)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> topicService.createSystemTopic(request))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.DECK_NOT_FOUND));
+
+            verify(topicRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Create system topic failed: deck is not system owned")
+        void createSystemTopic_Fail_DeckNotSystem() {
+            CreateSystemTopicRequest request = new CreateSystemTopicRequest(DECK_ID, "Animals");
+            when(deckRepository.findByIdForUpdate(DECK_ID)).thenReturn(Optional.of(deck));
+
+            assertThatThrownBy(() -> topicService.createSystemTopic(request))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.DECK_NOT_SYSTEM));
+
+            verify(topicRepository, never()).save(any());
+        }
+    }
+
+    // ─────────────────────── updateSystemTopic ───────────────────────
+
+    @Nested
+    @DisplayName("updateSystemTopic")
+    class UpdateSystemTopicTests {
+
+        @Test
+        @DisplayName("Update system topic successfully")
+        void updateSystemTopic_Success() {
+            Topic sysTopic = systemTopic();
+            UpdateSystemTopicRequest request = new UpdateSystemTopicRequest("Mammals");
+            TopicResponse response = new TopicResponse(TOPIC_ID, "Mammals", "mammals", 1, 0, null);
+
+            when(topicRepository.findById(TOPIC_ID)).thenReturn(Optional.of(sysTopic));
+            when(topicMapper.toTopicResponse(sysTopic)).thenReturn(response);
+
+            TopicResponse result = topicService.updateSystemTopic(TOPIC_ID, request);
+
+            assertThat(result).isSameAs(response);
+            verify(topicMapper).updateSystemTopic(sysTopic, request);
+        }
+
+        @Test
+        @DisplayName("Update system topic failed: topic not found")
+        void updateSystemTopic_Fail_TopicNotFound() {
+            UpdateSystemTopicRequest request = new UpdateSystemTopicRequest("Mammals");
+            when(topicRepository.findById(TOPIC_ID)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> topicService.updateSystemTopic(TOPIC_ID, request))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.TOPIC_NOT_FOUND));
+
+            verify(topicMapper, never()).updateSystemTopic(any(), any());
+        }
+
+        @Test
+        @DisplayName("Update system topic failed: deck is not system owned")
+        void updateSystemTopic_Fail_DeckNotSystem() {
+            UpdateSystemTopicRequest request = new UpdateSystemTopicRequest("Mammals");
+            when(topicRepository.findById(TOPIC_ID)).thenReturn(Optional.of(topic));
+
+            assertThatThrownBy(() -> topicService.updateSystemTopic(TOPIC_ID, request))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.DECK_NOT_SYSTEM));
+
+            verify(topicMapper, never()).updateSystemTopic(any(), any());
+        }
+    }
+
+    // ─────────────────────── reorderSystemTopics ───────────────────────
+
+    @Nested
+    @DisplayName("reorderSystemTopics")
+    class ReorderSystemTopicsTests {
+
+        @Test
+        @DisplayName("Reorder system topics successfully")
+        void reorderSystemTopics_Success() {
+            Deck sysDeck = systemDeck();
+            Topic topic1 = Topic.builder().id(21L).deck(sysDeck).order(1).build();
+            Topic topic2 = Topic.builder().id(22L).deck(sysDeck).order(2).build();
+
+            when(deckRepository.findById(DECK_ID)).thenReturn(Optional.of(sysDeck));
+            when(topicRepository.countByDeckId(DECK_ID)).thenReturn(2L);
+            when(topicRepository.findAllById(List.of(22L, 21L))).thenReturn(List.of(topic1, topic2));
+
+            topicService.reorderSystemTopics(DECK_ID, List.of(22L, 21L));
+
+            assertThat(topic2.getOrder()).isEqualTo(1);
+            assertThat(topic1.getOrder()).isEqualTo(2);
+        }
+
+        @Test
+        @DisplayName("Reorder system topics failed: deck not found")
+        void reorderSystemTopics_Fail_DeckNotFound() {
+            when(deckRepository.findById(DECK_ID)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> topicService.reorderSystemTopics(DECK_ID, List.of(21L)))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.DECK_NOT_FOUND));
+
+            verify(topicRepository, never()).findAllById(any());
+        }
+
+        @Test
+        @DisplayName("Reorder system topics failed: deck is not system owned")
+        void reorderSystemTopics_Fail_DeckNotSystem() {
+            when(deckRepository.findById(DECK_ID)).thenReturn(Optional.of(deck));
+
+            assertThatThrownBy(() -> topicService.reorderSystemTopics(DECK_ID, List.of(21L)))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.DECK_NOT_SYSTEM));
+
+            verify(topicRepository, never()).findAllById(any());
+        }
+
+        @Test
+        @DisplayName("Reorder system topics failed: duplicate IDs in list")
+        void reorderSystemTopics_Fail_DuplicateIds() {
+            Deck sysDeck = systemDeck();
+            when(deckRepository.findById(DECK_ID)).thenReturn(Optional.of(sysDeck));
+
+            assertThatThrownBy(() -> topicService.reorderSystemTopics(DECK_ID, List.of(21L, 21L)))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.INVALID_REQUEST));
+
+            verify(topicRepository, never()).findAllById(any());
+        }
+
+        @Test
+        @DisplayName("Reorder system topics failed: size mismatch with count in deck")
+        void reorderSystemTopics_Fail_SizeMismatch() {
+            Deck sysDeck = systemDeck();
+            when(deckRepository.findById(DECK_ID)).thenReturn(Optional.of(sysDeck));
+            when(topicRepository.countByDeckId(DECK_ID)).thenReturn(3L);
+
+            assertThatThrownBy(() -> topicService.reorderSystemTopics(DECK_ID, List.of(21L, 22L)))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.INVALID_REQUEST));
+
+            verify(topicRepository, never()).findAllById(any());
+        }
+
+        @Test
+        @DisplayName("Reorder system topics failed: topic not found in database")
+        void reorderSystemTopics_Fail_TopicNotFound() {
+            Deck sysDeck = systemDeck();
+            Topic topic1 = Topic.builder().id(21L).deck(sysDeck).order(1).build();
+
+            when(deckRepository.findById(DECK_ID)).thenReturn(Optional.of(sysDeck));
+            when(topicRepository.countByDeckId(DECK_ID)).thenReturn(2L);
+            when(topicRepository.findAllById(List.of(21L, 22L))).thenReturn(List.of(topic1));
+
+            assertThatThrownBy(() -> topicService.reorderSystemTopics(DECK_ID, List.of(21L, 22L)))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.TOPIC_NOT_FOUND));
+        }
+
+        @Test
+        @DisplayName("Reorder system topics failed: topic belongs to a different deck")
+        void reorderSystemTopics_Fail_TopicNotInDeck() {
+            Deck sysDeck = systemDeck();
+            Deck otherDeck = Deck.builder().id(999L).build();
+            Topic topic1 = Topic.builder().id(21L).deck(otherDeck).order(1).build();
+
+            when(deckRepository.findById(DECK_ID)).thenReturn(Optional.of(sysDeck));
+            when(topicRepository.countByDeckId(DECK_ID)).thenReturn(1L);
+            when(topicRepository.findAllById(List.of(21L))).thenReturn(List.of(topic1));
+
+            assertThatThrownBy(() -> topicService.reorderSystemTopics(DECK_ID, List.of(21L)))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.TOPIC_NOT_IN_DECK));
+        }
+    }
+
+    // ─────────────────────── deleteSystemTopic ───────────────────────
+
+    @Nested
+    @DisplayName("deleteSystemTopic")
+    class DeleteSystemTopicTests {
+
+        @Test
+        @DisplayName("Delete system topic successfully: detaches cards and decrements counters")
+        void deleteSystemTopic_Success_WithDetachedCards() {
+            Topic sysTopic = systemTopic();
+
+            when(topicRepository.findByIdForUpdate(TOPIC_ID)).thenReturn(Optional.of(sysTopic));
+            when(cardRepository.detachByTopicId(TOPIC_ID)).thenReturn(5);
+
+            topicService.deleteSystemTopic(TOPIC_ID);
+
+            verify(cardRepository).detachByTopicId(TOPIC_ID);
+            verify(topicRepository).deleteById(TOPIC_ID);
+            verify(deckRepository).adjustTopicCount(DECK_ID, -1);
+            verify(deckRepository).adjustCardCount(DECK_ID, -5);
+        }
+
+        @Test
+        @DisplayName("Delete system topic successfully: no card counter update when no cards detached")
+        void deleteSystemTopic_Success_NoDetachedCards() {
+            Topic sysTopic = systemTopic();
+
+            when(topicRepository.findByIdForUpdate(TOPIC_ID)).thenReturn(Optional.of(sysTopic));
+            when(cardRepository.detachByTopicId(TOPIC_ID)).thenReturn(0);
+
+            topicService.deleteSystemTopic(TOPIC_ID);
+
+            verify(cardRepository).detachByTopicId(TOPIC_ID);
+            verify(topicRepository).deleteById(TOPIC_ID);
+            verify(deckRepository).adjustTopicCount(DECK_ID, -1);
+            verify(deckRepository, never()).adjustCardCount(any(), anyInt());
+        }
+
+        @Test
+        @DisplayName("Delete system topic failed: topic not found")
+        void deleteSystemTopic_Fail_TopicNotFound() {
+            when(topicRepository.findByIdForUpdate(TOPIC_ID)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> topicService.deleteSystemTopic(TOPIC_ID))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.TOPIC_NOT_FOUND));
+
+            verify(cardRepository, never()).detachByTopicId(any());
+            verify(topicRepository, never()).deleteById(any());
+        }
+
+        @Test
+        @DisplayName("Delete system topic failed: deck is not system owned")
+        void deleteSystemTopic_Fail_DeckNotSystem() {
+            when(topicRepository.findByIdForUpdate(TOPIC_ID)).thenReturn(Optional.of(topic));
+
+            assertThatThrownBy(() -> topicService.deleteSystemTopic(TOPIC_ID))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.DECK_NOT_SYSTEM));
 
             verify(cardRepository, never()).detachByTopicId(any());
             verify(topicRepository, never()).deleteById(any());
