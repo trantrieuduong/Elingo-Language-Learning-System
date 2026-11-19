@@ -40,4 +40,11 @@ public interface R2Service {
      * <p><b>Chỉ dùng nội bộ</b>
      */
     void promoteToUploads(String verifiedKey, String uploadsKey);
+
+    /**
+     * Chuyển file hệ thống từ vùng chờ {@code verified/} sang vùng lưu trữ vĩnh viễn {@code system/{module}/}.
+     *
+     * <p><b>Chỉ dùng nội bộ cho các tài nguyên hệ thống</b>
+     */
+    void promoteToSystem(String verifiedKey, String systemKey);
 }

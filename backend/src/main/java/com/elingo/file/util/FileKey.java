@@ -1,22 +1,21 @@
 package com.elingo.file.util;
 
 import com.elingo.common.enums.MediaKind;
+import com.elingo.common.enums.SystemFileModule;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 
 /**
- * <p>Bucket chia làm ba vùng, mỗi vùng một ý nghĩa khác nhau:
+ * <p>Bucket chia làm các vùng lưu trữ:
  *
  * <pre>
- *   staging/{userId}/{uuid}.{ext}     file vừa tải lên, chưa kiểm tra định dạng
- *   verified/{userId}/{uuid}.{ext}    đã qua kiểm tra magic bytes, chưa ai dùng
- *   uploads/{userId}/{uuid}.{ext}     đã được một bản ghi tham chiếu
+ *   staging/{userId}/{uuid}.{ext}        file của user vừa tải lên, chưa kiểm tra định dạng
+ *   verified/{userId}/{uuid}.{ext}       file của user đã qua kiểm tra magic bytes, chưa dùng
+ *   uploads/{userId}/{uuid}.{ext}        file của user đã được một bản ghi tham chiếu
+ *   system/{module}/{uuid}.{ext}         file hệ thống lưu trữ vĩnh viễn (ví dụ: system/decks, system/cards, ...)
  * </pre>
  *
- * <p><b>Tên file không đổi khi promote từ verified sang uploads.</b>
- * {@code verified/12/a.png} và {@code uploads/12/a.png} là cùng một file ở hai nơi, nên
- * việc sửa chữa hậu kỳ chỉ cần biết tên file là dò lại được. (Bước staging -> verified thì
- * sinh tên mới, vì lúc đó mới biết đuôi file thật.)
+ * <p><b>Tên file không đổi khi promote từ verified sang vùng vĩnh viễn.</b>
  */
 public final class FileKey {
 
@@ -25,6 +24,8 @@ public final class FileKey {
     public static final String VERIFIED_PREFIX = "verified";
 
     public static final String UPLOADS_PREFIX = "uploads";
+
+    public static final String SYSTEM_PREFIX = "system";
 
     private FileKey() {
     }
@@ -43,6 +44,42 @@ public final class FileKey {
         }
 
         return UPLOADS_PREFIX + verifiedKey.substring(VERIFIED_PREFIX.length());
+    }
+
+    /**
+     * Chuyển đổi key ở vùng verified sang key lưu trữ vĩnh viễn của hệ thống:
+     * {@code verified/{userId}/{uuid}.{ext}} -&gt; {@code system/{module}/{uuid}.{ext}}.
+     *
+     * <p><b>Dành riêng cho các thành phần quản trị hệ thống (Admin):</b>
+     * Khi Admin tải file lên qua luồng kiểm thực thông thường của người dùng, service xử lý
+     * nội dung hệ thống gọi hàm này để sinh đường dẫn lưu trữ vĩnh viễn dạng {@code system/{module}/{uuid}.{ext}}
+     * trước khi lưu vào CSDL và kích hoạt sự kiện đồng bộ lưu trữ trên R2.
+     *
+     * @param verifiedKey key trong vùng verified (dạng {@code verified/{userId}/{uuid}.{ext}})
+     * @param module      module hệ thống đích sở hữu file (ví dụ: {@link SystemFileModule#DECKS}, {@link SystemFileModule#CARDS}, ...)
+     * @return key lưu trữ vĩnh viễn của hệ thống (dạng {@code system/{module}/{uuid}.{ext}})
+     * @throws AppException nếu key không thuộc vùng verified, module null hoặc key sai định dạng
+     */
+    public static String toSystem(String verifiedKey, SystemFileModule module) {
+        if (!isInZone(verifiedKey, VERIFIED_PREFIX) || module == null) {
+            throw new AppException(AppError.INVALID_REQUEST);
+        }
+
+        int lastSlash = verifiedKey.lastIndexOf('/');
+        if (lastSlash < 0 || lastSlash == verifiedKey.length() - 1) {
+            throw new AppException(AppError.INVALID_REQUEST);
+        }
+        String fileName = verifiedKey.substring(lastSlash + 1);
+        String targetModule = module.getPath();
+
+        return SYSTEM_PREFIX + "/" + targetModule + "/" + fileName;
+    }
+
+    /**
+     * Kiểm tra key có nằm trong một trong các vùng lưu trữ vĩnh viễn (uploads/ hoặc system/) hay không.
+     */
+    public static boolean isPermanentKey(String fileKey) {
+        return isInZone(fileKey, UPLOADS_PREFIX) || isInZone(fileKey, SYSTEM_PREFIX);
     }
 
     /**
@@ -101,10 +138,13 @@ public final class FileKey {
      * @param fileKey   key đầy đủ, ví dụ {@code uploads/12/a.png}
      */
     public static String toPublicUrl(String publicUrl, String fileKey) {
+        if (fileKey == null) return null;
+
+        String normalizedKey = fileKey.replaceAll("^/+", "");
         String base = publicUrl.endsWith("/")
                 ? publicUrl.substring(0, publicUrl.length() - 1)
                 : publicUrl;
-        return base + "/" + fileKey;
+        return base + "/" + normalizedKey;
     }
 
     /**

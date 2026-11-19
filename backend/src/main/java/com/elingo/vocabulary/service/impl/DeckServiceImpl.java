@@ -2,7 +2,7 @@ package com.elingo.vocabulary.service.impl;
 
 import com.elingo.admin.content.dto.request.*;
 import com.elingo.common.dto.PageResponse;
-import com.elingo.common.enums.MediaKind;
+import com.elingo.common.enums.SystemFileModule;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.common.util.SlugUtils;
@@ -211,7 +211,7 @@ public class DeckServiceImpl implements DeckService {
     @Override
     @Transactional
     public DeckResponse createSystemDeck(SystemDeckRequest request) {
-        var cover = mediaKeyResolver.forCreate(request.coverImageUrl(), MediaKind.IMAGE);
+        var cover = mediaKeyResolver.forCreate(request.coverImageUrl(), SystemFileModule.DECKS);
 
         Deck deck = deckMapper.toDeck(request);
         deck.setSlug(SlugUtils.generateUniqueSlug(request.title()));
@@ -242,7 +242,7 @@ public class DeckServiceImpl implements DeckService {
         }
 
         var cover = mediaKeyResolver.forUpdate(request.coverImageUrl(),
-                deck.getCoverImageUrl(), MediaKind.IMAGE);
+                deck.getCoverImageUrl(), SystemFileModule.DECKS);
 
         deckMapper.updateSystemDeck(deck, request);
         deck.setCoverImageUrl(cover.key());
