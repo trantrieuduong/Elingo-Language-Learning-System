@@ -5,9 +5,6 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
 
 @ConfigurationProperties(prefix = "app.community.moderation")
 public record ModerationProperties(
-        @DefaultValue("omni-moderation-latest") String openaiModel,
-        @DefaultValue("https://api.openai.com") String openaiBaseUrl,
-        @DefaultValue("") String openaiApiKey,
         @DefaultValue Scheduler scheduler,
         @DefaultValue Policy policy,
         @DefaultValue ModerationService moderationService) {
