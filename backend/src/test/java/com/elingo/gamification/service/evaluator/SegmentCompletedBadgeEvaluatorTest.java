@@ -2,7 +2,7 @@ package com.elingo.gamification.service.evaluator;
 
 import com.elingo.gamification.entity.Badge;
 import com.elingo.gamification.entity.BadgeConditionType;
-import com.elingo.learning.lesson.repository.UserLessonProgressRepository;
+import com.elingo.learning.lesson.repository.UserSegmentProgressRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -18,20 +18,20 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")
-class LessonsCompletedBadgeEvaluatorTest {
+class SegmentCompletedBadgeEvaluatorTest {
 
     @Mock
-    private UserLessonProgressRepository lessonProgressRepository;
+    private UserSegmentProgressRepository segmentProgressRepository;
 
     @InjectMocks
-    private LessonsCompletedBadgeEvaluator evaluator;
+    private SegmentCompletedBadgeEvaluator evaluator;
 
     private static final long USER_ID = 1L;
 
     @Test
-    @DisplayName("Supports LESSONS_COMPLETED condition type")
-    void supportsType_ReturnsLessonsCompleted() {
-        assertThat(evaluator.supportsType()).isEqualTo(BadgeConditionType.LESSONS_COMPLETED);
+    @DisplayName("Supports SEGMENT_COMPLETED condition type")
+    void supportsType_ReturnsSegmentCompleted() {
+        assertThat(evaluator.supportsType()).isEqualTo(BadgeConditionType.SEGMENT_COMPLETED);
     }
 
     @Nested
@@ -39,25 +39,25 @@ class LessonsCompletedBadgeEvaluatorTest {
     class GetCurrentProgressTests {
 
         @Test
-        @DisplayName("Returns completed lessons count from repository")
+        @DisplayName("Returns completed segments count from repository")
         void getCurrentProgress_ReturnsCountFromRepo() {
-            when(lessonProgressRepository.countCompletedLessonsByUserId(USER_ID)).thenReturn(12L);
+            when(segmentProgressRepository.countCompletedSegmentsByUserId(USER_ID)).thenReturn(12L);
 
             long progress = evaluator.getCurrentProgress(USER_ID);
 
             assertThat(progress).isEqualTo(12L);
-            verify(lessonProgressRepository).countCompletedLessonsByUserId(USER_ID);
+            verify(segmentProgressRepository).countCompletedSegmentsByUserId(USER_ID);
         }
 
         @Test
         @DisplayName("Returns 0 when repository returns 0")
-        void getCurrentProgress_WhenNoCompletedLessons_ReturnsZero() {
-            when(lessonProgressRepository.countCompletedLessonsByUserId(USER_ID)).thenReturn(0L);
+        void getCurrentProgress_WhenNoCompletedSegments_ReturnsZero() {
+            when(segmentProgressRepository.countCompletedSegmentsByUserId(USER_ID)).thenReturn(0L);
 
             long progress = evaluator.getCurrentProgress(USER_ID);
 
             assertThat(progress).isZero();
-            verify(lessonProgressRepository).countCompletedLessonsByUserId(USER_ID);
+            verify(segmentProgressRepository).countCompletedSegmentsByUserId(USER_ID);
         }
     }
 

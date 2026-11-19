@@ -66,8 +66,8 @@ public class XpServiceImpl implements XpService {
         if (source == null) return;
         switch (source) {
             case BATTLE_WIN -> badgeAwardService.evaluateAndAward(userId, BadgeConditionType.BATTLE_WINS);
-            case LESSON_DICTATION, LESSON_SHADOWING -> badgeAwardService
-                    .evaluateAndAward(userId, BadgeConditionType.LESSONS_COMPLETED);
+            case SEGMENT_DICTATION, SEGMENT_SHADOWING -> badgeAwardService
+                    .evaluateAndAward(userId, BadgeConditionType.SEGMENT_COMPLETED);
             case FLASHCARD_REVIEW -> badgeAwardService.evaluateAndAward(userId, BadgeConditionType.WORDS_LEARNED);
             default -> { /* No specific badge condition for other sources */ }
         }
