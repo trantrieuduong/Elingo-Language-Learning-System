@@ -1,18 +1,13 @@
 package com.elingo.config;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
-import org.springframework.util.AntPathMatcher;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 @Component
 public class SecurityEndpoints {
-
-    private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     private static final HttpMethod[] GET_ONLY = { HttpMethod.GET };
     private static final HttpMethod[] POST_ONLY = { HttpMethod.POST };
@@ -61,38 +56,4 @@ public class SecurityEndpoints {
             Map.entry("/gamification/levels",           GET_ONLY),
             Map.entry("/gamification/leaderboards/history", GET_ONLY)
     );
-
-    /**
-     * Kiểm tra xem request có thuộc diện endpoint công khai (public) hay không.
-     *
-     * @param request HttpServletRequest nhận vào
-     * @return true nếu là endpoint công khai và khớp HttpMethod, ngược lại false
-     */
-    public boolean isPublic(HttpServletRequest request) {
-        String path = request.getServletPath();
-        String method = request.getMethod();
-
-        // Ưu tiên kiểm tra các endpoint bắt buộc xác thực trước
-        for (String pattern : AUTHENTICATED_ENDPOINTS) {
-            if (pathMatcher.match(pattern, path)) {
-                return false;
-            }
-        }
-
-        // So khớp với danh sách PUBLIC_ENDPOINTS
-        for (Map.Entry<String, HttpMethod[]> entry : PUBLIC_ENDPOINTS.entrySet()) {
-            String pattern = entry.getKey();
-            HttpMethod[] methods = entry.getValue();
-
-            if (pathMatcher.match(pattern, path)) {
-                boolean methodMatches = Arrays.stream(methods)
-                        .anyMatch(m -> m.name().equalsIgnoreCase(method));
-                if (methodMatches) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
 }
