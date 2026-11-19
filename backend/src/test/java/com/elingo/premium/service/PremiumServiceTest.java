@@ -1,9 +1,10 @@
 package com.elingo.premium.service;
 
 import com.elingo.common.dto.PageResponse;
+import com.elingo.common.enums.SystemConfigKey;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
-import com.elingo.premium.config.PremiumProperties;
+import com.elingo.common.service.SystemConfigService;
 import com.elingo.premium.dto.PaymentQrInfo;
 import com.elingo.premium.dto.request.CreateCheckoutRequest;
 import com.elingo.premium.dto.response.CheckoutResponse;
@@ -71,14 +72,13 @@ class PremiumServiceTest {
     private PaymentQrService paymentQrService;
 
     @Mock
-    private PremiumProperties premiumProperties;
+    private SystemConfigService systemConfigService;
 
     @InjectMocks
     private PremiumServiceImpl premiumService;
 
     private User testUser;
     private PremiumPlan testPlan;
-    private PremiumProperties.BankTransfer bankTransferConfig;
 
     @BeforeEach
     void setUp() {
@@ -91,12 +91,6 @@ class PremiumServiceTest {
                 .durationDays(30)
                 .isActive(true)
                 .build();
-
-        bankTransferConfig = new PremiumProperties.BankTransfer();
-        bankTransferConfig.setCodePrefix("ELGO");
-        bankTransferConfig.setBankName("MBBank");
-        bankTransferConfig.setBankAccount("0123456789");
-        bankTransferConfig.setBankAccountName("CONG TY ELINGO");
     }
 
     @Nested
@@ -108,7 +102,7 @@ class PremiumServiceTest {
         void checkout_Success() {
             when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
             when(premiumPlanRepository.findById(10L)).thenReturn(Optional.of(testPlan));
-            when(premiumProperties.getBankTransfer()).thenReturn(bankTransferConfig);
+            when(systemConfigService.getString(SystemConfigKey.BANK_CODE_PREFIX, "ELGO")).thenReturn("ELGO");
 
             when(paymentTransactionRepository.save(any(PaymentTransaction.class)))
                     .thenAnswer(invocation -> {

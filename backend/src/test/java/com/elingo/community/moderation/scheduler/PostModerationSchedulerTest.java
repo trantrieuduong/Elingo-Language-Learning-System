@@ -37,9 +37,6 @@ class PostModerationSchedulerTest {
     @BeforeEach
     void setUp() {
         properties = new ModerationProperties(
-                "omni-moderation-latest",
-                "https://api.openai.com",
-                "test-api-key",
                 new ModerationProperties.Scheduler(true, 30, 5, 3),
                 new ModerationProperties.Policy(0.7, 0.5, 12),
                 new ModerationProperties.ModerationService("http://localhost:8000", "token")

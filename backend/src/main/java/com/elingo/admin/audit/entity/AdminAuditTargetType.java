@@ -20,4 +20,5 @@ public enum AdminAuditTargetType {
     PREMIUM_PLAN,
     SUBSCRIPTION,
     TRANSACTION,
+    SYSTEM_CONFIG,
 }

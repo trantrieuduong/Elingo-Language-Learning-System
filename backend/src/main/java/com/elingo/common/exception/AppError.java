@@ -212,6 +212,12 @@ public enum AppError {
     // ==========================================
     NOTIFICATION_NOT_FOUND("NOTIFICATION_NOT_FOUND", "Notification not found", HttpStatus.NOT_FOUND),
     NOTIFICATION_ACCESS_DENIED("NOTIFICATION_ACCESS_DENIED", "You do not have permission to access this notification", HttpStatus.FORBIDDEN),
+
+    // ==========================================
+    // 13. System Config (Cấu hình hệ thống)
+    // ==========================================
+    SYSTEM_CONFIG_NOT_FOUND("SYSTEM_CONFIG_NOT_FOUND", "System config not found", HttpStatus.NOT_FOUND),
+    SYSTEM_CONFIG_VALUE_INVALID("SYSTEM_CONFIG_VALUE_INVALID", "Invalid system config value", HttpStatus.BAD_REQUEST),
     ;
 
     private final String code;

@@ -1,6 +1,7 @@
 package com.elingo.premium.service;
 
-import com.elingo.premium.config.PremiumProperties;
+import com.elingo.common.enums.SystemConfigKey;
+import com.elingo.common.service.SystemConfigService;
 import com.elingo.premium.dto.PaymentQrInfo;
 import com.elingo.premium.service.impl.VietQrServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,27 +22,22 @@ import static org.mockito.Mockito.when;
 class VietQrServiceTest {
 
     @Mock
-    private PremiumProperties premiumProperties;
+    private SystemConfigService systemConfigService;
 
     private VietQrServiceImpl vietQrService;
-    private PremiumProperties.BankTransfer bankTransferConfig;
 
     @BeforeEach
     void setUp() {
-        vietQrService = new VietQrServiceImpl(premiumProperties);
-
-        bankTransferConfig = new PremiumProperties.BankTransfer();
-        bankTransferConfig.setCodePrefix("ELGO");
-        bankTransferConfig.setBankName("MBBank");
-        bankTransferConfig.setBankAccount("0123456789");
-        bankTransferConfig.setBankAccountName("CONG TY ELINGO");
-        bankTransferConfig.setQrTemplate("compact");
+        vietQrService = new VietQrServiceImpl(systemConfigService);
     }
 
     @Test
     @DisplayName("Should generate correct VietQR URL and account info with all parameters")
     void generateQrInfo_ReturnsCorrectInfo() {
-        when(premiumProperties.getBankTransfer()).thenReturn(bankTransferConfig);
+        when(systemConfigService.getString(SystemConfigKey.BANK_NAME, "MBBank")).thenReturn("MBBank");
+        when(systemConfigService.getString(SystemConfigKey.BANK_ACCOUNT, "")).thenReturn("0123456789");
+        when(systemConfigService.getString(SystemConfigKey.BANK_ACCOUNT_NAME, "")).thenReturn("CONG TY ELINGO");
+        when(systemConfigService.getString(SystemConfigKey.BANK_QR_TEMPLATE, "compact")).thenReturn("compact");
 
         BigDecimal amount = new BigDecimal("99000");
         String refCode = "ELGO_M1N2O3P4";
@@ -61,17 +57,19 @@ class VietQrServiceTest {
     }
 
     @Test
-    @DisplayName("Should safely handle null amount and fall back to default template")
-    void generateQrInfo_HandlesNullAmountAndNullTemplate() {
-        bankTransferConfig.setQrTemplate(null);
-        when(premiumProperties.getBankTransfer()).thenReturn(bankTransferConfig);
+    @DisplayName("Should fallback to default values when configs are blank")
+    void generateQrInfo_FallbackDefaults() {
+        when(systemConfigService.getString(SystemConfigKey.BANK_NAME, "MBBank")).thenReturn("MBBank");
+        when(systemConfigService.getString(SystemConfigKey.BANK_ACCOUNT, "")).thenReturn("");
+        when(systemConfigService.getString(SystemConfigKey.BANK_ACCOUNT_NAME, "")).thenReturn("");
+        when(systemConfigService.getString(SystemConfigKey.BANK_QR_TEMPLATE, "compact")).thenReturn("compact");
 
-        String refCode = "ELGO_DEFAULT";
-
-        PaymentQrInfo qrInfo = vietQrService.generateQrInfo(null, "VND", refCode);
+        PaymentQrInfo qrInfo = vietQrService.generateQrInfo(null, "VND", null);
 
         assertThat(qrInfo).isNotNull();
+        assertThat(qrInfo.bankName()).isEqualTo("MBBank");
+        assertThat(qrInfo.bankAccount()).isEqualTo("");
+        assertThat(qrInfo.bankAccountName()).isEqualTo("");
         assertThat(qrInfo.qrCodeUrl()).contains("amount=0");
-        assertThat(qrInfo.qrCodeUrl()).contains("template=compact");
     }
 }
