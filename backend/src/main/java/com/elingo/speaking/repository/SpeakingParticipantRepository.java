@@ -1,6 +1,8 @@
 package com.elingo.speaking.repository;
 
 import com.elingo.speaking.entity.SpeakingParticipant;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -42,6 +44,61 @@ public interface SpeakingParticipantRepository extends JpaRepository<SpeakingPar
             order by p.kickedAt desc, p.id desc
             """)
     List<SpeakingParticipant> findKickedByRoomId(@Param("roomId") Long roomId);
+
+    interface HistoryRoomRow {
+        Long getRoomId();
+        LocalDateTime getLastLeftAt();
+    }
+
+    // một trang các phòng (đã gộp), mới nhất trước. Ẩn phòng user đang ở
+    @Query(value = """
+            select r.id as roomId, max(p.leftAt) as lastLeftAt
+            from SpeakingParticipant p join p.room r
+            where p.user.id = :userId and p.leftAt is not null
+              and lower(coalesce(r.topic, '')) like :pattern escape '!'
+              and (:maxParticipants = 0 or r.maxParticipants = :maxParticipants)
+              and not exists (select 1 from SpeakingParticipant a
+                              where a.room = r and a.user.id = :userId and a.leftAt is null)
+            group by r.id
+            order by max(p.leftAt) desc, r.id desc
+            """,
+           countQuery = """
+            select count(distinct r.id)
+            from SpeakingParticipant p join p.room r
+            where p.user.id = :userId and p.leftAt is not null
+              and lower(coalesce(r.topic, '')) like :pattern escape '!'
+              and (:maxParticipants = 0 or r.maxParticipants = :maxParticipants)
+              and not exists (select 1 from SpeakingParticipant a
+                              where a.room = r and a.user.id = :userId and a.leftAt is null)
+            """)
+    Page<HistoryRoomRow> findHistoryRooms(@Param("userId") Long userId,
+                                          @Param("pattern") String pattern,
+                                          @Param("maxParticipants") int maxParticipants,
+                                          Pageable pageable);
+
+    // các lượt đã rời của user trong những phòng của trang đó
+    @Query("""
+            select p from SpeakingParticipant p join fetch p.room r
+            where p.user.id = :userId and p.leftAt is not null and r.id in :roomIds
+            order by p.joinedAt asc, p.id asc
+            """)
+    List<SpeakingParticipant> findFinishedByUserAndRoomIds(@Param("userId") Long userId,
+                                                           @Param("roomIds") Collection<Long> roomIds);
+
+    interface HistorySummaryRow {
+        Long getSessionCount();
+        Long getRoomCount();
+        Long getTotalSeconds();
+    }
+
+    @Query(value = """
+            select count(*) as sessionCount,
+                   count(distinct room_id) as roomCount,
+                   coalesce(sum(timestampdiff(SECOND, joined_at, left_at)), 0) as totalSeconds
+            from speaking_participants
+            where user_id = :userId and left_at is not null
+            """, nativeQuery = true)
+    HistorySummaryRow summarize(@Param("userId") Long userId);
 
     interface RoomCountProjection {
         Long getRoomId();
