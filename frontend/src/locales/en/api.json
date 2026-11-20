@@ -79,7 +79,14 @@
     "CANNOT_BATTLE_YOURSELF": "You cannot battle against yourself.",
     "BATTLE_NOT_ENOUGH_CARDS": "Not enough vocabulary cards to create a match.",
     "BATTLE_ANSWER_INVALID": "Invalid battle answer.",
-    "MALFORMED_JSON": "Invalid data format."
+    "MALFORMED_JSON": "Invalid data format.",
+    "SPEAKING_ROOM_NOT_FOUND": "Speaking room not found or has been closed.",
+    "SPEAKING_ROOM_FULL": "Speaking room is full.",
+    "SPEAKING_ROOM_CLOSED": "Speaking room has been closed.",
+    "SPEAKING_ROOM_ACCESS_DENIED": "You do not have permission to access this speaking room.",
+    "SPEAKING_PARTICIPANT_NOT_FOUND": "Participant not found in speaking room.",
+    "SPEAKING_ALREADY_IN_ROOM": "You are already in another speaking room.",
+    "SPEAKING_BANNED": "You have been removed from this speaking room by the host."
   },
   "validation": {
     "username": {

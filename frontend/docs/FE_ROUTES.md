@@ -42,8 +42,8 @@
 | `/battle/play/:matchId` | `BattlePlayPage` | `battle/pages/` | Màn hình thi đấu (WebSocket/STOMP: đếm ngược, câu hỏi trắc nghiệm/tự luận, bảng điểm, màn kết thúc) |
 | `/battle/history` | `BattleHistoryPage` | `battle/pages/` | Lịch sử đấu & thống kê cá nhân (REST) |
 | `/battle/history/:matchId` | `BattleMatchDetailPage` | `battle/pages/` | Chi tiết kết quả từng vòng của một trận đấu (REST) |
-| `/speaking` | `SpeakingLobbyPage` | `speaking/pages/` | Danh sách phòng luyện nói |
-| `/speaking/:roomId` | `SpeakingRoomPage` | `speaking/pages/` | Phòng luyện nói (WebRTC) |
+| `/speaking` | `SpeakingLobbyPage` | `speaking/pages/` | Sảnh phòng luyện nói: danh sách phòng công khai, tạo phòng, vào bằng mã (REST + WebSocket) |
+| `/speaking/room/:code` | `SpeakingRoomPage` | `speaking/pages/` | Phòng luyện nói (WebSocket; WebRTC audio ở FE2) |
 | `/community` | `CommunityFeedPage` | `community/pages/` | Feed cộng đồng (Bảng tin) |
 | `/community/groups` | `PostGroupPage` | `community/pages/` | Danh sách nhóm bài viết cộng đồng |
 | `/community/my-posts` | `CommunityMyPostsPage` | `community/pages/` | Bài viết của tôi |

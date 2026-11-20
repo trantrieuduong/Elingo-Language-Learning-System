@@ -1,1 +1,57 @@
-{}
+{
+  "lobby": {
+    "title": "Phòng luyện nói",
+    "subtitle": "Vào một phòng để nói chuyện bằng giọng nói với bạn học.",
+    "createRoom": "Tạo phòng",
+    "createRoomDesc": "Tạo phòng và nhận mã mời để nói chuyện cùng bạn bè",
+    "joinByCode": "Vào phòng bằng mã",
+    "joinByCodeDesc": "Chia sẻ mã phòng này với bạn bè. Cuộc trò chuyện sẽ bắt đầu ngay khi có người tham gia.",
+    "codePlaceholder": "Mã phòng (6 ký tự)",
+    "join": "Vào phòng",
+    "codeInvalid": "Mã phòng phải gồm đúng 6 ký tự.",
+    "publicRooms": "Phòng công khai",
+    "refresh": "Làm mới",
+    "retry": "Thử lại",
+    "empty": "Chưa có phòng công khai nào. Hãy tạo phòng đầu tiên!",
+    "emptyFiltered": "Không có phòng nào khớp bộ lọc.",
+    "clearFilters": "Xóa bộ lọc",
+    "searchPlaceholder": "Tìm theo chủ đề",
+    "capacityFilter": "Sức chứa",
+    "capacityAll": "Tất cả",
+    "capacityOption": "{{count}} người",
+    "full": "Đã đầy",
+    "loadError": "Không tải được danh sách phòng.",
+    "noTopic": "Chưa đặt chủ đề",
+    "participants": "{{count}}/{{max}} người",
+    "activeRoom": {
+      "title": "Bạn đang ở trong phòng {{code}}",
+      "desc": "Bạn cần rời phòng hiện tại trước khi tạo hoặc vào phòng khác.",
+      "back": "Quay lại phòng",
+      "blocked": "Bạn đang ở phòng khác"
+    },
+    "status": {
+      "WAITING": "Đang chờ",
+      "ACTIVE": "Đang nói chuyện"
+    }
+  },
+  "error": {
+    "socketNotConnected": "Chưa kết nối máy chủ, thử lại sau giây lát."
+  },
+  "create": {
+    "title": "Tạo phòng",
+    "subtitle": "Thiết lập phòng luyện nói và mời bạn bè tham gia.",
+    "topic": "Chủ đề (tùy chọn)",
+    "capacity": "Số người tối đa",
+    "private": "Phòng riêng tư",
+    "privateHint": "Phòng không hiện trong danh sách. Chỉ người có mã mới vào được.",
+    "submit": "Tạo phòng",
+    "cancel": "Hủy"
+  },
+  "room": {
+    "placeholderTitle": "Phòng {{code}} - âm thanh",
+    "private": "Riêng tư",
+    "public": "Công khai",
+    "leave": "Rời phòng"
+  }
+}
+

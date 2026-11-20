@@ -1,1 +1,57 @@
-{}
+{
+  "lobby": {
+    "title": "Speaking rooms",
+    "subtitle": "Join a room to practice speaking English with peers.",
+    "createRoom": "Create room",
+    "createRoomDesc": "Create a room and get an invite code to practice with friends",
+    "joinByCode": "Join by code",
+    "joinByCodeDesc": "Share this room code with friends. The conversation will start as soon as someone joins.",
+    "codePlaceholder": "Room code (6 chars)",
+    "join": "Join",
+    "codeInvalid": "Room code must be exactly 6 characters.",
+    "publicRooms": "Public rooms",
+    "refresh": "Refresh",
+    "retry": "Try again",
+    "empty": "No public rooms yet. Create the first one!",
+    "emptyFiltered": "No rooms match your filters.",
+    "clearFilters": "Clear filters",
+    "searchPlaceholder": "Search by topic",
+    "capacityFilter": "Capacity",
+    "capacityAll": "All",
+    "capacityOption": "{{count}} people",
+    "full": "Full",
+    "loadError": "Couldn't load rooms.",
+    "noTopic": "No topic yet",
+    "participants": "{{count}}/{{max}} people",
+    "activeRoom": {
+      "title": "You are currently in room {{code}}",
+      "desc": "You must leave your current room before creating or joining another.",
+      "back": "Back to your room",
+      "blocked": "You are in another room"
+    },
+    "status": {
+      "WAITING": "Waiting",
+      "ACTIVE": "In conversation"
+    }
+  },
+  "error": {
+    "socketNotConnected": "Not connected to server, please try again shortly."
+  },
+  "create": {
+    "title": "Create room",
+    "subtitle": "Set up a speaking practice room and invite friends to join.",
+    "topic": "Topic (optional)",
+    "capacity": "Max people",
+    "private": "Private room",
+    "privateHint": "The room is hidden from the list. Only people with the code can join.",
+    "submit": "Create room",
+    "cancel": "Cancel"
+  },
+  "room": {
+    "placeholderTitle": "Room {{code}} - audio",
+    "private": "Private",
+    "public": "Public",
+    "leave": "Leave room"
+  }
+}
+

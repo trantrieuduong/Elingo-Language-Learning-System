@@ -24,6 +24,7 @@ public interface SpeakingRoomPersistenceService {
     boolean forceCloseRoom(String roomCode);
     int closeAllOpenRooms();
     String findActiveRoomCode(Long userId);
+    String findActiveRoomCodeOrNull(Long userId);
     SpeakingRoomDetailResponse getRoomDetail(String roomCode);
     PageResponse<SpeakingRoomResponse> getOpenRooms(SpeakingRoomSearchRequest request, Pageable pageable);
 
