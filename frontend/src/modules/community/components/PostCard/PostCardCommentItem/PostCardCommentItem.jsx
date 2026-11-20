@@ -3,8 +3,6 @@ import { useTranslation } from 'react-i18next';
 import OptionsModal from '../../../../../components/OptionsModal/OptionsModal';
 import OptionsMenu from '../../../../../components/OptionsMenu/OptionsMenu';
 import ConfirmModal from '../../../../../components/ConfirmModal/ConfirmModal';
-import Toast from '../../../../../components/Toast/Toast';
-import ReportModal from '../../../../report/components/ReportModal/ReportModal';
 import { formatRelativeTime } from '../../../../../utils/utils';
 import PostCardCommentInput from '../PostCardCommentInput/PostCardCommentInput';
 import PostCardLikeButton from '../PostCardActions/PostCardLikeButton';
@@ -18,6 +16,7 @@ function PostCardCommentItem({
   onUpdateComment,
   onDeleteComment,
   onLikeComment,
+  onReportComment,
   replyState,
   onLoadReplies,
   onCreateReply,
@@ -27,8 +26,6 @@ function PostCardCommentItem({
 }) {
   const { t, i18n } = useTranslation();
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
-  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -74,7 +71,12 @@ function PostCardCommentItem({
             id: 'report-comment',
             label: t('report:report'),
             icon: 'flag',
-            onSelect: () => setIsReportModalOpen(true),
+            onSelect: () =>
+              onReportComment?.({
+                targetType: 'COMMENT',
+                targetId: comment.id,
+                targetLabel: comment.content,
+              }),
           },
         ]
       : []),
@@ -185,21 +187,6 @@ function PostCardCommentItem({
                 isDanger
                 isLoading={isDeleting}
               />
-              <ReportModal
-                isOpen={isReportModalOpen}
-                targetType="COMMENT"
-                targetId={comment.id}
-                targetLabel={comment.content}
-                onClose={() => setIsReportModalOpen(false)}
-                onSuccess={() => {
-                  setToastMessage(t('report:successMessage'));
-                }}
-              />
-              <Toast
-                message={toastMessage}
-                variant="success"
-                onDismiss={() => setToastMessage('')}
-              />
             </div>
           )}
         </header>
@@ -309,6 +296,7 @@ function PostCardCommentItem({
                       onUpdateComment={onUpdateComment}
                       onDeleteComment={onDeleteComment}
                       onLikeComment={onLikeComment}
+                      onReportComment={onReportComment}
                       isReply
                     />
                   ))}
