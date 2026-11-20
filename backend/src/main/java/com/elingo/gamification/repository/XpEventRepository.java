@@ -10,6 +10,11 @@ import java.util.List;
 
 public interface XpEventRepository extends JpaRepository<XpEvent, Long> {
 
+    interface DateCountProjection {
+        String getPeriodKey();
+        Long getCountVal();
+    }
+
     interface UserPeriodXp {
         Long getUserId();
         Long getTotalXp();
@@ -20,5 +25,13 @@ public interface XpEventRepository extends JpaRepository<XpEvent, Long> {
             "WHERE e.createdAt >= :since " +
             "GROUP BY e.user.id")
     List<UserPeriodXp> sumXpGroupByUserSince(@Param("since") LocalDateTime since);
-}
 
+    @Query(value = "SELECT DATE_FORMAT(e.created_at, '%Y-%m-%d') AS periodKey, COUNT(DISTINCT e.user_id) AS countVal " +
+            "FROM xp_events e " +
+            "WHERE e.created_at >= :from AND e.created_at <= :to " +
+            "GROUP BY periodKey ORDER BY periodKey ASC", nativeQuery = true)
+    List<DateCountProjection> countDauByDay(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    @Query("SELECT COUNT(DISTINCT e.user.id) FROM XpEvent e WHERE e.createdAt >= :from AND e.createdAt <= :to")
+    long countDistinctUsersBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+}
