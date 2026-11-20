@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import FormAlert from '../../../components/FormAlert/FormAlert';
-import { uploadFileForVerification } from '../../../services/uploadFile';
-import { createReportApi } from '../reportApi';
-import '../../../components/Input/Input.css';
+import FormAlert from '../../../../components/FormAlert/FormAlert';
+import { uploadFileForVerification } from '../../../../services/uploadFile';
+import { createReportApi } from '../../reportApi';
+import '../../../../components/Input/Input.css';
 import './ReportModal.css';
 
 const DESCRIPTION_MIN_LENGTH = 10;

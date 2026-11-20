@@ -26,6 +26,7 @@ import PremiumListPage from './modules/premium/pages/PremiumListPage/PremiumList
 import MySubscriptionPage from './modules/premium/pages/MySubscriptionPage/MySubscriptionPage';
 import BattleHistoryPage from './modules/battle/pages/BattleHistoryPage';
 import BattleMatchDetailPage from './modules/battle/pages/BattleMatchDetailPage';
+import ReportPage from './modules/report/pages/ReportPage';
 import './App.css';
 
 const AUTH_PATHS = ['/login', '/signup', '/account-verification', '/reset-password'];
@@ -42,6 +43,7 @@ const PRIVATE_USER_PATHS = [
   '/gamification',
   '/premium/my-subscription',
   '/profile',
+  '/reports',
 ];
 
 function App() {
@@ -242,6 +244,8 @@ function App() {
         return <MySubscriptionPage onNavigate={navigate} />;
       case '/profile':
         return <PlaceholderPage title="Profile" path={currentPath} />;
+      case '/reports':
+        return <ReportPage onNavigate={navigate} />;
       case '/decks':
         return <DeckListPage onNavigate={navigate} />;
       default:

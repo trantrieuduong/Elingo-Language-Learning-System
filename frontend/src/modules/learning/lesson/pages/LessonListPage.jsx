@@ -11,7 +11,7 @@ import Toast from '../../../../components/Toast/Toast';
 import OptionsModal from '../../../../components/OptionsModal/OptionsModal';
 import LessonCard from '../components/LessonCard/LessonCard';
 import LessonModeModal from '../components/LessonModeModal/LessonModeModal';
-import ReportModal from '../../../report/components/ReportModal';
+import ReportModal from '../../../report/components/ReportModal/ReportModal';
 import { useReportModal } from '../../../report/hooks/useReportModal';
 import './LessonListPage.css';
 

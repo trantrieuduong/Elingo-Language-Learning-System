@@ -4,7 +4,7 @@ import OptionsModal from '../../../../../components/OptionsModal/OptionsModal';
 import OptionsMenu from '../../../../../components/OptionsMenu/OptionsMenu';
 import ConfirmModal from '../../../../../components/ConfirmModal/ConfirmModal';
 import Toast from '../../../../../components/Toast/Toast';
-import ReportModal from '../../../../report/components/ReportModal';
+import ReportModal from '../../../../report/components/ReportModal/ReportModal';
 import { formatRelativeTime } from '../../../../../utils/utils';
 import PostCardCommentInput from '../PostCardCommentInput/PostCardCommentInput';
 import PostCardLikeButton from '../PostCardActions/PostCardLikeButton';

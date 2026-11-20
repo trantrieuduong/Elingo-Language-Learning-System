@@ -19,7 +19,36 @@
   "errors": {
     "descriptionRequired": "Please enter a report description.",
     "descriptionMax": "Report description cannot exceed 1000 characters.",
-    "uploadFailed": "Image upload failed, please try again.",
-    "submitFailed": "Could not submit report at this time. Please try again later."
-  }
+    "submitFailed": "Could not submit report at this time. Please try again later.",
+    "loadFailed": "Failed to load reports. Please try again."
+  },
+  "emptyTitle": "No reports found",
+  "emptyDescription": "You have not submitted any reports yet.",
+  "retry": "Retry",
+  "viewDetails": "View details",
+  "close": "Close",
+  "detailModalTitle": "Report details",
+  "table": {
+    "targetType": "Target",
+    "description": "Report content",
+    "status": "Status",
+    "createdAt": "Submitted on",
+    "actions": "Actions"
+  },
+  "fields": {
+    "targetType": "Target type",
+    "description": "Violation description",
+    "status": "Status",
+    "image": "Attached images",
+    "resolutionNote": "Admin resolution note",
+    "resolvedAt": "Resolved at",
+    "createdAt": "Submitted at"
+  },
+  "status": {
+    "PENDING": "Pending",
+    "RESOLVED": "Resolved",
+    "REJECTED": "Rejected"
+  },
+  "noImages": "No proof images attached",
+  "noResolutionNote": "No resolution note provided"
 }

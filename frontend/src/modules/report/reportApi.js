@@ -18,9 +18,14 @@ export async function createReportApi(data) {
 }
 
 /**
- * @param {Object} params - Phân trang pageable
+ * @param {Object} [params] - Phân trang pageable - page, size
  */
 export async function getMyReportsApi(params = {}) {
   const response = await apiClient.get('/reports', { params });
+  return response.data;
+}
+
+export async function getMyReportApi(reportId) {
+  const response = await apiClient.get(`/reports/${reportId}`);
   return response.data;
 }

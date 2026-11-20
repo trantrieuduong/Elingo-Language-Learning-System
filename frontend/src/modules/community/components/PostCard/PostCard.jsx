@@ -12,7 +12,7 @@ import useCommunityComments from '../../hooks/useCommunityComments';
 import OptionsModal from '../../../../components/OptionsModal/OptionsModal';
 import ConfirmModal from '../../../../components/ConfirmModal/ConfirmModal';
 import Toast from '../../../../components/Toast/Toast';
-import ReportModal from '../../../report/components/ReportModal';
+import ReportModal from '../../../report/components/ReportModal/ReportModal';
 import './PostCard.css';
 
 /**

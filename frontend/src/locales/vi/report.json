@@ -19,7 +19,36 @@
   "errors": {
     "descriptionRequired": "Vui lòng nhập lý do báo cáo.",
     "descriptionMax": "Lý do báo cáo không được vượt quá 1000 ký tự.",
-    "uploadFailed": "Tải ảnh lên thất bại, vui lòng thử lại.",
-    "submitFailed": "Không thể gửi báo cáo lúc này. Vui lòng thử lại sau."
-  }
+    "submitFailed": "Không thể gửi báo cáo lúc này. Vui lòng thử lại sau.",
+    "loadFailed": "Không thể tải danh sách báo cáo. Vui lòng thử lại."
+  },
+  "emptyTitle": "Chưa có báo cáo nào",
+  "emptyDescription": "Bạn chưa gửi báo cáo vi phạm nào trên hệ thống.",
+  "retry": "Thử lại",
+  "viewDetails": "Xem chi tiết",
+  "close": "Đóng",
+  "detailModalTitle": "Chi tiết báo cáo",
+  "table": {
+    "targetType": "Đối tượng",
+    "description": "Nội dung báo cáo",
+    "status": "Trạng thái",
+    "createdAt": "Ngày gửi",
+    "actions": "Thao tác"
+  },
+  "fields": {
+    "targetType": "Loại đối tượng",
+    "description": "Lý do vi phạm",
+    "status": "Trạng thái",
+    "image": "Hình ảnh đính kèm",
+    "resolutionNote": "Ghi chú giải quyết từ admin",
+    "resolvedAt": "Thời gian giải quyết",
+    "createdAt": "Thời gian tạo"
+  },
+  "status": {
+    "PENDING": "Đang chờ xử lý",
+    "RESOLVED": "Đã giải quyết",
+    "REJECTED": "Đã từ chối"
+  },
+  "noImages": "Không có ảnh minh chứng",
+  "noResolutionNote": "Chưa có ghi chú xử lý"
 }

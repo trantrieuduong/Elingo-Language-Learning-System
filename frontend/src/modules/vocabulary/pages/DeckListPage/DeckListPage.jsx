@@ -23,7 +23,7 @@ import OptionsModal from '../../../../components/OptionsModal/OptionsModal';
 import UserDeckCard from '../../components/UserDeckCard/UserDeckCard';
 import DeckStatsPill from '../../components/DeckStatsPill/DeckStatsPill';
 import DeckFormModal from '../../components/DeckFormModal/DeckFormModal';
-import ReportModal from '../../../report/components/ReportModal';
+import ReportModal from '../../../report/components/ReportModal/ReportModal';
 import { useReportModal } from '../../../report/hooks/useReportModal';
 import './DeckListPage.css';
 
