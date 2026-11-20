@@ -19,10 +19,11 @@ public class RevenueStatsQueryServiceImpl implements RevenueStatsQueryService {
     @Override
     @Transactional(readOnly = true)
     public List<PaymentTransactionRepository.DateAmountCountProjection> getRevenueTimeSeries(LocalDateTime from, LocalDateTime to, StatsGranularity granularity) {
-        if (granularity == StatsGranularity.MONTH) {
-            return paymentTransactionRepository.getRevenueTimeseriesByMonth(from, to);
-        }
-        return paymentTransactionRepository.getRevenueTimeseriesByDay(from, to);
+        return switch (granularity) {
+            case MONTH -> paymentTransactionRepository.getRevenueTimeseriesByMonth(from, to);
+            case WEEK -> paymentTransactionRepository.getRevenueTimeseriesByWeek(from, to);
+            case DAY -> paymentTransactionRepository.getRevenueTimeseriesByDay(from, to);
+        };
     }
 
     @Override

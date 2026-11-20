@@ -61,6 +61,12 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
             "GROUP BY periodKey ORDER BY periodKey ASC", nativeQuery = true)
     List<DateAmountCountProjection> getRevenueTimeseriesByDay(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
+    @Query(value = "SELECT DATE_FORMAT(DATE_SUB(t.paid_at, INTERVAL WEEKDAY(t.paid_at) DAY), '%Y-%m-%d') AS periodKey, SUM(t.amount) AS totalAmount, COUNT(t.id) AS txCount " +
+            "FROM payment_transactions t " +
+            "WHERE t.status = 'SUCCESS' AND t.paid_at >= :from AND t.paid_at <= :to " +
+            "GROUP BY periodKey ORDER BY periodKey ASC", nativeQuery = true)
+    List<DateAmountCountProjection> getRevenueTimeseriesByWeek(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
     @Query(value = "SELECT DATE_FORMAT(t.paid_at, '%Y-%m') AS periodKey, SUM(t.amount) AS totalAmount, COUNT(t.id) AS txCount " +
             "FROM payment_transactions t " +
             "WHERE t.status = 'SUCCESS' AND t.paid_at >= :from AND t.paid_at <= :to " +

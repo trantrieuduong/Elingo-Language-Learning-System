@@ -64,15 +64,16 @@ class RevenueStatsQueryServiceTest {
         }
 
         @Test
-        @DisplayName("Should query day timeseries when granularity is WEEK")
-        void getRevenueTimeSeries_Week_CallsDayQuery() {
-            when(paymentTransactionRepository.getRevenueTimeseriesByDay(from, to)).thenReturn(List.of());
+        @DisplayName("Should query week timeseries when granularity is WEEK")
+        void getRevenueTimeSeries_Week_CallsWeekQuery() {
+            PaymentTransactionRepository.DateAmountCountProjection proj = mock(PaymentTransactionRepository.DateAmountCountProjection.class);
+            when(paymentTransactionRepository.getRevenueTimeseriesByWeek(from, to)).thenReturn(List.of(proj));
 
             List<PaymentTransactionRepository.DateAmountCountProjection> result =
                     revenueStatsQueryService.getRevenueTimeSeries(from, to, StatsGranularity.WEEK);
 
-            assertThat(result).isEmpty();
-            verify(paymentTransactionRepository).getRevenueTimeseriesByDay(from, to);
+            assertThat(result).hasSize(1).contains(proj);
+            verify(paymentTransactionRepository).getRevenueTimeseriesByWeek(from, to);
         }
     }
 
