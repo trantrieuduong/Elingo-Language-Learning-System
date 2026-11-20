@@ -12,6 +12,7 @@
   "delete": "Xóa",
   "edit": "Chỉnh sửa",
   "loadError": "Không thể tải dữ liệu. Vui lòng thử lại.",
+  "maxFiles": "Tối đa {{max}} tệp",
   "filter": {
     "clearFilters": "Xóa bộ lọc",
     "level": "Cấp độ",

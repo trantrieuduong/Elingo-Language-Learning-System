@@ -1,6 +1,7 @@
 {
   "deckList": {
     "cardStats": "{{topicCount}} topics - {{cardCount}} cards",
+    "deckOptions": "Deck options",
     "emptyDefault": "There are no vocabulary decks available right now.",
     "emptyFilter": "No vocabulary decks matched your current filter criteria.",
     "emptyTitle": "No vocabulary decks found",
@@ -69,6 +70,7 @@
     "emptyDefault": "No lessons have been published yet.",
     "emptyFilter": "No lessons matched your current filter criteria.",
     "emptyTitle": "No lessons found",
+    "lessonOptions": "Lesson options",
     "noDescription": "No description available for this lesson.",
     "premium": "Premium",
     "searchPlaceholder": "Search lessons...",

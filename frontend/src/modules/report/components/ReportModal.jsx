@@ -26,12 +26,14 @@ function ReportModal({
   const fileInputRef = useRef(null);
 
   const [description, setDescription] = useState('');
+  const [descriptionError, setDescriptionError] = useState('');
   const [selectedFiles, setSelectedFiles] = useState([]); // { file, previewUrl }
   const [errorAlert, setErrorAlert] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const resetState = useCallback(() => {
     setDescription('');
+    setDescriptionError('');
     setSelectedFiles((prev) => {
       prev.forEach((item) => {
         if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
@@ -121,20 +123,17 @@ function ReportModal({
 
     const trimmedDesc = description.trim();
     if (!trimmedDesc) {
-      setErrorAlert(t('report:errors.descriptionRequired'));
-      return;
-    }
-    if (trimmedDesc.length < DESCRIPTION_MIN_LENGTH) {
-      setErrorAlert(t('report:errors.descriptionMin'));
+      setDescriptionError(t('report:errors.descriptionRequired'));
       return;
     }
     if (trimmedDesc.length > DESCRIPTION_MAX_LENGTH) {
-      setErrorAlert(t('report:errors.descriptionMax'));
+      setDescriptionError(t('report:errors.descriptionMax'));
       return;
     }
 
     setIsSubmitting(true);
     setErrorAlert('');
+    setDescriptionError('');
 
     try {
       // Upload các ảnh đính kèm qua uploadFileForVerification()
@@ -191,7 +190,7 @@ function ReportModal({
               <div className="report-modal__target-header">
                 <span>{t('report:report')}:</span>
                 <span className="report-modal__target-badge">
-                  {t(`report:targetTypes.${targetType}`, targetType)}
+                  {t(`report:targetTypes.${targetType}`)}
                 </span>
               </div>
               {targetLabel && (
@@ -207,22 +206,23 @@ function ReportModal({
               </label>
               <textarea
                 id="report-description"
-                className={`input-field report-modal__textarea ${errorAlert ? 'input-field--error' : ''}`}
+                className={`input-field report-modal__textarea ${descriptionError ? 'input-field--error' : ''}`}
                 placeholder={t('report:descriptionPlaceholder')}
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={(e) => {
+                  setDescription(e.target.value);
+                  if (descriptionError) setDescriptionError('');
+                }}
                 disabled={isSubmitting}
                 rows={4}
               />
+              {descriptionError && <p className="input-error">{descriptionError}</p>}
             </div>
 
             <div className="report-modal__upload-zone">
               <div className="report-modal__label-row">
                 <span className="report-modal__label">
-                  {t('report:attachImages', { max: MAX_IMAGES })}
-                </span>
-                <span className="report-modal__upload-count">
-                  {selectedFiles.length}/{MAX_IMAGES}
+                  {t('report:attachImages')}
                 </span>
               </div>
 
@@ -237,15 +237,20 @@ function ReportModal({
               />
 
               {selectedFiles.length < MAX_IMAGES && (
-                <button
-                  type="button"
-                  className="btn-secondary report-modal__upload-btn"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isSubmitting}
-                >
-                  <span className="material-symbols-outlined">add_photo_alternate</span>
-                  <span>{t('report:chooseFiles')}</span>
-                </button>
+                <div className="report-modal__upload-box">
+                  <button
+                    type="button"
+                    className="btn-secondary report-modal__upload-btn"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isSubmitting}
+                  >
+                    <span className="material-symbols-outlined">add_photo_alternate</span>
+                    <span>{t('report:chooseFiles')}</span>
+                  </button>
+                  <span className="report-modal__upload-note">
+                    {t('common:maxFiles', { max: MAX_IMAGES })}
+                  </span>
+                </div>
               )}
 
               {selectedFiles.length > 0 && (
@@ -284,7 +289,7 @@ function ReportModal({
             <button
               type="submit"
               className="btn-primary"
-              disabled={isSubmitting}
+              disabled={isSubmitting || description.trim().length < DESCRIPTION_MIN_LENGTH}
             >
               {isSubmitting ? t('report:submitting') : t('report:submit')}
             </button>

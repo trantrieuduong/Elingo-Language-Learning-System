@@ -142,11 +142,6 @@
   letter-spacing: var(--tracking-wide);
 }
 
-.report-modal__upload-count {
-  font-size: var(--font-size-body-sm);
-  color: var(--color-text-disabled);
-}
-
 .report-modal__textarea {
   width: 100%;
   min-height: 120px;
@@ -159,10 +154,24 @@
   gap: var(--spacing-sm);
 }
 
+.report-modal__upload-box {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
 .report-modal__upload-btn {
-  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   padding: var(--spacing-sm) var(--spacing-md);
   font-size: var(--font-size-label-md);
+}
+
+.report-modal__upload-note {
+  font-size: var(--font-size-label-sm);
+  color: var(--color-on-surface-variant);
 }
 
 .report-modal__media-preview-list {

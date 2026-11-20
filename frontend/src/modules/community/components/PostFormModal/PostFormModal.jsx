@@ -412,7 +412,7 @@ function PostFormModal({
                   <span>{t('community:postForm.browseDevice')}</span>
                 </button>
                 <span className="post-form-modal__upload-note">
-                  {t('community:postForm.mediaNote', { max: MEDIA_MAX_FILES })}
+                  {t('common:maxFiles', { max: MEDIA_MAX_FILES })}
                 </span>
               </div>
 

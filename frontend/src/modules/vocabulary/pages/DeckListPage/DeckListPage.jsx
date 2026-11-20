@@ -18,9 +18,13 @@ import EmptyState from '../../../../components/EmptyState/EmptyState';
 import PageLoading from '../../../../components/PageLoading/PageLoading';
 import Toast from '../../../../components/Toast/Toast';
 import ConfirmModal from '../../../../components/ConfirmModal/ConfirmModal';
+import OptionsMenu from '../../../../components/OptionsMenu/OptionsMenu';
+import OptionsModal from '../../../../components/OptionsModal/OptionsModal';
 import UserDeckCard from '../../components/UserDeckCard/UserDeckCard';
 import DeckStatsPill from '../../components/DeckStatsPill/DeckStatsPill';
 import DeckFormModal from '../../components/DeckFormModal/DeckFormModal';
+import ReportModal from '../../../report/components/ReportModal';
+import { useReportModal } from '../../../report/hooks/useReportModal';
 import './DeckListPage.css';
 
 const DECK_TABS = new Set(['system-decks', 'community-decks', 'my-decks']);
@@ -31,13 +35,18 @@ const getInitialTab = () => {
 };
 
 function DeckListPage({ onNavigate }) {
-  const { t } = useTranslation(['learning', 'common']);
+  const { t } = useTranslation(['learning', 'common', 'report']);
   const translationRef = useRef(t);
   useEffect(() => {
     translationRef.current = t;
   }, [t]);
 
   const { user } = useAuth();
+
+  // State report modal
+  const { isReportOpen, targetType, targetId, targetLabel, openReport, closeReport } =
+    useReportModal();
+  const [targetDeckForOptions, setTargetDeckForOptions] = useState(null);
   const [selectedTab, setSelectedTab] = useState(getInitialTab);
   const activeTab = selectedTab === 'my-decks' && !user ? 'system-decks' : selectedTab;
 
@@ -332,6 +341,59 @@ function DeckListPage({ onNavigate }) {
     setUserDeckPage(1);
   };
 
+  const canReportDeck = (deck) => {
+    if (!user) return false;
+    // Kiểm tra ownerId nếu là deck của chính người dùng
+    const ownerId = deck.ownerId;
+    if (ownerId && String(ownerId) === String(user.id)) return false;
+    return true;
+  };
+
+  const deckOptions = targetDeckForOptions
+    ? activeTab === 'my-decks'
+      ? [
+          {
+            id: 'toggle-status',
+            label: t(
+              targetDeckForOptions.status === 'PUBLISHED'
+                ? 'userDeck.switchToDraft'
+                : 'userDeck.publishDeck'
+            ),
+            icon: targetDeckForOptions.status === 'PUBLISHED' ? 'unpublished' : 'publish',
+            onSelect: () => handleToggleStatus(targetDeckForOptions),
+          },
+          {
+            id: 'edit-deck',
+            label: t('userDeck.editDeck'),
+            icon: 'edit',
+            onSelect: () => handleOpenEditModal(targetDeckForOptions),
+          },
+          {
+            id: 'delete-deck',
+            label: t('userDeck.deleteDeck'),
+            icon: 'delete',
+            variant: 'danger',
+            onSelect: () => handleOpenDeleteModal(targetDeckForOptions),
+          },
+        ]
+      : canReportDeck(targetDeckForOptions)
+        ? [
+            {
+              id: 'report-deck',
+              label: t('report:report'),
+              icon: 'flag',
+              onSelect: () => {
+                openReport({
+                  targetType: 'DECK',
+                  targetId: targetDeckForOptions.id,
+                  targetLabel: targetDeckForOptions.title,
+                });
+              },
+            },
+          ]
+        : []
+    : [];
+
   return (
     <main className="deck-list-page">
       <div className="container deck-list-container">
@@ -482,7 +544,9 @@ function DeckListPage({ onNavigate }) {
                         key={deck.id}
                         className={`vocabulary-card glass-card ${
                           deck.isPremium ? 'vocabulary-card--premium' : ''
-                        } ${activeTab === 'community-decks' ? 'vocabulary-card--without-cover' : ''}`}
+                        } ${activeTab === 'community-decks' ? 'vocabulary-card--without-cover' : ''} ${
+                          canReportDeck(deck) ? 'vocabulary-card--with-options' : ''
+                        }`}
                         onClick={() => handleDeckClick(deck)}
                       >
                         {/* Huy hiệu Premium ở góc trên bên trái */}
@@ -493,6 +557,16 @@ function DeckListPage({ onNavigate }) {
                             </span>
                             {t('deckList.premium')}
                           </span>
+                        )}
+
+                        {canReportDeck(deck) && (
+                          <OptionsMenu
+                            className="vocabulary-card__options-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setTargetDeckForOptions(deck);
+                            }}
+                          />
                         )}
 
                         <DeckStatsPill
@@ -600,9 +674,7 @@ function DeckListPage({ onNavigate }) {
                     <UserDeckCard
                       key={deck.id}
                       deck={deck}
-                      onEdit={handleOpenEditModal}
-                      onDelete={handleOpenDeleteModal}
-                      onToggleStatus={handleToggleStatus}
+                      onOptionsClick={setTargetDeckForOptions}
                       onManageTopics={handleManageTopics}
                     />
                   ))}
@@ -640,6 +712,22 @@ function DeckListPage({ onNavigate }) {
         isLoading={isDeleting}
         onConfirm={handleConfirmDelete}
         onCancel={() => setIsDeleteModalOpen(false)}
+      />
+
+      <OptionsModal
+        isOpen={!!targetDeckForOptions}
+        title={t('deckList.deckOptions')}
+        options={deckOptions}
+        onClose={() => setTargetDeckForOptions(null)}
+      />
+
+      <ReportModal
+        isOpen={isReportOpen}
+        targetType={targetType}
+        targetId={targetId}
+        targetLabel={targetLabel}
+        onClose={closeReport}
+        onSuccess={() => showToast(t('report:successMessage'))}
       />
     </main>
   );

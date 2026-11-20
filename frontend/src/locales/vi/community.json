@@ -94,7 +94,6 @@
     "contentPlaceholder": "Viết nội dung rõ ràng để mọi người dễ dàng cùng thảo luận...",
     "mediaLabel": "Ảnh & video",
     "browseDevice": "Chọn từ thiết bị",
-    "mediaNote": "Tối đa {{max}} tệp",
     "uploadProgress": "Đang tải tệp {{current}}/{{total}}...",
     "creatingPost": "Đang tạo bài viết...",
     "updatingPost": "Đang cập nhật bài viết...",

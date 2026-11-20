@@ -1,9 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import { getYouTubeThumbnail } from '../../utils/youtube';
 import { formatDuration } from '../../utils/format';
+import OptionsMenu from '../../../../../components/OptionsMenu/OptionsMenu';
 import './LessonCard.css';
 
-function LessonCard({ lesson, onClick }) {
+function LessonCard({ lesson, onClick, onOptionsClick }) {
   const { t } = useTranslation(['learning']);
 
   if (!lesson) return null;
@@ -101,6 +102,16 @@ function LessonCard({ lesson, onClick }) {
             </span>
             {t('lessonList.premium')}
           </span>
+        )}
+
+        {onOptionsClick && (
+          <OptionsMenu
+            className="lesson-card__options-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOptionsClick(lesson);
+            }}
+          />
         )}
       </div>
 

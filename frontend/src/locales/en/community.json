@@ -94,7 +94,6 @@
     "contentPlaceholder": "Write clear content to encourage peer discussions...",
     "mediaLabel": "Photos & videos",
     "browseDevice": "Choose from device",
-    "mediaNote": "Max {{max}} files",
     "uploadProgress": "Uploading file {{current}}/{{total}}...",
     "creatingPost": "Creating post...",
     "updatingPost": "Updating post...",
