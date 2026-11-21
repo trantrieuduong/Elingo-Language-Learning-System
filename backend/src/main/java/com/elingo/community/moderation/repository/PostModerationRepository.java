@@ -7,6 +7,7 @@ import com.elingo.community.moderation.model.PostForModeration;
 import com.elingo.community.moderation.model.PostForModeration.PostMediaItem;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -130,5 +131,76 @@ public class PostModerationRepository {
 
     private static String truncate(String s, int max) {
         return s == null || s.length() <= max ? s : s.substring(0, max);
+    }
+
+    public record ModerationActionCounts(
+            long autoApproveCount,
+            long autoRejectCount,
+            long flagForReviewCount,
+            long manualApproveCount,
+            long manualRejectCount,
+            long totalActions
+    ) {}
+
+    public record AiLabelCount(String label, long countVal) {}
+
+    public ModerationActionCounts countModerationActions(LocalDateTime from, LocalDateTime to) {
+        return jdbc.sql("""
+                SELECT
+                    COALESCE(SUM(CASE WHEN action = 'AUTO_APPROVE' THEN 1 ELSE 0 END), 0) AS autoApproveCount,
+                    COALESCE(SUM(CASE WHEN action = 'AUTO_REJECT' THEN 1 ELSE 0 END), 0) AS autoRejectCount,
+                    COALESCE(SUM(CASE WHEN action = 'FLAG_FOR_REVIEW' THEN 1 ELSE 0 END), 0) AS flagForReviewCount,
+                    COALESCE(SUM(CASE WHEN action = 'MANUAL_APPROVE' THEN 1 ELSE 0 END), 0) AS manualApproveCount,
+                    COALESCE(SUM(CASE WHEN action = 'MANUAL_REJECT' THEN 1 ELSE 0 END), 0) AS manualRejectCount,
+                    COUNT(*) AS totalActions
+                FROM post_moderation_logs
+                WHERE created_at >= :from AND created_at < :to
+                """)
+                .param("from", from)
+                .param("to", to)
+                .query((rs, i) -> new ModerationActionCounts(
+                        rs.getLong("autoApproveCount"),
+                        rs.getLong("autoRejectCount"),
+                        rs.getLong("flagForReviewCount"),
+                        rs.getLong("manualApproveCount"),
+                        rs.getLong("manualRejectCount"),
+                        rs.getLong("totalActions")
+                ))
+                .single();
+    }
+
+    public List<AiLabelCount> countAiLabels(LocalDateTime from, LocalDateTime to) {
+        return jdbc.sql("""
+                SELECT ai_label, COUNT(*) AS countVal
+                FROM post_moderation_logs
+                WHERE ai_label IS NOT NULL AND created_at >= :from AND created_at < :to
+                GROUP BY ai_label
+                ORDER BY countVal DESC
+                """)
+                .param("from", from)
+                .param("to", to)
+                .query((rs, i) -> new AiLabelCount(
+                        rs.getString("ai_label"),
+                        rs.getLong("countVal")
+                ))
+                .list();
+    }
+
+    public Double calculateAvgManualReviewDurationSeconds(LocalDateTime from, LocalDateTime to) {
+        return jdbc.sql("""
+                SELECT AVG(TIMESTAMPDIFF(SECOND, p.created_at, l.created_at)) AS avgSeconds
+                FROM post_moderation_logs l
+                JOIN posts p ON l.post_id = p.id
+                WHERE l.action IN ('MANUAL_APPROVE', 'MANUAL_REJECT')
+                  AND l.created_at >= :from AND l.created_at < :to
+                """)
+                .param("from", from)
+                .param("to", to)
+                .query((rs, i) -> {
+                    double val = rs.getDouble("avgSeconds");
+                    return rs.wasNull() ? 0.0 : val;
+                })
+                .optional()
+                .orElse(0.0);
     }
 }

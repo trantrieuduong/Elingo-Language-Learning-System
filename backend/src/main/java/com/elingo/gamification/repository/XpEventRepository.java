@@ -20,6 +20,16 @@ public interface XpEventRepository extends JpaRepository<XpEvent, Long> {
         Long getTotalXp();
     }
 
+    interface ActivityByDateProjection {
+        String getDateKey();
+        Long getFlashcardCount();
+        Long getDictationCount();
+        Long getShadowingCount();
+        Long getBattleCount();
+        Long getCheckInCount();
+        Long getTotalCount();
+    }
+
     @Query("SELECT e.user.id AS userId, SUM(e.amount) AS totalXp " +
             "FROM XpEvent e " +
             "WHERE e.createdAt >= :since " +
@@ -34,4 +44,23 @@ public interface XpEventRepository extends JpaRepository<XpEvent, Long> {
 
     @Query("SELECT COUNT(DISTINCT e.user.id) FROM XpEvent e WHERE e.createdAt >= :from AND e.createdAt < :to AND e.source <> com.elingo.gamification.entity.XpSource.ADMIN_ADJUST")
     long countDistinctUsersBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    @Query(value = """
+            SELECT
+                DATE_FORMAT(e.created_at, '%Y-%m-%d') AS dateKey,
+                COUNT(CASE WHEN e.source = 'FLASHCARD_REVIEW' THEN 1 END) AS flashcardCount,
+                COUNT(CASE WHEN e.source = 'SEGMENT_DICTATION' THEN 1 END) AS dictationCount,
+                COUNT(CASE WHEN e.source = 'SEGMENT_SHADOWING' THEN 1 END) AS shadowingCount,
+                COUNT(CASE WHEN e.source IN ('BATTLE_WIN', 'BATTLE_LOSE') THEN 1 END) AS battleCount,
+                COUNT(CASE WHEN e.source = 'DAILY_CHECKIN' THEN 1 END) AS checkInCount,
+                COUNT(*) AS totalCount
+            FROM xp_events e
+            WHERE e.created_at >= :from AND e.created_at < :to
+            GROUP BY dateKey
+            ORDER BY dateKey ASC
+            """, nativeQuery = true)
+    List<ActivityByDateProjection> countActivityBySourceAndDate(
+            @Param("from") LocalDateTime from,
+            @Param("to") LocalDateTime to
+    );
 }
