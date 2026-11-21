@@ -10,4 +10,5 @@ public interface GamificationStatsQueryService {
     List<XpEventRepository.DateCountProjection> countDauTimeSeries(LocalDateTime from, LocalDateTime to);
     long countDistinctActiveUsers(LocalDateTime from, LocalDateTime to);
     List<UserXpRepository.LevelDistribution> countUsersByLevel();
+    List<XpEventRepository.ActivityByDateProjection> countActivityBySourceAndDate(LocalDateTime from, LocalDateTime to);
 }

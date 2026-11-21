@@ -34,4 +34,10 @@ public class GamificationStatsQueryServiceImpl implements GamificationStatsQuery
     public List<UserXpRepository.LevelDistribution> countUsersByLevel() {
         return userXpRepository.countUsersByLevel();
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<XpEventRepository.ActivityByDateProjection> countActivityBySourceAndDate(LocalDateTime from, LocalDateTime to) {
+        return xpEventRepository.countActivityBySourceAndDate(from, to);
+    }
 }
