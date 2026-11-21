@@ -239,6 +239,15 @@ export const createPeerManager = ({
     removePeerInternal(userId);
   };
 
+  // Dựng lại kết nối với 1 người (dùng khi họ quay lại hoặc liên kết hỏng) theo quy tắc glare
+  const restartPeer = (userId) => {
+    if (closed || String(userId) === String(selfId)) return;
+    removePeer(userId);
+    addPeer(userId);
+  };
+
+  const has = (userId) => peers.has(userId);
+
   const closeAll = () => {
     [...peers.keys()].forEach(removePeerInternal);
   };
@@ -248,5 +257,5 @@ export const createPeerManager = ({
     closed = true;
   };
 
-  return { addPeer, handleSignal, removePeer, closeAll, destroy };
+  return { addPeer, handleSignal, removePeer, closeAll, destroy, restartPeer, has };
 };

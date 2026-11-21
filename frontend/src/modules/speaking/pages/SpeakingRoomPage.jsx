@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import EmptyState from '../../../components/EmptyState/EmptyState';
 import PageLoading from '../../../components/PageLoading/PageLoading';
+import Toast from '../../../components/Toast/Toast';
 import PeerTile from '../components/PeerTile/PeerTile';
 import RemoteAudio from '../components/RemoteAudio/RemoteAudio';
 import RoomControls from '../components/RoomControls/RoomControls';
@@ -23,6 +24,8 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
     micError,
     error,
     closedReason,
+    notice,
+    setNotice,
     startSession,
     leaveRoom,
     teardown,
@@ -37,6 +40,19 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
     startSession(roomCode);
     return () => teardown();
   }, [roomCode, startSession, teardown]);
+
+  const handleDismissNotice = useCallback(() => {
+    setNotice(null);
+  }, [setNotice]);
+
+  const noticeMessage =
+    notice?.type === 'hostChanged'
+      ? String(notice.userId) === String(selfId)
+        ? t('room.youAreHost')
+        : t('room.hostChanged', {
+            name: peers[notice.userId]?.displayName || t('room.host'),
+          })
+      : '';
 
   const handleLeave = async () => {
     await leaveRoom();
@@ -104,9 +120,12 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
       );
     }
 
-    const errorTitle = error
-      ? tApi(`error.${error}`, { defaultValue: tApi('common.fallback') })
-      : tApi('common.fallback');
+    const errorTitle =
+      error === 'SPEAKING_ROOM_ACCESS_DENIED'
+        ? t('room.removed')
+        : error
+        ? tApi(`error.${error}`, { defaultValue: tApi('common.fallback') })
+        : tApi('common.fallback');
 
     return (
       <main className="speaking-room-page speaking-room-page--center">
@@ -158,6 +177,14 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
             <span>{t('room.reconnecting')}</span>
           </div>
         )}
+
+        {/* Toast thông báo (đổi host) */}
+        <Toast
+          message={noticeMessage}
+          variant="success"
+          onDismiss={handleDismissNotice}
+          duration={4000}
+        />
 
         {/* Header thông tin phòng */}
         <header className="speaking-room-header glass-card">
@@ -240,13 +267,14 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
           <div className="speaking-peer-grid">
             {peerList.map((p) => {
               const pIsSelf = String(p.userId) === String(selfId);
-              const pIsHost = String(p.userId) === String(room?.hostId);
+              const pIsHost = p.role === 'HOST' || String(p.userId) === String(room?.hostId);
               return (
                 <PeerTile
                   key={p.userId}
                   peer={p}
                   isSelf={pIsSelf}
                   isHost={pIsHost}
+                  grace={Boolean(p.grace)}
                   muted={pIsSelf ? muted : false}
                 />
               );

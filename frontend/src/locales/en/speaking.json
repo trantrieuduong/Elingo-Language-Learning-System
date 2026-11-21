@@ -64,8 +64,13 @@
     "link": {
       "connecting": "Connecting…",
       "connected": "Connected",
-      "failed": "Connection failed"
+      "failed": "Connection failed",
+      "grace": "Connection lost, waiting…"
     },
+    "hostChanged": "{{name}} is now the host.",
+    "youAreHost": "You are now the host.",
+    "removed": "You are no longer in this room (disconnected too long).",
+    "linkFailedHint": "Can't connect to this person. Try turning off VPN or switching networks.",
     "mute": "Mute mic",
     "unmute": "Unmute mic",
     "leave": "Leave room",

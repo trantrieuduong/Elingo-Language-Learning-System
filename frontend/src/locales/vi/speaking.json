@@ -64,8 +64,13 @@
     "link": {
       "connecting": "Đang kết nối…",
       "connected": "Đã kết nối",
-      "failed": "Kết nối lỗi"
+      "failed": "Kết nối lỗi",
+      "grace": "Mất kết nối, đang chờ quay lại…"
     },
+    "hostChanged": "{{name}} đã trở thành host.",
+    "youAreHost": "Bạn đã trở thành host.",
+    "removed": "Bạn không còn ở trong phòng này (mất kết nối quá lâu).",
+    "linkFailedHint": "Không kết nối được với người này. Thử tắt VPN hoặc đổi mạng.",
     "mute": "Tắt mic",
     "unmute": "Bật mic",
     "leave": "Rời phòng",

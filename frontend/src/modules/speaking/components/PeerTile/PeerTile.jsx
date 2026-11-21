@@ -2,14 +2,26 @@ import { useTranslation } from 'react-i18next';
 import SpeakingAvatar from '../SpeakingAvatar/SpeakingAvatar';
 import './PeerTile.css';
 
-const PeerTile = ({ peer, isSelf = false, isHost = false, muted = false }) => {
+const PeerTile = ({
+  peer,
+  isSelf = false,
+  isHost = false,
+  muted = false,
+  grace = false,
+}) => {
   const { t } = useTranslation('speaking');
 
   const displayName = peer?.displayName || t('room.you');
   const linkState = peer?.link; // 'connecting' | 'connected' | 'failed' | undefined (cho chính mình)
+  const isGrace = Boolean(grace || peer?.grace);
+  const showHostBadge = Boolean(isHost || peer?.role === 'HOST');
 
   return (
-    <article className={`speaking-peer-tile glass-card ${isSelf ? 'speaking-peer-tile--self' : ''}`}>
+    <article
+      className={`speaking-peer-tile glass-card ${isSelf ? 'speaking-peer-tile--self' : ''} ${
+        isGrace ? 'speaking-peer-tile--grace' : ''
+      }`}
+    >
       <div className="speaking-peer-tile__avatar-wrapper">
         <SpeakingAvatar
           name={displayName}
@@ -41,18 +53,22 @@ const PeerTile = ({ peer, isSelf = false, isHost = false, muted = false }) => {
               {t('room.you')}
             </span>
           )}
-          {isHost && (
+          {showHostBadge && (
             <span className="speaking-peer-badge speaking-peer-badge--host">
               {t('room.host')}
             </span>
           )}
         </div>
 
-        {!isSelf && linkState && (
-          <div className={`speaking-peer-tile__link speaking-peer-tile__link--${linkState}`}>
+        {!isSelf && (
+          <div
+            className={`speaking-peer-tile__link ${
+              isGrace ? 'speaking-peer-tile__link--grace' : linkState ? `speaking-peer-tile__link--${linkState}` : ''
+            }`}
+          >
             <span className="speaking-peer-tile__link-dot" />
             <span className="speaking-peer-tile__link-text">
-              {t(`room.link.${linkState}`)}
+              {isGrace ? t('room.link.grace') : linkState ? t(`room.link.${linkState}`) : ''}
             </span>
           </div>
         )}

@@ -38,6 +38,7 @@ export const SpeakingRoomProvider = ({ children }) => {
   const [micError, setMicError] = useState(null);
   const [error, setError] = useState(null);
   const [closedReason, setClosedReason] = useState(null);
+  const [notice, setNotice] = useState(null); // { type: 'hostChanged', userId } | null
 
   const sessionRef = useRef(0); // token phiên vào phòng
   const roomCodeRef = useRef(null);
@@ -47,8 +48,40 @@ export const SpeakingRoomProvider = ({ children }) => {
   const joinTimerRef = useRef(null);
   const leaveWaiterRef = useRef(null); // resolver của Promise chờ event 'room:left' khi bấm leave
   const gotStateRef = useRef(false);
+  const peersRef = useRef(peers);
+  const retryRef = useRef({}); // userId -> số lần đã thử kết nối WebRTC
 
   useEffect(() => onStatus(setConnection), []);
+
+  useEffect(() => {
+    peersRef.current = peers;
+  }, [peers]);
+
+  // Tự tắt thông báo sau 4s
+  useEffect(() => {
+    if (!notice) return undefined;
+    const id = setTimeout(() => setNotice(null), 4000);
+    return () => clearTimeout(id);
+  }, [notice]);
+
+  // Resync khi STOMP rớt rồi nối lại
+  const prevConnRef = useRef(connection);
+  useEffect(() => {
+    const was = prevConnRef.current;
+    prevConnRef.current = connection;
+    const code = roomCodeRef.current;
+    if (
+      connection === 'connected' &&
+      was !== 'connected' &&
+      code &&
+      (phase === 'in' || phase === 'connecting')
+    ) {
+      // stompClient đã tự đăng ký lại subscription -> Không subscribe lại ở đây
+      // Chỉ gửi lại join (idempotent); BE trả room:state
+      gotStateRef.current = false;
+      sendJoin(code);
+    }
+  }, [connection, phase]);
 
   const stopLocal = () => {
     localStreamRef.current?.getTracks().forEach((t) => t.stop());
@@ -66,6 +99,8 @@ export const SpeakingRoomProvider = ({ children }) => {
     stopLocal();
     roomCodeRef.current = null;
     gotStateRef.current = false;
+    retryRef.current = {};
+    setNotice(null);
     setStreams({});
     setIsPrivate(false);
   }, []);
@@ -93,7 +128,11 @@ export const SpeakingRoomProvider = ({ children }) => {
           Object.fromEntries(
             data.peers.map((p) => [
               p.userId,
-              { ...p, link: String(p.userId) === String(selfId) ? undefined : 'connecting' },
+              {
+                ...p,
+                link: String(p.userId) === String(selfId) ? undefined : 'connecting',
+                grace: false,
+              },
             ])
           )
         );
@@ -102,7 +141,10 @@ export const SpeakingRoomProvider = ({ children }) => {
         break;
       }
       case 'peer:joined':
-        setPeers((prev) => ({ ...prev, [data.userId]: { ...data, link: 'connecting' } }));
+        setPeers((prev) => ({
+          ...prev,
+          [data.userId]: { ...data, link: 'connecting', grace: false },
+        }));
         manager?.addPeer(data.userId);
         break;
       case 'peer:left':
@@ -110,6 +152,31 @@ export const SpeakingRoomProvider = ({ children }) => {
         setPeers((prev) =>
           Object.fromEntries(Object.entries(prev).filter(([uid]) => String(uid) !== String(data.userId)))
         );
+        break;
+      case 'peer:disconnected':
+        setPeers((prev) =>
+          prev[data.userId] ? { ...prev, [data.userId]: { ...prev[data.userId], grace: true } } : prev
+        );
+        break;
+      case 'peer:reconnected':
+        // Người đó đã vào lại: bỏ cờ grace và dựng lại kết nối WebRTC từ đầu
+        setPeers((prev) => ({
+          ...prev,
+          [data.userId]: { ...data, link: 'connecting', grace: false },
+        }));
+        manager?.restartPeer(data.userId);
+        break;
+      case 'host:changed':
+        setRoom((prev) => (prev ? { ...prev, hostId: data.hostId } : prev));
+        setPeers((prev) =>
+          Object.fromEntries(
+            Object.entries(prev).map(([id, p]) => [
+              id,
+              { ...p, role: String(p.userId) === String(data.hostId) ? 'HOST' : 'GUEST' },
+            ])
+          )
+        );
+        setNotice({ type: 'hostChanged', userId: data.hostId });
         break;
       case 'signal':
         manager?.handleSignal(data);
@@ -175,8 +242,26 @@ export const SpeakingRoomProvider = ({ children }) => {
         iceServers: ice?.data?.iceServers || [],
         localStream: stream,
         sendSignal: (to, type, payload) => sendSignal(roomCode, to, type, payload),
-        onLinkState: (uid, link) =>
-          setPeers((prev) => (prev[uid] ? { ...prev, [uid]: { ...prev[uid], link } } : prev)),
+        onLinkState: (uid, link) => {
+          setPeers((prev) => (prev[uid] ? { ...prev, [uid]: { ...prev[uid], link } } : prev));
+          if (link === 'connected') {
+            retryRef.current[uid] = 0;
+            return;
+          }
+          if (link === 'failed' && (retryRef.current[uid] ?? 0) < 2) {
+            retryRef.current[uid] = (retryRef.current[uid] ?? 0) + 1;
+            setTimeout(() => {
+              if (
+                sessionRef.current === session &&
+                managerRef.current &&
+                peersRef.current[uid] &&
+                !peersRef.current[uid].grace
+              ) {
+                managerRef.current.restartPeer(uid);
+              }
+            }, 2000);
+          }
+        },
         onRemoteStream: (uid, s) => setStreams((prev) => ({ ...prev, [uid]: s })),
         onRemoteRemoved: (uid) =>
           setStreams((prev) =>
@@ -249,6 +334,8 @@ export const SpeakingRoomProvider = ({ children }) => {
     micError,
     error,
     closedReason,
+    notice,
+    setNotice,
     startSession,
     leaveRoom,
     teardown,
