@@ -53,6 +53,7 @@ export const SpeakingRoomProvider = ({ children }) => {
   const [closedReason, setClosedReason] = useState(null);
   const [notice, setNotice] = useState(null); // { type: 'hostChanged', userId } | null
   const [kicked, setKicked] = useState(false);
+  const [summary, setSummary] = useState(null);
 
   const MAX_CHAT_KEPT = 200;
   const [chatMessages, setChatMessages] = useState([]); // [{ id, fromUserId, displayName, text, timestamp }]
@@ -74,6 +75,7 @@ export const SpeakingRoomProvider = ({ children }) => {
   const peersRef = useRef(peers);
   const retryRef = useRef({}); // userId -> số lần đã thử kết nối WebRTC
   const mutedRef = useRef(muted);
+  const joinedAtMsRef = useRef(null);
 
   useEffect(() => {
     mutedRef.current = muted;
@@ -173,6 +175,7 @@ export const SpeakingRoomProvider = ({ children }) => {
     gotStateRef.current = false;
     replyWaiterRef.current = null;
     retryRef.current = {};
+    joinedAtMsRef.current = null;
     setNotice(null);
     setStreams({});
     setIsPrivate(false);
@@ -189,6 +192,9 @@ export const SpeakingRoomProvider = ({ children }) => {
     const manager = managerRef.current;
     switch (event) {
       case 'room:state': {
+        if (joinedAtMsRef.current == null) {
+          joinedAtMsRef.current = Date.now();
+        }
         gotStateRef.current = true;
         setIsPrivate(Boolean(data.isPrivate));
         clearTimeout(joinTimerRef.current);
@@ -199,8 +205,7 @@ export const SpeakingRoomProvider = ({ children }) => {
           topic: data.topic,
           hostId: data.hostId,
           maxParticipants: data.maxParticipants,
-          startedAtMs: data.startedAtMs,
-          serverOffsetMs: (data.serverNowMs ?? Date.now()) - Date.now(),
+          joinedAtMs: joinedAtMsRef.current,
         });
         const mutedIds = Array.isArray(data.mutedUserIds) ? data.mutedUserIds : [];
         setPeers(
@@ -320,9 +325,11 @@ export const SpeakingRoomProvider = ({ children }) => {
 
   const startSession = useCallback(async (roomCode) => {
     teardown();
+    setSummary(null);
     const session = sessionRef.current;
     const alive = () => sessionRef.current === session;
     roomCodeRef.current = roomCode;
+    joinedAtMsRef.current = null;
     setPhase('preparing');
     setRoom(null);
     setPeers({});
@@ -433,6 +440,7 @@ export const SpeakingRoomProvider = ({ children }) => {
       });
     }
     teardown();
+    if (summary) setSummary(summary);
     return summary;
   }, [teardown]);
 
@@ -455,6 +463,7 @@ export const SpeakingRoomProvider = ({ children }) => {
     const data = await sendAndWait(() => sendEnd(code), (ev) => ev === 'room:left', 4000);
     setPhase('leaving');
     teardown();
+    if (data) setSummary(data);
     return data;
   }, [sendAndWait, teardown]);
 
@@ -514,6 +523,8 @@ export const SpeakingRoomProvider = ({ children }) => {
     setNotice,
     isHost,
     kicked,
+    summary,
+    clearSummary: () => setSummary(null),
     requestMute,
     kickMember,
     unbanMember,

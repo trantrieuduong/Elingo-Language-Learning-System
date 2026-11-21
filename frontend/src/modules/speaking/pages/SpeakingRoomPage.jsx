@@ -11,6 +11,8 @@ import LeaveRoomDialog from '../components/LeaveRoomDialog/LeaveRoomDialog';
 import PeerTile from '../components/PeerTile/PeerTile';
 import RemoteAudio from '../components/RemoteAudio/RemoteAudio';
 import RoomControls from '../components/RoomControls/RoomControls';
+import RoomClock from '../components/RoomClock/RoomClock';
+import SummaryModal from '../components/SummaryModal/SummaryModal';
 import { useSpeakingRoom } from '../context/SpeakingRoomContext';
 import './SpeakingRoomPage.css';
 
@@ -36,6 +38,8 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
     kickMember,
     unbanMember,
     kicked,
+    summary,
+    clearSummary,
     transferHostAndLeave,
     endRoom,
     startSession,
@@ -106,8 +110,8 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
       : '';
 
   const handleLeave = async () => {
-    await leaveRoom();
-    onNavigate('/speaking');
+    const result = await leaveRoom();
+    if (!result) onNavigate('/speaking');
   };
 
   const handleLeaveClick = () => {
@@ -125,9 +129,9 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
     setLeaveBusy(true);
     setLeaveError(null);
     try {
-      await transferHostAndLeave(newHostId);
+      const result = await transferHostAndLeave(newHostId);
       setLeaveDialogOpen(false);
-      onNavigate('/speaking');
+      if (!result) onNavigate('/speaking');
     } catch (e) {
       setLeaveError(e?.code || 'UNKNOWN');
     } finally {
@@ -139,9 +143,9 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
     setLeaveBusy(true);
     setLeaveError(null);
     try {
-      await endRoom();
+      const result = await endRoom();
       setLeaveDialogOpen(false);
-      onNavigate('/speaking');
+      if (!result) onNavigate('/speaking');
     } catch (e) {
       setLeaveError(e?.code || 'UNKNOWN');
     } finally {
@@ -319,6 +323,12 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
               <div className="speaking-room-header__code-row">
                 <span className="speaking-room-header__code" title={currentCode}>
                   {currentCode}
+                </span>
+                <span className="speaking-room-header__clock">
+                  <span className="material-symbols-outlined">timer</span>
+                  <RoomClock
+                    joinedAtMs={room?.joinedAtMs}
+                  />
                 </span>
                 <button
                   type="button"
@@ -593,6 +603,19 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
             />
           ))}
         </div>
+
+        <SummaryModal
+          open={Boolean(summary)}
+          summary={summary}
+          onClose={() => {
+            clearSummary();
+            onNavigate('/speaking');
+          }}
+          onNavigate={() => {
+            clearSummary();
+            onNavigate('/speaking/history');
+          }}
+        />
       </div>
     </main>
   );

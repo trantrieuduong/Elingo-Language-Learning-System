@@ -1,0 +1,22 @@
+.speaking-summary-modal__details {
+  display: grid;
+  gap: var(--spacing-sm);
+}
+
+.speaking-summary-modal__details > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm) 0;
+  border-bottom: 1px solid var(--color-outline-variant);
+}
+
+.speaking-summary-modal__label {
+  color: var(--color-on-surface-variant);
+}
+
+.speaking-summary-modal__value {
+  color: var(--color-on-surface);
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}

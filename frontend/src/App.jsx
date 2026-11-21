@@ -30,6 +30,7 @@ import { SpeakingSocketProvider } from './modules/speaking/context/SpeakingSocke
 import { SpeakingRoomProvider } from './modules/speaking/context/SpeakingRoomContext';
 import SpeakingLobbyPage from './modules/speaking/pages/SpeakingLobbyPage';
 import SpeakingRoomPage from './modules/speaking/pages/SpeakingRoomPage';
+import SpeakingHistoryPage from './modules/speaking/pages/SpeakingHistoryPage';
 import './App.css';
 
 const AUTH_PATHS = ['/login', '/signup', '/account-verification', '/reset-password'];
@@ -39,6 +40,7 @@ const PRIVATE_USER_PATHS = [
   '/review',
   '/battle',
   '/speaking',
+  '/speaking/history',
   '/community',
   '/community/groups',
   '/community/my-posts',
@@ -235,6 +237,8 @@ function App() {
         return <BattleHistoryPage onNavigate={navigate} />;
       case '/speaking':
         return renderSpeaking(<SpeakingLobbyPage onNavigate={navigate} />);
+      case '/speaking/history':
+        return renderSpeaking(<SpeakingHistoryPage onNavigate={navigate} />);
       case '/community':
         return (
           <CommunityFeedPage

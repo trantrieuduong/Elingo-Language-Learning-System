@@ -1,6 +1,7 @@
 {
   "lobby": {
     "title": "Speaking rooms",
+    "history": "History",
     "subtitle": "Join a room to practice speaking English with peers.",
     "createRoom": "Create room",
     "createRoomDesc": "Create a room and get an invite code to practice with friends",
@@ -48,6 +49,8 @@
     "cancel": "Cancel"
   },
   "room": {
+    "clock": { "waiting": "Not started", "label": "Your time in the room" },
+    "summary": { "title": "Session ended", "duration": "Time you spent in the room", "topic": "Topic", "roomCode": "Room code", "toLobby": "Back to lobby", "toHistory": "View history" },
     "participantsTitle": "Participants",
     "participantsWithCount": "Participants ({{count}})",
     "rules": {
@@ -137,6 +140,22 @@
       "SERVER_RESTART": "Server restarted, room has been closed.",
       "ENDED_BY_HOST": "The host ended this room."
     }
+  },
+  "history": {
+    "title": "Speaking history",
+    "subtitle": "Review your speaking rooms and practice time.",
+    "backToLobby": "Back to lobby",
+    "empty": "You have no sessions yet. Join a room to get started!",
+    "emptyFiltered": "No rooms match your filters.",
+    "summary": { "totalTime": "Total time", "rooms": "Rooms", "sessions": "Sessions" },
+    "visits": "{{count}} visits",
+    "status": { "WAITING": "Waiting", "ACTIVE": "Speaking", "CLOSED": "Closed" },
+    "rejoin": "Rejoin",
+    "backToRoom": "Back to room",
+    "cannotRejoin": { "inOtherRoom": "You are in another room", "closed": "Room closed", "kicked": "You were removed from this room" },
+    "role": { "HOST": "Host", "GUEST": "Member" },
+    "loadError": "Couldn't load history.",
+    "retry": "Try again"
   },
   "chat": {
     "title": "Chat",

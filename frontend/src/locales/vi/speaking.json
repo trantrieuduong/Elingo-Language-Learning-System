@@ -1,6 +1,7 @@
 {
   "lobby": {
     "title": "Phòng luyện nói",
+    "history": "Lịch sử",
     "subtitle": "Vào một phòng để nói chuyện bằng giọng nói với bạn học.",
     "createRoom": "Tạo phòng",
     "createRoomDesc": "Tạo phòng và nhận mã mời để nói chuyện cùng bạn bè",
@@ -48,6 +49,8 @@
     "cancel": "Hủy"
   },
   "room": {
+    "clock": { "waiting": "Chưa bắt đầu", "label": "Thời gian của bạn trong phòng" },
+    "summary": { "title": "Buổi nói chuyện đã kết thúc", "duration": "Thời gian bạn ở trong phòng", "topic": "Chủ đề", "roomCode": "Mã phòng", "toLobby": "Về lobby", "toHistory": "Xem lịch sử" },
     "participantsTitle": "Người tham gia",
     "participantsWithCount": "Người tham gia ({{count}})",
     "rules": {
@@ -137,6 +140,22 @@
       "SERVER_RESTART": "Máy chủ khởi động lại, phòng đã đóng.",
       "ENDED_BY_HOST": "Host đã kết thúc phòng học này."
     }
+  },
+  "history": {
+    "title": "Lịch sử luyện nói",
+    "subtitle": "Xem lại các phòng bạn đã tham gia và thời gian luyện nói.",
+    "backToLobby": "Về lobby",
+    "empty": "Bạn chưa có buổi nói nào. Vào một phòng để bắt đầu!",
+    "emptyFiltered": "Không có phòng nào khớp bộ lọc.",
+    "summary": { "totalTime": "Tổng thời gian", "rooms": "Số phòng", "sessions": "Số lượt" },
+    "visits": "{{count}} lượt",
+    "status": { "WAITING": "Đang chờ", "ACTIVE": "Đang nói chuyện", "CLOSED": "Đã đóng" },
+    "rejoin": "Vào lại",
+    "backToRoom": "Quay lại phòng",
+    "cannotRejoin": { "inOtherRoom": "Bạn đang ở phòng khác", "closed": "Phòng đã đóng", "kicked": "Bạn đã bị mời ra khỏi phòng này" },
+    "role": { "HOST": "Host", "GUEST": "Thành viên" },
+    "loadError": "Không tải được lịch sử.",
+    "retry": "Thử lại"
   },
   "chat": {
     "title": "Trò chuyện",

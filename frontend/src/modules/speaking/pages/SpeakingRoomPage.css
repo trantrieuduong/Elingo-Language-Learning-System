@@ -489,6 +489,19 @@
   display: none;
 }
 
+.speaking-room-header__clock {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-on-surface-variant);
+  font-size: var(--font-size-label-md);
+  font-variant-numeric: tabular-nums;
+}
+
+.speaking-room-header__clock .material-symbols-outlined {
+  font-size: 18px;
+}
+
 @media (max-width: 900px) {
   .speaking-room-body {
     flex-direction: column;

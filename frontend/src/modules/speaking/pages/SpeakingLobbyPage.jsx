@@ -236,6 +236,35 @@ const SpeakingLobbyPage = ({ onNavigate }) => {
           </div>
         )}
 
+        {/* Tiêu đề trang và lối vào lịch sử */}
+        <header className="speaking-lobby-header">
+          <div className="speaking-lobby-header__left">
+            <div className="speaking-lobby-header__icon-box glass-thumb">
+              <span className="material-symbols-outlined speaking-lobby-header__icon">
+                record_voice_over
+              </span>
+            </div>
+            <div className="speaking-lobby-header__title-group">
+              <h1 className="text-headline-md speaking-lobby-header__title">
+                {t('lobby.title')}
+              </h1>
+              <p className="text-body-md text-disabled speaking-lobby-header__subtitle">
+                {t('lobby.subtitle')}
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            className="btn-secondary speaking-lobby-history-link"
+            onClick={() => onNavigate('/speaking/history')}
+            aria-label={t('lobby.history')}
+          >
+            <span className="material-symbols-outlined">history</span>
+            <span>{t('lobby.history')}</span>
+          </button>
+        </header>
+
         {/* 2 Card trên: Tạo phòng & Vào phòng bằng mã */}
         <section className="speaking-lobby-room-grid">
           {/* Card Tạo phòng */}
