@@ -18,7 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +52,7 @@ public class UserStatsServiceImpl implements UserStatsService {
         }
 
         LocalDateTime fromTime = safeRequest.from().atStartOfDay();
-        LocalDateTime toTime = safeRequest.to().atTime(LocalTime.MAX);
+        LocalDateTime toTime = safeRequest.to().plusDays(1).atStartOfDay();
 
         long totalBeforeRange = userService.countUsersBefore(fromTime);
 
@@ -102,7 +101,7 @@ public class UserStatsServiceImpl implements UserStatsService {
         }
 
         LocalDateTime fromTime = safeRequest.from().atStartOfDay();
-        LocalDateTime toTime = safeRequest.to().atTime(LocalTime.MAX);
+        LocalDateTime toTime = safeRequest.to().plusDays(1).atStartOfDay();
 
         List<XpEventRepository.DateCountProjection> rawData = gamificationStatsQueryService.countDauTimeSeries(fromTime, toTime);
         Map<String, Long> rawMap = new HashMap<>();

@@ -28,10 +28,10 @@ public interface XpEventRepository extends JpaRepository<XpEvent, Long> {
 
     @Query(value = "SELECT DATE_FORMAT(e.created_at, '%Y-%m-%d') AS periodKey, COUNT(DISTINCT e.user_id) AS countVal " +
             "FROM xp_events e " +
-            "WHERE e.created_at >= :from AND e.created_at <= :to " +
+            "WHERE e.created_at >= :from AND e.created_at < :to AND e.source <> 'ADMIN_ADJUST' " +
             "GROUP BY periodKey ORDER BY periodKey ASC", nativeQuery = true)
     List<DateCountProjection> countDauByDay(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
-    @Query("SELECT COUNT(DISTINCT e.user.id) FROM XpEvent e WHERE e.createdAt >= :from AND e.createdAt <= :to")
+    @Query("SELECT COUNT(DISTINCT e.user.id) FROM XpEvent e WHERE e.createdAt >= :from AND e.createdAt < :to AND e.source <> com.elingo.gamification.entity.XpSource.ADMIN_ADJUST")
     long countDistinctUsersBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 }

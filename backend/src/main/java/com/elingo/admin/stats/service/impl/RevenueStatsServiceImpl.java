@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +55,7 @@ public class RevenueStatsServiceImpl implements RevenueStatsService {
         }
 
         LocalDateTime fromTime = safeRequest.from().atStartOfDay();
-        LocalDateTime toTime = safeRequest.to().atTime(LocalTime.MAX);
+        LocalDateTime toTime = safeRequest.to().plusDays(1).atStartOfDay();
 
         List<PaymentTransactionRepository.DateAmountCountProjection> rawData = revenueStatsQueryService.getRevenueTimeSeries(
                 fromTime, toTime, safeRequest.granularity());
@@ -114,7 +113,7 @@ public class RevenueStatsServiceImpl implements RevenueStatsService {
         }
 
         LocalDateTime fromTime = safeRequest.from().atStartOfDay();
-        LocalDateTime toTime = safeRequest.to().atTime(LocalTime.MAX);
+        LocalDateTime toTime = safeRequest.to().plusDays(1).atStartOfDay();
 
         List<PaymentTransactionRepository.PlanRevenueStat> planRaw = revenueStatsQueryService.getRevenueBreakdownByPlan(fromTime, toTime);
         BigDecimal totalPlanRevenue = planRaw.stream()
