@@ -31,6 +31,7 @@ import { SpeakingRoomProvider } from './modules/speaking/context/SpeakingRoomCon
 import SpeakingLobbyPage from './modules/speaking/pages/SpeakingLobbyPage';
 import SpeakingRoomPage from './modules/speaking/pages/SpeakingRoomPage';
 import SpeakingHistoryPage from './modules/speaking/pages/SpeakingHistoryPage';
+import ReportPage from './modules/report/pages/ReportPage';
 import './App.css';
 
 const AUTH_PATHS = ['/login', '/signup', '/account-verification', '/reset-password'];
@@ -48,6 +49,7 @@ const PRIVATE_USER_PATHS = [
   '/gamification',
   '/premium/my-subscription',
   '/profile',
+  '/reports',
 ];
 
 function App() {
@@ -261,6 +263,8 @@ function App() {
         return <MySubscriptionPage onNavigate={navigate} />;
       case '/profile':
         return <PlaceholderPage title="Profile" path={currentPath} />;
+      case '/reports':
+        return <ReportPage onNavigate={navigate} />;
       case '/decks':
         return <DeckListPage onNavigate={navigate} />;
       default:

@@ -89,6 +89,8 @@
     "SPEAKING_BANNED": "Bạn đã bị host mời ra khỏi phòng này.",
     "SPEAKING_SIGNAL_INVALID": "Tín hiệu kết nối không hợp lệ.",
     "SPEAKING_NOT_HOST": "Chỉ host mới làm được việc này."
+    "REPORT_ALREADY_EXISTS": "Bạn đã gửi một báo cáo đang chờ xử lý cho mục này.",
+    "MALFORMED_JSON": "Dữ liệu gửi lên không hợp lệ."
   },
   "validation": {
     "username": {

@@ -18,7 +18,7 @@ function Header({ onNavigate, currentPath }) {
   const { user, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const { unreadCount, loadInitialNotifications } = useNotification();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -121,7 +121,7 @@ function Header({ onNavigate, currentPath }) {
 
   // ── Đóng mobile menu & dropdown khi navigate ──
   useEffect(() => {
-    setIsMenuOpen(false);
+    setIsMobileMenuOpen(false);
     setIsNotificationOpen(false);
     if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
     setOpenDropdownKey(null);
@@ -141,7 +141,7 @@ function Header({ onNavigate, currentPath }) {
   };
 
   const handleNav = (path) => {
-    setIsMenuOpen(false);
+    setIsMobileMenuOpen(false);
     setOpenDropdownKey(null);
     if (onNavigate) onNavigate(path);
   };
@@ -211,7 +211,7 @@ function Header({ onNavigate, currentPath }) {
 
   return (
     <header
-      className={`header ${currentPath !== '/' ? 'header--auth' : ''} ${isMenuOpen ? 'header--open' : ''} glass-capsule glass-sheen`}
+      className={`header ${currentPath !== '/' ? 'header--auth' : ''} ${isMobileMenuOpen ? 'header--open' : ''} glass-capsule glass-sheen`}
     >
       <div className="header__inner container">
         {/* Brand */}
@@ -372,7 +372,7 @@ function Header({ onNavigate, currentPath }) {
                     <hr className="header__dropdown-divider" />
                     <a
                       href="/profile"
-                      className="header__dropdown-item"
+                      className={`header__dropdown-item${currentPath === '/profile' ? ' header__dropdown-item--active' : ''}`}
                       onClick={(e) => {
                         e.preventDefault();
                         setIsUserDropdownOpen(false);
@@ -384,7 +384,7 @@ function Header({ onNavigate, currentPath }) {
                     </a>
                     <a
                       href="/progress"
-                      className="header__dropdown-item"
+                      className={`header__dropdown-item${currentPath === '/progress' ? ' header__dropdown-item--active' : ''}`}
                       onClick={(e) => {
                         e.preventDefault();
                         setIsUserDropdownOpen(false);
@@ -396,7 +396,7 @@ function Header({ onNavigate, currentPath }) {
                     </a>
                     <a
                       href="/premium"
-                      className="header__dropdown-item"
+                      className={`header__dropdown-item${currentPath === '/premium' ? ' header__dropdown-item--active' : ''}`}
                       onClick={(e) => {
                         e.preventDefault();
                         setIsUserDropdownOpen(false);
@@ -405,6 +405,18 @@ function Header({ onNavigate, currentPath }) {
                     >
                       <span className="material-symbols-outlined">star</span>
                       {t('premium')}
+                    </a>
+                    <a
+                      href="/reports"
+                      className={`header__dropdown-item${currentPath === '/reports' ? ' header__dropdown-item--active' : ''}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setIsUserDropdownOpen(false);
+                        handleNav('/reports');
+                      }}
+                    >
+                      <span className="material-symbols-outlined">flag</span>
+                      {t('myReports')}
                     </a>
                     <hr className="header__dropdown-divider" />
                     <button
@@ -460,15 +472,15 @@ function Header({ onNavigate, currentPath }) {
           <button
             type="button"
             className="header__hamburger btn-icon"
-            onClick={() => setIsMenuOpen((prev) => !prev)}
+            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
           >
-            <span className="material-symbols-outlined">{isMenuOpen ? 'close' : 'menu'}</span>
+            <span className="material-symbols-outlined">{isMobileMenuOpen ? 'close' : 'menu'}</span>
           </button>
         </div>
       </div>
 
       {/* Mobile Navigation */}
-      {isMenuOpen && (
+      {isMobileMenuOpen && (
         <nav className="header__mobile-nav glass-capsule">
           {USER_NAV_ITEMS.map((item) => {
             const itemIsActive = isItemActive(item);
