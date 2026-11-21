@@ -48,6 +48,16 @@
     "cancel": "Hủy"
   },
   "room": {
+    "participantsTitle": "Người tham gia",
+    "participantsWithCount": "Người tham gia ({{count}})",
+    "rules": {
+      "title": "Quy tắc & Quy định phòng",
+      "tag": "Quy định",
+      "respect": "Tôn trọng lẫn nhau, giao tiếp văn minh và lịch sự",
+      "englishPriority": "Ưu tiên sử dụng tiếng Anh để cùng nhau luyện tập",
+      "muteWhenSilent": "Tắt mic khi không phát biểu để tránh tạp âm",
+      "noSpam": "Không chia sẻ nội dung vi phạm hoặc spam"
+    },
     "title": "Phòng {{code}}",
     "placeholderTitle": "Phòng {{code}} - âm thanh",
     "preparing": "Đang chuẩn bị micro và kết nối…",
@@ -127,6 +137,17 @@
       "SERVER_RESTART": "Máy chủ khởi động lại, phòng đã đóng.",
       "ENDED_BY_HOST": "Host đã kết thúc phòng học này."
     }
+  },
+  "chat": {
+    "title": "Trò chuyện",
+    "toggle": "Mở khung chat",
+    "close": "Đóng khung chat",
+    "placeholder": "Nhập tin nhắn…",
+    "send": "Gửi",
+    "empty": "Chưa có tin nhắn. Tin nhắn không được lưu lại.",
+    "newMessages": "Tin nhắn mới",
+    "unreadLabel": "{{count}} tin chưa đọc",
+    "counter": "{{count}}/500"
   }
 }
 

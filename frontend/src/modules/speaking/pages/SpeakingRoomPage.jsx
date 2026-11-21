@@ -6,6 +6,7 @@ import PageLoading from '../../../components/PageLoading/PageLoading';
 import Toast from '../../../components/Toast/Toast';
 import { getBansApi } from '../speakingApi';
 import BannedListPanel from '../components/BannedListPanel/BannedListPanel';
+import ChatPanel from '../components/ChatPanel/ChatPanel';
 import LeaveRoomDialog from '../components/LeaveRoomDialog/LeaveRoomDialog';
 import PeerTile from '../components/PeerTile/PeerTile';
 import RemoteAudio from '../components/RemoteAudio/RemoteAudio';
@@ -42,6 +43,11 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
     teardown,
     toggleMute,
     isPrivate,
+    chatMessages,
+    chatUnread,
+    chatOpen,
+    setChatOpen,
+    sendChatMessage,
   } = useSpeakingRoom();
 
   const [copied, setCopied] = useState(false);
@@ -340,7 +346,35 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
                   </span>
                   <span>{isPrivate ? t('room.private') : t('room.public')}</span>
                 </span>
-                {isHost && (
+              </div>
+
+              <h1 className="text-title-lg speaking-room-header__topic">
+                {currentTopic}
+              </h1>
+            </div>
+
+            {isPrivate && (
+              <p className="speaking-room-header__private-hint text-body-xs text-disabled">
+                <span className="material-symbols-outlined">info</span>
+                <span>{t('room.privateHint')}</span>
+              </p>
+            )}
+          </div>
+        </header>
+
+        {/* Bố cục chính: Cột trái (Người tham gia + Quy định) & Cột phải (Khung chat) */}
+        <div className={`speaking-room-body ${chatOpen ? 'speaking-room-body--with-chat' : ''}`}>
+          <div className="speaking-room-main-col">
+            {/* Thanh tiêu đề Người tham gia */}
+            <div className="speaking-room-stage__header">
+              <div className="speaking-room-stage__header-left">
+                <span className="material-symbols-outlined speaking-room-stage__header-icon">group</span>
+                <h2 className="speaking-room-stage__title">
+                  {t('room.participantsWithCount', { count: peerList.length })}
+                </h2>
+              </div>
+              {isHost && (
+                <div className="speaking-room-stage__header-right">
                   <button
                     type="button"
                     className="btn-secondary speaking-room-header__bans-btn"
@@ -362,76 +396,143 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
                       })}
                     </span>
                   </button>
-                )}
-              </div>
-
-              <h1 className="text-title-lg speaking-room-header__topic">
-                {currentTopic}
-              </h1>
+                </div>
+              )}
             </div>
 
-            {isPrivate && (
-              <p className="speaking-room-header__private-hint text-body-xs text-disabled">
-                <span className="material-symbols-outlined">info</span>
-                <span>{t('room.privateHint')}</span>
-              </p>
-            )}
-          </div>
-        </header>
+            {/* Khu vực phòng: Nếu chỉ có 1 người (đang chờ) thì chia 2 cột: User bên trái, Đang chờ bên phải */}
+            {otherPeers.length === 0 ? (
+              <div className="speaking-room-solo-stage">
+                <div className="speaking-room-solo-stage__user">
+                  {peerList.map((p) => {
+                    const pIsSelf = String(p.userId) === String(selfId);
+                    const pIsHost = p.role === 'HOST' || String(p.userId) === String(room?.hostId);
+                    return (
+                      <PeerTile
+                        key={p.userId}
+                        peer={p}
+                        isSelf={pIsSelf}
+                        isHost={pIsHost}
+                        grace={Boolean(p.grace)}
+                        muted={pIsSelf ? muted : false}
+                        micMuted={Boolean(p.micMuted)}
+                        canMute={isHost}
+                        onMute={requestMute}
+                        canKick={isHost}
+                        onKick={(userId, name) => {
+                          setKickError(null);
+                          setKickTarget({ userId, name });
+                        }}
+                      />
+                    );
+                  })}
+                </div>
 
-        {/* Khu vực hiển thị danh sách người tham gia */}
-        <section className="speaking-room-stage" aria-label="Participants">
-          {otherPeers.length === 0 ? (
-            <div className="speaking-room-waiting-state glass-card">
-              <span className="material-symbols-outlined speaking-room-waiting-icon">
-                record_voice_over
-              </span>
-              <div className="speaking-room-waiting-text">
-                <h2 className="text-title-md">{t('room.waitingOthers')}</h2>
-                <p className="text-body-sm text-disabled">{t('room.shareCode')}</p>
-              </div>
-              <div className="speaking-room-waiting-code-box">
-                <span className="speaking-room-waiting-code">{currentCode}</span>
-                <button
-                  type="button"
-                  className="btn-secondary btn-sm"
-                  onClick={handleCopyCode}
-                >
-                  <span className="material-symbols-outlined">
-                    {copied ? 'check' : 'content_copy'}
+                <div className="speaking-room-waiting-card glass-card">
+                  <span className="material-symbols-outlined speaking-room-waiting-icon">
+                    record_voice_over
                   </span>
-                  <span>{copied ? t('room.copied') : t('room.copy')}</span>
-                </button>
+                  <div className="speaking-room-waiting-text">
+                    <h2 className="text-title-md speaking-room-waiting-title">
+                      {t('room.waitingOthers')}
+                    </h2>
+                    <p className="text-body-sm text-disabled">{t('room.shareCode')}</p>
+                  </div>
+                  <div className="speaking-room-waiting-code-box">
+                    <span className="speaking-room-waiting-code">{currentCode}</span>
+                    <button
+                      type="button"
+                      className="btn-secondary btn-sm"
+                      onClick={handleCopyCode}
+                    >
+                      <span className="material-symbols-outlined">
+                        {copied ? 'check' : 'content_copy'}
+                      </span>
+                      <span>{copied ? t('room.copied') : t('room.copy')}</span>
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          ) : null}
+            ) : (
+              /* Lưới các PeerTile khi có từ 2 người trở lên */
+              <div
+                className={`speaking-peer-grid speaking-peer-grid--count-${Math.min(
+                  peerList.length,
+                  4
+                )} ${chatOpen ? 'speaking-peer-grid--with-chat' : 'speaking-peer-grid--no-chat'}`}
+              >
+                {peerList.map((p) => {
+                  const pIsSelf = String(p.userId) === String(selfId);
+                  const pIsHost = p.role === 'HOST' || String(p.userId) === String(room?.hostId);
+                  return (
+                    <PeerTile
+                      key={p.userId}
+                      peer={p}
+                      isSelf={pIsSelf}
+                      isHost={pIsHost}
+                      grace={Boolean(p.grace)}
+                      muted={pIsSelf ? muted : false}
+                      micMuted={Boolean(p.micMuted)}
+                      canMute={isHost}
+                      onMute={requestMute}
+                      canKick={isHost}
+                      onKick={(userId, name) => {
+                        setKickError(null);
+                        setKickTarget({ userId, name });
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            )}
 
-          {/* Lưới các PeerTile */}
-          <div className="speaking-peer-grid">
-            {peerList.map((p) => {
-              const pIsSelf = String(p.userId) === String(selfId);
-              const pIsHost = p.role === 'HOST' || String(p.userId) === String(room?.hostId);
-              return (
-                <PeerTile
-                  key={p.userId}
-                  peer={p}
-                  isSelf={pIsSelf}
-                  isHost={pIsHost}
-                  grace={Boolean(p.grace)}
-                  muted={pIsSelf ? muted : false}
-                  micMuted={Boolean(p.micMuted)}
-                  canMute={isHost}
-                  onMute={requestMute}
-                  canKick={isHost}
-                  onKick={(userId, name) => {
-                    setKickError(null);
-                    setKickTarget({ userId, name });
-                  }}
-                />
-              );
-            })}
+            {/* Khối Quy tắc & Quy định phòng */}
+            <section className="speaking-room-rules glass-card" aria-label={t('room.rules.title')}>
+              <div className="speaking-room-rules__header">
+                <div className="speaking-room-rules__title-group">
+                  <span className="material-symbols-outlined speaking-room-rules__icon">assignment</span>
+                  <h3 className="speaking-room-rules__title">{t('room.rules.title')}</h3>
+                  <span className="speaking-room-rules__tag">{t('room.rules.tag')}</span>
+                </div>
+                <div className="speaking-room-rules__status">
+                  <span className="material-symbols-outlined speaking-room-rules__signal">signal_cellular_alt</span>
+                </div>
+              </div>
+
+              <div className="speaking-room-rules__grid">
+                <div className="speaking-room-rules__item">
+                  <span className="material-symbols-outlined speaking-room-rules__item-icon">handshake</span>
+                  <span className="speaking-room-rules__item-text">{t('room.rules.respect')}</span>
+                </div>
+                <div className="speaking-room-rules__item">
+                  <span className="material-symbols-outlined speaking-room-rules__item-icon">language</span>
+                  <span className="speaking-room-rules__item-text">{t('room.rules.englishPriority')}</span>
+                </div>
+                <div className="speaking-room-rules__item">
+                  <span className="material-symbols-outlined speaking-room-rules__item-icon">mic_off</span>
+                  <span className="speaking-room-rules__item-text">{t('room.rules.muteWhenSilent')}</span>
+                </div>
+                <div className="speaking-room-rules__item">
+                  <span className="material-symbols-outlined speaking-room-rules__item-icon">block</span>
+                  <span className="speaking-room-rules__item-text">{t('room.rules.noSpam')}</span>
+                </div>
+              </div>
+            </section>
           </div>
-        </section>
+
+          {/* Cột Chat cố định bên phải */}
+          {chatOpen && (
+            <div className="speaking-room-chat-col">
+              <ChatPanel
+                open={chatOpen}
+                messages={chatMessages}
+                selfId={selfId}
+                onSend={sendChatMessage}
+                onClose={() => setChatOpen(false)}
+              />
+            </div>
+          )}
+        </div>
 
         {/* Thanh điều khiển Micro & Rời phòng */}
         <RoomControls
@@ -439,6 +540,9 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
           onToggleMute={toggleMute}
           onLeave={handleLeaveClick}
           leaving={phase === 'leaving'}
+          chatOpen={chatOpen}
+          chatUnread={chatUnread}
+          onToggleChat={() => setChatOpen(!chatOpen)}
         />
 
         {/* Dialog Host rời phòng */}

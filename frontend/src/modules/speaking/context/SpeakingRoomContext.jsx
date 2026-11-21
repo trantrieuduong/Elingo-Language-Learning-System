@@ -14,6 +14,7 @@ import {
   sendEnd,
   sendKick,
   sendUnban,
+  sendChat,
 } from '../speakingSocket';
 import { createPeerManager } from '../webrtc/peerManager';
 
@@ -53,6 +54,14 @@ export const SpeakingRoomProvider = ({ children }) => {
   const [notice, setNotice] = useState(null); // { type: 'hostChanged', userId } | null
   const [kicked, setKicked] = useState(false);
 
+  const MAX_CHAT_KEPT = 200;
+  const [chatMessages, setChatMessages] = useState([]); // [{ id, fromUserId, displayName, text, timestamp }]
+  const [chatUnread, setChatUnread] = useState(0);
+  const [chatOpen, setChatOpenState] = useState(false);
+  const chatOpenRef = useRef(false);
+  const chatSeqRef = useRef(0);
+  const selfIdRef = useRef(selfId);
+
   const sessionRef = useRef(0); // token phiên vào phòng
   const roomCodeRef = useRef(null);
   const localStreamRef = useRef(null);
@@ -69,6 +78,10 @@ export const SpeakingRoomProvider = ({ children }) => {
   useEffect(() => {
     mutedRef.current = muted;
   }, [muted]);
+
+  useEffect(() => {
+    selfIdRef.current = selfId;
+  }, [selfId]);
 
   useEffect(() => onStatus(setConnection), []);
 
@@ -163,6 +176,10 @@ export const SpeakingRoomProvider = ({ children }) => {
     setNotice(null);
     setStreams({});
     setIsPrivate(false);
+    setChatMessages([]);
+    setChatUnread(0);
+    setChatOpenState(false);
+    chatOpenRef.current = false;
   }, []);
 
   const handleEvent = useCallback((envelope) => {
@@ -260,6 +277,17 @@ export const SpeakingRoomProvider = ({ children }) => {
         );
         setNotice({ type: 'hostChanged', userId: data.hostId });
         break;
+      case 'chat:message': {
+        const msg = { id: ++chatSeqRef.current, ...data };
+        setChatMessages((prev) => {
+          const next = [...prev, msg];
+          return next.length > MAX_CHAT_KEPT ? next.slice(next.length - MAX_CHAT_KEPT) : next;
+        });
+        if (!chatOpenRef.current && String(data.fromUserId) !== String(selfIdRef.current)) {
+          setChatUnread((n) => n + 1);
+        }
+        break;
+      }
       case 'signal':
         manager?.handleSignal(data);
         break;
@@ -455,6 +483,20 @@ export const SpeakingRoomProvider = ({ children }) => {
     [sendAndWait]
   );
 
+  const setChatOpen = useCallback((open) => {
+    chatOpenRef.current = open;
+    setChatOpenState(open);
+    if (open) setChatUnread(0);
+  }, []);
+
+  const sendChatMessage = useCallback((rawText) => {
+    const text = (rawText || '').trim();
+    const code = roomCodeRef.current;
+    if (!text || !code) return false;
+    sendChat(code, text.slice(0, 500));
+    return true;
+  }, []);
+
   const isHost = Boolean(room && String(room.hostId) === String(selfId));
 
   const value = {
@@ -482,6 +524,11 @@ export const SpeakingRoomProvider = ({ children }) => {
     teardown,
     toggleMute,
     isPrivate,
+    chatMessages,
+    chatUnread,
+    chatOpen,
+    setChatOpen,
+    sendChatMessage,
   };
 
   return (

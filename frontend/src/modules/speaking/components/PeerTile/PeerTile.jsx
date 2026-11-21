@@ -49,38 +49,17 @@ const PeerTile = ({
 
   return (
     <article
-      className={`speaking-peer-tile glass-card ${isSelf ? 'speaking-peer-tile--self' : ''} ${
-        isGrace ? 'speaking-peer-tile--grace' : ''
-      }`}
+      className={`speaking-peer-tile glass-card ${
+        isSelf ? 'speaking-peer-tile--self' : ''
+      } ${isGrace ? 'speaking-peer-tile--grace' : ''}`}
     >
       <div className="speaking-peer-tile__avatar-wrapper">
         <SpeakingAvatar
           name={displayName}
           src={peer?.avatarUrl}
-          size={72}
+          size={84}
           className="speaking-peer-tile__avatar"
         />
-        {isSelf && (
-          <div
-            className={`speaking-peer-tile__mic-badge ${
-              muted ? 'speaking-peer-tile__mic-badge--muted' : ''
-            }`}
-            title={muted ? t('room.mute') : t('room.unmute')}
-          >
-            <span className="material-symbols-outlined">
-              {muted ? 'mic_off' : 'mic'}
-            </span>
-          </div>
-        )}
-        {!isSelf && isOtherMuted && (
-          <div
-            className="speaking-peer-tile__mic-badge speaking-peer-tile__mic-badge--muted"
-            title={t('room.peerMuted', { name: displayName })}
-            aria-label={t('room.peerMuted', { name: displayName })}
-          >
-            <span className="material-symbols-outlined">mic_off</span>
-          </div>
-        )}
       </div>
 
       <div className="speaking-peer-tile__info">
@@ -88,16 +67,6 @@ const PeerTile = ({
           <span className="speaking-peer-tile__name" title={displayName}>
             {displayName}
           </span>
-          {isSelf && (
-            <span className="speaking-peer-badge speaking-peer-badge--self">
-              {t('room.you')}
-            </span>
-          )}
-          {showHostBadge && (
-            <span className="speaking-peer-badge speaking-peer-badge--host">
-              {t('room.host')}
-            </span>
-          )}
         </div>
 
         {!isSelf && (
@@ -119,35 +88,55 @@ const PeerTile = ({
           </div>
         )}
 
-        {(showMuteButton || showKickButton) && (
-          <div className="speaking-peer-tile__actions">
-            {showMuteButton && (
-              <button
-                type="button"
-                className="speaking-peer-tile__mute-btn btn-secondary"
-                onClick={handleMuteClick}
-                disabled={muteCooldowned}
-                title={t('room.muteAction', { name: displayName })}
-                aria-label={t('room.muteAction', { name: displayName })}
-              >
-                <span className="material-symbols-outlined">mic_off</span>
-                <span>{t('room.mute')}</span>
-              </button>
-            )}
-            {showKickButton && (
-              <button
-                type="button"
-                className="speaking-peer-tile__kick-btn btn-secondary"
-                onClick={handleKickClick}
-                title={t('room.kickAction', { name: displayName })}
-                aria-label={t('room.kickAction', { name: displayName })}
-              >
-                <span className="material-symbols-outlined">person_remove</span>
-                <span>{t('room.kick')}</span>
-              </button>
-            )}
-          </div>
-        )}
+        <div className="speaking-peer-tile__badges-and-actions">
+          {showHostBadge && (
+            <span className="speaking-peer-badge speaking-peer-badge--host">
+              {t('room.host')}
+            </span>
+          )}
+          {isSelf && (
+            <span className="speaking-peer-badge speaking-peer-badge--self">
+              {t('room.you')}
+            </span>
+          )}
+
+          {(showMuteButton || showKickButton) && (
+            <div className="speaking-peer-tile__actions">
+              {showMuteButton && (
+                <button
+                  type="button"
+                  className="speaking-peer-tile__mute-btn btn-secondary"
+                  onClick={handleMuteClick}
+                  disabled={muteCooldowned}
+                  title={t('room.muteAction', { name: displayName })}
+                  aria-label={t('room.muteAction', { name: displayName })}
+                >
+                  <span className="material-symbols-outlined">mic_off</span>
+                  <span>{t('room.mute')}</span>
+                </button>
+              )}
+              {showKickButton && (
+                <button
+                  type="button"
+                  className="speaking-peer-tile__kick-btn btn-secondary"
+                  onClick={handleKickClick}
+                  title={t('room.kickAction', { name: displayName })}
+                  aria-label={t('room.kickAction', { name: displayName })}
+                >
+                  <span className="material-symbols-outlined">person_remove</span>
+                  <span>{t('room.kick')}</span>
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Trạng thái mic */}
+      <div className="speaking-peer-tile__status-icon">
+        <span className={`material-symbols-outlined ${((isSelf && muted) || (!isSelf && isOtherMuted)) ? 'speaking-peer-tile__status-icon--muted' : 'speaking-peer-tile__status-icon--active'}`}>
+          {((isSelf && muted) || (!isSelf && isOtherMuted)) ? 'mic_off' : 'mic'}
+        </span>
       </div>
     </article>
   );

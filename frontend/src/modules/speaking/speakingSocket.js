@@ -51,3 +51,7 @@ export const sendUnban = (roomCode, userId) => {
   return sendMessage('/app/speaking/unban', { roomCode, userId });
 };
 
+export const sendChat = (roomCode, text) => {
+  return sendMessage('/app/speaking/chat', { roomCode, text });
+};
+

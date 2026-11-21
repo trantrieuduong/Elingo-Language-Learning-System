@@ -48,6 +48,16 @@
     "cancel": "Cancel"
   },
   "room": {
+    "participantsTitle": "Participants",
+    "participantsWithCount": "Participants ({{count}})",
+    "rules": {
+      "title": "Room Rules & Regulations",
+      "tag": "Rules",
+      "respect": "Respect each other, maintain civil and polite communication",
+      "englishPriority": "Prioritize English to practice and learn together",
+      "muteWhenSilent": "Mute your mic when not speaking to avoid background noise",
+      "noSpam": "Do not share inappropriate content or spam"
+    },
     "title": "Room {{code}}",
     "placeholderTitle": "Room {{code}} - audio",
     "preparing": "Preparing microphone and connection…",
@@ -127,6 +137,17 @@
       "SERVER_RESTART": "Server restarted, room has been closed.",
       "ENDED_BY_HOST": "The host ended this room."
     }
+  },
+  "chat": {
+    "title": "Chat",
+    "toggle": "Open chat",
+    "close": "Close chat",
+    "placeholder": "Type a message…",
+    "send": "Send",
+    "empty": "No messages yet. Messages are not saved.",
+    "newMessages": "New messages",
+    "unreadLabel": "{{count}} unread",
+    "counter": "{{count}}/500"
   }
 }
 
