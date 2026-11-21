@@ -81,6 +81,32 @@
       "leaveAlone": "Rời phòng",
       "cancel": "Ở lại"
     },
+    "kick": "Loại",
+    "kickAction": "Mời {{name}} ra khỏi phòng",
+    "kickConfirm": {
+      "title": "Mời {{name}} ra khỏi phòng?",
+      "body": "Người này sẽ bị đưa ra khỏi phòng và không vào lại được cho tới khi bạn cho phép.",
+      "confirm": "Mời ra",
+      "cancel": "Hủy"
+    },
+    "kicked": {
+      "title": "Bạn đã bị host mời ra khỏi phòng",
+      "body": "Bạn không thể vào lại phòng này cho tới khi host cho phép.",
+      "backToLobby": "Về danh sách phòng"
+    },
+    "bans": {
+      "open": "Danh sách người bị chặn",
+      "openWithCount": "Danh sách người bị chặn ({{count}})",
+      "title": "Danh sách người bị chặn",
+      "titleWithCount": "Danh sách người bị chặn ({{count}})",
+      "hint": "Cho vào lại chỉ gỡ chặn. Người đó cần tự vào phòng lại.",
+      "empty": "Chưa có ai bị chặn.",
+      "unban": "Cho vào lại",
+      "loadError": "Không tải được danh sách.",
+      "retry": "Thử lại",
+      "close": "Đóng"
+    },
+    "peerKicked": "{{name}} đã bị mời ra khỏi phòng.",
     "hostChanged": "{{name}} đã trở thành host.",
     "youAreHost": "Bạn đã trở thành host.",
     "removed": "Bạn không còn ở trong phòng này (mất kết nối quá lâu).",

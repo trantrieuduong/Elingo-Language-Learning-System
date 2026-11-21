@@ -43,3 +43,11 @@ export const sendEnd = (roomCode) => {
   return sendMessage('/app/speaking/end', { roomCode });
 };
 
+export const sendKick = (roomCode, userId) => {
+  return sendMessage('/app/speaking/kick', { roomCode, userId });
+};
+
+export const sendUnban = (roomCode, userId) => {
+  return sendMessage('/app/speaking/unban', { roomCode, userId });
+};
+

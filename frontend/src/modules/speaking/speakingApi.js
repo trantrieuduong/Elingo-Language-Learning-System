@@ -36,3 +36,10 @@ export const getSpeakingHistorySummaryApi = async () => {
   const response = await apiClient.get('/speaking-rooms/history/summary');
   return response.data;
 };
+
+// lấy danh sách thành viên bị cấm (chỉ dành cho host)
+export const getBansApi = async (roomCode) => {
+  const response = await apiClient.get(`/speaking-rooms/${roomCode}/bans`);
+  return response.data;
+};
+

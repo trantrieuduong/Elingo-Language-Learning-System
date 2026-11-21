@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import ConfirmModal from '../../../components/ConfirmModal/ConfirmModal';
 import EmptyState from '../../../components/EmptyState/EmptyState';
 import PageLoading from '../../../components/PageLoading/PageLoading';
 import Toast from '../../../components/Toast/Toast';
+import { getBansApi } from '../speakingApi';
+import BannedListPanel from '../components/BannedListPanel/BannedListPanel';
 import LeaveRoomDialog from '../components/LeaveRoomDialog/LeaveRoomDialog';
 import PeerTile from '../components/PeerTile/PeerTile';
 import RemoteAudio from '../components/RemoteAudio/RemoteAudio';
@@ -29,6 +32,9 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
     setNotice,
     isHost,
     requestMute,
+    kickMember,
+    unbanMember,
+    kicked,
     transferHostAndLeave,
     endRoom,
     startSession,
@@ -42,12 +48,35 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
   const [leaveBusy, setLeaveBusy] = useState(false);
   const [leaveError, setLeaveError] = useState(null);
+  const [kickTarget, setKickTarget] = useState(null); // { userId, name }
+  const [kickLoading, setKickLoading] = useState(false);
+  const [kickError, setKickError] = useState(null);
+  const [bansOpen, setBansOpen] = useState(false);
+  const [bansCount, setBansCount] = useState(0);
   const copyTimeoutRef = useRef(null);
 
   useEffect(() => {
     startSession(roomCode);
     return () => teardown();
   }, [roomCode, startSession, teardown]);
+
+  // Tự động tải số lượng người bị cấm nếu là Host
+  useEffect(() => {
+    if (!isHost || !roomCode) return;
+    let isMounted = true;
+    getBansApi(roomCode)
+      .then((res) => {
+        if (!isMounted) return;
+        const list = Array.isArray(res) ? res : res?.data ?? [];
+        setBansCount(list.length);
+      })
+      .catch(() => {
+        // im lặng nếu chưa tải được
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [isHost, roomCode]);
 
   const handleDismissNotice = useCallback(() => {
     setNotice(null);
@@ -62,6 +91,10 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
           })
       : notice?.type === 'mutedByHost'
       ? t('room.mutedByHost', {
+          name: peers[notice.userId]?.displayName || t('room.host'),
+        })
+      : notice?.type === 'peerKicked'
+      ? t('room.peerKicked', {
           name: peers[notice.userId]?.displayName || t('room.host'),
         })
       : '';
@@ -107,6 +140,21 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
       setLeaveError(e?.code || 'UNKNOWN');
     } finally {
       setLeaveBusy(false);
+    }
+  };
+
+  const handleKickConfirm = async () => {
+    if (!kickTarget) return;
+    setKickLoading(true);
+    setKickError(null);
+    try {
+      await kickMember(kickTarget.userId);
+      setKickTarget(null);
+      setBansCount((prev) => prev + 1);
+    } catch (e) {
+      setKickError(e?.code || 'UNKNOWN');
+    } finally {
+      setKickLoading(false);
     }
   };
 
@@ -179,35 +227,57 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
         : tApi('common.fallback');
 
     return (
-      <main className="speaking-room-page speaking-room-page--center">
-        <EmptyState
-          icon="error"
-          isError
-          title={errorTitle}
-          actionLabel={t('room.backToLobby')}
-          onAction={() => onNavigate('/speaking')}
-          actionVariant="primary"
-        />
+      <main className="speaking-room-page">
+        <div className="speaking-room-container">
+          <EmptyState
+            icon="error"
+            isError
+            title={errorTitle}
+            actionLabel={t('room.backToLobby')}
+            onAction={() => onNavigate('/speaking')}
+            actionVariant="primary"
+          />
+        </div>
       </main>
     );
   }
 
-  // 3. Phòng bị đóng
+  // 3. Phòng bị đóng hoặc bị kick
   if (phase === 'closed') {
+    if (closedReason === 'KICKED' || kicked) {
+      return (
+        <main className="speaking-room-page">
+          <div className="speaking-room-container">
+            <EmptyState
+              icon="block"
+              isError
+              title={t('room.kicked.title')}
+              description={t('room.kicked.body')}
+              actionLabel={t('room.kicked.backToLobby')}
+              onAction={() => onNavigate('/speaking')}
+              actionVariant="primary"
+            />
+          </div>
+        </main>
+      );
+    }
+
     const closeDesc = closedReason
       ? t(`room.closed.${closedReason}`, { defaultValue: t('room.closed.EMPTY') })
       : t('room.closed.EMPTY');
 
     return (
-      <main className="speaking-room-page speaking-room-page--center">
-        <EmptyState
-          icon="meeting_room"
-          title={t('room.closedTitle')}
-          description={closeDesc}
-          actionLabel={t('room.backToLobby')}
-          onAction={() => onNavigate('/speaking')}
-          actionVariant="primary"
-        />
+      <main className="speaking-room-page">
+        <div className="speaking-room-container">
+          <EmptyState
+            icon="meeting_room"
+            title={t('room.closedTitle')}
+            description={closeDesc}
+            actionLabel={t('room.backToLobby')}
+            onAction={() => onNavigate('/speaking')}
+            actionVariant="primary"
+          />
+        </div>
       </main>
     );
   }
@@ -270,6 +340,29 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
                   </span>
                   <span>{isPrivate ? t('room.private') : t('room.public')}</span>
                 </span>
+                {isHost && (
+                  <button
+                    type="button"
+                    className="btn-secondary speaking-room-header__bans-btn"
+                    onClick={() => setBansOpen(true)}
+                    title={t('room.bans.openWithCount', {
+                      count: bansCount,
+                      defaultValue: `${t('room.bans.open')} (${bansCount})`,
+                    })}
+                    aria-label={t('room.bans.openWithCount', {
+                      count: bansCount,
+                      defaultValue: `${t('room.bans.open')} (${bansCount})`,
+                    })}
+                  >
+                    <span className="material-symbols-outlined">group_off</span>
+                    <span>
+                      {t('room.bans.openWithCount', {
+                        count: bansCount,
+                        defaultValue: `${t('room.bans.open')} (${bansCount})`,
+                      })}
+                    </span>
+                  </button>
+                )}
               </div>
 
               <h1 className="text-title-lg speaking-room-header__topic">
@@ -329,6 +422,11 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
                   micMuted={Boolean(p.micMuted)}
                   canMute={isHost}
                   onMute={requestMute}
+                  canKick={isHost}
+                  onKick={(userId, name) => {
+                    setKickError(null);
+                    setKickTarget({ userId, name });
+                  }}
                 />
               );
             })}
@@ -352,6 +450,34 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
           onEnd={handleEndRoom}
           busy={leaveBusy}
           error={leaveError}
+        />
+
+        {/* Modal xác nhận Host kick thành viên */}
+        <ConfirmModal
+          isOpen={Boolean(kickTarget)}
+          title={t('room.kickConfirm.title', { name: kickTarget?.name })}
+          message={
+            kickError
+              ? `${t('room.kickConfirm.body')} (${tApi(`error.${kickError}`, {
+                  defaultValue: tApi('common.fallback'),
+                })})`
+              : t('room.kickConfirm.body')
+          }
+          confirmText={t('room.kickConfirm.confirm')}
+          cancelText={t('room.kickConfirm.cancel')}
+          onConfirm={handleKickConfirm}
+          onCancel={() => !kickLoading && setKickTarget(null)}
+          isDanger
+          isLoading={kickLoading}
+        />
+
+        {/* Modal Danh sách người bị chặn */}
+        <BannedListPanel
+          open={bansOpen}
+          roomCode={currentCode}
+          onClose={() => setBansOpen(false)}
+          onUnban={unbanMember}
+          onBansCountChange={setBansCount}
         />
 
         {/* Audio elements ngầm cho từng peer khác */}

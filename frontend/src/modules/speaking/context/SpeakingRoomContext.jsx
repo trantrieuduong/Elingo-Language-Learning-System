@@ -12,6 +12,8 @@ import {
   sendMute,
   sendTransferHost,
   sendEnd,
+  sendKick,
+  sendUnban,
 } from '../speakingSocket';
 import { createPeerManager } from '../webrtc/peerManager';
 
@@ -49,6 +51,7 @@ export const SpeakingRoomProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [closedReason, setClosedReason] = useState(null);
   const [notice, setNotice] = useState(null); // { type: 'hostChanged', userId } | null
+  const [kicked, setKicked] = useState(false);
 
   const sessionRef = useRef(0); // token phiên vào phòng
   const roomCodeRef = useRef(null);
@@ -263,6 +266,13 @@ export const SpeakingRoomProvider = ({ children }) => {
       case 'room:left':
         leaveWaiterRef.current?.(data);
         break;
+      case 'room:kicked':
+        // Chỉ người bị kick nhận event này
+        teardown();
+        setKicked(true);
+        setPhase('closed');
+        setClosedReason('KICKED');
+        break;
       case 'room:closed':
         teardown();
         setClosedReason(data.reason);
@@ -293,6 +303,7 @@ export const SpeakingRoomProvider = ({ children }) => {
     setMicError(null);
     setClosedReason(null);
     setMuted(false);
+    setKicked(false);
 
     let stream;
     try {
@@ -419,6 +430,31 @@ export const SpeakingRoomProvider = ({ children }) => {
     return data;
   }, [sendAndWait, teardown]);
 
+  const kickMember = useCallback(
+    async (targetUserId) => {
+      const code = roomCodeRef.current;
+      await sendAndWait(
+        () => sendKick(code, targetUserId),
+        (ev, d) =>
+          ev === 'peer:left' &&
+          d.reason === 'KICKED' &&
+          String(d.userId) === String(targetUserId)
+      );
+    },
+    [sendAndWait]
+  );
+
+  const unbanMember = useCallback(
+    async (targetUserId) => {
+      const code = roomCodeRef.current;
+      await sendAndWait(
+        () => sendUnban(code, targetUserId),
+        (ev, d) => ev === 'ban:removed' && String(d.userId) === String(targetUserId)
+      );
+    },
+    [sendAndWait]
+  );
+
   const isHost = Boolean(room && String(room.hostId) === String(selfId));
 
   const value = {
@@ -435,7 +471,10 @@ export const SpeakingRoomProvider = ({ children }) => {
     notice,
     setNotice,
     isHost,
+    kicked,
     requestMute,
+    kickMember,
+    unbanMember,
     transferHostAndLeave,
     endRoom,
     startSession,

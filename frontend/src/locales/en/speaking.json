@@ -81,6 +81,32 @@
       "leaveAlone": "Leave room",
       "cancel": "Stay"
     },
+    "kick": "Kick",
+    "kickAction": "Remove {{name}} from the room",
+    "kickConfirm": {
+      "title": "Remove {{name}} from the room?",
+      "body": "They'll be removed and can't rejoin until you allow it.",
+      "confirm": "Remove",
+      "cancel": "Cancel"
+    },
+    "kicked": {
+      "title": "The host removed you from the room",
+      "body": "You can't rejoin this room until the host allows it.",
+      "backToLobby": "Back to rooms"
+    },
+    "bans": {
+      "open": "Blocked Users List",
+      "openWithCount": "Blocked Users List ({{count}})",
+      "title": "Blocked Users List",
+      "titleWithCount": "Blocked Users List ({{count}})",
+      "hint": "Unblocking only lets them join again. They need to rejoin by themselves.",
+      "empty": "No one is blocked.",
+      "unban": "Unblock",
+      "loadError": "Couldn't load the list.",
+      "retry": "Try again",
+      "close": "Close"
+    },
+    "peerKicked": "{{name}} was removed from the room.",
     "hostChanged": "{{name}} is now the host.",
     "youAreHost": "You are now the host.",
     "removed": "You are no longer in this room (disconnected too long).",

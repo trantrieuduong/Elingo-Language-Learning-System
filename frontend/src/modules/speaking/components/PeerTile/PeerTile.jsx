@@ -12,6 +12,8 @@ const PeerTile = ({
   micMuted = false,
   canMute = false,
   onMute,
+  canKick = false,
+  onKick,
 }) => {
   const { t } = useTranslation('speaking');
   const [muteCooldowned, setMuteCooldowned] = useState(false);
@@ -31,11 +33,18 @@ const PeerTile = ({
       !isGrace
   );
 
+  const showKickButton = Boolean(!isSelf && canKick);
+
   const handleMuteClick = () => {
     if (muteCooldowned || !onMute) return;
     setMuteCooldowned(true);
     onMute(peer.userId);
     setTimeout(() => setMuteCooldowned(false), 2000);
+  };
+
+  const handleKickClick = () => {
+    if (!onKick) return;
+    onKick(peer.userId, displayName);
   };
 
   return (
@@ -110,19 +119,33 @@ const PeerTile = ({
           </div>
         )}
 
-        {showMuteButton && (
+        {(showMuteButton || showKickButton) && (
           <div className="speaking-peer-tile__actions">
-            <button
-              type="button"
-              className="speaking-peer-tile__mute-btn btn-secondary"
-              onClick={handleMuteClick}
-              disabled={muteCooldowned}
-              title={t('room.muteAction', { name: displayName })}
-              aria-label={t('room.muteAction', { name: displayName })}
-            >
-              <span className="material-symbols-outlined">mic_off</span>
-              <span>{t('room.mute')}</span>
-            </button>
+            {showMuteButton && (
+              <button
+                type="button"
+                className="speaking-peer-tile__mute-btn btn-secondary"
+                onClick={handleMuteClick}
+                disabled={muteCooldowned}
+                title={t('room.muteAction', { name: displayName })}
+                aria-label={t('room.muteAction', { name: displayName })}
+              >
+                <span className="material-symbols-outlined">mic_off</span>
+                <span>{t('room.mute')}</span>
+              </button>
+            )}
+            {showKickButton && (
+              <button
+                type="button"
+                className="speaking-peer-tile__kick-btn btn-secondary"
+                onClick={handleKickClick}
+                title={t('room.kickAction', { name: displayName })}
+                aria-label={t('room.kickAction', { name: displayName })}
+              >
+                <span className="material-symbols-outlined">person_remove</span>
+                <span>{t('room.kick')}</span>
+              </button>
+            )}
           </div>
         )}
       </div>
