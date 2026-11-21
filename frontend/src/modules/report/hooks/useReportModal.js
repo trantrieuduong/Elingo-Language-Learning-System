@@ -11,7 +11,7 @@ export function useReportModal() {
     targetLabel: '',
   });
 
-  const openReport = useCallback(({ targetType, targetId, targetLabel = '' }) => {
+  const openReport = useCallback(({ targetType, targetId, targetLabel }) => {
     setReportState({
       isOpen: true,
       targetType,

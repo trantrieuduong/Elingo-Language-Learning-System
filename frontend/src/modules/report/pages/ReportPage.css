@@ -5,7 +5,7 @@
   margin-inline: auto;
   padding-inline: var(--margin-desktop);
   padding-top: calc(2 * var(--spacing-3xl) + var(--spacing-md));
-  padding-bottom: var(--spacing-2xl);
+  padding-bottom: var(--spacing-xl);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -53,8 +53,9 @@
   padding-top: var(--spacing-xs);
 }
 
-.report-page__pagination-wrap .pagination {
-  margin-top: var(--spacing-md);
+.report-page__pagination-wrap .pagination,
+.report-page > .pagination {
+  margin-top: var(--spacing-sm);
 }
 
 @media (max-width: 1024px) {

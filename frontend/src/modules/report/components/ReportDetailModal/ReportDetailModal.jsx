@@ -89,17 +89,13 @@ function ReportDetailModal({ isOpen, onClose, reportId, initialReport }) {
   const images = report?.imageUrls || [];
 
   return createPortal(
-    <div className="report-detail-modal__overlay" onClick={(e) => {
-      if (e.target === e.currentTarget) onClose?.();
-    }}>
+    <div className="report-detail-modal__overlay">
       <div
         className="report-detail-modal__container glass-card"
         role="dialog"
-        aria-labelledby="report-detail-modal-title"
-        aria-modal="true"
       >
         <header className="report-detail-modal__header">
-          <h2 id="report-detail-modal-title" className="text-headline-sm">
+          <h2 className="text-headline-sm">
             <span className="material-symbols-outlined report-detail-modal__header-icon">
               info
             </span>
@@ -109,7 +105,6 @@ function ReportDetailModal({ isOpen, onClose, reportId, initialReport }) {
             type="button"
             className="btn-icon report-detail-modal__close"
             onClick={onClose}
-            aria-label={t('report:close')}
           >
             <span className="material-symbols-outlined">close</span>
           </button>
@@ -196,7 +191,7 @@ function ReportDetailModal({ isOpen, onClose, reportId, initialReport }) {
 
         <footer className="report-detail-modal__footer">
           <button type="button" className="btn-secondary" onClick={onClose}>
-            {t('report:close')}
+            {t('common:close')}
           </button>
         </footer>
       </div>

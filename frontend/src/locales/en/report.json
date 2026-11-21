@@ -14,7 +14,6 @@
   "chooseFiles": "Choose images",
   "submit": "Submit report",
   "submitting": "Submitting...",
-  "cancel": "Cancel",
   "successMessage": "Thank you! Your report has been submitted to administrators for review.",
   "errors": {
     "descriptionRequired": "Please enter a report description.",
@@ -24,9 +23,7 @@
   },
   "emptyTitle": "No reports found",
   "emptyDescription": "You have not submitted any reports yet.",
-  "retry": "Retry",
   "viewDetails": "View details",
-  "close": "Close",
   "detailModalTitle": "Report details",
   "table": {
     "targetType": "Target",

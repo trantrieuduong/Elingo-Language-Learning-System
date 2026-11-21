@@ -284,7 +284,7 @@ function ReportModal({
               onClick={handleClose}
               disabled={isSubmitting}
             >
-              {t('report:cancel')}
+              {t('common:cancel')}
             </button>
             <button
               type="submit"

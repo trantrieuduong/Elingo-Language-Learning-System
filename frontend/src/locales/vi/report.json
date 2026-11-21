@@ -14,7 +14,6 @@
   "chooseFiles": "Chọn ảnh",
   "submit": "Gửi báo cáo",
   "submitting": "Đang gửi báo cáo...",
-  "cancel": "Hủy bỏ",
   "successMessage": "Cảm ơn bạn! Báo cáo đã được gửi tới ban quản trị để xem xét.",
   "errors": {
     "descriptionRequired": "Vui lòng nhập lý do báo cáo.",
@@ -24,9 +23,7 @@
   },
   "emptyTitle": "Chưa có báo cáo nào",
   "emptyDescription": "Bạn chưa gửi báo cáo vi phạm nào trên hệ thống.",
-  "retry": "Thử lại",
   "viewDetails": "Xem chi tiết",
-  "close": "Đóng",
   "detailModalTitle": "Chi tiết báo cáo",
   "table": {
     "targetType": "Đối tượng",

@@ -152,7 +152,6 @@ function ReportPage({ onNavigate }) {
             className="btn-icon"
             onClick={() => handleOpenDetail(row)}
             title={t('report:viewDetails')}
-            aria-label={t('report:viewDetails')}
           >
             <span className="material-symbols-outlined">visibility</span>
           </button>
@@ -170,7 +169,7 @@ function ReportPage({ onNavigate }) {
           icon="error"
           isError={true}
           description={error}
-          actionLabel={t('report:retry')}
+          actionLabel={t('common:retry')}
           onAction={handleRetry}
         />
       ) : reports.length === 0 ? (
@@ -180,24 +179,24 @@ function ReportPage({ onNavigate }) {
           description={t('report:emptyDescription')}
         />
       ) : (
-        <div className="report-page__content-card glass-card">
-          <Table
-            columns={columns}
-            data={reports}
-            rowKey="id"
-            className="report-table"
-          />
+        <>
+          <div className="report-page__content-card glass-card">
+            <Table
+              columns={columns}
+              data={reports}
+              rowKey="id"
+              className="report-table"
+            />
+          </div>
 
           {totalPages > 1 && (
-            <div className="report-page__pagination-wrap">
-              <Pagination
-                currentPage={page}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-              />
-            </div>
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
           )}
-        </div>
+        </>
       )}
 
       <ReportDetailModal
