@@ -830,4 +830,87 @@ class UserServiceTest {
             verify(userMapper, never()).updateUser(any(), any());
         }
     }
+
+    // ========================================================================
+    // User Statistics Queries Tests
+    // ========================================================================
+    @Nested
+    @DisplayName("User Statistics Queries Tests")
+    class UserStatsQueriesTests {
+
+        private final LocalDateTime from = LocalDateTime.of(2026, 11, 1, 0, 0);
+        private final LocalDateTime to = LocalDateTime.of(2026, 11, 5, 23, 59, 59);
+
+        @Test
+        @DisplayName("countNewUsers should delegate to countNewUsersByDay for DAY granularity")
+        void countNewUsers_Day_CallsRepository() {
+            UserRepository.NewUserStats stat = org.mockito.Mockito.mock(UserRepository.NewUserStats.class);
+            when(userRepository.countNewUsersByDay(from, to)).thenReturn(List.of(stat));
+
+            List<UserRepository.NewUserStats> result = userService.countNewUsers(from, to, com.elingo.common.enums.StatsGranularity.DAY);
+
+            assertThat(result).hasSize(1).contains(stat);
+            verify(userRepository).countNewUsersByDay(from, to);
+        }
+
+        @Test
+        @DisplayName("countNewUsers should delegate to countNewUsersByWeek for WEEK granularity")
+        void countNewUsers_Week_CallsRepository() {
+            UserRepository.NewUserStats stat = org.mockito.Mockito.mock(UserRepository.NewUserStats.class);
+            when(userRepository.countNewUsersByWeek(from, to)).thenReturn(List.of(stat));
+
+            List<UserRepository.NewUserStats> result = userService.countNewUsers(from, to, com.elingo.common.enums.StatsGranularity.WEEK);
+
+            assertThat(result).hasSize(1).contains(stat);
+            verify(userRepository).countNewUsersByWeek(from, to);
+        }
+
+        @Test
+        @DisplayName("countNewUsers should delegate to countNewUsersByMonth for MONTH granularity")
+        void countNewUsers_Month_CallsRepository() {
+            UserRepository.NewUserStats stat = org.mockito.Mockito.mock(UserRepository.NewUserStats.class);
+            when(userRepository.countNewUsersByMonth(from, to)).thenReturn(List.of(stat));
+
+            List<UserRepository.NewUserStats> result = userService.countNewUsers(from, to, com.elingo.common.enums.StatsGranularity.MONTH);
+
+            assertThat(result).hasSize(1).contains(stat);
+            verify(userRepository).countNewUsersByMonth(from, to);
+        }
+
+        @Test
+        @DisplayName("countTotalUsers should delegate to userRepository.count")
+        void countTotalUsers_CallsRepository() {
+            when(userRepository.count()).thenReturn(100L);
+
+            assertThat(userService.countTotalUsers()).isEqualTo(100L);
+            verify(userRepository).count();
+        }
+
+        @Test
+        @DisplayName("countVerifiedUsers should delegate to userRepository.countByIsVerified")
+        void countVerifiedUsers_CallsRepository() {
+            when(userRepository.countByIsVerified(true)).thenReturn(80L);
+
+            assertThat(userService.countVerifiedUsers()).isEqualTo(80L);
+            verify(userRepository).countByIsVerified(true);
+        }
+
+        @Test
+        @DisplayName("countActiveUsers should delegate to userRepository.countByIsActive")
+        void countActiveUsers_CallsRepository() {
+            when(userRepository.countByIsActive(true)).thenReturn(90L);
+
+            assertThat(userService.countActiveUsers()).isEqualTo(90L);
+            verify(userRepository).countByIsActive(true);
+        }
+
+        @Test
+        @DisplayName("countUsersBefore should delegate to userRepository.countByCreatedAtBefore")
+        void countUsersBefore_CallsRepository() {
+            when(userRepository.countByCreatedAtBefore(from)).thenReturn(50L);
+
+            assertThat(userService.countUsersBefore(from)).isEqualTo(50L);
+            verify(userRepository).countByCreatedAtBefore(from);
+        }
+    }
 }

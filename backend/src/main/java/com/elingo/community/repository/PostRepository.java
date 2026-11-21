@@ -1,6 +1,7 @@
 package com.elingo.community.repository;
 
 import com.elingo.community.entity.Post;
+import com.elingo.community.entity.PostStatus;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -12,6 +13,22 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
+
+    interface PostStatusCountProjection {
+        PostStatus getStatus();
+        Long getCountVal();
+    }
+
+    interface PostGroupCountProjection {
+        Long getGroupId();
+        String getGroupName();
+        Long getPostCount();
+    }
+
+    interface PostBacklogProjection {
+        Long getPendingCount();
+        Long getNeedsReviewCount();
+    }
 
     @Query("""
         SELECT p FROM Post p
@@ -86,4 +103,23 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query("select p.user.id from Post p where p.id = :postId and p.status = com.elingo.community.entity.PostStatus.PUBLISHED")
     Optional<Long> findPublishedPostOwnerId(@Param("postId") Long postId);
+
+    @Query("SELECT p.status AS status, COUNT(p.id) AS countVal FROM Post p GROUP BY p.status")
+    List<PostStatusCountProjection> countPostsByStatus();
+
+    @Query("""
+            SELECT g.id AS groupId, g.groupName AS groupName, COUNT(p.id) AS postCount
+            FROM PostGroup g
+            LEFT JOIN Post p ON p.group.id = g.id
+            GROUP BY g.id, g.groupName
+            """)
+    List<PostGroupCountProjection> countPostsByGroup();
+
+    @Query(value = """
+            SELECT
+                COUNT(CASE WHEN status = 'PENDING' THEN 1 END) AS pendingCount,
+                COUNT(CASE WHEN status = 'NEEDS_REVIEW' THEN 1 END) AS needsReviewCount
+            FROM posts
+            """, nativeQuery = true)
+    PostBacklogProjection countPostBacklog();
 }

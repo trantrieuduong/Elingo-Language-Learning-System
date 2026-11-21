@@ -1,9 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import ProgressBar from '../../../../components/ProgressBar/ProgressBar';
 import DeckStatsPill from '../DeckStatsPill/DeckStatsPill';
+import OptionsMenu from '../../../../components/OptionsMenu/OptionsMenu';
 import './UserDeckCard.css';
 
-function UserDeckCard({ deck, onEdit, onDelete, onToggleStatus, onManageTopics }) {
+function UserDeckCard({ deck, onOptionsClick, onManageTopics }) {
   const { t } = useTranslation('learning');
   const isPublished = deck.status === 'PUBLISHED';
   const isDraft = deck.status === 'DRAFT';
@@ -33,6 +34,16 @@ function UserDeckCard({ deck, onEdit, onDelete, onToggleStatus, onManageTopics }
           </span>
         )}
       </div>
+
+      {onOptionsClick && (
+        <OptionsMenu
+          className="user-deck-card__options-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            onOptionsClick(deck);
+          }}
+        />
+      )}
 
       {onManageTopics && (
         <button
@@ -84,45 +95,6 @@ function UserDeckCard({ deck, onEdit, onDelete, onToggleStatus, onManageTopics }
             <ProgressBar title={t('deckList.progress')} current={learnedCards} total={totalCards} />
           </div>
         )}
-
-        {/* Footer chứa các nút hành động CRUD */}
-        <div className="user-deck-card__actions">
-          <div className="user-deck-card__action-group">
-            {/* Nút chuyển đổi nhanh trạng thái Publish / Draft */}
-            <button
-              type="button"
-              className={`btn-icon user-deck-card__btn-status ${
-                isPublished ? 'user-deck-card__btn-status--published' : ''
-              }`}
-              onClick={() => onToggleStatus?.(deck)}
-              title={t(isPublished ? 'userDeck.switchToDraft' : 'userDeck.publishDeck')}
-            >
-              <span className="material-symbols-outlined">
-                {isPublished ? 'unpublished' : 'publish'}
-              </span>
-            </button>
-
-            {/* Nút sửa */}
-            <button
-              type="button"
-              className="btn-icon btn-icon--edit user-deck-card__btn-edit"
-              onClick={() => onEdit?.(deck)}
-              title={t('userDeck.editDeck')}
-            >
-              <span className="material-symbols-outlined">edit</span>
-            </button>
-
-            {/* Nút xóa */}
-            <button
-              type="button"
-              className="btn-icon btn-icon--delete user-deck-card__btn-delete"
-              onClick={() => onDelete?.(deck)}
-              title={t('userDeck.deleteDeck')}
-            >
-              <span className="material-symbols-outlined">delete</span>
-            </button>
-          </div>
-        </div>
       </div>
     </article>
   );

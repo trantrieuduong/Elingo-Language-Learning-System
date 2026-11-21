@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -74,6 +75,24 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         log.info("Created new premium subscription id={} userId={} planId={} startAt={} endAt={}",
                 created.getId(), userId, planId, created.getStartAt(), created.getEndAt());
         return created;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserSubscriptionRepository.PlanSubscriptionStat> countActiveSubscriptionsByPlan(LocalDateTime now) {
+        return userSubscriptionRepository.countActiveSubscriptionsByPlan(now);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countDistinctActivePremiumUsers(LocalDateTime now) {
+        return userSubscriptionRepository.countDistinctActivePremiumUsers(now);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countTotalActiveSubscriptions(LocalDateTime now) {
+        return userSubscriptionRepository.countTotalActiveSubscriptions(now);
     }
 }
 

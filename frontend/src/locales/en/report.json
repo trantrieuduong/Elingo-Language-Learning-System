@@ -1,1 +1,51 @@
-{}
+{
+  "modalTitle": "Submit a report",
+  "report": "Report",
+  "targetTypes": {
+    "POST": "post",
+    "COMMENT": "comment",
+    "USER": "user",
+    "DECK": "deck",
+    "LESSON": "lesson"
+  },
+  "descriptionLabel": "Violation reason & details",
+  "descriptionPlaceholder": "Describe the violation in detail to help admins review quickly (10-1000 characters)...",
+  "attachImages": "Proof images",
+  "chooseFiles": "Choose images",
+  "submit": "Submit report",
+  "submitting": "Submitting...",
+  "successMessage": "Thank you! Your report has been submitted to administrators for review.",
+  "errors": {
+    "descriptionRequired": "Please enter a report description.",
+    "descriptionMax": "Report description cannot exceed 1000 characters.",
+    "submitFailed": "Could not submit report at this time. Please try again later.",
+    "loadFailed": "Failed to load reports. Please try again."
+  },
+  "emptyTitle": "No reports found",
+  "emptyDescription": "You have not submitted any reports yet.",
+  "viewDetails": "View details",
+  "detailModalTitle": "Report details",
+  "table": {
+    "targetType": "Target",
+    "description": "Report content",
+    "status": "Status",
+    "createdAt": "Submitted on",
+    "actions": "Actions"
+  },
+  "fields": {
+    "targetType": "Target type",
+    "description": "Violation description",
+    "status": "Status",
+    "image": "Attached images",
+    "resolutionNote": "Admin resolution note",
+    "resolvedAt": "Resolved at",
+    "createdAt": "Submitted at"
+  },
+  "status": {
+    "PENDING": "Pending",
+    "RESOLVED": "Resolved",
+    "REJECTED": "Rejected"
+  },
+  "noImages": "No proof images attached",
+  "noResolutionNote": "No resolution note provided"
+}

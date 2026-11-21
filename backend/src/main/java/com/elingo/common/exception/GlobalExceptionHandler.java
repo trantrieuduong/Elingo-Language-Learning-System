@@ -33,7 +33,8 @@ public class GlobalExceptionHandler {
             entry("uk_badge_code",          AppError.BADGE_CODE_EXISTED),
             entry("uk_user_checkin_date",   AppError.ALREADY_CHECKED_IN_TODAY),
             entry("uk_user_segment",        AppError.PROGRESS_UPDATE_CONFLICT),
-            entry("uk_user_lesson",         AppError.PROGRESS_UPDATE_CONFLICT)
+            entry("uk_user_lesson",         AppError.PROGRESS_UPDATE_CONFLICT),
+            entry("uk_tag_label",           AppError.TAG_LABEL_EXISTED)
     );
 
     /*

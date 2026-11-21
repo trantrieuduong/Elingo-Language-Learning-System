@@ -52,6 +52,7 @@
 | `/gamification` | `LeaderboardPage` | `gamification/pages/` | Bảng xếp hạng + XP |
 | `/progress` | `ProgressPage` | `progress/pages/` | Tiến độ học tập cá nhân |
 | `/premium/my-subscription` | `MySubscriptionPage` | `premium/pages/` | Gói Premium của tôi |
+| `/reports` | `ReportPage` | `report/pages/` | Danh sách báo cáo của tôi |
 | `/profile` | `ProfilePage` | `user/pages/` | Trang cá nhân (own) |
 | `/profile/:userId` | `UserProfilePage` | `user/pages/` | Trang cá nhân người dùng khác |
 
