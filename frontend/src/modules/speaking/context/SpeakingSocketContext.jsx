@@ -61,6 +61,10 @@ export const SpeakingSocketProvider = ({ children }) => {
           setLeftSummary(data);
           setActiveRoomCode(null);
           break;
+        case 'room:closed':
+        case 'room:kicked':
+          setActiveRoomCode(null);
+          break;
         case 'peer:joined':
           setRoomState((prev) =>
             prev ? { ...prev, peers: [...prev.peers.filter((p) => p.userId !== data.userId), data] } : prev
