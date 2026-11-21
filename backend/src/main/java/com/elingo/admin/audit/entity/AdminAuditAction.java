@@ -58,6 +58,5 @@ public enum AdminAuditAction {
     LEVEL_DELETE,
     BADGE_CREATE,
     BADGE_UPDATE,
-    BADGE_DELETE,
-    XP_POLICY_UPDATE,
+    BADGE_DELETE
 }
