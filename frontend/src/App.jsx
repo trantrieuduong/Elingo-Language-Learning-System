@@ -26,6 +26,11 @@ import PremiumListPage from './modules/premium/pages/PremiumListPage/PremiumList
 import MySubscriptionPage from './modules/premium/pages/MySubscriptionPage/MySubscriptionPage';
 import BattleHistoryPage from './modules/battle/pages/BattleHistoryPage';
 import BattleMatchDetailPage from './modules/battle/pages/BattleMatchDetailPage';
+import { SpeakingSocketProvider } from './modules/speaking/context/SpeakingSocketContext';
+import { SpeakingRoomProvider } from './modules/speaking/context/SpeakingRoomContext';
+import SpeakingLobbyPage from './modules/speaking/pages/SpeakingLobbyPage';
+import SpeakingRoomPage from './modules/speaking/pages/SpeakingRoomPage';
+import SpeakingHistoryPage from './modules/speaking/pages/SpeakingHistoryPage';
 import ReportPage from './modules/report/pages/ReportPage';
 import './App.css';
 
@@ -36,6 +41,7 @@ const PRIVATE_USER_PATHS = [
   '/review',
   '/battle',
   '/speaking',
+  '/speaking/history',
   '/community',
   '/community/groups',
   '/community/my-posts',
@@ -67,6 +73,7 @@ function App() {
   const shadowingMatch = currentPath.match(/^\/lessons\/shadowing\/([^/]+)$/);
   const battlePlayMatch = currentPath.match(/^\/battle\/play\/(\d+)$/);
   const battleDetailMatch = currentPath.match(/^\/battle\/history\/(\d+)$/);
+  const speakingRoomMatch = currentPath.match(/^\/speaking\/room\/([A-Za-z0-9]{6})$/);
   const deckListMatch = currentPath === '/decks';
   const deckTopicsMatch = currentPath.match(/^\/decks\/([^/]+)\/topics$/);
   const postDetailMatch = currentPath.match(/^\/community\/posts\/(\d+)$/);
@@ -77,7 +84,8 @@ function App() {
     !!flashcardStudyMatch ||
     !!deckTopicsMatch ||
     !!dictationMatch ||
-    !!shadowingMatch;
+    !!shadowingMatch ||
+    !!speakingRoomMatch;
 
   useEffect(() => {
     if (loading) return;
@@ -147,6 +155,8 @@ function App() {
   };
 
   const renderBattle = (page) => <BattleSocketProvider>{page}</BattleSocketProvider>;
+  const renderSpeaking = (page) => <SpeakingSocketProvider>{page}</SpeakingSocketProvider>;
+  const renderSpeakingRoom = (page) => <SpeakingRoomProvider>{page}</SpeakingRoomProvider>;
 
   const renderContent = () => {
     if (postDetailMatch) {
@@ -172,6 +182,13 @@ function App() {
     if (battlePlayMatch) {
       return renderBattle(
         <BattlePlayPage matchId={battlePlayMatch[1]} onNavigate={navigate} />
+      );
+    }
+
+    if (speakingRoomMatch) {
+      const code = speakingRoomMatch[1].toUpperCase();
+      return renderSpeakingRoom(
+        <SpeakingRoomPage key={code} roomCode={code} onNavigate={navigate} />
       );
     }
 
@@ -221,7 +238,9 @@ function App() {
       case '/battle/history':
         return <BattleHistoryPage onNavigate={navigate} />;
       case '/speaking':
-        return <PlaceholderPage title="Speaking" path={currentPath} />;
+        return renderSpeaking(<SpeakingLobbyPage onNavigate={navigate} />);
+      case '/speaking/history':
+        return renderSpeaking(<SpeakingHistoryPage onNavigate={navigate} />);
       case '/community':
         return (
           <CommunityFeedPage

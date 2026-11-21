@@ -1,0 +1,129 @@
+.speaking-room-card {
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg, 16px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  justify-content: space-between;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.speaking-room-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-primary-light, rgba(59, 130, 246, 0.4));
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.speaking-room-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+}
+
+.speaking-room-card__topic-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xs);
+  width: 100%;
+}
+
+.speaking-room-card__topic {
+  font-family: var(--font-headline, sans-serif);
+  font-size: var(--font-size-title-md, 18px);
+  font-weight: var(--font-weight-bold, 700);
+  color: var(--color-text-primary);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.3;
+}
+
+.speaking-status-chip {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: var(--font-size-body-xs, 12px);
+  font-weight: var(--font-weight-semibold, 600);
+}
+
+.speaking-status-chip--waiting {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+
+.speaking-status-chip--active {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+.speaking-room-card__body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xs) 0;
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.speaking-room-card__host {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  min-width: 0;
+}
+
+.speaking-room-card__host-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.speaking-room-card__host-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.speaking-room-card__host-name {
+  font-size: var(--font-size-body-sm);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+.speaking-room-card__capacity {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body-sm);
+  flex-shrink: 0;
+}
+
+.speaking-room-card__icon {
+  font-size: 18px;
+}
+
+.speaking-room-card__footer {
+  display: flex;
+  width: 100%;
+}
+
+.speaking-room-card__btn {
+  width: 100%;
+  justify-content: center;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 10px var(--spacing-md);
+}

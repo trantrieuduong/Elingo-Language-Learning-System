@@ -18,5 +18,6 @@ public final class SpeakingEvents {
     public static final String ROOM_KICKED = "room:kicked";
     public static final String BAN_REMOVED = "ban:removed";
     public static final String CHAT_MESSAGE = "chat:message";
+    public static final String ROOM_ACTIVE = "room:active";
     public static final String ERROR = "error";
 }

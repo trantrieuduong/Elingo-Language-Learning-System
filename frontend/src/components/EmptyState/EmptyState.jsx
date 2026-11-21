@@ -9,6 +9,8 @@ function EmptyState({
   actionLabel,
   onAction,
   actionVariant = 'secondary',
+  actionDisabled = false,
+  actionTitle,
   className = '',
 }) {
   const btnClass = actionVariant === 'primary' ? 'btn-primary' : 'btn-secondary';
@@ -34,7 +36,13 @@ function EmptyState({
 
       {actionLabel && onAction && (
         <div className="empty-state__actions">
-          <button type="button" className={btnClass} onClick={onAction}>
+          <button
+            type="button"
+            className={btnClass}
+            onClick={onAction}
+            disabled={actionDisabled}
+            title={actionTitle}
+          >
             {actionLabel}
           </button>
         </div>

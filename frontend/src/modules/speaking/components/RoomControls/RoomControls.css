@@ -1,0 +1,209 @@
+.speaking-room-controls {
+  position: sticky;
+  bottom: var(--spacing-lg, 24px);
+  margin-top: auto;
+  align-self: center;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill, 999px);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.speaking-room-controls__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md, 16px);
+}
+
+.speaking-control-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: var(--radius-pill, 999px);
+  border: 1px solid transparent;
+  font-family: var(--font-display, inherit);
+  font-size: var(--font-size-label-md, 14px);
+  font-weight: var(--font-weight-semibold, 600);
+  cursor: pointer;
+  transition: var(--transition-base, 0.2s ease);
+}
+
+.speaking-control-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.speaking-control-btn--mic {
+  background: var(--color-surface, #ffffff);
+  border-color: var(--color-outline-variant, rgba(0, 0, 0, 0.1));
+  color: var(--color-text-primary, #0f172a);
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.05));
+}
+
+.speaking-control-btn--mic:hover:not(:disabled) {
+  background: var(--color-surface-hover, #f8fafc);
+  border-color: var(--color-primary, #3b82f6);
+}
+
+.speaking-control-btn--mic.speaking-control-btn--muted {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--color-error, #ef4444);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.speaking-control-btn--mic.speaking-control-btn--muted:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.speaking-control-btn--chat {
+  background: var(--color-surface, #ffffff);
+  border-color: var(--color-outline-variant, rgba(0, 0, 0, 0.1));
+  color: var(--color-text-primary, #0f172a);
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.05));
+  position: relative;
+}
+
+.speaking-control-btn--chat:hover:not(:disabled) {
+  background: var(--color-surface-hover, #f8fafc);
+  border-color: var(--color-primary, #3b82f6);
+  color: var(--color-primary, #3b82f6);
+}
+
+.speaking-control-btn--chat.speaking-control-btn--chat-open {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+.speaking-control-btn--chat.speaking-control-btn--chat-open:hover:not(:disabled) {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  color: #ffffff;
+}
+
+.speaking-control-btn__icon-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.speaking-chat-unread-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--color-error, #ef4444);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--color-surface, #ffffff);
+  box-sizing: content-box;
+}
+
+.speaking-control-btn--leave {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.speaking-control-btn--leave:hover:not(:disabled) {
+  background: #b91c1c;
+  transform: translateY(-1px);
+}
+
+.speaking-control-btn--leave:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+[data-theme='dark'] .speaking-control-btn--mic {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #f1f5f9;
+}
+
+[data-theme='dark'] .speaking-control-btn--mic:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: var(--color-primary);
+}
+
+[data-theme='dark'] .speaking-control-btn--chat {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #f1f5f9;
+}
+
+[data-theme='dark'] .speaking-control-btn--chat:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: #60a5fa;
+  color: #60a5fa;
+}
+
+[data-theme='dark'] .speaking-control-btn--chat.speaking-control-btn--chat-open {
+  background: #2563eb;
+  border-color: #3b82f6;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+}
+
+[data-theme='dark'] .speaking-control-btn--chat.speaking-control-btn--chat-open:hover:not(:disabled) {
+  background: #1d4ed8;
+  border-color: #60a5fa;
+  color: #ffffff;
+}
+
+[data-theme='dark'] .speaking-chat-unread-badge {
+  border-color: rgba(30, 41, 59, 1);
+}
+
+/* Nút tắt mic ở theme tối */
+[data-theme='dark'] .speaking-control-btn--mic.speaking-control-btn--muted {
+  background: rgba(239, 68, 68, 0.18);
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.45);
+}
+
+[data-theme='dark'] .speaking-control-btn--mic.speaking-control-btn--muted:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.28);
+  border-color: #f87171;
+  color: #fca5a5;
+}
+
+/* Nút rời phòng ở theme tối */
+[data-theme='dark'] .speaking-control-btn--leave {
+  background: #e11d48;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 14px rgba(225, 29, 72, 0.4);
+}
+
+[data-theme='dark'] .speaking-control-btn--leave:hover:not(:disabled) {
+  background: #be123c;
+  box-shadow: 0 6px 18px rgba(225, 29, 72, 0.5);
+}
+
+@media (max-width: 480px) {
+  .speaking-control-btn__label {
+    display: none;
+  }
+
+  .speaking-control-btn {
+    padding: 12px;
+    border-radius: 50%;
+  }
+
+  .speaking-room-controls {
+    bottom: var(--spacing-md, 16px);
+  }
+}

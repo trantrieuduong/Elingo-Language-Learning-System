@@ -308,6 +308,14 @@ public class SpeakingRoomPersistenceServiceImpl implements SpeakingRoomPersisten
 
     @Override
     @Transactional(readOnly = true)
+    public String findActiveRoomCodeOrNull(Long userId) {
+        return participantRepository.findActiveByUserId(userId)
+                .map(p -> p.getRoom().getRoomCode())
+                .orElse(null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public SpeakingRoomDetailResponse getRoomDetail(String rawCode) {
         String code = SpeakingRoomCode.normalize(rawCode);
         SpeakingRoom room = roomRepository.findByRoomCodeWithHost(code)

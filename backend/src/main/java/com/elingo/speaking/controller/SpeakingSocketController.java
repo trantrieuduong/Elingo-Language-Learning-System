@@ -81,4 +81,13 @@ public class SpeakingSocketController {
     public void chat(@Valid @Payload SpeakingChatRequest request, Principal principal) {
         signalingService.chat(Long.parseLong(principal.getName()), request);
     }
+
+    @MessageMapping("/speaking/active-room")
+    public void activeRoom(Principal principal) {
+        try {
+            speakingRoomService.sendActiveRoom(Long.parseLong(principal.getName()));
+        } catch (Exception ex) {
+            // không trả error, bỏ qua / log
+        }
+    }
 }
