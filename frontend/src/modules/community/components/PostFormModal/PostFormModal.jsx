@@ -130,7 +130,7 @@ function PostFormModal({
       ...prev,
       media:
         acceptedFiles.length > remainingSlots
-          ? t('community:postForm.errors.firstFilesSelected', { slots: remainingSlots })
+          ? t('common:firstFilesSelected', { slots: remainingSlots })
           : undefined,
     }));
   };
@@ -412,7 +412,7 @@ function PostFormModal({
                   <span>{t('community:postForm.browseDevice')}</span>
                 </button>
                 <span className="post-form-modal__upload-note">
-                  {t('community:postForm.mediaNote', { max: MEDIA_MAX_FILES })}
+                  {t('common:maxFiles', { max: MEDIA_MAX_FILES })}
                 </span>
               </div>
 
@@ -432,12 +432,12 @@ function PostFormModal({
                       ) : (
                         <img src={item.url} alt="" className="post-form-modal__preview-asset" />
                       )}
+                      {item.type === 'video' && (
+                        <span className="post-form-modal__preview-tag">
+                          {t('community:postCard.videoBadge')}
+                        </span>
+                      )}
                       <div className="post-form-modal__preview-bar">
-                        {item.type === 'video' && (
-                          <span className="post-form-modal__preview-tag">
-                            {t('community:postCard.videoBadge')}
-                          </span>
-                        )}
                         <button
                           type="button"
                           disabled={isFormBusy}

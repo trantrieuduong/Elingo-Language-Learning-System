@@ -19,6 +19,7 @@ function PostComments({
   onLikeComment,
   onLoadReplies,
   onCreateReply,
+  onReportComment,
   repliesByCommentId = {},
   avatarUrl,
   userName,
@@ -64,6 +65,7 @@ function PostComments({
                   onUpdateComment={onUpdateComment}
                   onDeleteComment={onDeleteComment}
                   onLikeComment={onLikeComment}
+                  onReportComment={onReportComment}
                   replyState={repliesByCommentId[comment.id]}
                   onLoadReplies={onLoadReplies}
                   onCreateReply={onCreateReply}

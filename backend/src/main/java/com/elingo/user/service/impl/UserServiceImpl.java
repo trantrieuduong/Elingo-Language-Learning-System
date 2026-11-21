@@ -1,5 +1,6 @@
 package com.elingo.user.service.impl;
 
+import com.elingo.common.enums.StatsGranularity;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.user.dto.request.ChangePasswordRequest;
@@ -162,6 +163,40 @@ public class UserServiceImpl implements UserService {
         updateAvatar(user, request.avatarUrl(), userId);
 
         return userMapper.toUserMeResponse(user);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserRepository.NewUserStats> countNewUsers(LocalDateTime from, LocalDateTime to, StatsGranularity granularity) {
+        return switch (granularity) {
+            case WEEK -> userRepository.countNewUsersByWeek(from, to);
+            case MONTH -> userRepository.countNewUsersByMonth(from, to);
+            case DAY -> userRepository.countNewUsersByDay(from, to);
+        };
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countTotalUsers() {
+        return userRepository.count();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countVerifiedUsers() {
+        return userRepository.countByIsVerified(true);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countActiveUsers() {
+        return userRepository.countByIsActive(true);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countUsersBefore(LocalDateTime before) {
+        return userRepository.countByCreatedAtBefore(before);
     }
 
     private boolean validateUsernameChange(User user, String newUsername, Long userId) {

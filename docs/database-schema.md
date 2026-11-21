@@ -32,7 +32,7 @@ CREATE TABLE users (
 ```sql
 CREATE TABLE tags (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  label VARCHAR(150) NOT NULL,
+  label VARCHAR(150) NOT NULL UNIQUE,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -350,7 +350,8 @@ CREATE TABLE xp_events (
   amount INT NOT NULL,       -- cho phép âm nếu admin trừ XP
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  INDEX idx_xp_user_time (user_id, created_at)
+  INDEX idx_xp_user_time (user_id, created_at),
+  INDEX idx_xp_created_source_user (created_at, source, user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Tách streak ra riêng khỏi user_gamification
@@ -606,7 +607,8 @@ CREATE TABLE payment_transactions (
   FOREIGN KEY (plan_id) REFERENCES premium_plans(id),
   FOREIGN KEY (provider_id) REFERENCES payment_providers(id),
   INDEX idx_tx_user_created (user_id, created_at),
-  INDEX idx_tx_status_created (status, created_at)
+  INDEX idx_tx_status_created (status, created_at),
+  INDEX idx_tx_status_paid_plan_amount (status, paid_at, plan_id, amount)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Log kỹ thuật: lưu MỌI lần webhook gọi tới, kể cả trùng lặp/lỗi — phục vụ tra soát, không phải nguồn tính tiền

@@ -162,11 +162,25 @@
   font-size: 14px;
 }
 
+.vocabulary-card__options-btn {
+  position: absolute;
+  top: var(--spacing-md);
+  right: var(--spacing-sm);
+  z-index: 4;
+  width: 32px;
+  height: 32px;
+}
+
 .vocabulary-card__word-count {
   position: absolute;
   top: var(--spacing-md);
   right: var(--spacing-md);
   z-index: 2;
+}
+
+/* Khi có nút Options -> dịch DeckStatsPill sang trái để tránh đè */
+.vocabulary-card--with-options .vocabulary-card__word-count {
+  right: calc(var(--spacing-sm) + 36px + var(--spacing-xs));
 }
 
 .vocabulary-card__body {

@@ -15,6 +15,13 @@ import java.util.Optional;
 
 @Repository
 public interface UserSubscriptionRepository extends JpaRepository<UserSubscription, Long> {
+
+    interface PlanSubscriptionStat {
+        Long getPlanId();
+        String getPlanName();
+        Long getActiveCount();
+    }
+
     boolean existsByUserIdAndStatusAndEndAtAfter(Long userId, SubscriptionStatus status, LocalDateTime now);
 
     @EntityGraph(attributePaths = {"plan"})
@@ -34,4 +41,16 @@ public interface UserSubscriptionRepository extends JpaRepository<UserSubscripti
     List<UserSubscription> findExpiringSubscriptions(@Param("status") SubscriptionStatus status,
                                                      @Param("now") LocalDateTime now,
                                                      @Param("threshold") LocalDateTime threshold);
+
+    @Query("SELECT s.plan.id AS planId, s.plan.name AS planName, COUNT(s.id) AS activeCount " +
+            "FROM UserSubscription s " +
+            "WHERE s.status = 'ACTIVE' AND s.endAt > :now " +
+            "GROUP BY s.plan.id, s.plan.name ORDER BY activeCount DESC")
+    List<PlanSubscriptionStat> countActiveSubscriptionsByPlan(@Param("now") LocalDateTime now);
+
+    @Query("SELECT COUNT(DISTINCT s.user.id) FROM UserSubscription s WHERE s.status = 'ACTIVE' AND s.endAt > :now")
+    long countDistinctActivePremiumUsers(@Param("now") LocalDateTime now);
+
+    @Query("SELECT COUNT(s.id) FROM UserSubscription s WHERE s.status = 'ACTIVE' AND s.endAt > :now")
+    long countTotalActiveSubscriptions(@Param("now") LocalDateTime now);
 }

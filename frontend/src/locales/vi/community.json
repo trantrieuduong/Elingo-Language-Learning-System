@@ -94,7 +94,6 @@
     "contentPlaceholder": "Viết nội dung rõ ràng để mọi người dễ dàng cùng thảo luận...",
     "mediaLabel": "Ảnh & video",
     "browseDevice": "Chọn từ thiết bị",
-    "mediaNote": "Tối đa {{max}} tệp",
     "uploadProgress": "Đang tải tệp {{current}}/{{total}}...",
     "creatingPost": "Đang tạo bài viết...",
     "updatingPost": "Đang cập nhật bài viết...",
@@ -109,7 +108,6 @@
       "contentRequired": "Nội dung không được để trống.",
       "contentMaxLength": "Nội dung không được vượt quá {{max}} ký tự.",
       "mediaMaxFiles": "Bạn chỉ có thể tải lên tối đa {{max}} tệp.",
-      "firstFilesSelected": "Đã chọn {{slots}} tệp đầu tiên để không vượt quá giới hạn.",
       "uploadFailed": "Không thể tải tệp lên hoặc đăng bài viết. Vui lòng thử lại.",
       "updateFailed": "Không thể cập nhật bài viết. Vui lòng thử lại.",
       "loadPostFailed": "Không thể tải thông tin bài viết. Vui lòng thử lại."

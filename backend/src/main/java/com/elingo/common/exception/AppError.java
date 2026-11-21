@@ -14,6 +14,7 @@ public enum AppError {
     // ==========================================
     UNCATEGORIZED_EXCEPTION("UNCATEGORIZED_EXCEPTION", "Uncategorized exception", HttpStatus.INTERNAL_SERVER_ERROR),
     INVALID_REQUEST("INVALID_REQUEST", "Invalid request parameters or body", HttpStatus.BAD_REQUEST),
+    INVALID_DATE_RANGE("INVALID_DATE_RANGE", "Invalid date range or exceeds maximum allowed limit", HttpStatus.BAD_REQUEST),
     SLUG_INVALID("SLUG_INVALID", "Slug must contain only lowercase letters, numbers and hyphens", HttpStatus.BAD_REQUEST),
     RESOURCE_NOT_FOUND("RESOURCE_NOT_FOUND", "Requested resource not found", HttpStatus.NOT_FOUND),
     METHOD_NOT_SUPPORTED("METHOD_NOT_SUPPORTED", "HTTP request method is not supported", HttpStatus.METHOD_NOT_ALLOWED),
@@ -88,6 +89,8 @@ public enum AppError {
     DUPLICATE_CARD_PHONETIC_LOCALE("DUPLICATE_CARD_PHONETIC_LOCALE", "Duplicate phonetic locale in this card", HttpStatus.BAD_REQUEST),
     TAG_NOT_FOUND("TAG_NOT_FOUND", "Tag not found", HttpStatus.NOT_FOUND),
     TAG_CODE_EXISTED("TAG_CODE_EXISTED", "Tag code already exists", HttpStatus.BAD_REQUEST),
+    TAG_LABEL_EXISTED("TAG_LABEL_EXISTED", "Tag label already exists", HttpStatus.BAD_REQUEST),
+    TAG_IN_USE("TAG_IN_USE", "Tag is currently referenced by decks or lessons and cannot be deleted", HttpStatus.BAD_REQUEST),
     TAG_CODE_INVALID("TAG_CODE_INVALID", "Tag code must not exceed 100 characters", HttpStatus.BAD_REQUEST),
     CEFR_LEVEL_NOT_FOUND("CEFR_LEVEL_NOT_FOUND", "CEFR level not found", HttpStatus.NOT_FOUND),
     CEFR_LEVEL_CODE_EXISTED("CEFR_LEVEL_CODE_EXISTED", "CEFR level code already exists", HttpStatus.BAD_REQUEST),

@@ -1,0 +1,77 @@
+.report-page {
+  width: 100%;
+  max-width: var(--container-wide);
+  min-height: auto;
+  margin-inline: auto;
+  padding-inline: var(--margin-desktop);
+  padding-top: calc(2 * var(--spacing-3xl) + var(--spacing-md));
+  padding-bottom: var(--spacing-xl);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.report-page__content-card {
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.report-table__target-badge {
+  font-size: var(--font-size-label-sm);
+  padding: 0.2rem 0.6rem;
+}
+
+.report-table__description {
+  color: var(--color-text-mid);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.report-table__created-at {
+  font-size: var(--font-size-body-sm);
+  color: var(--color-text-mid);
+  white-space: nowrap;
+}
+
+.report-table__actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.report-page__pagination-wrap {
+  display: flex;
+  justify-content: center;
+  padding-top: var(--spacing-xs);
+}
+
+.report-page__pagination-wrap .pagination,
+.report-page > .pagination {
+  margin-top: var(--spacing-sm);
+}
+
+@media (max-width: 1024px) {
+  .report-page {
+    padding-inline: var(--margin-mobile);
+  }
+}
+
+@media (max-width: 600px) {
+  .report-page {
+    width: 100%;
+    padding-top: calc(72px + var(--spacing-sm));
+    gap: var(--spacing-lg);
+  }
+
+  .report-page__content-card {
+    padding: var(--spacing-md);
+  }
+}

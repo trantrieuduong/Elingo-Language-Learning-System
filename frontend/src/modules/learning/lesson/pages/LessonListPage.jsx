@@ -1,17 +1,35 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../../../../context/AuthContext';
 import { getLessonsApi } from '../lessonApi';
 import { getTagsApi, getCefrLevelsApi } from '../../../vocabulary/vocabularyApi';
 import FilterSection from '../../../../components/FilterSection/FilterSection';
 import Pagination from '../../../../components/Pagination/Pagination';
 import EmptyState from '../../../../components/EmptyState/EmptyState';
 import PageLoading from '../../../../components/PageLoading/PageLoading';
+import Toast from '../../../../components/Toast/Toast';
+import OptionsModal from '../../../../components/OptionsModal/OptionsModal';
 import LessonCard from '../components/LessonCard/LessonCard';
 import LessonModeModal from '../components/LessonModeModal/LessonModeModal';
+import ReportModal from '../../../report/components/ReportModal/ReportModal';
+import { useReportModal } from '../../../report/hooks/useReportModal';
 import './LessonListPage.css';
 
 function LessonListPage({ onNavigate }) {
-  const { t } = useTranslation(['learning', 'common', 'api']);
+  const { t } = useTranslation(['learning', 'common', 'api', 'report']);
+  const { user } = useAuth();
+
+  // State của Report modal
+  const { isReportOpen, targetType, targetId, targetLabel, openReport, closeReport } =
+    useReportModal();
+  const [targetLessonForOptions, setTargetLessonForOptions] = useState(null);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastVariant, setToastVariant] = useState('success');
+  const handleToastDismiss = useCallback(() => setToastMessage(''), []);
+  const showToast = useCallback((message, variant = 'success') => {
+    setToastVariant(variant);
+    setToastMessage(message);
+  }, []);
 
   // Dữ liệu danh sách bài học và phân trang
   const [lessons, setLessons] = useState([]);
@@ -167,8 +185,27 @@ function LessonListPage({ onNavigate }) {
     selectedTagIds.length > 0
   );
 
+  const lessonOptions = targetLessonForOptions && user
+    ? [
+        {
+          id: 'report-lesson',
+          label: t('report:report'),
+          icon: 'flag',
+          onSelect: () => {
+            openReport({
+              targetType: 'LESSON',
+              targetId: targetLessonForOptions.id,
+              targetLabel: targetLessonForOptions.title,
+            });
+          },
+        },
+      ]
+    : [];
+
   return (
     <main className="lessons-container">
+      <Toast message={toastMessage} variant={toastVariant} onDismiss={handleToastDismiss} />
+
       {/* Filter Section */}
       <FilterSection
         searchQuery={searchQuery}
@@ -212,6 +249,7 @@ function LessonListPage({ onNavigate }) {
                 key={lesson.id || lesson.slug}
                 lesson={lesson}
                 onClick={setSelectedLesson}
+                onOptionsClick={user ? setTargetLessonForOptions : undefined}
               />
             ))}
           </div>
@@ -233,6 +271,22 @@ function LessonListPage({ onNavigate }) {
         lesson={selectedLesson}
         onSelectMode={handleSelectMode}
         onClose={() => setSelectedLesson(null)}
+      />
+
+      <OptionsModal
+        isOpen={!!targetLessonForOptions}
+        title={t("lessonList.lessonOptions")}
+        options={lessonOptions}
+        onClose={() => setTargetLessonForOptions(null)}
+      />
+
+      <ReportModal
+        isOpen={isReportOpen}
+        targetType={targetType}
+        targetId={targetId}
+        targetLabel={targetLabel}
+        onClose={closeReport}
+        onSuccess={() => showToast(t('report:successMessage'))}
       />
     </main>
   );

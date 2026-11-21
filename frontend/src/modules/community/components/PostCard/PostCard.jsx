@@ -12,6 +12,8 @@ import useCommunityComments from '../../hooks/useCommunityComments';
 import OptionsModal from '../../../../components/OptionsModal/OptionsModal';
 import ConfirmModal from '../../../../components/ConfirmModal/ConfirmModal';
 import Toast from '../../../../components/Toast/Toast';
+import ReportModal from '../../../report/components/ReportModal/ReportModal';
+import { useReportModal } from '../../../report/hooks/useReportModal';
 import './PostCard.css';
 
 /**
@@ -46,6 +48,8 @@ function PostCard({
   const [isCommentOpen, setIsCommentOpen] = useState(false);
   const [isLikePending, setIsLikePending] = useState(false);
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
+  const { isReportOpen, targetType, targetId, targetLabel, openReport, closeReport } =
+    useReportModal();
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [optionsToast, setOptionsToast] = useState({ message: '', variant: 'success' });
@@ -84,7 +88,7 @@ function PostCard({
   });
 
   const isPublished = status === 'PUBLISHED';
-  const canEdit = Boolean(user?.id && author?.id) && String(user.id) === String(author.id);
+  const isOwnPost = Boolean(user?.id && author?.id) && String(user.id) === String(author.id);
 
   const displayedLikeCount = likeCount + (isLiked ? 1 : 0) - (likedByMe ? 1 : 0);
 
@@ -146,7 +150,7 @@ function PostCard({
   };
 
   const postOptions = [
-    ...(canEdit && onEdit
+    ...(isOwnPost
       ? [
           {
             id: 'edit-post',
@@ -154,10 +158,6 @@ function PostCard({
             icon: 'edit',
             onSelect: () => onEdit(postId),
           },
-        ]
-      : []),
-    ...(canEdit && onDelete
-      ? [
           {
             id: 'delete-post',
             label: t('community:postCard.deletePost'),
@@ -173,6 +173,21 @@ function PostCard({
       icon: 'content_copy',
       onSelect: handleCopyPostLink,
     },
+    ...(!isOwnPost && user?.id
+      ? [
+          {
+            id: 'report-post',
+            label: t('report:report'),
+            icon: 'flag',
+            onSelect: () =>
+              openReport({
+                targetType: 'POST',
+                targetId: postId,
+                targetLabel: title,
+              }),
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -235,6 +250,7 @@ function PostCard({
               onLikeComment={handleLikeComment}
               onLoadReplies={handleLoadReplies}
               onCreateReply={handleCreateReply}
+              onReportComment={openReport}
               repliesByCommentId={repliesByCommentId}
               avatarUrl={user?.avatarUrl}
               userName={user?.fullName}
@@ -256,6 +272,19 @@ function PostCard({
           onClose={() => setIsOptionsModalOpen(false)}
         />
       )}
+      <ReportModal
+        isOpen={isReportOpen}
+        targetType={targetType}
+        targetId={targetId}
+        targetLabel={targetLabel}
+        onClose={closeReport}
+        onSuccess={() => {
+          setOptionsToast({
+            message: t('report:successMessage'),
+            variant: 'success',
+          });
+        }}
+      />
       <ConfirmModal
         isOpen={isDeleteConfirmOpen}
         title={t('community:postCard.deleteConfirmTitle')}
