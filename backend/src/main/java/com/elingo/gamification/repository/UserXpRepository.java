@@ -26,4 +26,6 @@ public interface UserXpRepository extends JpaRepository<UserXp, Long> {
             WHERE u.userId = :userId AND u.level.levelNo < :level
     """)
     int raiseLevel(@Param("userId") long userId, @Param("level") int level);
+
+    boolean existsByLevelLevelNo(Short levelNo);
 }
