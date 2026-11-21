@@ -51,4 +51,13 @@ public enum AdminAuditAction {
 
     // Cấu hình hệ thống
     SYSTEM_CONFIG_UPDATE,
+
+    // Gamification
+    LEVEL_CREATE,
+    LEVEL_UPDATE,
+    LEVEL_DELETE,
+    BADGE_CREATE,
+    BADGE_UPDATE,
+    BADGE_DELETE,
+    XP_POLICY_UPDATE,
 }
