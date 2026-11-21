@@ -29,7 +29,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")
-class AdminCatalogServiceImplTest {
+class AdminCatalogServiceTest {
 
     @Mock
     private SystemConfigService systemConfigService;
@@ -214,7 +214,7 @@ class AdminCatalogServiceImplTest {
         void shouldReturnAllModuleNames() {
             List<String> modules = adminCatalogService.getModules();
 
-            assertThat(modules).containsExactlyInAnyOrder("PREMIUM", "COMMUNITY");
+            assertThat(modules).containsExactlyInAnyOrder("PREMIUM", "COMMUNITY", "GAMIFICATION");
         }
     }
 

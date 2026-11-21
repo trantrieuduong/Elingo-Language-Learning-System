@@ -2,7 +2,6 @@ package com.elingo.gamification.service;
 
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
-import com.elingo.gamification.config.GamificationProperties;
 import com.elingo.gamification.entity.BadgeConditionType;
 import com.elingo.gamification.entity.DailyCheckin;
 import com.elingo.gamification.entity.LearningStreak;
@@ -23,7 +22,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,6 +33,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")
+@DisplayName("CheckInRecorder Tests")
 class CheckInRecorderTest {
 
     @Mock
@@ -45,6 +44,9 @@ class CheckInRecorderTest {
 
     @Mock
     private XpService xpService;
+
+    @Mock
+    private XpPolicy xpPolicy;
 
     @Mock
     private UserRepository userRepository;
@@ -62,7 +64,6 @@ class CheckInRecorderTest {
     private static final int CHECKIN_XP = 5;
 
     private User testUser;
-    private GamificationProperties props;
 
     @BeforeEach
     void setUp() {
@@ -72,15 +73,13 @@ class CheckInRecorderTest {
                 .email("test@example.com")
                 .build();
 
-        props = new GamificationProperties(
-                Map.of(XpSource.DAILY_CHECKIN, new GamificationProperties.Rule(CHECKIN_XP, 1))
-        );
+        lenient().when(xpPolicy.getXp(XpSource.DAILY_CHECKIN)).thenReturn(CHECKIN_XP);
 
         recorder = new CheckInRecorder(
                 streakRepo,
                 checkInRepo,
                 xpService,
-                props,
+                xpPolicy,
                 userRepository,
                 gamificationEventPublisher,
                 badgeAwardService
@@ -88,7 +87,7 @@ class CheckInRecorderTest {
     }
 
     @Nested
-    @DisplayName("record")
+    @DisplayName("record Tests")
     class RecordTests {
 
         @Test

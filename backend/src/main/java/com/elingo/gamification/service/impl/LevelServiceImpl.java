@@ -1,5 +1,7 @@
 package com.elingo.gamification.service.impl;
 
+import com.elingo.admin.gamification.dto.request.LevelRequest;
+import com.elingo.admin.gamification.dto.response.AdminLevelResponse;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.gamification.catalog.LevelCatalog;
@@ -7,6 +9,8 @@ import com.elingo.gamification.dto.response.LevelResponse;
 import com.elingo.gamification.dto.response.UserLevelProgressResponse;
 import com.elingo.gamification.entity.Level;
 import com.elingo.gamification.entity.UserXp;
+import com.elingo.gamification.mapper.LevelMapper;
+import com.elingo.gamification.repository.LevelRepository;
 import com.elingo.gamification.repository.UserXpRepository;
 import com.elingo.gamification.service.LevelService;
 import com.elingo.user.repository.UserRepository;
@@ -23,16 +27,15 @@ import java.util.List;
 public class LevelServiceImpl implements LevelService {
 
     private final LevelCatalog levelCatalog;
+    private final LevelRepository levelRepository;
     private final UserXpRepository userXpRepository;
     private final UserRepository userRepository;
+    private final LevelMapper levelMapper;
 
     @Override
     @Transactional(readOnly = true)
     public List<LevelResponse> getAllLevels() {
-        List<Level> levels = levelCatalog.getAllLevels();
-        return levels.stream()
-                .map(l -> new LevelResponse(l.getLevelNo(), l.getRequiredXp(), l.getTitle()))
-                .toList();
+        return levelMapper.toLevelResponseList(levelCatalog.getAllLevels());
     }
 
     @Override
@@ -111,5 +114,102 @@ public class LevelServiceImpl implements LevelService {
                 xpToNextLevel,
                 progressPercent
         );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AdminLevelResponse> getAllLevelsForAdmin() {
+        return levelMapper.toAdminLevelResponseList(levelRepository.findAllByOrderByLevelNoAsc());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public AdminLevelResponse getLevelByNo(Short levelNo) {
+        return levelMapper.toAdminLevelResponse(levelRepository.findById(levelNo)
+                .orElseThrow(() -> new AppException(AppError.LEVEL_NOT_FOUND)));
+    }
+
+    @Override
+    @Transactional
+    public AdminLevelResponse createLevel(LevelRequest request) {
+        if (request.requiredXp() <= 0) {
+            throw new AppException(AppError.LEVEL_REQUIRED_XP_INVALID);
+        }
+
+        List<Level> existing = levelRepository.findAllByOrderByLevelNoAsc();
+        short nextLevelNo;
+        if (existing.isEmpty()) {
+            nextLevelNo = 1;
+        } else {
+            Level last = existing.getLast();
+            if (request.requiredXp() <= last.getRequiredXp()) {
+                throw new AppException(AppError.LEVEL_REQUIRED_XP_INVALID);
+            }
+            nextLevelNo = (short) (last.getLevelNo() + 1);
+        }
+
+        Level level = levelMapper.toLevel(request);
+        level.setLevelNo(nextLevelNo);
+
+        Level saved = levelRepository.save(level);
+        levelCatalog.reload();
+        log.info("Level created levelNo={} requiredXp={} title={}", nextLevelNo, saved.getRequiredXp(), saved.getTitle());
+        return levelMapper.toAdminLevelResponse(saved);
+    }
+
+    @Override
+    @Transactional
+    public AdminLevelResponse updateLevel(Short levelNo, LevelRequest request) {
+        Level level = levelRepository.findById(levelNo)
+                .orElseThrow(() -> new AppException(AppError.LEVEL_NOT_FOUND));
+
+        if (levelNo == 1) {
+            throw new AppException(AppError.DEFAULT_LEVEL_CANNOT_BE_MODIFIED);
+        }
+
+        if (request.requiredXp() <= 0) {
+            throw new AppException(AppError.LEVEL_REQUIRED_XP_INVALID);
+        }
+        validateLevelProgression(levelNo, request.requiredXp());
+
+        levelMapper.updateLevel(level, request);
+
+        Level updated = levelRepository.save(level);
+        levelCatalog.reload();
+        log.info("Level updated levelNo={} requiredXp={} title={}", levelNo, updated.getRequiredXp(), updated.getTitle());
+        return levelMapper.toAdminLevelResponse(updated);
+    }
+
+    @Override
+    @Transactional
+    public void deleteLevel(Short levelNo) {
+        if (levelNo == null || levelNo == 1) {
+            throw new AppException(AppError.DEFAULT_LEVEL_CANNOT_BE_MODIFIED);
+        }
+
+        Level level = levelRepository.findById(levelNo)
+                .orElseThrow(() -> new AppException(AppError.LEVEL_NOT_FOUND));
+
+        if (userXpRepository.existsByLevelLevelNo(levelNo)) {
+            throw new AppException(AppError.LEVEL_HAS_ACTIVE_USERS);
+        }
+
+        levelRepository.delete(level);
+        levelCatalog.reload();
+        log.info("Level deleted levelNo={}", levelNo);
+    }
+
+    private void validateLevelProgression(Short targetLevelNo, int requiredXp) {
+        List<Level> existing = levelRepository.findAllByOrderByLevelNoAsc();
+        for (Level l : existing) {
+            if (l.getLevelNo().equals(targetLevelNo)) continue;
+
+            if (l.getLevelNo() < targetLevelNo && l.getRequiredXp() >= requiredXp) {
+                throw new AppException(AppError.LEVEL_REQUIRED_XP_INVALID);
+            }
+            if (l.getLevelNo() > targetLevelNo && l.getRequiredXp() <= requiredXp) {
+                throw new AppException(AppError.LEVEL_REQUIRED_XP_INVALID);
+            }
+        }
     }
 }

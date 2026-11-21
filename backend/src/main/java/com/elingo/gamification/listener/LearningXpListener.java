@@ -1,12 +1,11 @@
 package com.elingo.gamification.listener;
 
 import com.elingo.common.event.XpGainedEvent;
-import com.elingo.gamification.config.GamificationProperties;
 import com.elingo.gamification.entity.XpSource;
+import com.elingo.gamification.publisher.GamificationEventPublisher;
 import com.elingo.gamification.service.CheckInService;
 import com.elingo.gamification.service.XpPolicy;
 import com.elingo.gamification.service.XpService;
-import com.elingo.gamification.publisher.GamificationEventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -22,13 +21,12 @@ public class LearningXpListener {
     private final CheckInService checkInService;
     private final XpService xpService;
     private final XpPolicy xpPolicy;
-    private final GamificationProperties props;
     private final GamificationEventPublisher gamificationEventPublisher;
 
     @Async("gamificationExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
     public void on(XpGainedEvent event) {
-        var rule = props.rule(event.xpSource());
+        var rule = xpPolicy.getRule(event.xpSource());
 
         if (rule == null || event.xpSource() == XpSource.DAILY_CHECKIN) return;
 

@@ -161,7 +161,7 @@ public class SystemConfigServiceImpl implements SystemConfigService {
 
             SystemConfig entity = SystemConfig.builder()
                     .configKey(def.getKey())
-                    .configValue("")
+                    .configValue(def.getDefaultValue() != null ? def.getDefaultValue() : "")
                     .valueType(def.getType())
                     .isSecret(def.isSecret())
                     .module(def.getModule())

@@ -1,12 +1,11 @@
 package com.elingo.gamification.listener;
 
 import com.elingo.common.event.XpGainedEvent;
-import com.elingo.gamification.config.GamificationProperties;
 import com.elingo.gamification.entity.XpSource;
+import com.elingo.gamification.publisher.GamificationEventPublisher;
 import com.elingo.gamification.service.CheckInService;
 import com.elingo.gamification.service.XpPolicy;
 import com.elingo.gamification.service.XpService;
-import com.elingo.gamification.publisher.GamificationEventPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -17,7 +16,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -26,6 +24,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")
+@DisplayName("LearningXpListener Tests")
 class LearningXpListenerTest {
 
     @Mock
@@ -41,7 +40,6 @@ class LearningXpListenerTest {
     private GamificationEventPublisher gamificationEventPublisher;
 
     private LearningXpListener listener;
-    private GamificationProperties props;
 
     private static final Long USER_ID = 10L;
     private static final Long REF_ID = 99L;
@@ -49,31 +47,24 @@ class LearningXpListenerTest {
 
     @BeforeEach
     void setUp() {
-        props = new GamificationProperties(Map.of(
-                XpSource.SEGMENT_DICTATION, new GamificationProperties.Rule(30, 5),
-                XpSource.DAILY_CHECKIN, new GamificationProperties.Rule(10, 5),
-                XpSource.FLASHCARD_REVIEW, new GamificationProperties.Rule(25, 5),
-                XpSource.SEGMENT_SHADOWING, new GamificationProperties.Rule(40, 5)
-        ));
-
         listener = new LearningXpListener(
                 checkInService,
                 xpService,
                 xpPolicy,
-                props,
                 gamificationEventPublisher
         );
     }
 
     @Nested
-    @DisplayName("on")
-    class OnTests {
+    @DisplayName("on Event Handling Tests")
+    class OnEventTests {
 
         @Test
-        @DisplayName("Process experience points event successfully with allowed policy")
-        void on_Success_AllowedPolicy() {
+        @DisplayName("Should successfully grant XP when policy allows")
+        void on_Success_WhenPolicyAllows() {
             XpGainedEvent event = new XpGainedEvent(USER_ID, REF_ID, XpSource.SEGMENT_DICTATION, OCCURRED_AT);
 
+            when(xpPolicy.getRule(XpSource.SEGMENT_DICTATION)).thenReturn(new XpPolicy.Rule(30, 5));
             when(xpPolicy.allow(USER_ID, XpSource.SEGMENT_DICTATION, OCCURRED_AT.toLocalDate())).thenReturn(true);
 
             listener.on(event);
@@ -85,9 +76,11 @@ class LearningXpListenerTest {
         }
 
         @Test
-        @DisplayName("Skip processing when rule is null")
-        void on_Skip_RuleIsNull() {
+        @DisplayName("Should skip processing when rule is not found")
+        void on_Failure_WhenRuleNotFound() {
             XpGainedEvent event = new XpGainedEvent(USER_ID, REF_ID, XpSource.BATTLE_WIN, OCCURRED_AT);
+
+            when(xpPolicy.getRule(XpSource.BATTLE_WIN)).thenReturn(null);
 
             listener.on(event);
 
@@ -97,9 +90,11 @@ class LearningXpListenerTest {
         }
 
         @Test
-        @DisplayName("Skip processing when source is daily check in")
-        void on_Skip_DailyCheckIn() {
+        @DisplayName("Should skip processing when source is DAILY_CHECKIN")
+        void on_Skip_WhenDailyCheckInSource() {
             XpGainedEvent event = new XpGainedEvent(USER_ID, REF_ID, XpSource.DAILY_CHECKIN, OCCURRED_AT);
+
+            when(xpPolicy.getRule(XpSource.DAILY_CHECKIN)).thenReturn(new XpPolicy.Rule(10, 1));
 
             listener.on(event);
 
@@ -110,10 +105,11 @@ class LearningXpListenerTest {
         }
 
         @Test
-        @DisplayName("Skip adding experience when policy denies")
-        void on_Skip_PolicyDenied() {
+        @DisplayName("Should not add XP when policy limit is exceeded")
+        void on_Failure_WhenPolicyLimitExceeded() {
             XpGainedEvent event = new XpGainedEvent(USER_ID, REF_ID, XpSource.FLASHCARD_REVIEW, OCCURRED_AT);
 
+            when(xpPolicy.getRule(XpSource.FLASHCARD_REVIEW)).thenReturn(new XpPolicy.Rule(25, 5));
             when(xpPolicy.allow(USER_ID, XpSource.FLASHCARD_REVIEW, OCCURRED_AT.toLocalDate())).thenReturn(false);
 
             listener.on(event);
@@ -125,11 +121,12 @@ class LearningXpListenerTest {
         }
 
         @Test
-        @DisplayName("Process successfully when check in service throws exception then recovers")
-        void on_Success_CheckInExceptionRecovered() {
+        @DisplayName("Should catch exception and log error without throwing when check-in fails")
+        void on_Failure_WhenCheckInServiceFails() {
             XpGainedEvent event = new XpGainedEvent(USER_ID, REF_ID, XpSource.SEGMENT_SHADOWING, OCCURRED_AT);
 
-            doThrow(new RuntimeException("Redis down")).when(checkInService).ensureCheckedIn(USER_ID, OCCURRED_AT);
+            when(xpPolicy.getRule(XpSource.SEGMENT_SHADOWING)).thenReturn(new XpPolicy.Rule(40, 5));
+            doThrow(new RuntimeException("Database error")).when(checkInService).ensureCheckedIn(USER_ID, OCCURRED_AT);
 
             listener.on(event);
 

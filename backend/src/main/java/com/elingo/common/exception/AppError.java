@@ -171,6 +171,11 @@ public enum AppError {
     BADGE_ALREADY_EARNED("BADGE_ALREADY_EARNED", "User has already earned this badge", HttpStatus.BAD_REQUEST),
     LEADERBOARD_SNAPSHOT_NOT_FOUND("LEADERBOARD_SNAPSHOT_NOT_FOUND", "Leaderboard snapshot not found", HttpStatus.NOT_FOUND),
     INVALID_XP_AMOUNT("INVALID_XP_AMOUNT", "XP adjustment amount must not be zero", HttpStatus.BAD_REQUEST),
+    DEFAULT_LEVEL_CANNOT_BE_MODIFIED("DEFAULT_LEVEL_CANNOT_BE_MODIFIED", "Level 1 with required XP 0 is default and cannot be modified or deleted", HttpStatus.BAD_REQUEST),
+    LEVEL_ALREADY_EXISTS("LEVEL_ALREADY_EXISTS", "Level number already exists", HttpStatus.BAD_REQUEST),
+    LEVEL_REQUIRED_XP_INVALID("LEVEL_REQUIRED_XP_INVALID", "Required XP must be positive and follow level progression", HttpStatus.BAD_REQUEST),
+    LEVEL_HAS_ACTIVE_USERS("LEVEL_HAS_ACTIVE_USERS", "Cannot delete level because users are currently at this level", HttpStatus.BAD_REQUEST),
+    BADGE_IN_USE("BADGE_IN_USE", "Badge has already been earned by users and cannot be deleted", HttpStatus.BAD_REQUEST),
 
     // ==========================================
     // 9. Community (Bài viết, Bình luận, Tương tác)
