@@ -87,7 +87,8 @@
     "SPEAKING_PARTICIPANT_NOT_FOUND": "Participant not found in speaking room.",
     "SPEAKING_ALREADY_IN_ROOM": "You are already in another speaking room.",
     "SPEAKING_BANNED": "You have been removed from this speaking room by the host.",
-    "SPEAKING_SIGNAL_INVALID": "Invalid connection signal."
+    "SPEAKING_SIGNAL_INVALID": "Invalid connection signal.",
+    "SPEAKING_NOT_HOST": "Only the host can do this."
   },
   "validation": {
     "username": {

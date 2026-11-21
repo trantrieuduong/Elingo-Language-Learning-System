@@ -87,7 +87,8 @@
     "SPEAKING_PARTICIPANT_NOT_FOUND": "Không tìm thấy người tham gia trong phòng.",
     "SPEAKING_ALREADY_IN_ROOM": "Bạn đang ở trong một phòng speaking khác.",
     "SPEAKING_BANNED": "Bạn đã bị host mời ra khỏi phòng này.",
-    "SPEAKING_SIGNAL_INVALID": "Tín hiệu kết nối không hợp lệ."
+    "SPEAKING_SIGNAL_INVALID": "Tín hiệu kết nối không hợp lệ.",
+    "SPEAKING_NOT_HOST": "Chỉ host mới làm được việc này."
   },
   "validation": {
     "username": {

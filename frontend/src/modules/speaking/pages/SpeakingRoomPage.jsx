@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import EmptyState from '../../../components/EmptyState/EmptyState';
 import PageLoading from '../../../components/PageLoading/PageLoading';
 import Toast from '../../../components/Toast/Toast';
+import LeaveRoomDialog from '../components/LeaveRoomDialog/LeaveRoomDialog';
 import PeerTile from '../components/PeerTile/PeerTile';
 import RemoteAudio from '../components/RemoteAudio/RemoteAudio';
 import RoomControls from '../components/RoomControls/RoomControls';
@@ -26,6 +27,10 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
     closedReason,
     notice,
     setNotice,
+    isHost,
+    requestMute,
+    transferHostAndLeave,
+    endRoom,
     startSession,
     leaveRoom,
     teardown,
@@ -34,6 +39,9 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
   } = useSpeakingRoom();
 
   const [copied, setCopied] = useState(false);
+  const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
+  const [leaveBusy, setLeaveBusy] = useState(false);
+  const [leaveError, setLeaveError] = useState(null);
   const copyTimeoutRef = useRef(null);
 
   useEffect(() => {
@@ -52,11 +60,54 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
         : t('room.hostChanged', {
             name: peers[notice.userId]?.displayName || t('room.host'),
           })
+      : notice?.type === 'mutedByHost'
+      ? t('room.mutedByHost', {
+          name: peers[notice.userId]?.displayName || t('room.host'),
+        })
       : '';
 
   const handleLeave = async () => {
     await leaveRoom();
     onNavigate('/speaking');
+  };
+
+  const handleLeaveClick = () => {
+    // Nếu là host và còn người khác trong phòng -> mở modal chuyển host/kết thúc phòng
+    // Nếu chỉ có 1 mình host (hoặc là guest) -> rời phòng luôn
+    if (isHost && otherPeers.length > 0) {
+      setLeaveError(null);
+      setLeaveDialogOpen(true);
+    } else {
+      handleLeave();
+    }
+  };
+
+  const handleTransferAndLeave = async (newHostId) => {
+    setLeaveBusy(true);
+    setLeaveError(null);
+    try {
+      await transferHostAndLeave(newHostId);
+      setLeaveDialogOpen(false);
+      onNavigate('/speaking');
+    } catch (e) {
+      setLeaveError(e?.code || 'UNKNOWN');
+    } finally {
+      setLeaveBusy(false);
+    }
+  };
+
+  const handleEndRoom = async () => {
+    setLeaveBusy(true);
+    setLeaveError(null);
+    try {
+      await endRoom();
+      setLeaveDialogOpen(false);
+      onNavigate('/speaking');
+    } catch (e) {
+      setLeaveError(e?.code || 'UNKNOWN');
+    } finally {
+      setLeaveBusy(false);
+    }
   };
 
   const handleCopyCode = async () => {
@@ -165,7 +216,6 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
   const currentTopic = room?.topic || t('lobby.noTopic');
   const peerList = Object.values(peers);
   const otherPeers = peerList.filter((p) => String(p.userId) !== String(selfId));
-  const isHost = String(room?.hostId) === String(selfId);
 
   return (
     <main className="speaking-room-page">
@@ -276,6 +326,9 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
                   isHost={pIsHost}
                   grace={Boolean(p.grace)}
                   muted={pIsSelf ? muted : false}
+                  micMuted={Boolean(p.micMuted)}
+                  canMute={isHost}
+                  onMute={requestMute}
                 />
               );
             })}
@@ -286,8 +339,19 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
         <RoomControls
           muted={muted}
           onToggleMute={toggleMute}
-          onLeave={handleLeave}
+          onLeave={handleLeaveClick}
           leaving={phase === 'leaving'}
+        />
+
+        {/* Dialog Host rời phòng */}
+        <LeaveRoomDialog
+          open={leaveDialogOpen}
+          members={otherPeers}
+          onClose={() => !leaveBusy && setLeaveDialogOpen(false)}
+          onTransfer={handleTransferAndLeave}
+          onEnd={handleEndRoom}
+          busy={leaveBusy}
+          error={leaveError}
         />
 
         {/* Audio elements ngầm cho từng peer khác */}

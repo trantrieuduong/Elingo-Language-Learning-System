@@ -2,7 +2,17 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import { useAuth } from '../../../context/AuthContext';
 import { getSocketStatus } from '../../../services/stompClient';
 import { getIceConfigApi } from '../speakingApi';
-import { subscribeSpeaking, onStatus, sendJoin, sendLeave, sendSignal } from '../speakingSocket';
+import {
+  subscribeSpeaking,
+  onStatus,
+  sendJoin,
+  sendLeave,
+  sendSignal,
+  sendMic,
+  sendMute,
+  sendTransferHost,
+  sendEnd,
+} from '../speakingSocket';
 import { createPeerManager } from '../webrtc/peerManager';
 
 const SpeakingRoomContext = createContext(null);
@@ -47,9 +57,15 @@ export const SpeakingRoomProvider = ({ children }) => {
   const unsubRef = useRef(null);
   const joinTimerRef = useRef(null);
   const leaveWaiterRef = useRef(null); // resolver của Promise chờ event 'room:left' khi bấm leave
+  const replyWaiterRef = useRef(null); // resolver cho sendAndWait (transfer-host, end)
   const gotStateRef = useRef(false);
   const peersRef = useRef(peers);
   const retryRef = useRef({}); // userId -> số lần đã thử kết nối WebRTC
+  const mutedRef = useRef(muted);
+
+  useEffect(() => {
+    mutedRef.current = muted;
+  }, [muted]);
 
   useEffect(() => onStatus(setConnection), []);
 
@@ -83,6 +99,46 @@ export const SpeakingRoomProvider = ({ children }) => {
     }
   }, [connection, phase]);
 
+  // Helper gửi lệnh STOMP và chờ event tương ứng hoặc error
+  const sendAndWait = useCallback((send, okPred, timeoutMs = 4000) => {
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        replyWaiterRef.current = null;
+        reject({ code: 'TIMEOUT' });
+      }, timeoutMs);
+      replyWaiterRef.current = (event, data) => {
+        if (event === 'error') {
+          clearTimeout(timer);
+          replyWaiterRef.current = null;
+          reject({ code: data.code });
+        } else if (okPred(event, data)) {
+          clearTimeout(timer);
+          replyWaiterRef.current = null;
+          resolve(data);
+        }
+      };
+      if (!send()) {
+        clearTimeout(timer);
+        replyWaiterRef.current = null;
+        reject({ code: 'SOCKET_NOT_CONNECTED' });
+      }
+    });
+  }, []);
+
+  const applyMuted = useCallback((next) => {
+    setMuted(next);
+    mutedRef.current = next;
+    localStreamRef.current?.getAudioTracks().forEach((t) => {
+      t.enabled = !next;
+    });
+    const code = roomCodeRef.current;
+    if (code) sendMic(code, next);
+  }, []);
+
+  const toggleMute = useCallback(() => {
+    applyMuted(!mutedRef.current);
+  }, [applyMuted]);
+
   const stopLocal = () => {
     localStreamRef.current?.getTracks().forEach((t) => t.stop());
     localStreamRef.current = null;
@@ -99,6 +155,7 @@ export const SpeakingRoomProvider = ({ children }) => {
     stopLocal();
     roomCodeRef.current = null;
     gotStateRef.current = false;
+    replyWaiterRef.current = null;
     retryRef.current = {};
     setNotice(null);
     setStreams({});
@@ -108,6 +165,7 @@ export const SpeakingRoomProvider = ({ children }) => {
   const handleEvent = useCallback((envelope) => {
     if (!envelope?.event) return;
     const { event, data } = envelope;
+    replyWaiterRef.current?.(event, data);
     const manager = managerRef.current;
     switch (event) {
       case 'room:state': {
@@ -124,6 +182,7 @@ export const SpeakingRoomProvider = ({ children }) => {
           startedAtMs: data.startedAtMs,
           serverOffsetMs: (data.serverNowMs ?? Date.now()) - Date.now(),
         });
+        const mutedIds = Array.isArray(data.mutedUserIds) ? data.mutedUserIds : [];
         setPeers(
           Object.fromEntries(
             data.peers.map((p) => [
@@ -132,18 +191,21 @@ export const SpeakingRoomProvider = ({ children }) => {
                 ...p,
                 link: String(p.userId) === String(selfId) ? undefined : 'connecting',
                 grace: false,
+                micMuted: mutedIds.includes(p.userId),
               },
             ])
           )
         );
         data.peers.forEach((p) => manager?.addPeer(p.userId));
         setPhase('in');
+        // Báo trạng thái mic của máy mình sau mỗi lần vào/nối lại
+        sendMic(data.roomCode, mutedRef.current);
         break;
       }
       case 'peer:joined':
         setPeers((prev) => ({
           ...prev,
-          [data.userId]: { ...data, link: 'connecting', grace: false },
+          [data.userId]: { ...data, link: 'connecting', grace: false, micMuted: false },
         }));
         manager?.addPeer(data.userId);
         break;
@@ -162,9 +224,26 @@ export const SpeakingRoomProvider = ({ children }) => {
         // Người đó đã vào lại: bỏ cờ grace và dựng lại kết nối WebRTC từ đầu
         setPeers((prev) => ({
           ...prev,
-          [data.userId]: { ...data, link: 'connecting', grace: false },
+          [data.userId]: {
+            ...prev[data.userId],
+            ...data,
+            link: 'connecting',
+            grace: false,
+            micMuted: false,
+          },
         }));
         manager?.restartPeer(data.userId);
+        break;
+      case 'peer:mic':
+        setPeers((prev) =>
+          prev[data.userId]
+            ? { ...prev, [data.userId]: { ...prev[data.userId], micMuted: data.muted } }
+            : prev
+        );
+        break;
+      case 'mute:requested':
+        applyMuted(true);
+        setNotice({ type: 'mutedByHost', userId: data.byUserId });
         break;
       case 'host:changed':
         setRoom((prev) => (prev ? { ...prev, hostId: data.hostId } : prev));
@@ -199,7 +278,7 @@ export const SpeakingRoomProvider = ({ children }) => {
       default:
         break;
     }
-  }, [selfId, teardown]);
+  }, [applyMuted, selfId, teardown]);
 
   const startSession = useCallback(async (roomCode) => {
     teardown();
@@ -286,14 +365,9 @@ export const SpeakingRoomProvider = ({ children }) => {
     }
   }, [handleEvent, selfId, teardown]);
 
-  const toggleMute = useCallback(() => {
-    setMuted((prev) => {
-      const next = !prev;
-      localStreamRef.current?.getAudioTracks().forEach((t) => {
-        t.enabled = !next;
-      });
-      return next;
-    });
+  const requestMute = useCallback((targetUserId) => {
+    const code = roomCodeRef.current;
+    if (code) sendMute(code, targetUserId);
   }, []);
 
   // Bấm "Rời phòng": gửi STOMP 'leave', chờ event 'room:left' (tối đa 3s), rồi dọn cục bộ
@@ -323,6 +397,30 @@ export const SpeakingRoomProvider = ({ children }) => {
     return summary;
   }, [teardown]);
 
+  // Host chuyển quyền rồi rời. Trả summary hoặc null như leaveRoom
+  const transferHostAndLeave = useCallback(
+    async (newHostId) => {
+      const code = roomCodeRef.current;
+      await sendAndWait(
+        () => sendTransferHost(code, newHostId),
+        (ev, d) => ev === 'host:changed' && String(d.hostId) === String(newHostId)
+      );
+      return leaveRoom();
+    },
+    [leaveRoom, sendAndWait]
+  );
+
+  // Host kết thúc phòng cho tất cả: gửi 'end', host nhận 'room:left' (tóm tắt)
+  const endRoom = useCallback(async () => {
+    const code = roomCodeRef.current;
+    const data = await sendAndWait(() => sendEnd(code), (ev) => ev === 'room:left', 4000);
+    setPhase('leaving');
+    teardown();
+    return data;
+  }, [sendAndWait, teardown]);
+
+  const isHost = Boolean(room && String(room.hostId) === String(selfId));
+
   const value = {
     selfId,
     connection,
@@ -336,6 +434,10 @@ export const SpeakingRoomProvider = ({ children }) => {
     closedReason,
     notice,
     setNotice,
+    isHost,
+    requestMute,
+    transferHostAndLeave,
+    endRoom,
     startSession,
     leaveRoom,
     teardown,

@@ -61,11 +61,25 @@
     "privateHint": "The room is hidden from the list. Send this code to invite people.",
     "you": "You",
     "host": "Host",
+    "peerMuted": "{{name}} has muted their mic",
+    "muteAction": "Mute {{name}}'s mic",
+    "mutedByHost": "{{name}} muted your mic. You can turn it back on any time.",
     "link": {
       "connecting": "Connecting…",
       "connected": "Connected",
       "failed": "Connection failed",
-      "grace": "Connection lost, waiting…"
+      "grace": "Connection lost, waiting…",
+      "hostGrace": "Host disconnected, waiting for them to return…"
+    },
+    "leaveDialog": {
+      "title": "You are the host",
+      "transferTitle": "Transfer host and leave",
+      "transferConfirm": "Transfer and leave",
+      "endTitle": "End the room for everyone",
+      "endConfirm": "End room",
+      "endWarning": "Everyone in the room will be removed.",
+      "leaveAlone": "Leave room",
+      "cancel": "Stay"
     },
     "hostChanged": "{{name}} is now the host.",
     "youAreHost": "You are now the host.",
@@ -84,7 +98,8 @@
     "closed": {
       "EMPTY": "The room was closed because everyone left.",
       "EXPIRED": "The room has expired.",
-      "SERVER_RESTART": "Server restarted, room has been closed."
+      "SERVER_RESTART": "Server restarted, room has been closed.",
+      "ENDED_BY_HOST": "The host ended this room."
     }
   }
 }

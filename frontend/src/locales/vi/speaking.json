@@ -61,11 +61,25 @@
     "privateHint": "Phòng riêng tư không hiện trong danh sách. Hãy gửi mã này cho người bạn muốn mời.",
     "you": "Bạn",
     "host": "Host",
+    "peerMuted": "{{name}} đang tắt mic",
+    "muteAction": "Tắt mic của {{name}}",
+    "mutedByHost": "{{name}} đã tắt mic của bạn. Bạn có thể bật lại bất cứ lúc nào.",
     "link": {
       "connecting": "Đang kết nối…",
       "connected": "Đã kết nối",
       "failed": "Kết nối lỗi",
-      "grace": "Mất kết nối, đang chờ quay lại…"
+      "grace": "Mất kết nối, đang chờ quay lại…",
+      "hostGrace": "Host mất kết nối, đang chờ quay lại…"
+    },
+    "leaveDialog": {
+      "title": "Bạn đang là host",
+      "transferTitle": "Chuyển host rồi rời phòng",
+      "transferConfirm": "Chuyển và rời",
+      "endTitle": "Kết thúc phòng cho tất cả",
+      "endConfirm": "Kết thúc phòng",
+      "endWarning": "Mọi người trong phòng sẽ bị đưa ra ngoài.",
+      "leaveAlone": "Rời phòng",
+      "cancel": "Ở lại"
     },
     "hostChanged": "{{name}} đã trở thành host.",
     "youAreHost": "Bạn đã trở thành host.",
@@ -84,7 +98,8 @@
     "closed": {
       "EMPTY": "Phòng đã đóng vì không còn ai.",
       "EXPIRED": "Phòng đã hết hạn.",
-      "SERVER_RESTART": "Máy chủ khởi động lại, phòng đã đóng."
+      "SERVER_RESTART": "Máy chủ khởi động lại, phòng đã đóng.",
+      "ENDED_BY_HOST": "Host đã kết thúc phòng học này."
     }
   }
 }

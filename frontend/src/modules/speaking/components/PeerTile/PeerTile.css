@@ -151,6 +151,36 @@
   animation: pulse-dot 1.5s infinite;
 }
 
+.speaking-peer-tile__actions {
+  margin-top: 4px;
+}
+
+.speaking-peer-tile__mute-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  font-size: var(--font-size-body-xs, 12px);
+  border-radius: var(--radius-pill, 999px);
+  min-height: 28px;
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: var(--color-error, #ef4444);
+}
+
+.speaking-peer-tile__mute-btn:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.speaking-peer-tile__mute-btn .material-symbols-outlined {
+  font-size: 14px;
+}
+
+.speaking-peer-tile__mute-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 @keyframes pulse-dot {
   0%, 100% {
     opacity: 0.4;

@@ -27,3 +27,19 @@ export const sendSignal = (roomCode, toUserId, type, payload) => {
   return sendMessage('/app/speaking/signal', { roomCode, toUserId, type, payload });
 };
 
+export const sendMic = (roomCode, muted) => {
+  return sendMessage('/app/speaking/mic', { roomCode, muted });
+};
+
+export const sendMute = (roomCode, targetUserId) => {
+  return sendMessage('/app/speaking/mute', { roomCode, targetUserId });
+};
+
+export const sendTransferHost = (roomCode, newHostId) => {
+  return sendMessage('/app/speaking/transfer-host', { roomCode, newHostId });
+};
+
+export const sendEnd = (roomCode) => {
+  return sendMessage('/app/speaking/end', { roomCode });
+};
+
