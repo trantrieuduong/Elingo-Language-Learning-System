@@ -9,6 +9,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
+import java.util.Locale;
+
 public record BadgeRequest(
         @NotBlank(message = "INVALID_REQUEST")
         @Size(max = 100, message = "INVALID_REQUEST")
@@ -34,7 +36,7 @@ public record BadgeRequest(
         Integer conditionValue
 ) {
     public BadgeRequest {
-        code = code == null ? null : code.strip().toUpperCase();
+        code = code == null ? null : code.strip().toLowerCase(Locale.ROOT);
         name = name == null ? null : name.strip();
         description = (description == null || description.isBlank()) ? null : description.strip();
         iconUrl = (iconUrl == null || iconUrl.isBlank()) ? null : iconUrl.strip();

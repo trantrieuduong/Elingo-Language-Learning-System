@@ -1,8 +1,6 @@
 package com.elingo.gamification.service;
 
 import com.elingo.common.enums.SystemConfigKey;
-import com.elingo.common.exception.AppError;
-import com.elingo.common.exception.AppException;
 import com.elingo.common.service.RedisService;
 import com.elingo.common.service.SystemConfigService;
 import com.elingo.gamification.entity.XpSource;
@@ -92,19 +90,5 @@ public class XpPolicy {
             result.put(source, getRule(source));
         }
         return result;
-    }
-
-    public void updateRule(XpSource source, int xp, int dailyLimit, Long adminId) {
-        if (source == null || !SOURCE_CONFIG_MAP.containsKey(source)) {
-            throw new AppException(AppError.SYSTEM_CONFIG_NOT_FOUND);
-        }
-        if (xp < 0 || dailyLimit < 1) {
-            throw new AppException(AppError.SYSTEM_CONFIG_VALUE_INVALID);
-        }
-
-        KeyPair pair = SOURCE_CONFIG_MAP.get(source);
-        systemConfigService.update(pair.xpKey().getKey(), String.valueOf(xp), adminId);
-        systemConfigService.update(pair.dailyLimitKey().getKey(), String.valueOf(dailyLimit), adminId);
-        log.info("Updated XP policy for source={} xp={} dailyLimit={} by adminId={}", source, xp, dailyLimit, adminId);
     }
 }
