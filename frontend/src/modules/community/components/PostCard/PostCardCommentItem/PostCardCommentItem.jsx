@@ -16,6 +16,7 @@ function PostCardCommentItem({
   onUpdateComment,
   onDeleteComment,
   onLikeComment,
+  onReportComment,
   replyState,
   onLoadReplies,
   onCreateReply,
@@ -44,22 +45,41 @@ function PostCardCommentItem({
     currentUserId != null &&
     comment.author?.id != null &&
     String(currentUserId) === String(comment.author.id);
+  const canReport = Boolean(currentUserId && !isOwnComment);
+
   const commentOptions = [
-    {
-      id: 'edit-comment',
-      label: t('community:comments.edit'),
-      icon: 'edit',
-      disabled: !onUpdateComment,
-      onSelect: () => setIsEditing(true),
-    },
-    {
-      id: 'delete-comment',
-      label: t('community:comments.delete'),
-      icon: 'delete',
-      variant: 'danger',
-      disabled: !onDeleteComment,
-      onSelect: () => setIsDeleteConfirmOpen(true),
-    },
+    ...(isOwnComment
+      ? [
+          {
+            id: 'edit-comment',
+            label: t('community:comments.edit'),
+            icon: 'edit',
+            onSelect: () => setIsEditing(true),
+          },
+          {
+            id: 'delete-comment',
+            label: t('community:comments.delete'),
+            icon: 'delete',
+            variant: 'danger',
+            onSelect: () => setIsDeleteConfirmOpen(true),
+          },
+        ]
+      : []),
+    ...(canReport
+      ? [
+          {
+            id: 'report-comment',
+            label: t('report:report'),
+            icon: 'flag',
+            onSelect: () =>
+              onReportComment?.({
+                targetType: 'COMMENT',
+                targetId: comment.id,
+                targetLabel: comment.content,
+              }),
+          },
+        ]
+      : []),
   ];
 
   const handleConfirmDelete = async () => {
@@ -147,7 +167,7 @@ function PostCardCommentItem({
           <time className="post-card-comment-item__time" dateTime={comment.createdAt}>
             {formatRelativeTime(comment.createdAt, locale)}
           </time>
-          {isOwnComment && (
+          {!!currentUserId && (
             <div className="post-card-comment-item__options">
               <OptionsMenu onClick={() => setIsOptionsModalOpen(true)} />
               <OptionsModal
@@ -276,6 +296,7 @@ function PostCardCommentItem({
                       onUpdateComment={onUpdateComment}
                       onDeleteComment={onDeleteComment}
                       onLikeComment={onLikeComment}
+                      onReportComment={onReportComment}
                       isReply
                     />
                   ))}

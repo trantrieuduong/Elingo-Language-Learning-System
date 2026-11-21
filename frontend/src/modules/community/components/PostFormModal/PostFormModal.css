@@ -256,22 +256,32 @@
 
 .post-form-modal__preview-bar {
   position: absolute;
-  inset: auto 0 0 0;
+  inset: 0 0 auto 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 4px;
-  padding: 4px 6px;
-  background: var(--color-surface-dim);
+  justify-content: flex-end;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: transparent;
   color: var(--color-on-surface);
+  z-index: 2;
 }
 
 .post-form-modal__preview-tag {
+  position: absolute;
+  top: var(--spacing-xs);
+  left: var(--spacing-xs);
+  z-index: 1;
+  padding: var(--spacing-xs) var(--spacing-sm);
   font-family: var(--font-body);
-  font-size: 10px;
+  font-size: var(--font-size-label-sm);
+  font-weight: var(--font-weight-medium);
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  background: var(--color-modal-overlay);
+  color: var(--color-on-primary);
+  backdrop-filter: var(--blur-sm);
+  -webkit-backdrop-filter: var(--blur-sm);
+  border-radius: var(--radius-pill);
 }
 
 .post-form-modal__remove-btn {

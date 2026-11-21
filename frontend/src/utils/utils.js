@@ -14,13 +14,34 @@ export const formatDate = (dateInput, options = {}) => {
   const date = new Date(dateInput);
   if (isNaN(date.getTime())) return '';
 
+  const normalizedOptions = typeof options === 'string' ? { locale: options } : options;
+  const { locale = 'vi-VN', ...fmtOptions } = normalizedOptions;
+
   const defaults = {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
   };
 
-  return new Intl.DateTimeFormat('vi-VN', { ...defaults, ...options }).format(date);
+  return new Intl.DateTimeFormat(locale, { ...defaults, ...fmtOptions }).format(date);
+};
+
+/**
+ * Format ngày giờ thành chuỗi theo locale (mặc định gồm cả giờ và phút).
+ * @param {string|Date} dateInput
+ * @param {Object|string} options - Intl.DateTimeFormat options
+ * @returns {string}
+ */
+export const formatDateTime = (dateInput, options = {}) => {
+  if (!dateInput) return '';
+  const normalizedOptions = typeof options === 'string' ? { locale: options } : options;
+  const { hour = '2-digit', minute = '2-digit', ...rest } = normalizedOptions;
+
+  return formatDate(dateInput, {
+    hour,
+    minute,
+    ...rest,
+  });
 };
 
 /**

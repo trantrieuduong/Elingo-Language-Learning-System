@@ -14,6 +14,12 @@ vi.mock('@/modules/vocabulary/vocabularyApi', () => ({
   getCefrLevelsApi: vi.fn(),
 }));
 
+vi.mock('@/context/AuthContext', () => ({
+  useAuth: vi.fn(() => ({
+    user: { id: 1, role: 'USER' },
+  })),
+}));// mock useAuth do phần report cần user đã login để mở OptionMenu
+
 describe('LessonListPage page component', () => {
   const mockLessons = [
     {

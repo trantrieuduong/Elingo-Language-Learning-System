@@ -79,6 +79,7 @@
     "CANNOT_BATTLE_YOURSELF": "You cannot battle against yourself.",
     "BATTLE_NOT_ENOUGH_CARDS": "Not enough vocabulary cards to create a match.",
     "BATTLE_ANSWER_INVALID": "Invalid battle answer.",
+    "REPORT_ALREADY_EXISTS": "You have already submitted a pending report for this item.",
     "MALFORMED_JSON": "Invalid data format."
   },
   "validation": {

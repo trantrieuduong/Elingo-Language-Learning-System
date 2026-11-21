@@ -1,1 +1,51 @@
-{}
+{
+  "modalTitle": "Gửi báo cáo",
+  "report": "Báo cáo",
+  "targetTypes": {
+    "POST": "bài viết",
+    "COMMENT": "bình luận",
+    "USER": "người dùng",
+    "DECK": "bộ thẻ",
+    "LESSON": "bài học"
+  },
+  "descriptionLabel": "Lý do và chi tiết vi phạm",
+  "descriptionPlaceholder": "Mô tả cụ thể vi phạm để quản trị viên xử lý nhanh chóng (10-1000 ký tự)",
+  "attachImages": "Ảnh minh chứng",
+  "chooseFiles": "Chọn ảnh",
+  "submit": "Gửi báo cáo",
+  "submitting": "Đang gửi báo cáo...",
+  "successMessage": "Cảm ơn bạn! Báo cáo đã được gửi tới ban quản trị để xem xét.",
+  "errors": {
+    "descriptionRequired": "Vui lòng nhập lý do báo cáo.",
+    "descriptionMax": "Lý do báo cáo không được vượt quá 1000 ký tự.",
+    "submitFailed": "Không thể gửi báo cáo lúc này. Vui lòng thử lại sau.",
+    "loadFailed": "Không thể tải danh sách báo cáo. Vui lòng thử lại."
+  },
+  "emptyTitle": "Chưa có báo cáo nào",
+  "emptyDescription": "Bạn chưa gửi báo cáo vi phạm nào trên hệ thống.",
+  "viewDetails": "Xem chi tiết",
+  "detailModalTitle": "Chi tiết báo cáo",
+  "table": {
+    "targetType": "Đối tượng",
+    "description": "Nội dung báo cáo",
+    "status": "Trạng thái",
+    "createdAt": "Ngày gửi",
+    "actions": "Thao tác"
+  },
+  "fields": {
+    "targetType": "Loại đối tượng",
+    "description": "Lý do vi phạm",
+    "status": "Trạng thái",
+    "image": "Hình ảnh đính kèm",
+    "resolutionNote": "Ghi chú giải quyết từ admin",
+    "resolvedAt": "Thời gian giải quyết",
+    "createdAt": "Thời gian tạo"
+  },
+  "status": {
+    "PENDING": "Đang chờ xử lý",
+    "RESOLVED": "Đã giải quyết",
+    "REJECTED": "Đã từ chối"
+  },
+  "noImages": "Không có ảnh minh chứng",
+  "noResolutionNote": "Chưa có ghi chú xử lý"
+}
