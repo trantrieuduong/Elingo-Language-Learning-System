@@ -6,7 +6,15 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 public interface UserXpRepository extends JpaRepository<UserXp, Long> {
+
+    interface LevelDistribution {
+        Short getLevelNo();
+        String getTitle();
+        Long getUserCount();
+    }
 
     @Modifying
     @Query(value = """
@@ -26,4 +34,10 @@ public interface UserXpRepository extends JpaRepository<UserXp, Long> {
             WHERE u.userId = :userId AND u.level.levelNo < :level
     """)
     int raiseLevel(@Param("userId") long userId, @Param("level") int level);
+
+    @Query("SELECT ux.level.levelNo AS levelNo, ux.level.title AS title, COUNT(ux.userId) AS userCount " +
+            "FROM UserXp ux " +
+            "GROUP BY ux.level.levelNo, ux.level.title " +
+            "ORDER BY ux.level.levelNo ASC")
+    List<LevelDistribution> countUsersByLevel();
 }

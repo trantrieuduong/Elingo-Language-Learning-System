@@ -27,6 +27,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -174,6 +175,52 @@ class SubscriptionServiceTest {
             assertThatThrownBy(() -> subscriptionService.activateOrExtend(1L, 999L))
                     .isInstanceOf(AppException.class)
                     .hasFieldOrPropertyWithValue("appError", AppError.PREMIUM_PLAN_NOT_FOUND);
+        }
+    }
+
+    // ========================================================================
+    // Statistics Queries Tests
+    // ========================================================================
+    @Nested
+    @DisplayName("Statistics Queries Tests")
+    class SubscriptionStatsQueriesTests {
+
+        @Test
+        @DisplayName("countActiveSubscriptionsByPlan should delegate to userSubscriptionRepository")
+        void countActiveSubscriptionsByPlan_Success() {
+            LocalDateTime now = LocalDateTime.now();
+            UserSubscriptionRepository.PlanSubscriptionStat stat = mock(UserSubscriptionRepository.PlanSubscriptionStat.class);
+            when(userSubscriptionRepository.countActiveSubscriptionsByPlan(now)).thenReturn(java.util.List.of(stat));
+
+            java.util.List<UserSubscriptionRepository.PlanSubscriptionStat> result =
+                    subscriptionService.countActiveSubscriptionsByPlan(now);
+
+            assertThat(result).hasSize(1).contains(stat);
+            org.mockito.Mockito.verify(userSubscriptionRepository).countActiveSubscriptionsByPlan(now);
+        }
+
+        @Test
+        @DisplayName("countDistinctActivePremiumUsers should delegate to userSubscriptionRepository")
+        void countDistinctActivePremiumUsers_Success() {
+            LocalDateTime now = LocalDateTime.now();
+            when(userSubscriptionRepository.countDistinctActivePremiumUsers(now)).thenReturn(15L);
+
+            long count = subscriptionService.countDistinctActivePremiumUsers(now);
+
+            assertThat(count).isEqualTo(15L);
+            org.mockito.Mockito.verify(userSubscriptionRepository).countDistinctActivePremiumUsers(now);
+        }
+
+        @Test
+        @DisplayName("countTotalActiveSubscriptions should delegate to userSubscriptionRepository")
+        void countTotalActiveSubscriptions_Success() {
+            LocalDateTime now = LocalDateTime.now();
+            when(userSubscriptionRepository.countTotalActiveSubscriptions(now)).thenReturn(20L);
+
+            long count = subscriptionService.countTotalActiveSubscriptions(now);
+
+            assertThat(count).isEqualTo(20L);
+            org.mockito.Mockito.verify(userSubscriptionRepository).countTotalActiveSubscriptions(now);
         }
     }
 }
