@@ -1,5 +1,5 @@
 package com.elingo.speaking.dto.request;
 
 public enum SpeakingSignalType {
-    OFFER, ANSWER, ICE
+    OFFER, ANSWER, ICE, READY
 }

@@ -27,6 +27,7 @@ import MySubscriptionPage from './modules/premium/pages/MySubscriptionPage/MySub
 import BattleHistoryPage from './modules/battle/pages/BattleHistoryPage';
 import BattleMatchDetailPage from './modules/battle/pages/BattleMatchDetailPage';
 import { SpeakingSocketProvider } from './modules/speaking/context/SpeakingSocketContext';
+import { SpeakingRoomProvider } from './modules/speaking/context/SpeakingRoomContext';
 import SpeakingLobbyPage from './modules/speaking/pages/SpeakingLobbyPage';
 import SpeakingRoomPage from './modules/speaking/pages/SpeakingRoomPage';
 import './App.css';
@@ -151,6 +152,7 @@ function App() {
 
   const renderBattle = (page) => <BattleSocketProvider>{page}</BattleSocketProvider>;
   const renderSpeaking = (page) => <SpeakingSocketProvider>{page}</SpeakingSocketProvider>;
+  const renderSpeakingRoom = (page) => <SpeakingRoomProvider>{page}</SpeakingRoomProvider>;
 
   const renderContent = () => {
     if (postDetailMatch) {
@@ -181,7 +183,7 @@ function App() {
 
     if (speakingRoomMatch) {
       const code = speakingRoomMatch[1].toUpperCase();
-      return renderSpeaking(
+      return renderSpeakingRoom(
         <SpeakingRoomPage key={code} roomCode={code} onNavigate={navigate} />
       );
     }

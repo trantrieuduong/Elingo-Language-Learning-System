@@ -48,10 +48,39 @@
     "cancel": "Cancel"
   },
   "room": {
+    "title": "Room {{code}}",
     "placeholderTitle": "Room {{code}} - audio",
+    "preparing": "Preparing microphone and connection…",
+    "waitingOthers": "Waiting for others to join…",
+    "shareCode": "Share this code to invite friends",
+    "copy": "Copy",
+    "copied": "Copied",
+    "copyAria": "Copy room code {{code}}",
     "private": "Private",
     "public": "Public",
-    "leave": "Leave room"
+    "privateHint": "The room is hidden from the list. Send this code to invite people.",
+    "you": "You",
+    "host": "Host",
+    "link": {
+      "connecting": "Connecting…",
+      "connected": "Connected",
+      "failed": "Connection failed"
+    },
+    "mute": "Mute mic",
+    "unmute": "Unmute mic",
+    "leave": "Leave room",
+    "reconnecting": "Lost connection to server, retrying…",
+    "enableAudio": "Click to enable audio",
+    "retry": "Try again",
+    "backToLobby": "Back to lobby",
+    "micDenied": "Microphone permission is blocked. Click the lock icon in the address bar, allow Microphone, and try again.",
+    "micUnavailable": "Microphone not found. Please connect a microphone/headset and try again.",
+    "closedTitle": "Room closed",
+    "closed": {
+      "EMPTY": "The room was closed because everyone left.",
+      "EXPIRED": "The room has expired.",
+      "SERVER_RESTART": "Server restarted, room has been closed."
+    }
   }
 }
 

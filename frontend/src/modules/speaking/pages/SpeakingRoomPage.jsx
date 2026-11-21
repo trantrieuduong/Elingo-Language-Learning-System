@@ -1,152 +1,276 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import EmptyState from '../../../components/EmptyState/EmptyState';
 import PageLoading from '../../../components/PageLoading/PageLoading';
-import SpeakingAvatar from '../components/SpeakingAvatar/SpeakingAvatar';
-import { useSpeakingSocket } from '../context/SpeakingSocketContext';
+import PeerTile from '../components/PeerTile/PeerTile';
+import RemoteAudio from '../components/RemoteAudio/RemoteAudio';
+import RoomControls from '../components/RoomControls/RoomControls';
+import { useSpeakingRoom } from '../context/SpeakingRoomContext';
 import './SpeakingRoomPage.css';
 
 const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
   const { t } = useTranslation('speaking');
+  const { t: tApi } = useTranslation('api');
+
   const {
+    selfId,
     connection,
-    roomState,
-    leftSummary,
+    phase,
+    room,
+    peers,
+    streams,
+    muted,
+    micError,
     error,
-    joinRoom,
+    closedReason,
+    startSession,
     leaveRoom,
-  } = useSpeakingSocket();
+    teardown,
+    toggleMute,
+    isPrivate,
+  } = useSpeakingRoom();
 
-  const joinedRef = useRef(false);
-  const hadStateOnMountRef = useRef(roomState?.roomCode === roomCode);
-  const leaveTimeoutRef = useRef(null);
-  const staleErrorRef = useRef(error);
-  const staleLeftRef = useRef(leftSummary);
+  const [copied, setCopied] = useState(false);
+  const copyTimeoutRef = useRef(null);
 
-  // Chỉ gửi join khi socket đã nối (chống F5 rớt kết nối bị đá về lobby)
   useEffect(() => {
-    if (connection !== 'connected') {
-      joinedRef.current = false; // rớt mạng: nối lại xong sẽ join lại (idempotent)
-      hadStateOnMountRef.current = false;
-      return;
-    }
-    if (!roomCode || joinedRef.current || hadStateOnMountRef.current) return;
-    joinedRef.current = true;
-    joinRoom(roomCode);
-  }, [connection, roomCode, joinRoom]);
+    startSession(roomCode);
+    return () => teardown();
+  }, [roomCode, startSession, teardown]);
 
-  // Xử lý khi nhận được event error từ WebSocket
-  useEffect(() => {
-    if (!error) {
-      staleErrorRef.current = null;
-      return;
-    }
-    if (error === 'SOCKET_NOT_CONNECTED') {
-      return;
-    }
-    if (error === staleErrorRef.current) {
-      return;
-    }
+  const handleLeave = async () => {
+    await leaveRoom();
     onNavigate('/speaking');
-  }, [error, onNavigate]);
+  };
 
-  // Xử lý khi rời phòng thành công (nhận room:left)
-  useEffect(() => {
-    if (!leftSummary) {
-      staleLeftRef.current = null;
-      return;
+  const handleCopyCode = async () => {
+    const code = room?.roomCode || roomCode;
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(code);
+        setCopied(true);
+        if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+        copyTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
+      }
+    } catch {
+      // Fallback không ném lỗi nếu clipboard bị chặn
     }
-    if (leftSummary === staleLeftRef.current) {
-      return;
-    }
-    if (leaveTimeoutRef.current) clearTimeout(leaveTimeoutRef.current);
-    onNavigate('/speaking');
-  }, [leftSummary, onNavigate]);
-
-  const handleLeave = () => {
-    leaveRoom();
-    // nếu 3 giây không nhận được room:left thì vẫn về lobby
-    leaveTimeoutRef.current = setTimeout(() => {
-      onNavigate('/speaking');
-    }, 3000);
   };
 
   useEffect(() => {
     return () => {
-      if (leaveTimeoutRef.current) clearTimeout(leaveTimeoutRef.current);
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
     };
   }, []);
 
-  if (!roomState) {
+  // 1. Chuẩn bị (xin micro + kết nối socket)
+  if (phase === 'preparing') {
     return (
       <main className="speaking-room-page">
-        <PageLoading />
+        <PageLoading message={t('room.preparing')} />
       </main>
     );
   }
 
-  const peers = roomState.peers || [];
+  // 2. Giai đoạn lỗi (micro hoặc lỗi vào phòng)
+  if (phase === 'error') {
+    if (micError) {
+      return (
+        <main className="speaking-room-page speaking-room-page--center">
+          <div className="speaking-room-error-wrapper">
+            <EmptyState
+              icon="mic_off"
+              isError
+              title={
+                micError === 'MIC_DENIED'
+                  ? t('room.micDenied')
+                  : t('room.micUnavailable')
+              }
+              actionLabel={t('room.retry')}
+              onAction={() => startSession(roomCode)}
+              actionVariant="primary"
+            />
+            <div className="speaking-room-error-subaction">
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => onNavigate('/speaking')}
+              >
+                {t('room.backToLobby')}
+              </button>
+            </div>
+          </div>
+        </main>
+      );
+    }
+
+    const errorTitle = error
+      ? tApi(`error.${error}`, { defaultValue: tApi('common.fallback') })
+      : tApi('common.fallback');
+
+    return (
+      <main className="speaking-room-page speaking-room-page--center">
+        <EmptyState
+          icon="error"
+          isError
+          title={errorTitle}
+          actionLabel={t('room.backToLobby')}
+          onAction={() => onNavigate('/speaking')}
+          actionVariant="primary"
+        />
+      </main>
+    );
+  }
+
+  // 3. Phòng bị đóng
+  if (phase === 'closed') {
+    const closeDesc = closedReason
+      ? t(`room.closed.${closedReason}`, { defaultValue: t('room.closed.EMPTY') })
+      : t('room.closed.EMPTY');
+
+    return (
+      <main className="speaking-room-page speaking-room-page--center">
+        <EmptyState
+          icon="meeting_room"
+          title={t('room.closedTitle')}
+          description={closeDesc}
+          actionLabel={t('room.backToLobby')}
+          onAction={() => onNavigate('/speaking')}
+          actionVariant="primary"
+        />
+      </main>
+    );
+  }
+
+  const currentCode = room?.roomCode || roomCode;
+  const currentTopic = room?.topic || t('lobby.noTopic');
+  const peerList = Object.values(peers);
+  const otherPeers = peerList.filter((p) => String(p.userId) !== String(selfId));
+  const isHost = String(room?.hostId) === String(selfId);
 
   return (
     <main className="speaking-room-page">
       <div className="speaking-room-container">
-        {/* Room Header */}
-        <section className="speaking-room-header glass-card">
-          <div className="speaking-room-header__info">
-            <div className="speaking-room-header__title-row">
-              <h1 className="text-headline-sm speaking-room-header__code">
-                {t('room.placeholderTitle', { code: roomState.roomCode || roomCode })}
-              </h1>
-              <span
-                className={`speaking-room-badge ${
-                  roomState.isPrivate
-                    ? 'speaking-room-badge--private'
-                    : 'speaking-room-badge--public'
-                }`}
-              >
-                <span className="material-symbols-outlined">
-                  {roomState.isPrivate ? 'lock' : 'public'}
+        {/* Banner mất kết nối WebSocket */}
+        {connection !== 'connected' && (
+          <div className="speaking-connection-banner" role="alert">
+            <span className="material-symbols-outlined">wifi_off</span>
+            <span>{t('room.reconnecting')}</span>
+          </div>
+        )}
+
+        {/* Header thông tin phòng */}
+        <header className="speaking-room-header glass-card">
+          <div className="speaking-room-header__main">
+            <div className="speaking-room-header__title-group">
+              <div className="speaking-room-header__code-row">
+                <span className="speaking-room-header__code" title={currentCode}>
+                  {currentCode}
                 </span>
-                <span>{roomState.isPrivate ? t('room.private') : t('room.public')}</span>
-              </span>
+                <button
+                  type="button"
+                  className={`btn-secondary speaking-room-header__copy-btn ${
+                    copied ? 'speaking-room-header__copy-btn--copied' : ''
+                  }`}
+                  onClick={handleCopyCode}
+                  aria-label={t('room.copyAria', { code: currentCode })}
+                  title={t('room.copyAria', { code: currentCode })}
+                >
+                  <span className="material-symbols-outlined">
+                    {copied ? 'check' : 'content_copy'}
+                  </span>
+                  <span>{copied ? t('room.copied') : t('room.copy')}</span>
+                </button>
+                <span
+                  className={`speaking-room-badge ${
+                    isPrivate
+                      ? 'speaking-room-badge--private'
+                      : 'speaking-room-badge--public'
+                  }`}
+                >
+                  <span className="material-symbols-outlined">
+                    {isPrivate ? 'lock' : 'public'}
+                  </span>
+                  <span>{isPrivate ? t('room.private') : t('room.public')}</span>
+                </span>
+              </div>
+
+              <h1 className="text-title-lg speaking-room-header__topic">
+                {currentTopic}
+              </h1>
             </div>
 
-            {roomState.topic && (
-              <p className="text-body-md speaking-room-header__topic">
-                {roomState.topic}
+            {isPrivate && (
+              <p className="speaking-room-header__private-hint text-body-xs text-disabled">
+                <span className="material-symbols-outlined">info</span>
+                <span>{t('room.privateHint')}</span>
               </p>
             )}
           </div>
+        </header>
 
-          <div className="speaking-room-header__actions">
-            <button
-              type="button"
-              className="btn-danger speaking-leave-btn"
-              onClick={handleLeave}
-            >
-              <span className="material-symbols-outlined">call_end</span>
-              <span>{t('room.leave')}</span>
-            </button>
-          </div>
-        </section>
-
-        {/* Participants Grid (Placeholder) */}
-        <section className="speaking-room-peers-section">
-          <div className="speaking-peers-grid">
-            {peers.map((peer) => (
-              <div key={peer.userId} className="speaking-peer-placeholder-tile glass-card">
-                <SpeakingAvatar
-                  name={peer.displayName || ''}
-                  src={peer.avatarUrl || ''}
-                  size={64}
-                />
-                <span className="speaking-peer-name">{peer.displayName || 'User'}</span>
-                {peer.role === 'HOST' && (
-                  <span className="speaking-peer-host-chip">HOST</span>
-                )}
+        {/* Khu vực hiển thị danh sách người tham gia */}
+        <section className="speaking-room-stage" aria-label="Participants">
+          {otherPeers.length === 0 ? (
+            <div className="speaking-room-waiting-state glass-card">
+              <span className="material-symbols-outlined speaking-room-waiting-icon">
+                record_voice_over
+              </span>
+              <div className="speaking-room-waiting-text">
+                <h2 className="text-title-md">{t('room.waitingOthers')}</h2>
+                <p className="text-body-sm text-disabled">{t('room.shareCode')}</p>
               </div>
-            ))}
+              <div className="speaking-room-waiting-code-box">
+                <span className="speaking-room-waiting-code">{currentCode}</span>
+                <button
+                  type="button"
+                  className="btn-secondary btn-sm"
+                  onClick={handleCopyCode}
+                >
+                  <span className="material-symbols-outlined">
+                    {copied ? 'check' : 'content_copy'}
+                  </span>
+                  <span>{copied ? t('room.copied') : t('room.copy')}</span>
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          {/* Lưới các PeerTile */}
+          <div className="speaking-peer-grid">
+            {peerList.map((p) => {
+              const pIsSelf = String(p.userId) === String(selfId);
+              const pIsHost = String(p.userId) === String(room?.hostId);
+              return (
+                <PeerTile
+                  key={p.userId}
+                  peer={p}
+                  isSelf={pIsSelf}
+                  isHost={pIsHost}
+                  muted={pIsSelf ? muted : false}
+                />
+              );
+            })}
           </div>
         </section>
+
+        {/* Thanh điều khiển Micro & Rời phòng */}
+        <RoomControls
+          muted={muted}
+          onToggleMute={toggleMute}
+          onLeave={handleLeave}
+          leaving={phase === 'leaving'}
+        />
+
+        {/* Audio elements ngầm cho từng peer khác */}
+        <div className="speaking-remote-audios-container">
+          {Object.entries(streams).map(([uid, stream]) => (
+            <RemoteAudio
+              key={uid}
+              stream={stream}
+            />
+          ))}
+        </div>
       </div>
     </main>
   );

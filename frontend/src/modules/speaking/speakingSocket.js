@@ -23,3 +23,7 @@ export const sendActiveRoom = () => {
   return sendMessage('/app/speaking/active-room', {});
 };
 
+export const sendSignal = (roomCode, toUserId, type, payload) => {
+  return sendMessage('/app/speaking/signal', { roomCode, toUserId, type, payload });
+};
+

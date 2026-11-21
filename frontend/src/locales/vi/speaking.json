@@ -48,10 +48,39 @@
     "cancel": "Hủy"
   },
   "room": {
+    "title": "Phòng {{code}}",
     "placeholderTitle": "Phòng {{code}} - âm thanh",
+    "preparing": "Đang chuẩn bị micro và kết nối…",
+    "waitingOthers": "Đang chờ người khác vào phòng…",
+    "shareCode": "Chia sẻ mã này để mời bạn bè",
+    "copy": "Sao chép",
+    "copied": "Đã sao chép",
+    "copyAria": "Sao chép mã phòng {{code}}",
     "private": "Riêng tư",
     "public": "Công khai",
-    "leave": "Rời phòng"
+    "privateHint": "Phòng riêng tư không hiện trong danh sách. Hãy gửi mã này cho người bạn muốn mời.",
+    "you": "Bạn",
+    "host": "Host",
+    "link": {
+      "connecting": "Đang kết nối…",
+      "connected": "Đã kết nối",
+      "failed": "Kết nối lỗi"
+    },
+    "mute": "Tắt mic",
+    "unmute": "Bật mic",
+    "leave": "Rời phòng",
+    "reconnecting": "Mất kết nối máy chủ, đang thử lại…",
+    "enableAudio": "Bấm để bật âm thanh",
+    "retry": "Thử lại",
+    "backToLobby": "Về lobby",
+    "micDenied": "Bạn chưa cho phép dùng micro. Hãy bấm biểu tượng ổ khóa trên thanh địa chỉ, cho phép Micro rồi thử lại.",
+    "micUnavailable": "Không tìm thấy micro. Hãy cắm micro/tai nghe rồi thử lại.",
+    "closedTitle": "Phòng đã đóng",
+    "closed": {
+      "EMPTY": "Phòng đã đóng vì không còn ai.",
+      "EXPIRED": "Phòng đã hết hạn.",
+      "SERVER_RESTART": "Máy chủ khởi động lại, phòng đã đóng."
+    }
   }
 }
 
