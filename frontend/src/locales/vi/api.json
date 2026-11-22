@@ -12,6 +12,7 @@
     "USER_NOT_FOUND": "Tài khoản hoặc thông tin không tồn tại.",
     "USERNAME_EXISTED": "Username đã tồn tại.",
     "EMAIL_EXISTED": "Email đã tồn tại.",
+    "EMAIL_UNCHANGED": "Email mới trùng với email hiện tại.",
     "OTP_INVALID": "Mã OTP không chính xác hoặc đã hết hạn.",
     "TOO_MANY_REQUESTS": "Quá nhiều yêu cầu, vui lòng thử lại sau.",
     "RATE_LIMIT_EXCEEDED": "Quá nhiều yêu cầu, vui lòng thử lại sau.",

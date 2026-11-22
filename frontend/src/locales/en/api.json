@@ -12,6 +12,7 @@
     "USER_NOT_FOUND": "Account or information not found.",
     "USERNAME_EXISTED": "Username already exists.",
     "EMAIL_EXISTED": "Email already exists.",
+    "EMAIL_UNCHANGED": "New email and old email are the same.",
     "OTP_INVALID": "OTP code is incorrect or has expired.",
     "TOO_MANY_REQUESTS": "Too many requests, please try again later.",
     "RATE_LIMIT_EXCEEDED": "Too many requests, please try again later.",

@@ -1,0 +1,182 @@
+.update-email-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--color-modal-overlay);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal);
+  padding: var(--spacing-md);
+  box-sizing: border-box;
+  animation: updateEmailFadeIn 0.2s ease-out;
+}
+
+.update-email-modal-container {
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-lg);
+  box-sizing: border-box;
+  overflow: hidden;
+  position: relative;
+  border-radius: var(--radius-card);
+  animation: updateEmailScaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.update-email-modal-container:hover {
+  transform: none;
+}
+
+.update-email-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--color-glass-border-subtle);
+}
+
+.update-email-modal-title {
+  color: var(--color-text-high);
+  margin: 0;
+}
+
+.update-email-modal-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  color: var(--color-text-mid);
+  transition: all 0.2s ease;
+}
+
+.update-email-modal-close:hover {
+  color: var(--color-text-high);
+}
+
+.update-email-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  overflow-y: auto;
+  padding-right: var(--spacing-xs);
+}
+
+/* Send OTP inside input button */
+.update-email-send-otp-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding-left: 0.75rem;
+  border: none;
+  border-left: 1px solid var(--color-outline-variant);
+  background: transparent;
+  color: var(--color-primary);
+  font-family: var(--font-display);
+  font-size: var(--font-size-label-md);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition-fast);
+}
+
+.update-email-send-otp-btn:hover:not(:disabled) {
+  color: var(--color-on-primary-container);
+}
+
+.update-email-send-otp-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.update-email-send-otp-btn .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.input-field-row:has(.update-email-send-otp-btn) .input-field {
+  padding-right: 9.5rem;
+}
+
+.input-field-row:has(.update-email-send-otp-btn) .input-right-element {
+  right: 0.6rem;
+}
+
+/* Modal Actions */
+.update-email-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-glass-border-subtle);
+}
+
+.update-email-modal-actions .btn-secondary {
+  border-color: var(--color-outline-variant);
+}
+
+.update-email-submit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  min-width: 120px;
+}
+
+.update-email-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--color-glass-border-faint);
+  border-top-color: var(--color-on-primary);
+  border-radius: 50%;
+  animation: updateEmailSpin 0.7s linear infinite;
+  display: inline-block;
+}
+
+@keyframes updateEmailFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes updateEmailScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes updateEmailSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 600px) {
+  .update-email-modal-container {
+    padding: var(--spacing-md);
+    max-height: 95vh;
+  }
+
+  .update-email-modal-actions {
+    flex-direction: column-reverse;
+    gap: var(--spacing-sm);
+  }
+
+  .update-email-modal-actions button {
+    width: 100%;
+  }
+}

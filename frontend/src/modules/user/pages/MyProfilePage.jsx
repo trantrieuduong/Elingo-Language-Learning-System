@@ -7,6 +7,7 @@ import OptionsModal from '../../../components/OptionsModal/OptionsModal';
 import Toast from '../../../components/Toast/Toast';
 import ProfileCard from '../components/ProfileCard/ProfileCard';
 import UpdateProfileModal from '../components/UpdateProfileModal/UpdateProfileModal';
+import UpdateEmailModal from '../components/UpdateEmailModal/UpdateEmailModal';
 import { getMyProfileApi } from '../profileApi';
 import { useAuth } from '../../../context/AuthContext';
 import './MyProfilePage.css';
@@ -19,6 +20,7 @@ function MyProfilePage() {
   const [error, setError] = useState(null);
   const [isOptionOpen, setIsOptionOpen] = useState(false);
   const [isUpdateProfileOpen, setIsUpdateProfileOpen] = useState(false);
+  const [isUpdateEmailOpen, setIsUpdateEmailOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
   useEffect(() => {
@@ -55,10 +57,24 @@ function MyProfilePage() {
     setIsUpdateProfileOpen(true);
   };
 
+  const handleOpenUpdateEmail = () => {
+    setIsUpdateEmailOpen(true);
+  };
+
   const handleUpdateProfileSuccess = (updatedData) => {
     setProfile(updatedData);
     setUser?.(updatedData);
     setToastMessage(t('user:updateProfile.updateSuccess'));
+  };
+
+  const handleOtpSentSuccess = () => {
+    setToastMessage(t('user:updateEmailModal.sendOtpSuccess'));
+  };
+
+  const handleUpdateEmailSuccess = (newEmail) => {
+    setProfile((prev) => (prev ? { ...prev, email: newEmail } : prev));
+    setUser?.((prev) => (prev ? { ...prev, email: newEmail } : prev));
+    setToastMessage(t('user:updateEmailModal.updateEmailSuccess'));
   };
 
   const options = [
@@ -67,6 +83,12 @@ function MyProfilePage() {
       label: t('user:editProfile'),
       icon: 'edit',
       onSelect: handleEditProfile,
+    },
+    {
+      id: 'update-email',
+      label: t('user:updateEmail'),
+      icon: 'mail',
+      onSelect: handleOpenUpdateEmail,
     },
   ];
 
@@ -112,6 +134,13 @@ function MyProfilePage() {
         profile={profile}
         onClose={() => setIsUpdateProfileOpen(false)}
         onSuccess={handleUpdateProfileSuccess}
+      />
+
+      <UpdateEmailModal
+        isOpen={isUpdateEmailOpen}
+        onClose={() => setIsUpdateEmailOpen(false)}
+        onOtpSent={handleOtpSentSuccess}
+        onSuccess={handleUpdateEmailSuccess}
       />
 
       <Toast

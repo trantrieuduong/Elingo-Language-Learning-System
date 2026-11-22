@@ -14,3 +14,17 @@ export const updateProfileApi = async (payload) => {
   const response = await apiClient.put('/users/me', payload);
   return response.data;
 };
+
+export const sendOtpUpdateEmailApi = async (newEmail) => {
+  const response = await apiClient.post('/users/me/email/otp', { newEmail });
+  return response.data;
+};
+
+export const updateEmailApi = async ({ newEmail, newEmailOtp, password }) => {
+  const response = await apiClient.patch('/users/me/email', {
+    newEmail,
+    newEmailOtp,
+    password,
+  });
+  return response.data;
+};

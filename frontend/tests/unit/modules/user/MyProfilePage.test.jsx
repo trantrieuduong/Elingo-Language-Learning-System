@@ -5,6 +5,11 @@ import * as profileApi from '../../../../src/modules/user/profileApi';
 import { tr } from '../../../utils/i18n';
 
 vi.mock('../../../../src/modules/user/profileApi');
+vi.mock('@/context/AuthContext', () => ({
+  useAuth: vi.fn(() => ({
+    setUser: vi.fn(),
+  })),
+}));
 
 describe('MyProfilePage', () => {
   const mockProfile = {
@@ -47,14 +52,13 @@ describe('MyProfilePage', () => {
     expect(moreBtn).toBeInTheDocument();
   });
 
-  it('opens options modal with edit profile option when clicking options menu', async () => {
+  it('opens options modal with edit profile and update email options', async () => {
     profileApi.getMyProfileApi.mockResolvedValueOnce({
       success: true,
       data: mockProfile,
     });
-    const mockNavigate = vi.fn();
 
-    render(<MyProfilePage onNavigate={mockNavigate} />);
+    render(<MyProfilePage onNavigate={vi.fn()} />);
 
     await waitFor(() => {
       expect(screen.getByText('Vo Le Khanh Duy')).toBeInTheDocument();
@@ -64,10 +68,36 @@ describe('MyProfilePage', () => {
     fireEvent.click(moreBtn);
 
     const editOption = await screen.findByText(tr('user:editProfile'));
+    const updateEmailOption = await screen.findByText(tr('user:updateEmail'));
     expect(editOption).toBeInTheDocument();
+    expect(updateEmailOption).toBeInTheDocument();
 
     fireEvent.click(editOption);
-    expect(mockNavigate).toHaveBeenCalledWith('/profile/edit');
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('opens update email modal when clicking update email option', async () => {
+    profileApi.getMyProfileApi.mockResolvedValueOnce({
+      success: true,
+      data: mockProfile,
+    });
+
+    render(<MyProfilePage onNavigate={vi.fn()} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Vo Le Khanh Duy')).toBeInTheDocument();
+    });
+
+    const moreBtn = screen.getByRole('button');
+    fireEvent.click(moreBtn);
+
+    const updateEmailOption = await screen.findByText(tr('user:updateEmail'));
+    fireEvent.click(updateEmailOption);
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByLabelText(tr('user:updateEmailModal.newEmail'))).toBeInTheDocument();
+    expect(screen.getByLabelText(tr('user:updateEmailModal.otp'))).toBeInTheDocument();
+    expect(screen.getByLabelText(tr('user:updateEmailModal.password'))).toBeInTheDocument();
   });
 
   it('renders error state when api fails and retries on action click', async () => {

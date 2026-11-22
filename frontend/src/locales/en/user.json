@@ -1,5 +1,6 @@
 {
   "editProfile": "Edit profile",
+  "updateEmail": "Update email",
   "report": "Report",
   "options": "User options",
   "userNotFoundTitle": "User not found",
@@ -19,5 +20,24 @@
     "errorUsernameRequired": "Username is required.",
     "errorUsernameFormat": "Username must be 3-15 letters or digits with no spaces or special characters.",
     "updateSuccess": "Profile updated successfully!"
+  },
+  "updateEmailModal": {
+    "title": "Update email",
+    "newEmail": "New email",
+    "newEmailPlaceholder": "Enter new email address",
+    "otp": "OTP code",
+    "otpPlaceholder": "Enter 6-digit OTP code",
+    "password": "Password confirmation",
+    "passwordPlaceholder": "Enter your current password",
+    "sendOtp": "Send OTP",
+    "resendOtp": "Resend OTP",
+    "sendingOtp": "Sending...",
+    "resendOtpTimer": "Resend ({{time}})",
+    "sendOtpSuccess": "OTP sent successfully",
+    "updateEmailSuccess": "Email updated successfully",
+    "errorEmailRequired": "New email is required.",
+    "errorEmailInvalid": "Email format is invalid.",
+    "errorOtpRequired": "OTP code is required.",
+    "errorPasswordRequired": "Password confirmation is required."
   }
 }

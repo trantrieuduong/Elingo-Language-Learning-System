@@ -1,5 +1,6 @@
 {
   "editProfile": "Chỉnh sửa hồ sơ",
+  "updateEmail": "Cập nhật email",
   "report": "Báo cáo",
   "options": "Tùy chọn người dùng",
   "userNotFoundTitle": "Không tìm thấy người dùng",
@@ -19,5 +20,24 @@
     "errorUsernameRequired": "Tên người dùng không được để trống.",
     "errorUsernameFormat": "Tên người dùng gồm 3-15 ký tự chữ hoặc số, không chứa khoảng trắng hay ký tự đặc biệt.",
     "updateSuccess": "Cập nhật hồ sơ thành công!"
+  },
+  "updateEmailModal": {
+    "title": "Cập nhật email",
+    "newEmail": "Email mới",
+    "newEmailPlaceholder": "Nhập địa chỉ email mới",
+    "otp": "Mã OTP",
+    "otpPlaceholder": "Nhập 6 số mã OTP",
+    "password": "Mật khẩu xác nhận",
+    "passwordPlaceholder": "Nhập mật khẩu hiện tại của bạn",
+    "sendOtp": "Gửi mã OTP",
+    "resendOtp": "Gửi lại mã OTP",
+    "sendingOtp": "Đang gửi...",
+    "resendOtpTimer": "Gửi lại ({{time}})",
+    "sendOtpSuccess": "Gửi OTP thành công",
+    "updateEmailSuccess": "Đổi email thành công",
+    "errorEmailRequired": "Email mới không được để trống.",
+    "errorEmailInvalid": "Email không đúng định dạng.",
+    "errorOtpRequired": "Mã OTP không được để trống.",
+    "errorPasswordRequired": "Mật khẩu xác nhận không được để trống."
   }
 }
