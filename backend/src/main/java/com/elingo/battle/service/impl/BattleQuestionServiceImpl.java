@@ -55,19 +55,14 @@ public class BattleQuestionServiceImpl implements BattleQuestionService {
 
         // 1. Lấy toàn bộ id card hợp lệ
         List<Long> ids = new ArrayList<>(questionRepository.findBattleEligibleCardIds());
-        if (ids.size() < Math.max(props.minCardsRequired(), rounds)) {
-            throw new AppException(AppError.BATTLE_NOT_ENOUGH_CARDS);
-        }
+        validateEnoughCards(ids, rounds);
         Collections.shuffle(ids);
 
         List<Long> questionIds = ids.subList(0, rounds);
         List<Long> poolIds = ids.subList(rounds, Math.min(ids.size(), rounds + DISTRACTOR_POOL_SIZE));
 
         // 2. Fetch cards (question set + distractor pool)
-        List<Long> all = new ArrayList<>(questionIds);
-        all.addAll(poolIds);
-        Map<Long, Card> cards = cardRepository.findAllById(all).stream()
-                .collect(Collectors.toMap(Card::getId, Function.identity()));
+        Map<Long, Card> cards = findCards(questionIds, poolIds);
 
         // Pool text
         List<String> poolTexts = poolIds.stream()
@@ -84,31 +79,8 @@ public class BattleQuestionServiceImpl implements BattleQuestionService {
             String correct = card.getTranslation().trim();
 
             // Tạo distractors: ưu tiên lấy từ pool, nếu không đủ thì lấy từ các question khác
-            List<String> primary = new ArrayList<>(
-                    poolTexts.stream().filter(t -> !t.equalsIgnoreCase(correct)).toList());
-            List<String> fallback = new ArrayList<>();
-            for (int j = 0; j < rounds; j++) {
-                if (j == i) continue;
-                String t = cards.get(questionIds.get(j)).getTranslation().trim();
-                if (!t.equalsIgnoreCase(correct) && !primary.contains(t) && !fallback.contains(t))
-                    fallback.add(t);
-            }
-            Collections.shuffle(primary);
-            Collections.shuffle(fallback);
-            List<String> distractors = Stream.concat(primary.stream(), fallback.stream()).limit(3).toList();
-            if (distractors.size() < 3) throw new AppException(AppError.BATTLE_NOT_ENOUGH_CARDS);
-
-            List<String> options = new ArrayList<>(distractors);
-            options.add(correct);
-            Collections.shuffle(options);
-            optionTextsPerQuestion.add(options);
-
-            questions.add(BattleQuestion.builder()
-                    .match(match).card(card).roundNo((short) (i + 1))
-                    .term(card.getTerm().trim())
-                    .correctAnswer(correct)
-                    .timeLimitMs((int) props.questionTimeMs())
-                    .build());
+            optionTextsPerQuestion.add(createOptionTexts(correct, questionIds, cards, poolTexts, i));
+            questions.add(createQuestion(match, card, correct, i));
         }
 
         // 4. Lưu questions
@@ -139,6 +111,60 @@ public class BattleQuestionServiceImpl implements BattleQuestionService {
 
         log.info("MC questions created matchId={} rounds={}", match.getId(), rounds);
         return result;
+    }
+
+    private void validateEnoughCards(List<Long> ids, int rounds) {
+        if (ids.size() < Math.max(props.minCardsRequired(), rounds)) {
+            throw new AppException(AppError.BATTLE_NOT_ENOUGH_CARDS);
+        }
+    }
+
+    private Map<Long, Card> findCards(List<Long> questionIds, List<Long> poolIds) {
+        List<Long> all = new ArrayList<>(questionIds);
+        all.addAll(poolIds);
+        return cardRepository.findAllById(all).stream()
+                .collect(Collectors.toMap(Card::getId, Function.identity()));
+    }
+
+    private List<String> createOptionTexts(String correct, List<Long> questionIds, Map<Long, Card> cards,
+                                           List<String> poolTexts, int questionIndex) {
+        List<String> primary = new ArrayList<>(
+                poolTexts.stream().filter(text -> !text.equalsIgnoreCase(correct)).toList());
+        List<String> fallback = findFallbackDistractors(correct, questionIds, cards, primary, questionIndex);
+        Collections.shuffle(primary);
+        Collections.shuffle(fallback);
+        List<String> distractors = Stream.concat(primary.stream(), fallback.stream()).limit(3).toList();
+
+        if (distractors.size() < 3) {
+            throw new AppException(AppError.BATTLE_NOT_ENOUGH_CARDS);
+        }
+
+        List<String> options = new ArrayList<>(distractors);
+        options.add(correct);
+        Collections.shuffle(options);
+        return options;
+    }
+
+    private List<String> findFallbackDistractors(String correct, List<Long> questionIds, Map<Long, Card> cards,
+                                                 List<String> primary, int questionIndex) {
+        List<String> fallback = new ArrayList<>();
+        for (int index = 0; index < questionIds.size(); index++) {
+            if (index == questionIndex) {
+                continue;
+            }
+            String text = cards.get(questionIds.get(index)).getTranslation().trim();
+            if (!text.equalsIgnoreCase(correct) && !primary.contains(text) && !fallback.contains(text)) {
+                fallback.add(text);
+            }
+        }
+        return fallback;
+    }
+
+    private BattleQuestion createQuestion(BattleMatch match, Card card, String correct, int questionIndex) {
+        return BattleQuestion.builder()
+                .match(match).card(card).roundNo((short) (questionIndex + 1))
+                .term(card.getTerm().trim()).correctAnswer(correct)
+                .timeLimitMs((int) props.questionTimeMs()).build();
     }
 
     /**
