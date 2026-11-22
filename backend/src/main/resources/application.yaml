@@ -79,14 +79,6 @@ app:
       max-decks-per-user: 5
       max-topics-per-deck: 15
       max-cards-per-topic: 50
-  gamification:
-    rules:
-      FLASHCARD_REVIEW:   { xp: 2,  daily-limit: 100 }
-      SEGMENT_DICTATION:  { xp: 3,  daily-limit: 50 }
-      SEGMENT_SHADOWING:  { xp: 3,  daily-limit: 50 }
-      BATTLE_WIN:         { xp: 30, daily-limit: 10 }
-      BATTLE_LOSE:        { xp: 10, daily-limit: 10 }
-      DAILY_CHECKIN:      { xp: 5,  daily-limit: 1 }
   lesson:
     dictation-pass-score: 60
     shadowing-pass-score: 55

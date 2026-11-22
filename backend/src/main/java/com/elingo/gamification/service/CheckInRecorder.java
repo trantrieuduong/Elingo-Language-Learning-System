@@ -2,14 +2,13 @@ package com.elingo.gamification.service;
 
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
-import com.elingo.gamification.config.GamificationProperties;
 import com.elingo.gamification.entity.BadgeConditionType;
 import com.elingo.gamification.entity.DailyCheckin;
 import com.elingo.gamification.entity.LearningStreak;
 import com.elingo.gamification.entity.XpSource;
+import com.elingo.gamification.publisher.GamificationEventPublisher;
 import com.elingo.gamification.repository.DailyCheckInRepository;
 import com.elingo.gamification.repository.LearningStreakRepository;
-import com.elingo.gamification.publisher.GamificationEventPublisher;
 import com.elingo.user.entity.User;
 import com.elingo.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +26,7 @@ public class CheckInRecorder {
     private final LearningStreakRepository streakRepo;
     private final DailyCheckInRepository checkInRepo;
     private final XpService xpService;
-    private final GamificationProperties props;
+    private final XpPolicy xpPolicy;
     private final UserRepository userRepository;
     private final GamificationEventPublisher gamificationEventPublisher;
     private final BadgeAwardService badgeAwardService;
@@ -47,7 +46,7 @@ public class CheckInRecorder {
         s.setLongestStreak(Math.max(s.getLongestStreak(), streak));
         s.setLastActiveDate(date);
 
-        int reward = props.rule(XpSource.DAILY_CHECKIN).xp();
+        int reward = xpPolicy.getXp(XpSource.DAILY_CHECKIN);
         checkInRepo.save(DailyCheckin.builder()
                 .user(user)
                 .checkinDate(date)

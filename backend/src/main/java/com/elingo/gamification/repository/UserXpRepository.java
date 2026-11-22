@@ -35,6 +35,8 @@ public interface UserXpRepository extends JpaRepository<UserXp, Long> {
     """)
     int raiseLevel(@Param("userId") long userId, @Param("level") int level);
 
+    boolean existsByLevelLevelNo(Short levelNo);
+           
     @Query("SELECT ux.level.levelNo AS levelNo, ux.level.title AS title, COUNT(ux.userId) AS userCount " +
             "FROM UserXp ux " +
             "GROUP BY ux.level.levelNo, ux.level.title " +
