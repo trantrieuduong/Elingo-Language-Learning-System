@@ -32,7 +32,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -57,8 +56,7 @@ public class BattleHistoryServiceImpl implements BattleHistoryService {
             BattleResult result,
             BattleMode mode,
             BattleMatchType matchType,
-            Pageable pageable
-    ) {
+            Pageable pageable) {
         int filter = result == null ? 0 : switch (result) {
             case WIN -> 1;
             case LOSE -> 2;
@@ -74,7 +72,7 @@ public class BattleHistoryServiceImpl implements BattleHistoryService {
 
         Map<Long, List<BattleParticipant>> byMatch = matchIds.isEmpty() ? Map.of()
                 : participantRepository.findByMatchIds(matchIds).stream()
-                .collect(Collectors.groupingBy(p -> p.getMatch().getId()));
+                        .collect(Collectors.groupingBy(p -> p.getMatch().getId()));
 
         Page<BattleHistoryItemResponse> responsePage = minePage.map(myPart -> {
             BattleMatch match = myPart.getMatch();
@@ -108,8 +106,7 @@ public class BattleHistoryServiceImpl implements BattleHistoryService {
                     myScore,
                     opponentScore,
                     myResult,
-                    match.getFinishedAt()
-            );
+                    match.getFinishedAt());
         });
 
         return PageResponse.of(responsePage);
@@ -122,8 +119,20 @@ public class BattleHistoryServiceImpl implements BattleHistoryService {
                 .orElseThrow(() -> new AppException(AppError.BATTLE_MATCH_NOT_FOUND));
 
         List<BattleParticipant> participants = participantRepository.findByMatchIdWithUser(matchId);
-        boolean isParticipant = participants.stream()
-                .anyMatch(p -> Objects.equals(p.getUser().getId(), userId));
+        validateMatchDetailAccess(match, participants, userId);
+
+        // Sắp xếp người tham gia: người gọi API trước, đối thủ sau để nhất quán
+        List<BattleParticipant> orderedParticipants = orderParticipants(participants, userId);
+
+        List<BattleQuestion> questions = questionRepository.findByMatchIdOrderByRoundNo(matchId);
+        List<BattleAnswer> answers = answerRepository.findByMatchIdWithDetails(matchId);
+
+        List<BattleRoundDetailResponse> rounds = buildRoundDetails(questions, answers, orderedParticipants);
+        return buildMatchDetailResponse(match, questions, orderedParticipants, rounds);
+    }
+
+    private void validateMatchDetailAccess(BattleMatch match, List<BattleParticipant> participants, Long userId) {
+        boolean isParticipant = participants.stream().anyMatch(p -> Objects.equals(p.getUser().getId(), userId));
 
         if (!isParticipant) {
             throw new AppException(AppError.BATTLE_PARTICIPANT_NOT_FOUND);
@@ -132,93 +141,75 @@ public class BattleHistoryServiceImpl implements BattleHistoryService {
         if (match.getStatus() != BattleMatchStatus.FINISHED) {
             throw new AppException(AppError.BATTLE_MATCH_NOT_FOUND);
         }
+    }
 
-        // Sắp xếp người tham gia: người gọi API trước, đối thủ sau để nhất quán
-        List<BattleParticipant> orderedParticipants = participants.stream()
+    private List<BattleParticipant> orderParticipants(List<BattleParticipant> participants, Long userId) {
+        return participants.stream()
                 .sorted(Comparator.comparing((BattleParticipant p) -> !Objects.equals(p.getUser().getId(), userId))
                         .thenComparing(p -> p.getUser().getId()))
                 .toList();
+    }
 
-        List<PlayerResponse> players = orderedParticipants.stream()
-                .map(p -> battleMapper.toPlayerResponse(p.getUser()))
-                .toList();
-
-        List<PlayerFinalResultResponse> results = orderedParticipants.stream()
-                .map(p -> new PlayerFinalResultResponse(
-                        p.getUser().getId(),
-                        p.getScore() != null ? p.getScore() : 0,
-                        p.getCorrectCount() != null ? p.getCorrectCount() : 0,
-                        Boolean.TRUE.equals(p.getIsWinner())
-                ))
-                .toList();
-
-        List<BattleQuestion> questions = questionRepository.findByMatchIdOrderByRoundNo(matchId);
-        List<BattleAnswer> answers = answerRepository.findByMatchIdWithDetails(matchId);
-
+    private List<BattleRoundDetailResponse> buildRoundDetails(List<BattleQuestion> questions,
+                                                              List<BattleAnswer> answers,
+                                                              List<BattleParticipant> participants) {
         Map<Long, List<BattleAnswer>> answersByQuestionId = answers.stream()
-                .collect(Collectors.groupingBy(a -> a.getQuestion().getId()));
+                .collect(Collectors.groupingBy(answer -> answer.getQuestion().getId()));
 
-        List<BattleRoundDetailResponse> rounds = new ArrayList<>();
-        for (BattleQuestion question : questions) {
-            List<BattleAnswer> questionAnswers = answersByQuestionId.getOrDefault(question.getId(), List.of());
-            Map<Long, BattleAnswer> answerByUserId = questionAnswers.stream()
-                    .collect(Collectors.toMap(
-                            a -> a.getParticipant().getUser().getId(),
-                            a -> a,
-                            (a1, a2) -> a1
-                    ));
+        return questions.stream()
+                .map(question -> buildRoundDetail(question, answersByQuestionId, participants))
+                .toList();
+    }
 
-            List<BattleRoundAnswerResponse> roundAnswers = new ArrayList<>();
-            for (BattleParticipant part : orderedParticipants) {
-                Long pUserId = part.getUser().getId();
-                BattleAnswer ans = answerByUserId.get(pUserId);
+    private BattleRoundDetailResponse buildRoundDetail(BattleQuestion question,
+                                                       Map<Long, List<BattleAnswer>> answersByQuestionId,
+                                                       List<BattleParticipant> participants) {
+        Map<Long, BattleAnswer> answerByUserId = answersByQuestionId.getOrDefault(question.getId(), List.of()).stream()
+                .collect(Collectors.toMap(answer -> answer.getParticipant().getUser().getId(), answer -> answer,
+                        (first, ignored) -> first));
 
-                if (ans == null || (ans.getSelectedOption() == null && ans.getTypedAnswer() == null)) {
-                    roundAnswers.add(new BattleRoundAnswerResponse(
-                            pUserId,
-                            false,
-                            null,
-                            false,
-                            null
-                    ));
-                } else {
-                    String answerText = ans.getTypedAnswer() != null
-                            ? ans.getTypedAnswer()
-                            : (ans.getSelectedOption() != null ? ans.getSelectedOption().getOptionText() : null);
-                    boolean isCorrect = Boolean.TRUE.equals(ans.getIsCorrect());
-                    roundAnswers.add(new BattleRoundAnswerResponse(
-                            pUserId,
-                            true,
-                            answerText,
-                            isCorrect,
-                            ans.getResponseTimeMs()
-                    ));
-                }
-            }
+        List<BattleRoundAnswerResponse> answers = participants.stream()
+                .map(participant -> buildRoundAnswer(participant, answerByUserId.get(participant.getUser().getId())))
+                .toList();
 
-            rounds.add(new BattleRoundDetailResponse(
-                    question.getRoundNo() != null ? question.getRoundNo().intValue() : 0,
-                    question.getTerm(),
-                    question.getCorrectAnswer(),
-                    roundAnswers
-            ));
+        return new BattleRoundDetailResponse(question.getRoundNo() != null ? question.getRoundNo().intValue() : 0,
+                question.getTerm(), question.getCorrectAnswer(), answers);
+    }
+
+    private BattleRoundAnswerResponse buildRoundAnswer(BattleParticipant participant, BattleAnswer answer) {
+        Long participantUserId = participant.getUser().getId();
+
+        if (answer == null || (answer.getSelectedOption() == null && answer.getTypedAnswer() == null)) {
+            return new BattleRoundAnswerResponse(participantUserId, false, null, false, null);
         }
 
-        Long winnerId = match.getWinner() != null ? match.getWinner().getId() : null;
-        int totalRounds = match.getTotalRounds() != null ? match.getTotalRounds().intValue() : questions.size();
+        String answerText = answer.getTypedAnswer() != null
+                ? answer.getTypedAnswer()
+                : answer.getSelectedOption().getOptionText();
 
-        return new BattleMatchDetailResponse(
-                match.getId(),
-                match.getMode(),
-                match.getMatchType(),
-                totalRounds,
-                winnerId,
-                match.getStartedAt(),
-                match.getFinishedAt(),
-                players,
-                results,
-                rounds
-        );
+        return new BattleRoundAnswerResponse(participantUserId, true, answerText,
+                Boolean.TRUE.equals(answer.getIsCorrect()), answer.getResponseTimeMs());
+    }
+
+    private BattleMatchDetailResponse buildMatchDetailResponse(BattleMatch match, List<BattleQuestion> questions,
+                                                               List<BattleParticipant> participants,
+                                                               List<BattleRoundDetailResponse> rounds) {
+        List<PlayerResponse> players = participants.stream().map(p -> battleMapper.toPlayerResponse(p.getUser()))
+                .toList();
+        List<PlayerFinalResultResponse> results = participants.stream().map(this::toPlayerFinalResult).toList();
+
+        int totalRounds = match.getTotalRounds() != null ? match.getTotalRounds().intValue() : questions.size();
+        Long winnerId = match.getWinner() != null ? match.getWinner().getId() : null;
+
+        return new BattleMatchDetailResponse(match.getId(), match.getMode(), match.getMatchType(), totalRounds,
+                winnerId, match.getStartedAt(), match.getFinishedAt(), players, results, rounds);
+    }
+
+    private PlayerFinalResultResponse toPlayerFinalResult(BattleParticipant participant) {
+        return new PlayerFinalResultResponse(participant.getUser().getId(),
+                participant.getScore() != null ? participant.getScore() : 0,
+                participant.getCorrectCount() != null ? participant.getCorrectCount() : 0,
+                Boolean.TRUE.equals(participant.getIsWinner()));
     }
 
     @Override
