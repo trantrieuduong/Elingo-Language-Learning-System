@@ -83,3 +83,29 @@ Dự án tuân thủ nghiêm ngặt định hướng thẩm mỹ **Precision Ope
 4. **Luồng phân quyền và điều hướng**:
    - Admin được phép truy cập tự do vào cả phân hệ quản trị (`/admin/*`) lẫn các trang của học viên (`/dashboard`, `/decks`, ...). Không tự động cưỡng chế chuyển hướng khi admin chủ động sang trang học viên.
    - Tại menu tài khoản phía học viên, khi tài khoản có role `ADMIN`, tự động hiển thị lối tắt *Quản trị hệ thống* (`/admin`) để chuyển đổi nhanh chóng.
+
+---
+
+## 5. Quy chuẩn Tổ chức Kiểm thử (Unit Testing Architecture)
+
+Nhằm đảm bảo khả năng bảo trì khi hệ thống mở rộng, bộ kiểm thử đơn vị của Admin được phân bổ theo cấu trúc thư mục tương ứng 1:1 với mã nguồn `src/modules/admin/`:
+
+```text
+tests/unit/modules/admin/
+├── components/           # Kiểm thử các thành phần UI dùng chung
+│   ├── AdminHeader.test.jsx
+│   ├── AdminSidebar.test.jsx
+│   ├── DateRangeFilter.test.jsx
+│   └── MetricCard.test.jsx
+├── layouts/              # Kiểm thử bộ khung điều hướng và theme
+│   └── AdminLayout.test.jsx
+├── pages/                # Kiểm thử các trang quản trị và từng tab nghiệp vụ
+│   ├── CommunityStatsTab.test.jsx
+│   ├── DashboardPage.test.jsx
+│   └── PlaceholderAdminPage.test.jsx
+└── services/             # Kiểm thử tầng giao tiếp API và tham số truy vấn
+    └── adminStatsApi.test.js
+```
+
+- **Quy chuẩn i18n trong kiểm thử**: Tất cả test case giao diện đều chạy đồng thời trên cả 2 ngôn ngữ `['vi', 'en']` thông qua `describe.each(LANGS)` và helper `useLang(lng)`.
+- **Phân lập Component**: Dùng `@/` alias cho các import nội bộ, mock `apiClient` và các sub-tabs để đảm bảo tốc độ thực thi dưới 6 giây cho toàn bộ module.
