@@ -1,0 +1,213 @@
+.speaking-peer-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px 24px;
+  border-radius: var(--radius-xl, 24px);
+  text-align: center;
+  min-height: 240px;
+  position: relative;
+  transition: var(--transition-base, 0.2s ease);
+  box-sizing: border-box;
+}
+
+.speaking-peer-tile--self {
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.speaking-peer-tile--grace {
+  opacity: 0.55;
+  filter: grayscale(40%);
+}
+
+.speaking-peer-tile__avatar-wrapper {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+/* Phần thông tin */
+.speaking-peer-tile__info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  max-width: 100%;
+}
+
+.speaking-peer-tile__name-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  max-width: 100%;
+}
+
+.speaking-peer-tile__name {
+  font-family: var(--font-display, inherit);
+  font-weight: var(--font-weight-bold, 700);
+  font-size: 17px;
+  color: var(--color-text-primary);
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.speaking-peer-tile__badges-and-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.speaking-peer-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: var(--radius-pill, 999px);
+  letter-spacing: 0.3px;
+  line-height: 1.4;
+}
+
+.speaking-peer-badge--self {
+  background: var(--color-secondary-container, #d7e4f5);
+  color: var(--color-primary, #3b82f6);
+}
+
+.speaking-peer-badge--host {
+  background: rgba(234, 179, 8, 0.15);
+  color: #ca8a04;
+}
+
+.speaking-peer-tile__link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.speaking-peer-tile__link-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.speaking-peer-tile__link--connecting {
+  color: var(--color-text-secondary);
+}
+
+.speaking-peer-tile__link--connecting .speaking-peer-tile__link-dot {
+  background: var(--color-text-secondary);
+  animation: pulse-dot 1.5s infinite;
+}
+
+.speaking-peer-tile__link--connected {
+  color: #10b981;
+}
+
+.speaking-peer-tile__link--connected .speaking-peer-tile__link-dot {
+  background: #10b981;
+}
+
+.speaking-peer-tile__link--failed {
+  color: var(--color-error, #ef4444);
+}
+
+.speaking-peer-tile__link--failed .speaking-peer-tile__link-dot {
+  background: var(--color-error, #ef4444);
+}
+
+.speaking-peer-tile__link--grace {
+  color: #f59e0b;
+}
+
+.speaking-peer-tile__link--grace .speaking-peer-tile__link-dot {
+  background: #f59e0b;
+  animation: pulse-dot 1.5s infinite;
+}
+
+.speaking-peer-tile__status-icon {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary, #94a3b8);
+}
+
+.speaking-peer-tile__status-icon .material-symbols-outlined {
+  font-size: 20px;
+}
+
+.speaking-peer-tile__status-icon--muted {
+  color: var(--color-error, #ef4444);
+}
+
+.speaking-peer-tile__status-icon--active {
+  color: var(--color-text-secondary, #94a3b8);
+}
+
+@media (max-width: 640px) {
+  .speaking-peer-tile {
+    min-height: 180px;
+    padding: 20px 16px;
+  }
+}
+
+.speaking-peer-tile__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.speaking-peer-tile__mute-btn,
+.speaking-peer-tile__kick-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 4px 10px;
+  font-size: var(--font-size-body-xs, 12px);
+  border-radius: var(--radius-pill, 999px);
+  min-height: 28px;
+  min-width: 28px;
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: var(--color-error, #ef4444);
+}
+
+.speaking-peer-tile__mute-btn:hover:not(:disabled),
+.speaking-peer-tile__kick-btn:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.speaking-peer-tile__mute-btn .material-symbols-outlined,
+.speaking-peer-tile__kick-btn .material-symbols-outlined {
+  font-size: 15px;
+}
+
+.speaking-peer-tile__mute-btn:disabled,
+.speaking-peer-tile__kick-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}

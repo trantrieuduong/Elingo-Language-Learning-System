@@ -1,0 +1,596 @@
+.speaking-room-page {
+  min-height: calc(100vh - 140px);
+  padding: calc(72px + var(--spacing-lg)) var(--spacing-md) var(--spacing-2xl);
+  display: flex;
+  flex-direction: column;
+}
+
+.speaking-room-page--center {
+  align-items: center;
+  justify-content: center;
+}
+
+.speaking-room-container {
+  width: calc(100% - 3rem);
+  max-width: 1432px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg, 24px);
+  flex: 1;
+}
+
+.speaking-room-error-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+  max-width: 480px;
+  width: 100%;
+}
+
+.speaking-room-error-subaction {
+  margin-top: -8px;
+}
+
+/* Header */
+.speaking-connection-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: 10px 16px;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-lg, 16px);
+  color: var(--color-error, #ef4444);
+  font-size: var(--font-size-body-sm);
+  font-weight: 500;
+}
+
+.speaking-room-header {
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border-radius: var(--radius-xl, 24px);
+}
+
+.speaking-room-header__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.speaking-room-header__code-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.speaking-room-header__code {
+  font-family: monospace;
+  font-size: var(--font-size-title-md, 18px);
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--color-primary, #3b82f6);
+  padding: 2px 8px;
+  background: var(--color-secondary-container, #d7e4f5);
+  border-radius: var(--radius-sm, 6px);
+}
+
+.speaking-room-header__copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-size: var(--font-size-body-xs, 12px);
+  border-radius: var(--radius-pill, 999px);
+  min-height: 32px;
+}
+
+.speaking-room-header__copy-btn .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.speaking-room-header__copy-btn--copied {
+  color: #10b981;
+  border-color: #10b981;
+}
+
+.speaking-room-header__bans-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  font-size: var(--font-size-body-xs, 12px);
+  border-radius: var(--radius-pill, 999px);
+  min-height: 32px;
+  color: var(--color-error, #ef4444);
+  border-color: rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.speaking-room-header__bans-btn:hover {
+  background: rgba(239, 68, 68, 0.16);
+  border-color: var(--color-error, #ef4444);
+}
+
+.speaking-room-header__bans-btn .material-symbols-outlined {
+  font-size: 16px;
+}
+
+/* Badge trạng thái Riêng tư / Công khai */
+.speaking-room-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill, 999px);
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-xs, 12px);
+  font-weight: var(--font-weight-medium, 500);
+  line-height: 1;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  min-height: 32px;
+  box-sizing: border-box;
+}
+
+.speaking-room-badge .material-symbols-outlined {
+  font-size: 16px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.speaking-room-badge--private {
+  background: var(--color-surface, #ffffff);
+  border-color: var(--color-outline-variant, rgba(0, 0, 0, 0.1));
+  color: var(--color-text-secondary, #475569);
+}
+
+.speaking-room-badge--public {
+  background: var(--color-secondary-container, #d7e4f5);
+  border-color: rgba(155, 183, 232, 0.4);
+  color: var(--color-primary, #3b82f6);
+}
+
+[data-theme='dark'] .speaking-room-badge--private {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: var(--color-on-surface-variant, #94a3b8);
+}
+
+[data-theme='dark'] .speaking-room-badge--public {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.3);
+  color: #60a5fa;
+}
+
+.speaking-room-header__topic {
+  margin: 0;
+  color: var(--color-text-primary);
+  word-break: break-word;
+}
+
+.speaking-room-header__private-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 0;
+}
+
+.speaking-room-header__private-hint .material-symbols-outlined {
+  font-size: 16px;
+  color: var(--color-primary);
+}
+
+/* Stage & Peer grid */
+.speaking-room-body {
+  display: flex;
+  gap: var(--spacing-lg, 24px);
+  width: 100%;
+  align-items: stretch;
+}
+
+.speaking-room-main-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md, 16px);
+}
+
+.speaking-room-chat-col {
+  width: 380px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: 100%;
+}
+
+.speaking-room-stage__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.speaking-room-stage__header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.speaking-room-stage__header-icon {
+  font-size: 18px;
+  color: var(--color-text-secondary, #64748b);
+}
+
+.speaking-room-stage__title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary, #0f172a);
+}
+
+.speaking-room-stage__header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.speaking-room-stage__header-action-icon {
+  font-size: 18px;
+  color: var(--color-text-secondary, #94a3b8);
+  cursor: pointer;
+}
+
+.speaking-room-stage__header-action-icon:hover {
+  color: var(--color-text-primary, #0f172a);
+}
+
+/* Khu vực sảnh chờ 1 người: User bên trái, Đang chờ bên phải */
+.speaking-room-solo-stage {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
+  flex: 1;
+}
+
+.speaking-room-solo-stage__user {
+  display: flex;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.speaking-room-solo-stage__user .speaking-peer-tile {
+  width: 100%;
+  box-sizing: border-box;
+  flex: 1;
+}
+
+.speaking-room-waiting-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px 24px;
+  border-radius: var(--radius-xl, 24px);
+  text-align: center;
+  min-height: 240px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.speaking-room-waiting-icon {
+  font-size: 56px;
+  color: var(--color-primary, #3b82f6);
+}
+
+.speaking-room-waiting-text {
+  max-width: 100%;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.speaking-room-waiting-title {
+  margin: 0 0 6px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-text-primary, #0f172a);
+}
+
+[data-theme='dark'] .speaking-room-waiting-title {
+  color: #f1f5f9;
+}
+
+.speaking-room-waiting-code-box {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 6px 14px;
+  background: var(--color-surface, #ffffff);
+  border: 1px dashed var(--color-primary, #3b82f6);
+  border-radius: var(--radius-pill, 999px);
+  margin-top: 4px;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+[data-theme='dark'] .speaking-room-waiting-code-box {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.speaking-room-waiting-code {
+  font-family: monospace;
+  font-size: var(--font-size-title-sm, 16px);
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--color-primary, #3b82f6);
+}
+
+/* Lưới hiển thị danh sách người tham gia theo số lượng */
+.speaking-peer-grid {
+  display: grid;
+  gap: 16px;
+  width: 100%;
+  flex: 1;
+}
+
+/* 1. Khi chưa mở khung chat: Tất cả người tham gia xếp cùng 1 hàng ngang, ô tự thu hẹp đều nhau */
+.speaking-peer-grid--no-chat.speaking-peer-grid--count-1 {
+  grid-template-columns: 1fr;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.speaking-peer-grid--no-chat.speaking-peer-grid--count-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.speaking-peer-grid--no-chat.speaking-peer-grid--count-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.speaking-peer-grid--no-chat.speaking-peer-grid--count-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+/* 2. Khi đang mở khung chat: Người tham gia vẫn xếp trên 1 hàng ngang, tự co giãn đều nhau */
+.speaking-peer-grid--with-chat.speaking-peer-grid--count-1 {
+  grid-template-columns: 1fr;
+}
+
+.speaking-peer-grid--with-chat.speaking-peer-grid--count-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.speaking-peer-grid--with-chat.speaking-peer-grid--count-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.speaking-peer-grid--with-chat.speaking-peer-grid--count-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+/* Khối Quy tắc & Quy định phòng */
+.speaking-room-rules {
+  padding: 24px 28px;
+  border-radius: var(--radius-xl, 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.speaking-room-rules__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.speaking-room-rules__title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.speaking-room-rules__icon {
+  font-size: 22px;
+  color: var(--color-primary, #3b82f6);
+}
+
+.speaking-room-rules__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text-primary, #0f172a);
+}
+
+.speaking-room-rules__tag {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary, #64748b);
+  background: rgba(0, 0, 0, 0.05);
+  padding: 3px 10px;
+  border-radius: var(--radius-pill, 999px);
+}
+
+[data-theme='dark'] .speaking-room-stage__header-icon {
+  color: #94a3b8;
+}
+
+[data-theme='dark'] .speaking-room-stage__title {
+  color: #f1f5f9;
+}
+
+[data-theme='dark'] .speaking-room-rules__icon {
+  color: #60a5fa;
+}
+
+[data-theme='dark'] .speaking-room-rules__title {
+  color: #f1f5f9;
+}
+
+[data-theme='dark'] .speaking-room-rules__tag {
+  background: rgba(255, 255, 255, 0.12);
+  color: #cbd5e1;
+}
+
+.speaking-room-rules__signal {
+  font-size: 22px;
+  color: #10b981;
+}
+
+.speaking-room-rules__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 32px;
+}
+
+.speaking-room-rules__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.speaking-room-rules__item-icon {
+  font-size: 20px;
+  color: var(--color-primary, #3b82f6);
+  flex-shrink: 0;
+}
+
+[data-theme='dark'] .speaking-room-rules__item-icon {
+  color: #60a5fa;
+}
+
+.speaking-room-rules__item-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-secondary, #475569);
+  line-height: 1.5;
+}
+
+[data-theme='dark'] .speaking-room-rules__item-text {
+  color: #cbd5e1;
+}
+
+.speaking-remote-audios-container {
+  display: none;
+}
+
+.speaking-room-header__clock {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-on-surface-variant);
+  font-size: var(--font-size-label-md);
+  font-variant-numeric: tabular-nums;
+}
+
+.speaking-room-header__clock .material-symbols-outlined {
+  font-size: 18px;
+}
+
+@media (max-width: 900px) {
+  .speaking-room-body {
+    flex-direction: column;
+  }
+
+  .speaking-room-chat-col {
+    width: 100%;
+  }
+
+  /* Trên màn hình nhỏ/tablet, không cố ép 3-4 cột trên 1 hàng */
+  .speaking-peer-grid--no-chat.speaking-peer-grid--count-3,
+  .speaking-peer-grid--no-chat.speaking-peer-grid--count-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .speaking-peer-grid--no-chat.speaking-peer-grid--count-3 > :nth-child(3) {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 640px) {
+  .speaking-room-solo-stage {
+    grid-template-columns: 1fr;
+  }
+
+  .speaking-room-solo-stage__user,
+  .speaking-room-waiting-card,
+  .speaking-room-rules {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .speaking-room-waiting-card {
+    padding: 24px 16px;
+    min-height: auto;
+  }
+
+  .speaking-room-waiting-title {
+    font-size: 15px;
+  }
+
+  .speaking-room-waiting-code-box {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .speaking-peer-grid,
+  .speaking-peer-grid--no-chat.speaking-peer-grid--count-1,
+  .speaking-peer-grid--no-chat.speaking-peer-grid--count-2,
+  .speaking-peer-grid--no-chat.speaking-peer-grid--count-3,
+  .speaking-peer-grid--no-chat.speaking-peer-grid--count-4,
+  .speaking-peer-grid--with-chat.speaking-peer-grid--count-1,
+  .speaking-peer-grid--with-chat.speaking-peer-grid--count-2,
+  .speaking-peer-grid--with-chat.speaking-peer-grid--count-3,
+  .speaking-peer-grid--with-chat.speaking-peer-grid--count-4 {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+
+  .speaking-peer-grid--no-chat.speaking-peer-grid--count-3 > :nth-child(3),
+  .speaking-peer-grid--with-chat.speaking-peer-grid--count-3 > :nth-child(3) {
+    grid-column: auto;
+  }
+
+  .speaking-room-stage__header {
+    gap: 8px;
+  }
+
+  .speaking-room-rules {
+    padding: 16px 20px;
+    gap: 14px;
+  }
+
+  .speaking-room-rules__header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .speaking-room-rules__grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .speaking-room-rules__item-text {
+    font-size: 13px;
+  }
+
+  .speaking-room-header {
+    padding: var(--spacing-md);
+  }
+}

@@ -21,5 +21,6 @@ public interface SpeakingRoomService {
     List<SpeakingBannedUserResponse> listBans(Long hostId, String roomCode);
     void unbanMember(Long hostId, String roomCode, Long targetUserId);
     SpeakingRoomDetailResponse getRoom(String roomCode);
+    void sendActiveRoom(Long userId);
     PageResponse<SpeakingRoomResponse> getOpenRooms(SpeakingRoomSearchRequest request, Pageable pageable);
 }
