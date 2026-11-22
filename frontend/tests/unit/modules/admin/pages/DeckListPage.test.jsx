@@ -213,5 +213,185 @@ describe('DeckListPage component', () => {
         );
       });
     });
+
+    it('handles filter inputs for search, tag, status, tier and cefr', async () => {
+      adminContentApi.fetchAdminDecks.mockResolvedValue({
+        content: [sampleSystemDeck],
+        page: 1,
+        size: 20,
+        totalElements: 1,
+        totalPages: 1,
+        isLast: true,
+      });
+
+      const user = userEvent.setup();
+      render(<DeckListPage onNavigate={mockNavigate} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Oxford 3000')).toBeInTheDocument();
+      });
+
+      // Type keyword
+      const searchInput = screen.getByPlaceholderText(
+        lng === 'vi' ? 'Tìm theo tên bộ từ hoặc mô tả...' : 'Search by deck title or description...'
+      );
+      await user.type(searchInput, 'Oxford');
+
+      // Select tag
+      const tagSelect = screen.getByDisplayValue(
+        lng === 'vi' ? 'Tất cả chủ đề (Tag)' : 'All Tags'
+      );
+      await user.selectOptions(tagSelect, '1');
+
+      // Select status
+      const statusSelect = screen.getByDisplayValue(
+        lng === 'vi' ? 'Tất cả trạng thái' : 'All Statuses'
+      );
+      await user.selectOptions(statusSelect, 'PUBLISHED');
+
+      // Select tier
+      const tierSelect = screen.getByDisplayValue(
+        lng === 'vi' ? 'Tất cả phân hạng' : 'All Tiers'
+      );
+      await user.selectOptions(tierSelect, 'true');
+
+      // Select CEFR
+      const cefrSelect = screen.getByDisplayValue(
+        lng === 'vi' ? 'Tất cả trình độ CEFR' : 'All CEFR Levels'
+      );
+      await user.selectOptions(cefrSelect, '2');
+
+      await waitFor(() => {
+        expect(adminContentApi.fetchAdminDecks).toHaveBeenCalledWith(
+          expect.objectContaining({
+            tagIds: [1],
+            status: 'PUBLISHED',
+            isPremium: true,
+            cefrLevelIds: [2],
+          })
+        );
+      });
+    });
+
+    it('handles quick deck status change modal', async () => {
+      adminContentApi.fetchAdminDecks.mockResolvedValueOnce({
+        content: [sampleSystemDeck],
+        page: 1,
+        size: 20,
+        totalElements: 1,
+        totalPages: 1,
+        isLast: true,
+      });
+      adminContentApi.updateDeckStatus.mockResolvedValueOnce({
+        ...sampleSystemDeck,
+        status: 'ARCHIVED',
+      });
+
+      const user = userEvent.setup();
+      const { container } = render(<DeckListPage onNavigate={mockNavigate} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Oxford 3000')).toBeInTheDocument();
+      });
+
+      const statusBtn = screen.getByRole('button', {
+        name: /Đổi trạng thái Oxford 3000|Change Status Oxford 3000/i,
+      });
+      await user.click(statusBtn);
+
+      const select = container.querySelector('#deckStatusSelect');
+      await user.selectOptions(select, 'ARCHIVED');
+
+      const saveBtn = screen.getByRole('button', {
+        name: lng === 'vi' ? 'Lưu thay đổi' : 'Save Changes',
+      });
+      await user.click(saveBtn);
+
+      await waitFor(() => {
+        expect(adminContentApi.updateDeckStatus).toHaveBeenCalledWith(1, 'ARCHIVED');
+      });
+    });
+
+    it('navigates to deck detail on deck title or action button click', async () => {
+      adminContentApi.fetchAdminDecks.mockResolvedValueOnce({
+        content: [sampleSystemDeck],
+        page: 1,
+        size: 20,
+        totalElements: 1,
+        totalPages: 1,
+        isLast: true,
+      });
+
+      const user = userEvent.setup();
+      render(<DeckListPage onNavigate={mockNavigate} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Oxford 3000')).toBeInTheDocument();
+      });
+
+      const titleLink = screen.getByText('Oxford 3000');
+      await user.click(titleLink);
+
+      expect(mockNavigate).toHaveBeenCalledWith('/admin/decks/1');
+    });
+
+    it('handles pagination navigation next and previous', async () => {
+      adminContentApi.fetchAdminDecks.mockResolvedValueOnce({
+        content: [sampleSystemDeck],
+        page: 1,
+        size: 20,
+        totalElements: 30,
+        totalPages: 2,
+        isLast: false,
+      });
+
+      const user = userEvent.setup();
+      render(<DeckListPage onNavigate={mockNavigate} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Oxford 3000')).toBeInTheDocument();
+      });
+
+      const nextBtn = screen.getByRole('button', { name: '→' });
+      expect(nextBtn).not.toBeDisabled();
+      await user.click(nextBtn);
+
+      await waitFor(() => {
+        expect(adminContentApi.fetchAdminDecks).toHaveBeenCalledWith(
+          expect.objectContaining({
+            page: 2,
+          })
+        );
+      });
+    });
+
+    it('renders error state and retries loading', async () => {
+      adminContentApi.fetchAdminDecks.mockRejectedValueOnce(new Error('Network error'));
+
+      const user = userEvent.setup();
+      render(<DeckListPage onNavigate={mockNavigate} />);
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Thử lại|Retry/i })).toBeInTheDocument();
+      });
+
+      adminContentApi.fetchAdminDecks.mockResolvedValueOnce({
+        content: [sampleSystemDeck],
+        page: 1,
+        size: 20,
+        totalElements: 1,
+        totalPages: 1,
+        isLast: true,
+      });
+
+      const retryBtn = screen.getByRole('button', {
+        name: /Thử lại|Retry/i,
+      });
+      await user.click(retryBtn);
+
+      await waitFor(() => {
+        expect(screen.getByText('Oxford 3000')).toBeInTheDocument();
+      });
+    });
   });
 });
