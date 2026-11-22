@@ -39,59 +39,24 @@ public class SpeakingSignalingServiceImpl implements SpeakingSignalingService {
         String code = ctx.roomCode();
 
         // Nếu đang online ở phòng khác (do F5/phòng cũ) thì bỏ qua phòng cũ trong RAM
-        LiveSpeakingRoom stale = registry.getByUser(userId);
-        if (stale != null && !stale.getRoomCode().equals(code)) {
-            removePeerSilently(stale, userId);
-        }
+        removeStalePeer(userId, code);
 
         // Vòng lặp: lấy/tạo phòng và khóa. Nếu removeRoom chạy xen giữa thì tạo lại
-        LiveSpeakingRoom room;
-        while (true) {
-            room = registry.getOrCreate(code, () -> new LiveSpeakingRoom(
-                    ctx.roomCode(), ctx.roomId(), ctx.hostId(), ctx.topic(),
-                    ctx.maxParticipants(), ctx.isPrivate(), ctx.startedAtMs()));
-            room.lock();
-            if (registry.get(code) == room) break;
-            room.unlock();
-        }
+        LiveSpeakingRoom room = getAndLockRoom(code, ctx);
         try {
             boolean alreadyOnline = room.isOnline(userId);
             LivePeer peer = room.getPeer(userId);
             boolean wasInGrace = peer != null && !peer.isOnline() && room.cancelGrace(userId);
 
             // Làm mới từ DB (host, topic, trạng thái có thể đã đổi qua REST/WS khác)
-            room.setHostId(ctx.hostId());
-            room.setStartedAtMs(ctx.startedAtMs());
-            room.setPrivate(ctx.isPrivate());
-
-            if (peer == null) {
-                peer = new LivePeer(userId, ctx.me().displayName(), ctx.me().avatarUrl(), ctx.me().role());
-                room.putPeer(peer);
-            } else {
-                peer.setOnline(true);
-                peer.setRole(ctx.me().role());
-            }
+            peer = refreshRoomAndPeer(room, userId, ctx, peer);
             registry.bindUser(userId, code);
 
             // 1. trả room:state cho chính người gửi
             publisher.sendToUser(userId, SpeakingEvents.ROOM_STATE, buildState(room));
 
             // 2. thông báo cho người khác
-            if (wasInGrace) {
-                SpeakingPeerResponse reconnected = toPeer(peer);
-                for (LivePeer other : room.onlinePeers()) {
-                    if (!other.getUserId().equals(userId)) {
-                        publisher.sendToUser(other.getUserId(), SpeakingEvents.PEER_RECONNECTED, reconnected);
-                    }
-                }
-            } else if (!alreadyOnline) {
-                SpeakingPeerResponse joined = toPeer(peer);
-                for (LivePeer other : room.onlinePeers()) {
-                    if (!other.getUserId().equals(userId)) {
-                        publisher.sendToUser(other.getUserId(), SpeakingEvents.PEER_JOINED, joined);
-                    }
-                }
-            }
+            notifyOtherPeers(room, userId, peer, alreadyOnline, wasInGrace);
             log.info("Speaking goOnline roomCode={} userId={} alreadyOnline={} wasInGrace={} online={}",
                     code, userId, alreadyOnline, wasInGrace, room.onlinePeers().size());
         } finally {
@@ -225,6 +190,59 @@ public class SpeakingSignalingServiceImpl implements SpeakingSignalingService {
 
     private SpeakingPeerResponse toPeer(LivePeer p) {
         return new SpeakingPeerResponse(p.getUserId(), p.getDisplayName(), p.getAvatarUrl(), p.getRole());
+    }
+
+    private void removeStalePeer(Long userId, String code) {
+        LiveSpeakingRoom stale = registry.getByUser(userId);
+        if (stale != null && !stale.getRoomCode().equals(code)) {
+            removePeerSilently(stale, userId);
+        }
+    }
+
+    private LiveSpeakingRoom getAndLockRoom(String code, GoOnlineContext ctx) {
+        while (true) {
+            LiveSpeakingRoom room = registry.getOrCreate(code, () -> new LiveSpeakingRoom(
+                    ctx.roomCode(), ctx.roomId(), ctx.hostId(), ctx.topic(),
+                    ctx.maxParticipants(), ctx.isPrivate(), ctx.startedAtMs()));
+            room.lock();
+            if (registry.get(code) == room) {
+                return room;
+            }
+            room.unlock();
+        }
+    }
+
+    private LivePeer refreshRoomAndPeer(LiveSpeakingRoom room, Long userId,
+                                        GoOnlineContext ctx, LivePeer peer) {
+        room.setHostId(ctx.hostId());
+        room.setStartedAtMs(ctx.startedAtMs());
+        room.setPrivate(ctx.isPrivate());
+        if (peer == null) {
+            LivePeer newPeer = new LivePeer(userId, ctx.me().displayName(), ctx.me().avatarUrl(), ctx.me().role());
+            room.putPeer(newPeer);
+            return newPeer;
+        }
+        peer.setOnline(true);
+        peer.setRole(ctx.me().role());
+        return peer;
+    }
+
+    private void notifyOtherPeers(LiveSpeakingRoom room, Long userId, LivePeer peer,
+                                  boolean alreadyOnline, boolean wasInGrace) {
+        if (wasInGrace) {
+            broadcastToOthers(room, userId, SpeakingEvents.PEER_RECONNECTED, peer);
+        } else if (!alreadyOnline) {
+            broadcastToOthers(room, userId, SpeakingEvents.PEER_JOINED, peer);
+        }
+    }
+
+    private void broadcastToOthers(LiveSpeakingRoom room, Long userId, String event, LivePeer peer) {
+        SpeakingPeerResponse response = toPeer(peer);
+        for (LivePeer other : room.onlinePeers()) {
+            if (!other.getUserId().equals(userId)) {
+                publisher.sendToUser(other.getUserId(), event, response);
+            }
+        }
     }
 
     // Xóa peer khỏi phòng cũ trong RAM mà không phát event (phòng cũ đã không còn liên quan)
