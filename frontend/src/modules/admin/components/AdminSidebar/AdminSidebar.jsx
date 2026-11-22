@@ -101,11 +101,15 @@ export default function AdminSidebar({
             {!isCollapsed && <span className={styles.navLabel}>{t('sidebar.dashboard')}</span>}
           </button>
 
-          {/* 2. Nội dung và học tập (dropdown - chưa làm) */}
+          {/* 2. Nội dung và học tập */}
           <div className={styles.dropdownGroup}>
             <button
               type="button"
-              className={`${styles.navItem} ${styles.dropdownTrigger}`}
+              className={`${styles.navItem} ${styles.dropdownTrigger} ${
+                currentPath.startsWith('/admin/decks') || currentPath.startsWith('/admin/tags')
+                  ? styles.active
+                  : ''
+              }`}
               onClick={() => toggleDropdown('content')}
               title={t('sidebar.contentAndLearning')}
             >
@@ -127,27 +131,21 @@ export default function AdminSidebar({
               <div className={styles.subMenuList}>
                 <button
                   type="button"
-                  className={styles.subMenuItem}
+                  className={`${styles.subMenuItem} ${
+                    currentPath.startsWith('/admin/decks') ? styles.active : ''
+                  }`}
                   onClick={() => handleNav('/admin/decks')}
                 >
                   <span>{t('sidebar.decks')}</span>
-                  <span className={styles.pendingBadge}>{t('sidebar.pendingBadge')}</span>
                 </button>
                 <button
                   type="button"
-                  className={styles.subMenuItem}
-                  onClick={() => handleNav('/admin/lessons')}
+                  className={`${styles.subMenuItem} ${
+                    currentPath.startsWith('/admin/tags') ? styles.active : ''
+                  }`}
+                  onClick={() => handleNav('/admin/tags')}
                 >
-                  <span>{t('sidebar.lessons')}</span>
-                  <span className={styles.pendingBadge}>{t('sidebar.pendingBadge')}</span>
-                </button>
-                <button
-                  type="button"
-                  className={styles.subMenuItem}
-                  onClick={() => handleNav('/admin/topics')}
-                >
-                  <span>{t('sidebar.topics')}</span>
-                  <span className={styles.pendingBadge}>{t('sidebar.pendingBadge')}</span>
+                  <span>{t('sidebar.tags')}</span>
                 </button>
               </div>
             )}

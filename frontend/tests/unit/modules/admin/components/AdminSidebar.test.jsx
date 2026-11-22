@@ -106,16 +106,22 @@ describe('AdminSidebar component', () => {
       // Initially closed
       expect(
         screen.queryByRole('button', {
-          name: new RegExp(lng === 'vi' ? 'Bộ thẻ từ vựng' : 'Vocabulary Decks', 'i'),
+          name: new RegExp(lng === 'vi' ? 'Bộ từ' : 'Decks', 'i'),
         })
       ).not.toBeInTheDocument();
 
       // Click to open
       await user.click(contentDropdown);
       const decksSubItem = screen.getByRole('button', {
-        name: new RegExp(lng === 'vi' ? 'Bộ thẻ từ vựng' : 'Vocabulary Decks', 'i'),
+        name: new RegExp(lng === 'vi' ? 'Bộ từ' : 'Decks', 'i'),
       });
       expect(decksSubItem).toBeInTheDocument();
+
+      // Also verify tags sub-item
+      const tagsSubItem = screen.getByRole('button', {
+        name: new RegExp(lng === 'vi' ? 'Quản lý chủ đề' : 'Tag Management', 'i'),
+      });
+      expect(tagsSubItem).toBeInTheDocument();
 
       // Click sub-item navigates
       await user.click(decksSubItem);

@@ -79,6 +79,12 @@
 .breadcrumbCurrent {
   color: var(--adm-text-main);
   font-weight: 600;
+  cursor: default;
+  user-select: text;
+}
+
+.breadcrumbCurrent:hover {
+  background: transparent;
 }
 
 /* Actions Group */

@@ -32,8 +32,8 @@ describe('AdminHeader component', () => {
   });
 
   describe.each(LANGS)('Language and navigation [%s]', (lng) => {
-    beforeEach(() => {
-      useLang(lng);
+    beforeEach(async () => {
+      await useLang(lng);
     });
 
     it('renders breadcrumbs dynamically and handles navigation', async () => {
@@ -71,7 +71,7 @@ describe('AdminHeader component', () => {
       );
 
       expect(
-        screen.getByText(lng === 'vi' ? 'Bộ thẻ từ vựng' : 'Vocabulary Decks')
+        screen.getByText(lng === 'vi' ? 'Bộ từ' : 'Decks')
       ).toBeInTheDocument();
     });
 
@@ -173,7 +173,7 @@ describe('AdminHeader component', () => {
 
       // Dropdown should be open
       expect(screen.getByText('admin@elingo.com')).toBeInTheDocument();
-      const learnerAppBtn = screen.getByRole('menuitem', { name: /Về trang học viên|Learner Portal/i });
+      const learnerAppBtn = screen.getByRole('menuitem', { name: /Về trang người dùng|Về trang học viên|Learner Portal/i });
       expect(learnerAppBtn).toBeInTheDocument();
 
       await user.click(learnerAppBtn);

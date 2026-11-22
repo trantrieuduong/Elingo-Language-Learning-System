@@ -4,11 +4,39 @@ import { useTranslation } from 'react-i18next';
 import AdminLayout from './layouts/AdminLayout';
 import DashboardPage from './pages/DashboardPage/DashboardPage';
 import PlaceholderAdminPage from './pages/PlaceholderAdminPage/PlaceholderAdminPage';
+import DeckListPage from './pages/DeckManagementPage/DeckListPage';
+import DeckDetailPage from './pages/DeckManagementPage/DeckDetailPage';
+import TopicDetailPage from './pages/TopicManagementPage/TopicDetailPage';
+import TagListPage from './pages/TagManagementPage/TagListPage';
 
 export default function AdminRoutes({ currentPath, onNavigate }) {
   const { t } = useTranslation('admin');
 
   const renderPage = () => {
+    // 1. Nested topic detail: /admin/decks/{deck_id}/topics/{topic_id}
+    const topicDetailMatch = currentPath.match(/^\/admin\/decks\/(\d+)\/topics\/(\d+)$/);
+    if (topicDetailMatch) {
+      return (
+        <TopicDetailPage
+          deckId={topicDetailMatch[1]}
+          topicId={topicDetailMatch[2]}
+          onNavigate={onNavigate}
+        />
+      );
+    }
+
+    // 2. Deck topics subpath fallback: /admin/decks/{deck_id}/topics -> /admin/decks/{deck_id}
+    const deckTopicsMatch = currentPath.match(/^\/admin\/decks\/(\d+)\/topics\/?$/);
+    if (deckTopicsMatch) {
+      return <DeckDetailPage deckId={deckTopicsMatch[1]} onNavigate={onNavigate} />;
+    }
+
+    // 3. Deck detail: /admin/decks/{deck_id}
+    const deckDetailMatch = currentPath.match(/^\/admin\/decks\/(\d+)$/);
+    if (deckDetailMatch) {
+      return <DeckDetailPage deckId={deckDetailMatch[1]} onNavigate={onNavigate} />;
+    }
+
     switch (currentPath) {
       case '/admin':
       case '/admin/dashboard':
@@ -16,11 +44,9 @@ export default function AdminRoutes({ currentPath, onNavigate }) {
 
       // Module: Nội dung và học tập
       case '/admin/decks':
-        return <PlaceholderAdminPage title={t('routes.decks')} onNavigate={onNavigate} />;
-      case '/admin/lessons':
-        return <PlaceholderAdminPage title={t('routes.lessons')} onNavigate={onNavigate} />;
-      case '/admin/topics':
-        return <PlaceholderAdminPage title={t('routes.topics')} onNavigate={onNavigate} />;
+        return <DeckListPage onNavigate={onNavigate} />;
+      case '/admin/tags':
+        return <TagListPage onNavigate={onNavigate} />;
 
       // Module: Premium và thanh toán
       case '/admin/plans':

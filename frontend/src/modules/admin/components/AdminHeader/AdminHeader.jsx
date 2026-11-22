@@ -16,8 +16,9 @@ import styles from './AdminHeader.module.css';
 const SEGMENT_KEY_MAP = {
   dashboard: 'sidebar.dashboard',
   decks: 'sidebar.decks',
+  tags: 'sidebar.tags',
   lessons: 'sidebar.lessons',
-  topics: 'sidebar.topics',
+  topics: 'routes.topics',
   plans: 'sidebar.subscriptionPlans',
   transactions: 'sidebar.transactions',
   posts: 'sidebar.posts',
@@ -99,6 +100,56 @@ export default function AdminHeader({
       return crumbs;
     }
 
+    // Khớp trường hợp lồng: /admin/decks/:deckId/topics/:topicId
+    const nestedTopicMatch = currentPath.match(/^\/admin\/decks\/(\d+)\/topics\/(\d+)$/);
+    if (nestedTopicMatch) {
+      const deckId = nestedTopicMatch[1];
+      const topicId = nestedTopicMatch[2];
+      crumbs.push({
+        label: t('sidebar.decks'),
+        path: '/admin/decks',
+      });
+      crumbs.push({
+        label: `#${deckId}`,
+        path: `/admin/decks/${deckId}`,
+      });
+      crumbs.push({
+        label: `#${topicId}`,
+        path: `/admin/decks/${deckId}/topics/${topicId}`,
+      });
+      return crumbs;
+    }
+
+    // Khớp trường hợp: /admin/decks/:deckId
+    const deckDetailMatch = currentPath.match(/^\/admin\/decks\/(\d+)$/);
+    if (deckDetailMatch) {
+      const deckId = deckDetailMatch[1];
+      crumbs.push({
+        label: t('sidebar.decks'),
+        path: '/admin/decks',
+      });
+      crumbs.push({
+        label: `#${deckId}`,
+        path: `/admin/decks/${deckId}`,
+      });
+      return crumbs;
+    }
+
+    // Khớp trường hợp subpath: /admin/decks/:deckId/topics (không có topicId) -> fallback về /admin/decks/:deckId
+    const deckTopicsFallbackMatch = currentPath.match(/^\/admin\/decks\/(\d+)\/topics\/?$/);
+    if (deckTopicsFallbackMatch) {
+      const deckId = deckTopicsFallbackMatch[1];
+      crumbs.push({
+        label: t('sidebar.decks'),
+        path: '/admin/decks',
+      });
+      crumbs.push({
+        label: `#${deckId}`,
+        path: `/admin/decks/${deckId}`,
+      });
+      return crumbs;
+    }
+
     const segments = currentPath
       .replace(/^\/admin\/?/, '')
       .split('/')
@@ -150,14 +201,22 @@ export default function AdminHeader({
                     /
                   </span>
                 )}
-                <button
-                  type="button"
-                  className={`${styles.breadcrumbBtn} ${isLast ? styles.breadcrumbCurrent : ''}`}
-                  onClick={() => onNavigate(crumb.path)}
-                  aria-current={isLast ? 'page' : undefined}
-                >
-                  {crumb.label}
-                </button>
+                {isLast ? (
+                  <span
+                    className={`${styles.breadcrumbBtn} ${styles.breadcrumbCurrent}`}
+                    aria-current="page"
+                  >
+                    {crumb.label}
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    className={styles.breadcrumbBtn}
+                    onClick={() => onNavigate && onNavigate(crumb.path)}
+                  >
+                    {crumb.label}
+                  </button>
+                )}
               </li>
             );
           })}

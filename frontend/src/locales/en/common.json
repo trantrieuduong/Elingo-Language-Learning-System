@@ -29,6 +29,8 @@
   },
   "premium": "Premium",
   "retry": "Try again",
+  "total": "Total",
+  "items": "items",
   "save": "Save",
   "saveChanges": "Save changes",
   "saving": "Saving...",
