@@ -27,6 +27,8 @@ import MySubscriptionPage from './modules/premium/pages/MySubscriptionPage/MySub
 import BattleHistoryPage from './modules/battle/pages/BattleHistoryPage';
 import BattleMatchDetailPage from './modules/battle/pages/BattleMatchDetailPage';
 import ReportPage from './modules/report/pages/ReportPage';
+import MyProfilePage from './modules/user/pages/MyProfilePage';
+import UserProfilePage from './modules/user/pages/UserProfilePage';
 import './App.css';
 
 const AUTH_PATHS = ['/login', '/signup', '/account-verification', '/reset-password'];
@@ -67,9 +69,9 @@ function App() {
   const shadowingMatch = currentPath.match(/^\/lessons\/shadowing\/([^/]+)$/);
   const battlePlayMatch = currentPath.match(/^\/battle\/play\/(\d+)$/);
   const battleDetailMatch = currentPath.match(/^\/battle\/history\/(\d+)$/);
-  const deckListMatch = currentPath === '/decks';
   const deckTopicsMatch = currentPath.match(/^\/decks\/([^/]+)\/topics$/);
   const postDetailMatch = currentPath.match(/^\/community\/posts\/(\d+)$/);
+  const userProfileMatch = currentPath.match(/^\/profile\/([^/]+)$/);
   const isPrivateUserPath =
     PRIVATE_USER_PATHS.some((path) => {
       return currentPath === path || currentPath.startsWith(`${path}/`);
@@ -77,7 +79,8 @@ function App() {
     !!flashcardStudyMatch ||
     !!deckTopicsMatch ||
     !!dictationMatch ||
-    !!shadowingMatch;
+    !!shadowingMatch ||
+    !!userProfileMatch;
 
   useEffect(() => {
     if (loading) return;
@@ -199,6 +202,16 @@ function App() {
       return <ShadowingPage slug={decodeURIComponent(shadowingMatch[1])} onNavigate={navigate} />;
     }
 
+    if (userProfileMatch) {
+      return (
+        <UserProfilePage
+          key={currentPath}
+          userId={decodeURIComponent(userProfileMatch[1])}
+          onNavigate={navigate}
+        />
+      );
+    }
+
     switch (currentPath) {
       case '/':
         return <LandingPage onNavigate={navigate} />;
@@ -243,7 +256,7 @@ function App() {
       case '/premium/my-subscription':
         return <MySubscriptionPage onNavigate={navigate} />;
       case '/profile':
-        return <PlaceholderPage title="Profile" path={currentPath} />;
+        return <MyProfilePage onNavigate={navigate} />;
       case '/reports':
         return <ReportPage onNavigate={navigate} />;
       case '/decks':

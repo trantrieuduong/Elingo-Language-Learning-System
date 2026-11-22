@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { getFallbackAvatarUrl } from '../../../../../utils/utils';
 import './PostCardCommentInput.css';
 
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
@@ -100,7 +101,7 @@ function PostCardCommentInput({
     >
       {!isEditMode && (
         <img
-          src={avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}`}
+          src={avatarUrl || getFallbackAvatarUrl(userName)}
           alt={userName}
           className="post-card-comment-input__avatar"
         />

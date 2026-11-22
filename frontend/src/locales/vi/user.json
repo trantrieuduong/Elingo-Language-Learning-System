@@ -1,1 +1,7 @@
-{}
+{
+  "editProfile": "Chỉnh sửa hồ sơ",
+  "report": "Báo cáo",
+  "options": "Tùy chọn người dùng",
+  "userNotFoundTitle": "Không tìm thấy người dùng",
+  "userNotFoundDesc": "Người dùng bạn đang tìm kiếm không tồn tại hoặc đã bị xóa."
+}
