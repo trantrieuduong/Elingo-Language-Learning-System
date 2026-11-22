@@ -1,0 +1,103 @@
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--adm-bg-surface-subtle) 0%,
+    var(--adm-bg-surface-muted) 50%,
+    var(--adm-bg-surface-subtle) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite ease-in-out;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeletonCard {
+  background: var(--adm-bg-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-md);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeletonRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.feedbackContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 24px;
+  background: var(--adm-bg-surface);
+  border: 1px dashed var(--adm-border);
+  border-radius: var(--adm-radius-md);
+}
+
+.iconBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--adm-radius-full);
+  background: var(--adm-bg-surface-subtle);
+  color: var(--adm-text-subtle);
+  margin-bottom: 12px;
+}
+
+.errorIconBox {
+  background: var(--adm-danger-subtle);
+  color: var(--adm-danger);
+}
+
+.feedbackTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--adm-text-main);
+  margin: 0 0 6px 0;
+}
+
+.feedbackDesc {
+  font-size: 13px;
+  color: var(--adm-text-subtle);
+  max-width: 400px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.errorContainer {
+  border-color: var(--adm-danger-border);
+}
+
+.retryButton {
+  margin-top: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--adm-primary);
+  color: var(--adm-primary-contrast);
+  border: none;
+  border-radius: var(--adm-radius-sm);
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--adm-transition-fast);
+}
+
+.retryButton:hover {
+  background: var(--adm-primary-hover);
+}

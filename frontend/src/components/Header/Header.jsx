@@ -418,6 +418,21 @@ function Header({ onNavigate, currentPath }) {
                       <span className="material-symbols-outlined">flag</span>
                       {t('myReports')}
                     </a>
+                    {user?.role === 'ADMIN' && (
+                      <a
+                        href="/admin"
+                        className="header__dropdown-item"
+                        style={{ color: 'var(--color-primary)', fontWeight: 600 }}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setIsUserDropdownOpen(false);
+                          handleNav('/admin');
+                        }}
+                      >
+                        <span className="material-symbols-outlined">admin_panel_settings</span>
+                        {t('adminPortal')}
+                      </a>
+                    )}
                     <hr className="header__dropdown-divider" />
                     <button
                       type="button"
