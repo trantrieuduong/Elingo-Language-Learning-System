@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
@@ -33,6 +33,8 @@ import SpeakingRoomPage from './modules/speaking/pages/SpeakingRoomPage';
 import SpeakingHistoryPage from './modules/speaking/pages/SpeakingHistoryPage';
 import ReportPage from './modules/report/pages/ReportPage';
 import './App.css';
+
+const AdminRoutes = lazy(() => import('./modules/admin/routes'));
 
 const AUTH_PATHS = ['/login', '/signup', '/account-verification', '/reset-password'];
 
@@ -106,11 +108,6 @@ function App() {
 
     if (user && isAdminPath && !isAdmin) {
       navigate('/dashboard');
-      return;
-    }
-
-    if (user && isAdmin && !isAdminPath) {
-      navigate('/admin');
     }
   }, [currentPath, user, loading, isPrivateUserPath]);
 
@@ -140,17 +137,15 @@ function App() {
 
   const renderAdminContent = () => {
     return (
-      <main className="placeholder-page">
-        <div className="placeholder-page__card glass-card">
-          <span className="material-symbols-outlined placeholder-page__icon">
-            admin_panel_settings
-          </span>
-          <h1 className="text-headline-md">Admin area</h1>
-          <p className="text-body-md text-disabled">
-            This module is outside the current implementation scope.
-          </p>
-        </div>
-      </main>
+      <Suspense
+        fallback={
+          <div className="app-loading-screen">
+            <div className="app-loading-spinner" />
+          </div>
+        }
+      >
+        <AdminRoutes currentPath={currentPath} onNavigate={navigate} />
+      </Suspense>
     );
   };
 
@@ -169,20 +164,14 @@ function App() {
           )}
           onNavigate={navigate}
         />
-    )}
-    if (battleDetailMatch) {
-      return (
-        <BattleMatchDetailPage
-          matchId={battleDetailMatch[1]}
-          onNavigate={navigate}
-        />
       );
+    }
+    if (battleDetailMatch) {
+      return <BattleMatchDetailPage matchId={battleDetailMatch[1]} onNavigate={navigate} />;
     }
 
     if (battlePlayMatch) {
-      return renderBattle(
-        <BattlePlayPage matchId={battlePlayMatch[1]} onNavigate={navigate} />
-      );
+      return renderBattle(<BattlePlayPage matchId={battlePlayMatch[1]} onNavigate={navigate} />);
     }
 
     if (speakingRoomMatch) {

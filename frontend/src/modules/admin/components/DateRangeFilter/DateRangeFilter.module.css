@@ -1,0 +1,254 @@
+.filterBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  background: var(--adm-bg-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-md);
+  padding: 10px 14px;
+  box-shadow: var(--adm-shadow-xs);
+}
+
+.presetGroup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.presetButton {
+  background: var(--adm-bg-surface-subtle);
+  border: 1px solid var(--adm-border);
+  color: var(--adm-text-muted);
+  border-radius: var(--adm-radius-sm);
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--adm-transition-fast);
+}
+
+.presetButton:hover {
+  background: var(--adm-bg-surface-muted);
+  color: var(--adm-text-main);
+  border-color: var(--adm-border-strong);
+}
+
+.presetButton.activePreset {
+  background: var(--adm-primary);
+  color: var(--adm-primary-contrast) !important;
+  border-color: var(--adm-primary);
+  font-weight: 600;
+  box-shadow: var(--adm-shadow-xs);
+}
+
+.divider {
+  width: 1px;
+  height: 24px;
+  background: var(--adm-border);
+}
+
+.dateForm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.dateField {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dateLabel {
+  font-size: 12px;
+  color: var(--adm-text-subtle);
+  font-weight: 500;
+}
+
+.dateInput {
+  background: var(--adm-bg-surface-subtle);
+  border: 1px solid var(--adm-border);
+  color: var(--adm-text-main);
+  border-radius: var(--adm-radius-sm);
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  outline: none;
+  transition: border-color var(--adm-transition-fast);
+}
+
+.dateInput:focus {
+  border-color: var(--adm-border-focus);
+}
+
+.dateSeparator {
+  color: var(--adm-text-subtle);
+  font-size: 12px;
+}
+
+.granularityGroup {
+  display: inline-flex;
+  background: var(--adm-bg-surface-subtle);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-sm);
+  padding: 2px;
+  gap: 2px;
+}
+
+.granularityBtn {
+  background: transparent;
+  border: none;
+  color: var(--adm-text-subtle);
+  border-radius: var(--adm-radius-xs);
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--adm-transition-fast);
+}
+
+.granularityBtn:hover {
+  color: var(--adm-text-main);
+}
+
+.granularityBtn.active {
+  background: var(--adm-bg-surface);
+  color: var(--adm-text-main);
+  box-shadow: var(--adm-shadow-xs);
+}
+
+.actionGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.applyBtn {
+  background: var(--adm-primary);
+  color: var(--adm-primary-contrast) !important;
+  border: none;
+  border-radius: var(--adm-radius-sm);
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--adm-transition-fast);
+}
+
+.applyBtn:hover {
+  background: var(--adm-primary-hover);
+}
+
+.refreshBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--adm-bg-surface-subtle);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-sm);
+  color: var(--adm-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all var(--adm-transition-fast);
+}
+
+.refreshBtn:hover:not(:disabled) {
+  background: var(--adm-bg-surface-muted);
+  color: var(--adm-text-main);
+  border-color: var(--adm-border-strong);
+}
+
+.refreshBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .filterBar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .divider {
+    display: none;
+  }
+  .presetGroup {
+    display: flex;
+    gap: 6px;
+    width: 100%;
+  }
+  .presetButton {
+    flex: 1;
+    text-align: center;
+    padding: 6px 4px;
+    white-space: nowrap;
+    font-size: 11px;
+  }
+  .dateForm {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    width: 100%;
+  }
+  .dateField {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+  }
+  .dateLabel {
+    min-width: 44px;
+  }
+  .dateInput {
+    flex: 1;
+    width: 100%;
+  }
+  .dateSeparator {
+    display: none;
+  }
+  .granularityGroup {
+    display: flex;
+    width: 100%;
+  }
+  .granularityBtn {
+    flex: 1;
+    text-align: center;
+    padding: 6px 8px;
+  }
+  .actionGroup {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+  }
+  .applyBtn {
+    flex: 1;
+    height: 36px;
+  }
+  .refreshBtn {
+    width: 36px;
+    height: 36px;
+  }
+}
