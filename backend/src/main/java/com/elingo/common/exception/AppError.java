@@ -14,6 +14,7 @@ public enum AppError {
     // ==========================================
     UNCATEGORIZED_EXCEPTION("UNCATEGORIZED_EXCEPTION", "Uncategorized exception", HttpStatus.INTERNAL_SERVER_ERROR),
     INVALID_REQUEST("INVALID_REQUEST", "Invalid request parameters or body", HttpStatus.BAD_REQUEST),
+    INVALID_DATE_RANGE("INVALID_DATE_RANGE", "Invalid date range or exceeds maximum allowed limit", HttpStatus.BAD_REQUEST),
     SLUG_INVALID("SLUG_INVALID", "Slug must contain only lowercase letters, numbers and hyphens", HttpStatus.BAD_REQUEST),
     RESOURCE_NOT_FOUND("RESOURCE_NOT_FOUND", "Requested resource not found", HttpStatus.NOT_FOUND),
     METHOD_NOT_SUPPORTED("METHOD_NOT_SUPPORTED", "HTTP request method is not supported", HttpStatus.METHOD_NOT_ALLOWED),

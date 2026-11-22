@@ -33,7 +33,8 @@ import com.elingo.common.entity.BaseEntity;
         },
         indexes = {
                 @Index(name = "idx_tx_user_created", columnList = "user_id, created_at"),
-                @Index(name = "idx_tx_status_created", columnList = "status, created_at")
+                @Index(name = "idx_tx_status_created", columnList = "status, created_at"),
+                @Index(name = "idx_tx_status_paid_plan_amount", columnList = "status, paid_at, plan_id, amount")
         }
 )
 @Data
