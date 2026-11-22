@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import FormAlert from '../../../../components/FormAlert/FormAlert';
 import { uploadFileForVerification } from '../../../../services/uploadFile';
+import { ALLOWED_IMAGE_ACCEPT } from '../../../../constants/fileTypes';
 import { createReportApi } from '../../reportApi';
 import '../../../../components/Input/Input.css';
 import './ReportModal.css';
@@ -230,7 +231,7 @@ function ReportModal({
                 type="file"
                 ref={fileInputRef}
                 onChange={handleFileChange}
-                accept="image/png,image/jpeg,image/webp,image/gif"
+                accept={ALLOWED_IMAGE_ACCEPT}
                 multiple
                 hidden
                 disabled={isSubmitting || selectedFiles.length >= MAX_IMAGES}

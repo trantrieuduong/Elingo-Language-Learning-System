@@ -9,3 +9,8 @@ export const getUserByIdApi = async (userId) => {
   const response = await apiClient.get(`/users/${userId}`);
   return response.data;
 };
+
+export const updateProfileApi = async (payload) => {
+  const response = await apiClient.put('/users/me', payload);
+  return response.data;
+};

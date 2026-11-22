@@ -3,5 +3,21 @@
   "report": "Báo cáo",
   "options": "Tùy chọn người dùng",
   "userNotFoundTitle": "Không tìm thấy người dùng",
-  "userNotFoundDesc": "Người dùng bạn đang tìm kiếm không tồn tại hoặc đã bị xóa."
+  "userNotFoundDesc": "Người dùng bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.",
+  "updateProfile": {
+    "changeAvatar": "Thay đổi ảnh",
+    "avatarHelp": "Hỗ trợ {{formats}}. Tối đa {{maxSize}}MB.",
+    "avatarFileTooLarge": "Kích thước ảnh đại diện không được vượt quá {{maxSize}}MB.",
+    "avatarInvalidType": "Chỉ chấp nhận định dạng ảnh {{formats}}.",
+    "fullName": "Họ và tên",
+    "fullNamePlaceholder": "Nhập họ và tên của bạn",
+    "username": "Tên người dùng",
+    "usernamePlaceholder": "Nhập tên người dùng",
+    "usernameCooldownNote": "Tên người dùng chỉ có thể thay đổi 1 lần mỗi tháng.",
+    "errorFullNameRequired": "Họ và tên không được để trống.",
+    "errorFullNameMaxLength": "Họ và tên không được vượt quá 150 ký tự.",
+    "errorUsernameRequired": "Tên người dùng không được để trống.",
+    "errorUsernameFormat": "Tên người dùng gồm 3-15 ký tự chữ hoặc số, không chứa khoảng trắng hay ký tự đặc biệt.",
+    "updateSuccess": "Cập nhật hồ sơ thành công!"
+  }
 }

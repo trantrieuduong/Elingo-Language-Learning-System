@@ -3,5 +3,21 @@
   "report": "Report",
   "options": "User options",
   "userNotFoundTitle": "User not found",
-  "userNotFoundDesc": "The user you are looking for does not exist or has been removed."
+  "userNotFoundDesc": "The user you are looking for does not exist or has been removed.",
+  "updateProfile": {
+    "changeAvatar": "Change avatar",
+    "avatarHelp": "Supports {{formats}}. Max {{maxSize}}MB.",
+    "avatarFileTooLarge": "Avatar image size must not exceed {{maxSize}}MB.",
+    "avatarInvalidType": "Only {{formats}} image formats are accepted.",
+    "fullName": "Full name",
+    "fullNamePlaceholder": "Enter your full name",
+    "username": "Username",
+    "usernamePlaceholder": "Enter your username",
+    "usernameCooldownNote": "Username can only be changed once per month.",
+    "errorFullNameRequired": "Full name is required.",
+    "errorFullNameMaxLength": "Full name cannot exceed 150 characters.",
+    "errorUsernameRequired": "Username is required.",
+    "errorUsernameFormat": "Username must be 3-15 letters or digits with no spaces or special characters.",
+    "updateSuccess": "Profile updated successfully!"
+  }
 }
