@@ -175,6 +175,12 @@
   color: var(--adm-sidebar-text-hover) !important;
 }
 
+.subMenuItem.active {
+  background: var(--adm-sidebar-item-active);
+  color: var(--adm-sidebar-text-active) !important;
+  font-weight: 600;
+}
+
 .pendingBadge {
   font-size: 10px;
   font-weight: 600;
