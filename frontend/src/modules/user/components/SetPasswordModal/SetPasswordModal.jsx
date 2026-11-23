@@ -94,7 +94,7 @@ function SetPasswordModal({ isOpen, hasPassword = false, onClose, onSuccess }) {
         onClose?.();
       } else {
         const errorCode = response?.errors?.[0]?.code || response?.code;
-        const fallbackMessage = response?.errors?.[0]?.message || response?.message || t('common:saveError');
+        const fallbackMessage = response?.errors?.[0]?.message || response?.message || t('api:common.UNKNOWN_ERROR');
         setGeneralError(errorCode
           ? t(`api:error.${errorCode}`, { defaultValue: fallbackMessage })
           : fallbackMessage);
@@ -102,7 +102,7 @@ function SetPasswordModal({ isOpen, hasPassword = false, onClose, onSuccess }) {
     } catch (error) {
       const errorData = error?.response?.data;
       const errorCode = errorData?.errors?.[0]?.code || errorData?.code;
-      const fallbackMessage = errorData?.errors?.[0]?.message || errorData?.message || t('common:saveError');
+      const fallbackMessage = errorData?.errors?.[0]?.message || errorData?.message || t('api:common.UNKNOWN_ERROR');
       setGeneralError(errorCode
         ? t(`api:error.${errorCode}`, { defaultValue: fallbackMessage })
         : fallbackMessage);

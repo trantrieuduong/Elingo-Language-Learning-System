@@ -118,14 +118,14 @@ function UpdateEmailModal({ isOpen, onClose, onSuccess, onOtpSent }) {
         onOtpSent?.();
       } else {
         const errorCode = res?.errors?.[0]?.code || res?.code;
-        const fallbackMsg = res?.errors?.[0]?.message || res?.message || t('common:saveError');
+        const fallbackMsg = res?.errors?.[0]?.message || res?.message || t('api:common.UNKNOWN_ERROR');
         const translatedMsg = errorCode ? t(`api:error.${errorCode}`, { defaultValue: fallbackMsg }) : fallbackMsg;
         setGeneralError(translatedMsg);
       }
     } catch (err) {
       const errorData = err?.response?.data;
       const errorCode = errorData?.errors?.[0]?.code || errorData?.code;
-      const fallbackMsg = errorData?.errors?.[0]?.message || errorData?.message || t('common:saveError');
+      const fallbackMsg = errorData?.errors?.[0]?.message || errorData?.message || t('api:common.UNKNOWN_ERROR');
       const translatedMsg = errorCode ? t(`api:error.${errorCode}`, { defaultValue: fallbackMsg }) : fallbackMsg;
       setGeneralError(translatedMsg);
     } finally {
@@ -181,14 +181,14 @@ function UpdateEmailModal({ isOpen, onClose, onSuccess, onOtpSent }) {
         handleClose();
       } else {
         const errorCode = res?.errors?.[0]?.code || res?.code;
-        const fallbackMsg = res?.errors?.[0]?.message || res?.message || t('common:saveError');
+        const fallbackMsg = res?.errors?.[0]?.message || res?.message || t('api:common.UNKNOWN_ERROR');
         const translatedMsg = errorCode ? t(`api:error.${errorCode}`, { defaultValue: fallbackMsg }) : fallbackMsg;
         setGeneralError(translatedMsg);
       }
     } catch (err) {
       const errorData = err?.response?.data;
       const errorCode = errorData?.errors?.[0]?.code || errorData?.code;
-      const fallbackMsg = errorData?.errors?.[0]?.message || errorData?.message || t('common:saveError');
+      const fallbackMsg = errorData?.errors?.[0]?.message || errorData?.message || t('api:common.UNKNOWN_ERROR');
       const translatedMsg = errorCode ? t(`api:error.${errorCode}`, { defaultValue: fallbackMsg }) : fallbackMsg;
       setGeneralError(translatedMsg);
     } finally {
