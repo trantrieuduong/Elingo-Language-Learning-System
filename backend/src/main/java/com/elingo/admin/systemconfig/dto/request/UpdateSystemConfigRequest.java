@@ -1,4 +1,4 @@
-package com.elingo.admin.catalog.dto.request;
+package com.elingo.admin.systemconfig.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
@@ -11,5 +11,11 @@ public record UpdateSystemConfigRequest(
                 requiredMode = Schema.RequiredMode.REQUIRED
         )
         @NotNull(message = "Config value must not be null")
-        String value
+        String value,
+
+        @Schema(
+                description = "Optional updated description for the configuration setting",
+                example = "Prefix code for bank transfer transactions"
+        )
+        String description
 ) {}

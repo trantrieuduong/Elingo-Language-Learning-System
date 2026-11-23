@@ -33,6 +33,7 @@ export default function AdminSidebar({
     billing: false,
     community: false,
     users: false,
+    settings: false,
   });
 
   const toggleDropdown = (key) => {
@@ -307,21 +308,55 @@ export default function AdminSidebar({
             )}
           </div>
 
-          {/* 7. Cấu hình hệ thống (chưa làm) */}
-          <button
-            type="button"
-            className={`${styles.navItem} ${currentPath === '/admin/settings' ? styles.active : ''}`}
-            onClick={() => handleNav('/admin/settings')}
-            title={t('sidebar.systemSettings')}
-          >
-            <SettingsIcon size={18} className={styles.navIcon} />
-            {!isCollapsed && (
-              <>
-                <span className={styles.navLabel}>{t('sidebar.systemSettings')}</span>
-                <span className={styles.pendingBadge}>{t('sidebar.pendingBadge')}</span>
-              </>
+          {/* 7. Cấu hình hệ thống (dropdown) */}
+          <div className={styles.dropdownGroup}>
+            <button
+              type="button"
+              className={`${styles.navItem} ${styles.dropdownTrigger} ${
+                currentPath.startsWith('/admin/settings') ? styles.active : ''
+              }`}
+              onClick={() => toggleDropdown('settings')}
+              title={t('sidebar.systemSettings')}
+            >
+              <SettingsIcon size={18} className={styles.navIcon} />
+              {!isCollapsed && (
+                <>
+                  <span className={styles.navLabel}>{t('sidebar.systemSettings')}</span>
+                  <span className={styles.chevron}>
+                    {openDropdowns.settings ? (
+                      <ChevronDownIcon size={14} />
+                    ) : (
+                      <ChevronRightIcon size={14} />
+                    )}
+                  </span>
+                </>
+              )}
+            </button>
+            {!isCollapsed && openDropdowns.settings && (
+              <div className={styles.subMenuList}>
+                <button
+                  type="button"
+                  className={`${styles.subMenuItem} ${
+                    currentPath === '/admin/settings' || currentPath === '/admin/settings/configs'
+                      ? styles.active
+                      : ''
+                  }`}
+                  onClick={() => handleNav('/admin/settings/configs')}
+                >
+                  <span>{t('sidebar.systemConfigs')}</span>
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.subMenuItem} ${
+                    currentPath === '/admin/settings/audit-logs' ? styles.active : ''
+                  }`}
+                  onClick={() => handleNav('/admin/settings/audit-logs')}
+                >
+                  <span>{t('sidebar.auditLogs')}</span>
+                </button>
+              </div>
             )}
-          </button>
+          </div>
         </nav>
 
         {/* Footer Toggle Collapse (Desktop only) */}

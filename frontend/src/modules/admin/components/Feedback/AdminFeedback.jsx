@@ -60,8 +60,9 @@ AdminEmptyState.propTypes = {
   icon: PropTypes.elementType,
 };
 
-export function AdminErrorState({ message, onRetry }) {
+export function AdminErrorState({ message, description, onRetry }) {
   const { t } = useTranslation('admin');
+  const displayText = message || description || t('feedback.errorDesc');
 
   return (
     <div className={`${styles.feedbackContainer} ${styles.errorContainer}`}>
@@ -69,7 +70,7 @@ export function AdminErrorState({ message, onRetry }) {
         <AlertTriangleIcon size={24} />
       </div>
       <h4 className={styles.feedbackTitle}>{t('feedback.errorTitle')}</h4>
-      <p className={styles.feedbackDesc}>{message || t('feedback.errorDesc')}</p>
+      <p className={styles.feedbackDesc}>{displayText}</p>
       {onRetry && (
         <button type="button" className={styles.retryButton} onClick={onRetry}>
           <RefreshIcon size={14} />
@@ -82,5 +83,6 @@ export function AdminErrorState({ message, onRetry }) {
 
 AdminErrorState.propTypes = {
   message: PropTypes.string,
+  description: PropTypes.string,
   onRetry: PropTypes.func,
 };

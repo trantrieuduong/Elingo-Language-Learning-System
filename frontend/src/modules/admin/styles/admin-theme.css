@@ -117,6 +117,23 @@
   /* Transitions */
   --adm-transition-fast: 150ms cubic-bezier(0.16, 1, 0.3, 1);
   --adm-transition-normal: 220ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Compatibility & Semantic Badge Tokens */
+  --adm-text-primary: var(--adm-text-main);
+  --adm-text-secondary: var(--adm-text-subtle);
+  --adm-bg-hover: var(--adm-bg-surface-subtle);
+  --adm-bg-subtle: var(--adm-bg-surface-muted);
+  --adm-radius-pill: 9999px;
+  --adm-btn-primary-bg: var(--adm-primary);
+  --adm-btn-primary-text: var(--adm-primary-contrast);
+  --adm-badge-green-bg: var(--adm-success-subtle);
+  --adm-badge-green-text: var(--adm-success);
+  --adm-badge-amber-bg: var(--adm-warning-subtle);
+  --adm-badge-amber-text: var(--adm-warning);
+  --adm-badge-red-bg: var(--adm-danger-subtle);
+  --adm-badge-red-text: var(--adm-danger);
+  --adm-badge-blue-bg: var(--adm-accent-subtle);
+  --adm-badge-blue-text: var(--adm-accent);
 }
 
 /* ── Dark Theme ── */
@@ -205,6 +222,23 @@
   --adm-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
   --adm-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.45), 0 2px 4px -2px rgba(0, 0, 0, 0.35);
   --adm-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.55), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+
+  /* Compatibility & Semantic Badge Tokens */
+  --adm-text-primary: var(--adm-text-main);
+  --adm-text-secondary: var(--adm-text-subtle);
+  --adm-bg-hover: var(--adm-bg-surface-subtle);
+  --adm-bg-subtle: var(--adm-bg-surface-muted);
+  --adm-radius-pill: 9999px;
+  --adm-btn-primary-bg: var(--adm-primary);
+  --adm-btn-primary-text: var(--adm-primary-contrast);
+  --adm-badge-green-bg: var(--adm-success-subtle);
+  --adm-badge-green-text: var(--adm-success);
+  --adm-badge-amber-bg: var(--adm-warning-subtle);
+  --adm-badge-amber-text: var(--adm-warning);
+  --adm-badge-red-bg: var(--adm-danger-subtle);
+  --adm-badge-red-text: var(--adm-danger);
+  --adm-badge-blue-bg: var(--adm-accent-subtle);
+  --adm-badge-blue-text: var(--adm-accent);
 }
 
 /* ============================================================

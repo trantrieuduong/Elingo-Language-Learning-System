@@ -1,4 +1,4 @@
-package com.elingo.admin.catalog.dto.response;
+package com.elingo.admin.systemconfig.dto.response;
 
 import com.elingo.common.entity.ConfigModule;
 import com.elingo.common.entity.ConfigValueType;
@@ -29,6 +29,9 @@ public record SystemConfigResponse(
         @Schema(description = "Module or domain this configuration belongs to", example = "PREMIUM")
         ConfigModule module,
 
+        @Schema(description = "Description or purpose of this configuration setting", example = "Prefix code for bank transfer transactions")
+        String description,
+
         @Schema(description = "Admin user ID who last updated this configuration", example = "1")
         Long updatedBy,
 
@@ -46,6 +49,7 @@ public record SystemConfigResponse(
                 .valueType(entity.getValueType())
                 .isSecret(entity.getIsSecret())
                 .module(entity.getModule())
+                .description(entity.getDescription())
                 .updatedBy(entity.getUpdatedBy())
                 .updatedAt(entity.getUpdatedAt())
                 .createdAt(entity.getCreatedAt())

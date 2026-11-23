@@ -1,8 +1,8 @@
-package com.elingo.admin.catalog.controller;
+package com.elingo.admin.systemconfig.controller;
 
-import com.elingo.admin.catalog.dto.request.UpdateSystemConfigRequest;
-import com.elingo.admin.catalog.dto.response.SystemConfigResponse;
-import com.elingo.admin.catalog.service.AdminCatalogService;
+import com.elingo.admin.systemconfig.dto.request.UpdateSystemConfigRequest;
+import com.elingo.admin.systemconfig.dto.response.SystemConfigResponse;
+import com.elingo.admin.systemconfig.service.AdminSystemConfigService;
 import com.elingo.common.dto.ApiResponse;
 import com.elingo.common.entity.ConfigModule;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,7 +28,7 @@ import java.util.List;
 )
 public class AdminSystemConfigController {
 
-    private final AdminCatalogService adminCatalogService;
+    private final AdminSystemConfigService adminSystemConfigService;
 
     @GetMapping
     @Operation(
@@ -55,6 +55,7 @@ public class AdminSystemConfigController {
                                           "valueType": "STRING",
                                           "isSecret": false,
                                           "module": "PREMIUM",
+                                          "description": "Prefix code for bank transfer transactions",
                                           "updatedBy": 1,
                                           "updatedAt": "2026-11-19T10:00:00",
                                           "createdAt": "2026-11-19T08:00:00"
@@ -66,6 +67,7 @@ public class AdminSystemConfigController {
                                           "valueType": "STRING",
                                           "isSecret": true,
                                           "module": "PREMIUM",
+                                          "description": "SePay webhook secret authentication key",
                                           "updatedBy": 1,
                                           "updatedAt": "2026-11-19T10:00:00",
                                           "createdAt": "2026-11-19T08:00:00"
@@ -92,7 +94,7 @@ public class AdminSystemConfigController {
             @RequestParam(required = false) ConfigModule module) {
         return ApiResponse.<List<SystemConfigResponse>>builder()
                 .success(true)
-                .data(adminCatalogService.getConfigs(module))
+                .data(adminSystemConfigService.getConfigs(module))
                 .build();
     }
 
@@ -133,7 +135,7 @@ public class AdminSystemConfigController {
     public ApiResponse<List<String>> getConfigModules() {
         return ApiResponse.<List<String>>builder()
                 .success(true)
-                .data(adminCatalogService.getModules())
+                .data(adminSystemConfigService.getModules())
                 .build();
     }
 
@@ -152,7 +154,8 @@ public class AdminSystemConfigController {
                             summary = "Sample update payload",
                             value = """
                                     {
-                                      "value": "ELGO_NEW"
+                                      "value": "ELGO_NEW",
+                                      "description": "Updated prefix code for transactions"
                                     }
                                     """
                     )
@@ -177,6 +180,7 @@ public class AdminSystemConfigController {
                                         "valueType": "STRING",
                                         "isSecret": false,
                                         "module": "PREMIUM",
+                                        "description": "Updated prefix code for transactions",
                                         "updatedBy": 1,
                                         "updatedAt": "2026-11-19T10:15:00",
                                         "createdAt": "2026-11-19T08:00:00"
@@ -212,7 +216,7 @@ public class AdminSystemConfigController {
             @Valid @RequestBody UpdateSystemConfigRequest request) {
         return ApiResponse.<SystemConfigResponse>builder()
                 .success(true)
-                .data(adminCatalogService.updateConfig(key, request))
+                .data(adminSystemConfigService.updateConfig(key, request))
                 .build();
     }
 }

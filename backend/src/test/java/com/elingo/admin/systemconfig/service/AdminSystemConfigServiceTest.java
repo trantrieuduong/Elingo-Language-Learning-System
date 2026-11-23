@@ -1,9 +1,9 @@
-package com.elingo.admin.catalog.service;
+package com.elingo.admin.systemconfig.service;
 
 import com.elingo.admin.audit.aspect.CurrentAdminProvider;
-import com.elingo.admin.catalog.dto.request.UpdateSystemConfigRequest;
-import com.elingo.admin.catalog.dto.response.SystemConfigResponse;
-import com.elingo.admin.catalog.service.impl.AdminCatalogServiceImpl;
+import com.elingo.admin.systemconfig.dto.request.UpdateSystemConfigRequest;
+import com.elingo.admin.systemconfig.dto.response.SystemConfigResponse;
+import com.elingo.admin.systemconfig.service.impl.AdminSystemConfigServiceImpl;
 import com.elingo.common.entity.ConfigModule;
 import com.elingo.common.entity.ConfigValueType;
 import com.elingo.common.entity.SystemConfig;
@@ -29,7 +29,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")
-class AdminCatalogServiceTest {
+class AdminSystemConfigServiceTest {
 
     @Mock
     private SystemConfigService systemConfigService;
@@ -37,15 +37,16 @@ class AdminCatalogServiceTest {
     @Mock
     private CurrentAdminProvider currentAdminProvider;
 
-    private AdminCatalogServiceImpl adminCatalogService;
+    private AdminSystemConfigServiceImpl adminSystemConfigService;
 
     private static final Long ADMIN_ID = 99L;
     private static final String NON_SECRET_KEY = "app.premium.bank-transfer.code-prefix";
     private static final String SECRET_KEY = "app.premium.sepay.secret-key";
+    private static final String DESC = "Prefix code for bank transfer transactions";
 
     @BeforeEach
     void setUp() {
-        adminCatalogService = new AdminCatalogServiceImpl(systemConfigService, currentAdminProvider);
+        adminSystemConfigService = new AdminSystemConfigServiceImpl(systemConfigService, currentAdminProvider);
     }
 
     // ========================================================================
@@ -65,6 +66,7 @@ class AdminCatalogServiceTest {
                     .valueType(ConfigValueType.STRING)
                     .isSecret(false)
                     .module(ConfigModule.PREMIUM)
+                    .description(DESC)
                     .build();
 
             SystemConfig config2 = SystemConfig.builder()
@@ -74,15 +76,18 @@ class AdminCatalogServiceTest {
                     .valueType(ConfigValueType.STRING)
                     .isSecret(false)
                     .module(ConfigModule.COMMUNITY)
+                    .description("OpenAI moderation model")
                     .build();
 
             when(systemConfigService.getAll(null)).thenReturn(List.of(config1, config2));
 
-            List<SystemConfigResponse> result = adminCatalogService.getConfigs(null);
+            List<SystemConfigResponse> result = adminSystemConfigService.getConfigs(null);
 
             assertThat(result).hasSize(2);
             assertThat(result.get(0).configKey()).isEqualTo(NON_SECRET_KEY);
+            assertThat(result.get(0).description()).isEqualTo(DESC);
             assertThat(result.get(1).configKey()).isEqualTo("app.community.moderation.openai-model");
+            assertThat(result.get(1).description()).isEqualTo("OpenAI moderation model");
             verify(systemConfigService).getAll(null);
         }
 
@@ -96,14 +101,16 @@ class AdminCatalogServiceTest {
                     .valueType(ConfigValueType.STRING)
                     .isSecret(false)
                     .module(ConfigModule.PREMIUM)
+                    .description(DESC)
                     .build();
 
             when(systemConfigService.getAll(ConfigModule.PREMIUM)).thenReturn(List.of(config));
 
-            List<SystemConfigResponse> result = adminCatalogService.getConfigs(ConfigModule.PREMIUM);
+            List<SystemConfigResponse> result = adminSystemConfigService.getConfigs(ConfigModule.PREMIUM);
 
             assertThat(result).hasSize(1);
             assertThat(result.getFirst().module()).isEqualTo(ConfigModule.PREMIUM);
+            assertThat(result.getFirst().description()).isEqualTo(DESC);
             verify(systemConfigService).getAll(ConfigModule.PREMIUM);
         }
 
@@ -112,7 +119,7 @@ class AdminCatalogServiceTest {
         void shouldReturnEmptyListWhenNoConfigsFound() {
             when(systemConfigService.getAll(ConfigModule.COMMUNITY)).thenReturn(Collections.emptyList());
 
-            List<SystemConfigResponse> result = adminCatalogService.getConfigs(ConfigModule.COMMUNITY);
+            List<SystemConfigResponse> result = adminSystemConfigService.getConfigs(ConfigModule.COMMUNITY);
 
             assertThat(result).isEmpty();
             verify(systemConfigService).getAll(ConfigModule.COMMUNITY);
@@ -128,15 +135,17 @@ class AdminCatalogServiceTest {
                     .valueType(ConfigValueType.STRING)
                     .isSecret(true)
                     .module(ConfigModule.PREMIUM)
+                    .description("SePay secret key")
                     .build();
 
             when(systemConfigService.getAll(ConfigModule.PREMIUM)).thenReturn(List.of(secretConfig));
 
-            List<SystemConfigResponse> result = adminCatalogService.getConfigs(ConfigModule.PREMIUM);
+            List<SystemConfigResponse> result = adminSystemConfigService.getConfigs(ConfigModule.PREMIUM);
 
             assertThat(result).hasSize(1);
             assertThat(result.getFirst().configValue()).isEqualTo("********");
             assertThat(result.getFirst().isSecret()).isTrue();
+            assertThat(result.getFirst().description()).isEqualTo("SePay secret key");
         }
 
         @Test
@@ -153,7 +162,7 @@ class AdminCatalogServiceTest {
 
             when(systemConfigService.getAll(ConfigModule.PREMIUM)).thenReturn(List.of(emptySecret));
 
-            List<SystemConfigResponse> result = adminCatalogService.getConfigs(ConfigModule.PREMIUM);
+            List<SystemConfigResponse> result = adminSystemConfigService.getConfigs(ConfigModule.PREMIUM);
 
             assertThat(result).hasSize(1);
             assertThat(result.getFirst().configValue()).isEmpty();
@@ -170,15 +179,17 @@ class AdminCatalogServiceTest {
                     .valueType(ConfigValueType.STRING)
                     .isSecret(false)
                     .module(ConfigModule.PREMIUM)
+                    .description(DESC)
                     .build();
 
             when(systemConfigService.getAll(ConfigModule.PREMIUM)).thenReturn(List.of(plainConfig));
 
-            List<SystemConfigResponse> result = adminCatalogService.getConfigs(ConfigModule.PREMIUM);
+            List<SystemConfigResponse> result = adminSystemConfigService.getConfigs(ConfigModule.PREMIUM);
 
             assertThat(result).hasSize(1);
             assertThat(result.getFirst().configValue()).isEqualTo("ELGO_CODE");
             assertThat(result.getFirst().isSecret()).isFalse();
+            assertThat(result.getFirst().description()).isEqualTo(DESC);
         }
 
         @Test
@@ -195,7 +206,7 @@ class AdminCatalogServiceTest {
 
             when(systemConfigService.getAll(ConfigModule.PREMIUM)).thenReturn(List.of(nullValueConfig));
 
-            List<SystemConfigResponse> result = adminCatalogService.getConfigs(ConfigModule.PREMIUM);
+            List<SystemConfigResponse> result = adminSystemConfigService.getConfigs(ConfigModule.PREMIUM);
 
             assertThat(result).hasSize(1);
             assertThat(result.getFirst().configValue()).isEmpty();
@@ -212,7 +223,7 @@ class AdminCatalogServiceTest {
         @Test
         @DisplayName("Should return all module names from ConfigModule enum")
         void shouldReturnAllModuleNames() {
-            List<String> modules = adminCatalogService.getModules();
+            List<String> modules = adminSystemConfigService.getModules();
 
             assertThat(modules).containsExactlyInAnyOrder("PREMIUM", "COMMUNITY", "GAMIFICATION");
         }
@@ -226,7 +237,7 @@ class AdminCatalogServiceTest {
     class UpdateConfigTests {
 
         @Test
-        @DisplayName("Should update non-secret configuration successfully and return plain value")
+        @DisplayName("Should update non-secret configuration successfully and return plain value with description")
         void shouldUpdateNonSecretConfigSuccessfully() {
             when(currentAdminProvider.id()).thenReturn(ADMIN_ID);
 
@@ -237,21 +248,23 @@ class AdminCatalogServiceTest {
                     .valueType(ConfigValueType.STRING)
                     .isSecret(false)
                     .module(ConfigModule.PREMIUM)
+                    .description("Updated description")
                     .updatedBy(ADMIN_ID)
                     .updatedAt(LocalDateTime.now())
                     .build();
 
-            when(systemConfigService.update(NON_SECRET_KEY, "NEW_PREFIX", ADMIN_ID))
+            when(systemConfigService.update(NON_SECRET_KEY, "NEW_PREFIX", "Updated description", ADMIN_ID))
                     .thenReturn(updatedConfig);
 
-            UpdateSystemConfigRequest request = new UpdateSystemConfigRequest("NEW_PREFIX");
-            SystemConfigResponse response = adminCatalogService.updateConfig(NON_SECRET_KEY, request);
+            UpdateSystemConfigRequest request = new UpdateSystemConfigRequest("NEW_PREFIX", "Updated description");
+            SystemConfigResponse response = adminSystemConfigService.updateConfig(NON_SECRET_KEY, request);
 
             assertThat(response).isNotNull();
             assertThat(response.configKey()).isEqualTo(NON_SECRET_KEY);
             assertThat(response.configValue()).isEqualTo("NEW_PREFIX");
+            assertThat(response.description()).isEqualTo("Updated description");
             assertThat(response.updatedBy()).isEqualTo(ADMIN_ID);
-            verify(systemConfigService).update(NON_SECRET_KEY, "NEW_PREFIX", ADMIN_ID);
+            verify(systemConfigService).update(NON_SECRET_KEY, "NEW_PREFIX", "Updated description", ADMIN_ID);
         }
 
         @Test
@@ -266,54 +279,56 @@ class AdminCatalogServiceTest {
                     .valueType(ConfigValueType.STRING)
                     .isSecret(true)
                     .module(ConfigModule.PREMIUM)
+                    .description("Secret description")
                     .updatedBy(ADMIN_ID)
                     .updatedAt(LocalDateTime.now())
                     .build();
 
-            when(systemConfigService.update(SECRET_KEY, "my-new-secret-key", ADMIN_ID))
+            when(systemConfigService.update(SECRET_KEY, "my-new-secret-key", null, ADMIN_ID))
                     .thenReturn(updatedSecret);
 
-            UpdateSystemConfigRequest request = new UpdateSystemConfigRequest("my-new-secret-key");
-            SystemConfigResponse response = adminCatalogService.updateConfig(SECRET_KEY, request);
+            UpdateSystemConfigRequest request = new UpdateSystemConfigRequest("my-new-secret-key", null);
+            SystemConfigResponse response = adminSystemConfigService.updateConfig(SECRET_KEY, request);
 
             assertThat(response).isNotNull();
             assertThat(response.configKey()).isEqualTo(SECRET_KEY);
             assertThat(response.configValue()).isEqualTo("********");
             assertThat(response.isSecret()).isTrue();
+            assertThat(response.description()).isEqualTo("Secret description");
             assertThat(response.updatedBy()).isEqualTo(ADMIN_ID);
-            verify(systemConfigService).update(SECRET_KEY, "my-new-secret-key", ADMIN_ID);
+            verify(systemConfigService).update(SECRET_KEY, "my-new-secret-key", null, ADMIN_ID);
         }
 
         @Test
         @DisplayName("Should throw AppException when config key is not found")
         void shouldThrowAppExceptionWhenConfigNotFound() {
             when(currentAdminProvider.id()).thenReturn(ADMIN_ID);
-            when(systemConfigService.update("invalid.key", "some-value", ADMIN_ID))
+            when(systemConfigService.update("invalid.key", "some-value", null, ADMIN_ID))
                     .thenThrow(new AppException(AppError.SYSTEM_CONFIG_NOT_FOUND));
 
-            UpdateSystemConfigRequest request = new UpdateSystemConfigRequest("some-value");
+            UpdateSystemConfigRequest request = new UpdateSystemConfigRequest("some-value", null);
 
-            assertThatThrownBy(() -> adminCatalogService.updateConfig("invalid.key", request))
+            assertThatThrownBy(() -> adminSystemConfigService.updateConfig("invalid.key", request))
                     .isInstanceOf(AppException.class)
                     .hasFieldOrPropertyWithValue("appError", AppError.SYSTEM_CONFIG_NOT_FOUND);
 
-            verify(systemConfigService).update("invalid.key", "some-value", ADMIN_ID);
+            verify(systemConfigService).update("invalid.key", "some-value", null, ADMIN_ID);
         }
 
         @Test
         @DisplayName("Should throw AppException when value format validation fails")
         void shouldThrowAppExceptionWhenValueValidationFails() {
             when(currentAdminProvider.id()).thenReturn(ADMIN_ID);
-            when(systemConfigService.update("some.int.key", "not-a-number", ADMIN_ID))
+            when(systemConfigService.update("some.int.key", "not-a-number", null, ADMIN_ID))
                     .thenThrow(new AppException(AppError.SYSTEM_CONFIG_VALUE_INVALID));
 
-            UpdateSystemConfigRequest request = new UpdateSystemConfigRequest("not-a-number");
+            UpdateSystemConfigRequest request = new UpdateSystemConfigRequest("not-a-number", null);
 
-            assertThatThrownBy(() -> adminCatalogService.updateConfig("some.int.key", request))
+            assertThatThrownBy(() -> adminSystemConfigService.updateConfig("some.int.key", request))
                     .isInstanceOf(AppException.class)
                     .hasFieldOrPropertyWithValue("appError", AppError.SYSTEM_CONFIG_VALUE_INVALID);
 
-            verify(systemConfigService).update("some.int.key", "not-a-number", ADMIN_ID);
+            verify(systemConfigService).update("some.int.key", "not-a-number", null, ADMIN_ID);
         }
 
         @Test
@@ -322,9 +337,9 @@ class AdminCatalogServiceTest {
             when(currentAdminProvider.id())
                     .thenThrow(new IllegalStateException("No authenticated admin in SecurityContext"));
 
-            UpdateSystemConfigRequest request = new UpdateSystemConfigRequest("value");
+            UpdateSystemConfigRequest request = new UpdateSystemConfigRequest("value", null);
 
-            assertThatThrownBy(() -> adminCatalogService.updateConfig(NON_SECRET_KEY, request))
+            assertThatThrownBy(() -> adminSystemConfigService.updateConfig(NON_SECRET_KEY, request))
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining("No authenticated admin in SecurityContext");
 

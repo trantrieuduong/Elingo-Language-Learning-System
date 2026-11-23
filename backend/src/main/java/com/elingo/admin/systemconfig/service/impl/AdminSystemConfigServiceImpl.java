@@ -1,12 +1,12 @@
-package com.elingo.admin.catalog.service.impl;
+package com.elingo.admin.systemconfig.service.impl;
 
 import com.elingo.admin.audit.annotation.Audited;
 import com.elingo.admin.audit.aspect.CurrentAdminProvider;
 import com.elingo.admin.audit.entity.AdminAuditAction;
 import com.elingo.admin.audit.entity.AdminAuditTargetType;
-import com.elingo.admin.catalog.dto.request.UpdateSystemConfigRequest;
-import com.elingo.admin.catalog.dto.response.SystemConfigResponse;
-import com.elingo.admin.catalog.service.AdminCatalogService;
+import com.elingo.admin.systemconfig.dto.request.UpdateSystemConfigRequest;
+import com.elingo.admin.systemconfig.dto.response.SystemConfigResponse;
+import com.elingo.admin.systemconfig.service.AdminSystemConfigService;
 import com.elingo.common.entity.ConfigModule;
 import com.elingo.common.entity.SystemConfig;
 import com.elingo.common.service.SystemConfigService;
@@ -17,10 +17,10 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.List;
 
-@Slf4j(topic = "ADMIN-CATALOG-SERVICE")
+@Slf4j(topic = "ADMIN-SYSTEM-CONFIG-SERVICE")
 @Service
 @RequiredArgsConstructor
-public class AdminCatalogServiceImpl implements AdminCatalogService {
+public class AdminSystemConfigServiceImpl implements AdminSystemConfigService {
 
     private static final String MASKED_SECRET = "********";
 
@@ -48,7 +48,7 @@ public class AdminCatalogServiceImpl implements AdminCatalogService {
             detail = "#configKey")
     public SystemConfigResponse updateConfig(String configKey, UpdateSystemConfigRequest request) {
         Long adminId = currentAdminProvider.id();
-        SystemConfig updated = systemConfigService.update(configKey, request.value(), adminId);
+        SystemConfig updated = systemConfigService.update(configKey, request.value(), request.description(), adminId);
         return toResponse(updated);
     }
 

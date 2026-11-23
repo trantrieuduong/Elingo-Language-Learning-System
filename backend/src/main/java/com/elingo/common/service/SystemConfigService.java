@@ -26,5 +26,5 @@ public interface SystemConfigService {
 
     SystemConfig getByKey(String configKey);
 
-    SystemConfig update(String configKey, String newValue, Long adminId);
+    SystemConfig update(String configKey, String newValue, String description, Long adminId);
 }

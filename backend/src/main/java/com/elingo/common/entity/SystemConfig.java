@@ -40,6 +40,9 @@ public class SystemConfig extends BaseEntity {
     @Column(name = "module", length = 50, nullable = false)
     ConfigModule module;
 
+    @Column(name = "description", columnDefinition = "TEXT")
+    String description;
+
     @Column(name = "updated_by")
     Long updatedBy;
 }
