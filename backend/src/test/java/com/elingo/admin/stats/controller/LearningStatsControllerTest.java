@@ -104,7 +104,7 @@ class LearningStatsControllerTest {
                     List.of(new CategoryShare<>("PUBLISHED", 40L, 80.0)),
                     List.of(new CategoryShare<>("SYSTEM", 30L, 60.0)),
                     List.of(new CategoryShare<>("FREE", 45L, 90.0)),
-                    List.of(new LearningStatsResponses.TopDeckItem(1L, "Oxford", "img.jpg", "PUBLISHED", "SYSTEM", false, 300L)),
+                    List.of(new LearningStatsResponses.TopDeckItem(1L, "Oxford", null, "PUBLISHED", "SYSTEM", false, 300L)),
                     List.of(new LearningStatsResponses.TopDeckItem(2L, "Community", null, "PUBLISHED", "USER", false, 80L)),
                     LocalDateTime.now()
             );
@@ -150,7 +150,7 @@ class LearningStatsControllerTest {
                     30L,
                     List.of(new CategoryShare<>("PUBLISHED", 30L, 100.0)),
                     List.of(new CategoryShare<>("FREE", 25L, 83.33)),
-                    List.of(new LearningStatsResponses.TopLessonItem(10L, "Coffee Conversation", "thumb.jpg", "PUBLISHED", false, 150L)),
+                    List.of(new LearningStatsResponses.TopLessonItem(10L, "Coffee Conversation", null, "PUBLISHED", false, 150L)),
                     LocalDateTime.now()
             );
 

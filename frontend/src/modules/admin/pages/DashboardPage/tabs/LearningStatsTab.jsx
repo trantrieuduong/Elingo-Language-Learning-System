@@ -14,7 +14,7 @@ import { AdminSkeletonCard, AdminErrorState } from '../../../components/Feedback
 import { BookOpenIcon, ActivityIcon, LayersIcon } from '../../../components/icons/AdminIcons';
 import styles from '../DashboardPage.module.css';
 
-export default function LearningStatsTab({ filter, reloadKey }) {
+export default function LearningStatsTab({ filter, reloadKey, onNavigate }) {
   const { t, i18n } = useTranslation('admin');
   const locale = i18n.language && i18n.language.startsWith('en') ? 'en-US' : 'vi-VN';
 
@@ -24,6 +24,10 @@ export default function LearningStatsTab({ filter, reloadKey }) {
   const [activityData, setActivityData] = useState(null);
   const [deckStats, setDeckStats] = useState(null);
   const [lessonStats, setLessonStats] = useState(null);
+
+  // States chuyển tab nội bộ
+  const [deckTab, setDeckTab] = useState('SYSTEM'); // 'SYSTEM' | 'USER'
+  const [breakdownTab, setBreakdownTab] = useState('DECKS'); // 'DECKS' | 'LESSONS'
 
   useEffect(() => {
     let isMounted = true;
@@ -54,6 +58,42 @@ export default function LearningStatsTab({ filter, reloadKey }) {
     };
   }, [filter, reloadKey, t]);
 
+  // Helper render status badge
+  const renderStatusBadge = (val) => {
+    let bg = 'var(--adm-bg-surface-subtle)';
+    let color = 'var(--adm-text-muted)';
+    let label = val;
+
+    if (val === 'PUBLISHED') {
+      bg = 'var(--adm-success-subtle)';
+      color = 'var(--adm-success)';
+      label = t('dashboard.learningTab.statusPublished');
+    } else if (val === 'DRAFT') {
+      bg = 'var(--adm-warning-subtle)';
+      color = 'var(--adm-warning)';
+      label = t('dashboard.learningTab.statusDraft');
+    } else if (val === 'ARCHIVED') {
+      bg = 'var(--adm-bg-surface-subtle)';
+      color = 'var(--adm-text-subtle)';
+      label = t('dashboard.learningTab.statusArchived');
+    }
+
+    return (
+      <span
+        style={{
+          fontSize: 11,
+          fontWeight: 600,
+          padding: '2px 6px',
+          borderRadius: 'var(--adm-radius-full)',
+          background: bg,
+          color,
+        }}
+      >
+        {label}
+      </span>
+    );
+  };
+
   // Cột cho Top Decks
   const deckColumns = useMemo(
     () => [
@@ -71,6 +111,12 @@ export default function LearningStatsTab({ filter, reloadKey }) {
                   height: 32,
                   borderRadius: 'var(--adm-radius-sm)',
                   objectFit: 'cover',
+                  cursor: onNavigate ? 'pointer' : 'default',
+                }}
+                onClick={() => {
+                  if (onNavigate && record.deckId) {
+                    onNavigate(`/admin/decks/${record.deckId}`);
+                  }
                 }}
               />
             ) : (
@@ -84,12 +130,51 @@ export default function LearningStatsTab({ filter, reloadKey }) {
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: 'var(--adm-text-subtle)',
+                  cursor: onNavigate ? 'pointer' : 'default',
+                }}
+                onClick={() => {
+                  if (onNavigate && record.deckId) {
+                    onNavigate(`/admin/decks/${record.deckId}`);
+                  }
                 }}
               >
                 <BookOpenIcon size={16} />
               </div>
             )}
-            <span style={{ fontWeight: 600 }}>{val}</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <a
+                href={`/admin/decks/${record.deckId}`}
+                style={{
+                  fontWeight: 600,
+                  color: 'var(--adm-text-main)',
+                  textDecoration: 'none',
+                  cursor: 'pointer',
+                  transition: 'color var(--adm-transition-fast)',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--adm-accent)')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--adm-text-main)')}
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (onNavigate && record.deckId) {
+                    onNavigate(`/admin/decks/${record.deckId}`);
+                  }
+                }}
+              >
+                {val}
+              </a>
+              {record.isPremium && (
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: 'var(--adm-warning)',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Premium
+                </span>
+              )}
+            </div>
           </div>
         ),
       },
@@ -113,6 +198,11 @@ export default function LearningStatsTab({ filter, reloadKey }) {
         ),
       },
       {
+        title: t('dashboard.learningTab.statusHeader'),
+        dataIndex: 'status',
+        render: (val) => renderStatusBadge(val),
+      },
+      {
         title: t('dashboard.learningTab.learnersHeader'),
         dataIndex: 'learnerCount',
         align: 'right',
@@ -123,7 +213,7 @@ export default function LearningStatsTab({ filter, reloadKey }) {
         ),
       },
     ],
-    [t, locale]
+    [t, locale, onNavigate]
   );
 
   // Cột cho Top Lessons
@@ -161,28 +251,28 @@ export default function LearningStatsTab({ filter, reloadKey }) {
                 <LayersIcon size={16} />
               </div>
             )}
-            <span style={{ fontWeight: 600 }}>{val}</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <span style={{ fontWeight: 600 }}>{val}</span>
+              {record.isPremium && (
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: 'var(--adm-warning)',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Premium
+                </span>
+              )}
+            </div>
           </div>
         ),
       },
       {
         title: t('dashboard.learningTab.statusHeader'),
         dataIndex: 'status',
-        render: (val) => (
-          <span
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              padding: '2px 6px',
-              borderRadius: 'var(--adm-radius-full)',
-              background:
-                val === 'PUBLISHED' ? 'var(--adm-success-subtle)' : 'var(--adm-bg-surface-subtle)',
-              color: val === 'PUBLISHED' ? 'var(--adm-success)' : 'var(--adm-text-muted)',
-            }}
-          >
-            {val === 'PUBLISHED' ? t('dashboard.learningTab.published') : val}
-          </span>
-        ),
+        render: (val) => renderStatusBadge(val),
       },
       {
         title: t('dashboard.learningTab.learnCountHeader'),
@@ -214,6 +304,75 @@ export default function LearningStatsTab({ filter, reloadKey }) {
   }
 
   const totals = activityData?.totals || {};
+
+  // Chuẩn bị dữ liệu cho Breakdown Decks
+  const deckOwnerItems = (deckStats?.byOwnerType || []).map((ot) => ({
+    label:
+      ot.category === 'SYSTEM'
+        ? t('dashboard.learningTab.systemAuthored')
+        : t('dashboard.learningTab.userCreated'),
+    count: ot.count,
+    percentage: ot.percentage,
+    color: ot.category === 'SYSTEM' ? 'var(--adm-chart-primary)' : 'var(--adm-chart-secondary)',
+  }));
+
+  const deckPremiumItems = (deckStats?.byPremium || []).map((bp) => ({
+    label:
+      bp.category === 'FREE'
+        ? t('dashboard.learningTab.free')
+        : t('dashboard.learningTab.premiumTier'),
+    count: bp.count,
+    percentage: bp.percentage,
+    color: bp.category === 'FREE' ? 'var(--adm-success)' : 'var(--adm-warning)',
+  }));
+
+  const deckStatusItems = (deckStats?.byStatus || []).map((st) => ({
+    label:
+      st.category === 'PUBLISHED'
+        ? t('dashboard.learningTab.statusPublished')
+        : st.category === 'DRAFT'
+          ? t('dashboard.learningTab.statusDraft')
+          : t('dashboard.learningTab.statusArchived'),
+    count: st.count,
+    percentage: st.percentage,
+    color:
+      st.category === 'PUBLISHED'
+        ? 'var(--adm-success)'
+        : st.category === 'DRAFT'
+          ? 'var(--adm-warning)'
+          : 'var(--adm-text-disabled)',
+  }));
+
+  // Chuẩn bị dữ liệu cho Breakdown Lessons
+  const lessonPremiumItems = (lessonStats?.byPremium || []).map((bp) => ({
+    label:
+      bp.category === 'FREE'
+        ? t('dashboard.learningTab.free')
+        : t('dashboard.learningTab.premiumTier'),
+    count: bp.count,
+    percentage: bp.percentage,
+    color: bp.category === 'FREE' ? 'var(--adm-success)' : 'var(--adm-warning)',
+  }));
+
+  const lessonStatusItems = (lessonStats?.byStatus || []).map((st) => ({
+    label:
+      st.category === 'PUBLISHED'
+        ? t('dashboard.learningTab.statusPublished')
+        : st.category === 'DRAFT'
+          ? t('dashboard.learningTab.statusDraft')
+          : t('dashboard.learningTab.statusArchived'),
+    count: st.count,
+    percentage: st.percentage,
+    color:
+      st.category === 'PUBLISHED'
+        ? 'var(--adm-success)'
+        : st.category === 'DRAFT'
+          ? 'var(--adm-warning)'
+          : 'var(--adm-text-disabled)',
+  }));
+
+  const currentDecks =
+    deckTab === 'SYSTEM' ? deckStats?.topSystemDecks || [] : deckStats?.topUserDecks || [];
 
   return (
     <div className={styles.tabContent}>
@@ -295,57 +454,137 @@ export default function LearningStatsTab({ filter, reloadKey }) {
           />
         </div>
 
-        {/* Right Column: Decks and Lessons composition */}
+        {/* Right Column: Decks and Lessons composition with Segmented Switch */}
         <div className={styles.sideCol}>
-          <CategoryBreakdown
-            title={t('dashboard.learningTab.deckCompositionTitle')}
-            items={(deckStats?.byOwnerType || []).map((ot) => ({
-              label:
-                ot.category === 'SYSTEM'
-                  ? t('dashboard.learningTab.systemAuthored')
-                  : t('dashboard.learningTab.userCreated'),
-              count: ot.count,
-              percentage: ot.percentage,
-              color:
-                ot.category === 'SYSTEM'
-                  ? 'var(--adm-chart-primary)'
-                  : 'var(--adm-chart-secondary)',
-            }))}
-            total={deckStats?.totalDecks}
-            totalLabel={t('dashboard.learningTab.totalDecksLabel')}
-          />
+          <div className={styles.sectionHeaderWithAction}>
+            <div
+              className={styles.segmentedControl}
+              role="tablist"
+              aria-label="Content breakdown switch"
+              style={{ width: '100%' }}
+            >
+              <button
+                type="button"
+                role="tab"
+                aria-selected={breakdownTab === 'DECKS'}
+                className={`${styles.segmentedBtn} ${
+                  breakdownTab === 'DECKS' ? styles.segmentedBtnActive : ''
+                }`}
+                style={{ flex: 1, justifyContent: 'center' }}
+                onClick={() => setBreakdownTab('DECKS')}
+              >
+                {t('dashboard.learningTab.deckInventory')}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={breakdownTab === 'LESSONS'}
+                className={`${styles.segmentedBtn} ${
+                  breakdownTab === 'LESSONS' ? styles.segmentedBtnActive : ''
+                }`}
+                style={{ flex: 1, justifyContent: 'center' }}
+                onClick={() => setBreakdownTab('LESSONS')}
+              >
+                {t('dashboard.learningTab.lessonInventory')}
+              </button>
+            </div>
+          </div>
 
-          <CategoryBreakdown
-            title={t('dashboard.learningTab.freeVsPremiumTitle')}
-            items={(deckStats?.byPremium || []).map((bp) => ({
-              label:
-                bp.category === 'FREE'
-                  ? t('dashboard.learningTab.free')
-                  : t('dashboard.learningTab.premiumTier'),
-              count: bp.count,
-              percentage: bp.percentage,
-              color: bp.category === 'FREE' ? 'var(--adm-success)' : 'var(--adm-warning)',
-            }))}
-            total={deckStats?.totalDecks}
-            totalLabel={t('dashboard.learningTab.totalDecksLabel')}
-          />
+          {breakdownTab === 'DECKS' ? (
+            <>
+              <CategoryBreakdown
+                title={t('dashboard.learningTab.deckCompositionTitle')}
+                items={deckOwnerItems}
+                total={deckStats?.totalDecks}
+                totalLabel={t('dashboard.learningTab.totalDecksLabel')}
+              />
+
+              <CategoryBreakdown
+                title={t('dashboard.learningTab.freeVsPremiumTitle')}
+                items={deckPremiumItems}
+                total={deckStats?.totalDecks}
+                totalLabel={t('dashboard.learningTab.totalDecksLabel')}
+              />
+
+              <CategoryBreakdown
+                title={t('dashboard.learningTab.deckStatusTitle')}
+                items={deckStatusItems}
+                total={deckStats?.totalDecks}
+                totalLabel={t('dashboard.learningTab.totalDecksLabel')}
+              />
+            </>
+          ) : (
+            <>
+              <CategoryBreakdown
+                title={t('dashboard.learningTab.lessonPremiumTitle')}
+                items={lessonPremiumItems}
+                total={lessonStats?.totalLessons}
+                totalLabel={t('dashboard.learningTab.totalLessonsLabel')}
+              />
+
+              <CategoryBreakdown
+                title={t('dashboard.learningTab.lessonStatusTitle')}
+                items={lessonStatusItems}
+                total={lessonStats?.totalLessons}
+                totalLabel={t('dashboard.learningTab.totalLessonsLabel')}
+              />
+            </>
+          )}
         </div>
       </div>
 
       {/* Tables Row: Top Decks & Top Lessons */}
       <div className={styles.tablesRow} style={{ marginTop: 24 }}>
+        {/* Left Table: Decks with System vs User Segmented Switch */}
         <div className={styles.tableHalf}>
-          <div className={styles.sectionHeader}>
-            <h3 className={styles.sectionTitle}>{t('dashboard.learningTab.topSystemDecks')}</h3>
+          <div className={styles.sectionHeaderWithAction}>
+            <h3 className={styles.sectionTitle}>
+              {deckTab === 'SYSTEM'
+                ? t('dashboard.learningTab.topSystemDecks')
+                : t('dashboard.learningTab.topUserDecks')}
+            </h3>
+            <div
+              className={styles.segmentedControl}
+              role="tablist"
+              aria-label="Deck ownership switch"
+            >
+              <button
+                type="button"
+                role="tab"
+                aria-selected={deckTab === 'SYSTEM'}
+                className={`${styles.segmentedBtn} ${
+                  deckTab === 'SYSTEM' ? styles.segmentedBtnActive : ''
+                }`}
+                onClick={() => setDeckTab('SYSTEM')}
+              >
+                {t('dashboard.learningTab.systemDecksTab')}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={deckTab === 'USER'}
+                className={`${styles.segmentedBtn} ${
+                  deckTab === 'USER' ? styles.segmentedBtnActive : ''
+                }`}
+                onClick={() => setDeckTab('USER')}
+              >
+                {t('dashboard.learningTab.userDecksTab')}
+              </button>
+            </div>
           </div>
           <DataTable
             columns={deckColumns}
-            data={deckStats?.topSystemDecks || []}
+            data={currentDecks}
             keyField="deckId"
-            emptyMessage={t('dashboard.learningTab.emptyDecks')}
+            emptyMessage={
+              deckTab === 'SYSTEM'
+                ? t('dashboard.learningTab.emptyDecks')
+                : t('dashboard.learningTab.emptyUserDecks')
+            }
           />
         </div>
 
+        {/* Right Table: Lessons */}
         <div className={styles.tableHalf}>
           <div className={styles.sectionHeader}>
             <h3 className={styles.sectionTitle}>{t('dashboard.learningTab.topLessons')}</h3>
@@ -369,4 +608,5 @@ LearningStatsTab.propTypes = {
     granularity: PropTypes.string.isRequired,
   }).isRequired,
   reloadKey: PropTypes.number.isRequired,
+  onNavigate: PropTypes.func,
 };

@@ -14,6 +14,7 @@ import com.elingo.vocabulary.entity.DeckStatus;
 import com.elingo.vocabulary.entity.OwnerType;
 import com.elingo.vocabulary.repository.DeckRepository;
 import com.elingo.vocabulary.service.VocabularyStatsQueryService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -22,6 +23,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
@@ -55,6 +57,11 @@ class LearningStatsServiceTest {
 
     @InjectMocks
     private LearningStatsServiceImpl learningStatsService;
+
+    @BeforeEach
+    void setUp() {
+        ReflectionTestUtils.setField(learningStatsService, "publicUrl", "https://cdn.elingo.com");
+    }
 
     private final LocalDate fromDate = LocalDate.of(2026, 11, 1);
     private final LocalDate toDate = LocalDate.of(2026, 11, 3);
@@ -242,8 +249,10 @@ class LearningStatsServiceTest {
             assertThat(actual.byPremium().get(0).category()).isEqualTo("PREMIUM");
             assertThat(actual.topSystemDecks()).hasSize(1);
             assertThat(actual.topSystemDecks().get(0).title()).isEqualTo("System Deck");
+            assertThat(actual.topSystemDecks().get(0).coverImageUrl()).isEqualTo("https://cdn.elingo.com/img.jpg");
             assertThat(actual.topUserDecks()).hasSize(1);
             assertThat(actual.topUserDecks().get(0).title()).isEqualTo("User Deck");
+            assertThat(actual.topUserDecks().get(0).coverImageUrl()).isNull();
 
             verify(redisService).save(eq(cacheKey), eq("{\"cached\":true}"), eq(5L));
         }
@@ -324,6 +333,7 @@ class LearningStatsServiceTest {
             assertThat(actual.byPremium().get(0).category()).isEqualTo("FREE");
             assertThat(actual.topLessons()).hasSize(1);
             assertThat(actual.topLessons().get(0).learnerCount()).isEqualTo(200L);
+            assertThat(actual.topLessons().get(0).thumbnailUrl()).isEqualTo("https://cdn.elingo.com/thumb.jpg");
 
             verify(redisService).save(eq(cacheKey), eq("{\"cached\":true}"), eq(5L));
         }
