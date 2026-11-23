@@ -8,6 +8,8 @@ import DeckListPage from './pages/DeckManagementPage/DeckListPage';
 import DeckDetailPage from './pages/DeckManagementPage/DeckDetailPage';
 import TopicDetailPage from './pages/TopicManagementPage/TopicDetailPage';
 import TagListPage from './pages/TagManagementPage/TagListPage';
+import SystemConfigPage from './pages/SystemConfigPage/SystemConfigPage';
+import AdminAuditLogPage from './pages/AdminAuditLogPage/AdminAuditLogPage';
 
 export default function AdminRoutes({ currentPath, onNavigate }) {
   const { t } = useTranslation('admin');
@@ -74,7 +76,10 @@ export default function AdminRoutes({ currentPath, onNavigate }) {
 
       // Module: Cấu hình hệ thống
       case '/admin/settings':
-        return <PlaceholderAdminPage title={t('routes.settings')} onNavigate={onNavigate} />;
+      case '/admin/settings/configs':
+        return <SystemConfigPage onNavigate={onNavigate} />;
+      case '/admin/settings/audit-logs':
+        return <AdminAuditLogPage onNavigate={onNavigate} />;
 
       default:
         return <DashboardPage onNavigate={onNavigate} />;

@@ -128,6 +128,73 @@ describe('AdminSidebar component', () => {
       expect(mockNavigate).toHaveBeenCalledWith('/admin/decks');
     });
 
+    it('toggles system settings dropdown and navigates to config and audit log sub-items', async () => {
+      const user = userEvent.setup();
+
+      render(
+        <AdminSidebar
+          currentPath="/admin"
+          onNavigate={mockNavigate}
+          isCollapsed={false}
+          onToggleCollapse={mockToggleCollapse}
+          onExpand={mockExpand}
+          isMobileOpen={false}
+          onCloseMobile={mockCloseMobile}
+        />
+      );
+
+      const settingsDropdown = screen.getByRole('button', {
+        name: new RegExp(lng === 'vi' ? 'Cấu hình hệ thống' : 'System Settings', 'i'),
+      });
+
+      // Initially closed
+      expect(
+        screen.queryByRole('button', {
+          name: new RegExp(lng === 'vi' ? 'Cấu hình$' : 'Configurations', 'i'),
+        })
+      ).not.toBeInTheDocument();
+
+      // Click to open settings dropdown
+      await user.click(settingsDropdown);
+
+      const configSubItem = screen.getByRole('button', {
+        name: new RegExp(lng === 'vi' ? 'Cấu hình$' : 'Configurations', 'i'),
+      });
+      const auditLogSubItem = screen.getByRole('button', {
+        name: new RegExp(lng === 'vi' ? 'Nhật ký hoạt động' : 'Activity Log', 'i'),
+      });
+
+      expect(configSubItem).toBeInTheDocument();
+      expect(auditLogSubItem).toBeInTheDocument();
+
+      // Click config sub-item
+      await user.click(configSubItem);
+      expect(mockNavigate).toHaveBeenCalledWith('/admin/settings/configs');
+
+      // Click audit log sub-item
+      await user.click(auditLogSubItem);
+      expect(mockNavigate).toHaveBeenCalledWith('/admin/settings/audit-logs');
+    });
+
+    it('highlights settings sub-item matching currentPath', () => {
+      render(
+        <AdminSidebar
+          currentPath="/admin/settings/configs"
+          onNavigate={mockNavigate}
+          isCollapsed={false}
+          onToggleCollapse={mockToggleCollapse}
+          onExpand={mockExpand}
+          isMobileOpen={false}
+          onCloseMobile={mockCloseMobile}
+        />
+      );
+
+      const settingsDropdown = screen.getByRole('button', {
+        name: new RegExp(lng === 'vi' ? 'Cấu hình hệ thống' : 'System Settings', 'i'),
+      });
+      expect(settingsDropdown.className).toMatch(/active/);
+    });
+
     it('automatically expands sidebar when clicking dropdown in collapsed state', async () => {
       const user = userEvent.setup();
 
