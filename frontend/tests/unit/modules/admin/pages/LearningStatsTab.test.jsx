@@ -220,5 +220,30 @@ describe('LearningStatsTab component', () => {
         lng === 'vi' ? 'Trạng thái phát hành bài học' : 'Lesson Publication Status';
       expect(screen.getByText(lessonStatusTitle)).toBeInTheDocument();
     });
+
+    it('navigates to deck detail page when deck link is clicked', async () => {
+      const mockNavigate = vi.fn();
+      const user = userEvent.setup();
+      fetchLearningActivity.mockResolvedValueOnce(mockActivityData);
+      fetchDeckStats.mockResolvedValueOnce(mockDeckStats);
+      fetchLessonStats.mockResolvedValueOnce(mockLessonStats);
+
+      render(
+        <LearningStatsTab
+          filter={sampleFilter}
+          reloadKey={0}
+          onNavigate={mockNavigate}
+        />
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('System Deck Alpha')).toBeInTheDocument();
+      });
+
+      const deckLink = screen.getByRole('link', { name: 'System Deck Alpha' });
+      await user.click(deckLink);
+
+      expect(mockNavigate).toHaveBeenCalledWith('/admin/decks/1');
+    });
   });
 });

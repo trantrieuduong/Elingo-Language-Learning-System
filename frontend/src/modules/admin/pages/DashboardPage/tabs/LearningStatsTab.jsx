@@ -14,7 +14,7 @@ import { AdminSkeletonCard, AdminErrorState } from '../../../components/Feedback
 import { BookOpenIcon, ActivityIcon, LayersIcon } from '../../../components/icons/AdminIcons';
 import styles from '../DashboardPage.module.css';
 
-export default function LearningStatsTab({ filter, reloadKey }) {
+export default function LearningStatsTab({ filter, reloadKey, onNavigate }) {
   const { t, i18n } = useTranslation('admin');
   const locale = i18n.language && i18n.language.startsWith('en') ? 'en-US' : 'vi-VN';
 
@@ -111,6 +111,12 @@ export default function LearningStatsTab({ filter, reloadKey }) {
                   height: 32,
                   borderRadius: 'var(--adm-radius-sm)',
                   objectFit: 'cover',
+                  cursor: onNavigate ? 'pointer' : 'default',
+                }}
+                onClick={() => {
+                  if (onNavigate && record.deckId) {
+                    onNavigate(`/admin/decks/${record.deckId}`);
+                  }
                 }}
               />
             ) : (
@@ -124,13 +130,38 @@ export default function LearningStatsTab({ filter, reloadKey }) {
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: 'var(--adm-text-subtle)',
+                  cursor: onNavigate ? 'pointer' : 'default',
+                }}
+                onClick={() => {
+                  if (onNavigate && record.deckId) {
+                    onNavigate(`/admin/decks/${record.deckId}`);
+                  }
                 }}
               >
                 <BookOpenIcon size={16} />
               </div>
             )}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <span style={{ fontWeight: 600 }}>{val}</span>
+              <a
+                href={`/admin/decks/${record.deckId}`}
+                style={{
+                  fontWeight: 600,
+                  color: 'var(--adm-text-main)',
+                  textDecoration: 'none',
+                  cursor: 'pointer',
+                  transition: 'color var(--adm-transition-fast)',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--adm-accent)')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--adm-text-main)')}
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (onNavigate && record.deckId) {
+                    onNavigate(`/admin/decks/${record.deckId}`);
+                  }
+                }}
+              >
+                {val}
+              </a>
               {record.isPremium && (
                 <span
                   style={{
@@ -182,7 +213,7 @@ export default function LearningStatsTab({ filter, reloadKey }) {
         ),
       },
     ],
-    [t, locale]
+    [t, locale, onNavigate]
   );
 
   // Cột cho Top Lessons
@@ -577,4 +608,5 @@ LearningStatsTab.propTypes = {
     granularity: PropTypes.string.isRequired,
   }).isRequired,
   reloadKey: PropTypes.number.isRequired,
+  onNavigate: PropTypes.func,
 };
