@@ -44,7 +44,9 @@ Trả lời bằng tiếng Việt, ngắn gọn. Commit message viết theo ngô
 
 ```bash
 git add <file1> <file2> ...
-git commit -m "<message>"
+git commit -m "<type(scope): subject>" -m "- <ý 1>
+- <ý 2>
+- <ý 3>"
 ```
 
 **Nhiều commit:** với mỗi commit, ghi một dòng mô tả mục đích rồi đưa lệnh:
@@ -52,11 +54,13 @@ git commit -m "<message>"
 ```bash
 # Commit 1: <mô tả ngắn>
 git add <file1> <file2> ...
-git commit -m "<message 1>"
+git commit -m "<subject 1>" -m "- <ý 1>
+- <ý 2>"
 
 # Commit 2: <mô tả ngắn>
 git add <file3> <dir/> ...
-git commit -m "<message 2>"
+git commit -m "<subject 2>" -m "- <ý 1>
+- <ý 2>"
 ```
 
 Quy tắc cho lệnh `git add`:
@@ -64,7 +68,16 @@ Quy tắc cho lệnh `git add`:
 - Path dùng `/`, bọc dấu nháy kép nếu có khoảng trắng.
 - Nếu một file chứa thay đổi thuộc 2 commit khác nhau, nhắc dùng `git add -p <file>` cho file đó.
 - Không đưa vào commit các file không nên commit (`.env`, secret, file build/log, `node_modules`); nếu thấy, cảnh báo ngắn.
-- Nếu commit message cần body (theo convention), dùng nhiều `-m`.
+
+## Body của commit (luôn có)
+
+Mỗi commit gồm **subject + body**. Body là danh sách gạch đầu dòng nêu những gì đã làm:
+
+- 2 đến 5 gạch đầu, mỗi gạch 1 dòng, bắt đầu bằng động từ (theo ngôn ngữ/giọng văn convention quy định), nêu *đã làm gì* ở mức khái niệm (thêm endpoint X, tách logic Y ra service, bổ sung test cho Z), không liệt kê từng file hay từng dòng code.
+- Ngắn gọn, đủ ý. Commit rất nhỏ (đổi 1 dòng, sửa typo, đổi version) chỉ cần subject hoặc 1 gạch, đừng độn thêm.
+- Thêm body bằng `-m` thứ hai chứa nhiều dòng (xuống dòng thật bên trong dấu nháy kép), không dùng `\n`. Chạy được trên bash, Git Bash và PowerShell.
+- Trong body tránh dấu backtick và ký tự `$` vì shell sẽ diễn giải chúng; dùng chữ thường hoặc nháy đơn thay thế.
+- Nếu convention quy định footer (ví dụ `Closes #12`, `BREAKING CHANGE:`), thêm vào cuối body theo đúng format của convention.
 
 ## Tên nhánh: chỉ khi được nhắc
 
@@ -75,6 +88,6 @@ Quy tắc cho lệnh `git add`:
 ## Lưu ý
 
 - Mô tả thay đổi dựa trên diff thực tế, không đoán.
-- Message nêu "làm gì / vì sao" cô đọng, không liệt kê tên file.
+- Subject nêu "làm gì / vì sao" cô đọng; body liệt kê các ý chính bằng gạch đầu dòng, không liệt kê tên file.
 - Nếu người dùng thêm ngữ cảnh (ví dụ số ticket, "fix lỗi login"), đưa vào scope/footer theo convention.
 - Nếu convention mâu thuẫn với mặc định ở trên thì convention thắng.
