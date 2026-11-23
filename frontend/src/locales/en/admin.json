@@ -170,7 +170,19 @@
       "published": "Published",
       "learnCountHeader": "Completions",
       "emptyDecks": "No deck records found",
-      "emptyLessons": "No lesson records found"
+      "emptyLessons": "No lesson records found",
+      "deckInventory": "Vocabulary Decks",
+      "lessonInventory": "Interactive Lessons",
+      "deckStatusTitle": "Deck Publication Status",
+      "lessonStatusTitle": "Lesson Publication Status",
+      "lessonPremiumTitle": "Free vs Premium Lessons",
+      "totalLessonsLabel": "Total Lessons",
+      "statusPublished": "Published",
+      "statusDraft": "Draft",
+      "statusArchived": "Archived",
+      "systemDecksTab": "System Decks",
+      "userDecksTab": "Community Decks",
+      "emptyUserDecks": "No community deck records found"
     },
     "communityTab": {
       "totalPosts": "Total Discussion Posts",

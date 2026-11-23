@@ -170,7 +170,19 @@
       "published": "Đã xuất bản",
       "learnCountHeader": "Lượt học",
       "emptyDecks": "Chưa có dữ liệu bộ thẻ",
-      "emptyLessons": "Chưa có dữ liệu bài học"
+      "emptyLessons": "Chưa có dữ liệu bài học",
+      "deckInventory": "Bộ thẻ từ vựng",
+      "lessonInventory": "Bài học tương tác",
+      "deckStatusTitle": "Trạng thái phát hành bộ thẻ",
+      "lessonStatusTitle": "Trạng thái phát hành bài học",
+      "lessonPremiumTitle": "Tỷ lệ bài học Miễn phí / Premium",
+      "totalLessonsLabel": "Tổng số bài học",
+      "statusPublished": "Đã xuất bản",
+      "statusDraft": "Bản nháp",
+      "statusArchived": "Lưu trữ",
+      "systemDecksTab": "Bộ thẻ hệ thống",
+      "userDecksTab": "Bộ thẻ cộng đồng",
+      "emptyUserDecks": "Chưa có dữ liệu bộ thẻ cộng đồng"
     },
     "communityTab": {
       "totalPosts": "Tổng bài viết thảo luận",

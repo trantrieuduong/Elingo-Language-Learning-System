@@ -138,6 +138,53 @@
   margin-bottom: 10px;
 }
 
+.sectionHeaderWithAction {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.segmentedControl {
+  display: inline-flex;
+  align-items: center;
+  background: var(--adm-bg-surface-subtle);
+  padding: 3px;
+  border-radius: var(--adm-radius-md);
+  border: 1px solid var(--adm-border);
+  gap: 2px;
+}
+
+.segmentedBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--adm-radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--adm-text-subtle);
+  font-family: var(--adm-font-body);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--adm-transition-fast);
+}
+
+.segmentedBtn:hover {
+  color: var(--adm-text-main);
+}
+
+.segmentedBtnActive {
+  background: var(--adm-bg-surface);
+  color: var(--adm-text-main);
+  font-weight: 600;
+  box-shadow: var(--adm-shadow-xs);
+}
+
 .sectionTitle {
   font-size: 14px;
   font-weight: 600;
