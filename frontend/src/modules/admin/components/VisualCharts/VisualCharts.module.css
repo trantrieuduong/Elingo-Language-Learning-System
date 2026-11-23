@@ -1,0 +1,240 @@
+.chartWrapper {
+  position: relative;
+  background: var(--adm-bg-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-md);
+  padding: 18px 20px 14px 20px;
+  box-shadow: var(--adm-shadow-xs);
+  display: flex;
+  flex-direction: column;
+}
+
+.legendRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legendDot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--adm-radius-full);
+}
+
+.legendLabel {
+  font-size: 12px;
+  color: var(--adm-text-subtle);
+  font-weight: 500;
+}
+
+.svgChart {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.gridLine {
+  stroke: var(--adm-chart-grid);
+  stroke-dasharray: 3 3;
+  stroke-width: 1;
+}
+
+.axisLabel {
+  font-family: var(--adm-font-display);
+  font-size: 10px;
+  fill: var(--adm-text-subtle);
+  user-select: none;
+}
+
+.hoverLine {
+  stroke: var(--adm-border-strong);
+  stroke-width: 1.2;
+  stroke-dasharray: 2 2;
+}
+
+.dataPoint {
+  transition:
+    r var(--adm-transition-fast),
+    stroke-width var(--adm-transition-fast);
+}
+
+.emptyChart {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--adm-bg-surface);
+  border: 1px dashed var(--adm-border);
+  border-radius: var(--adm-radius-md);
+  color: var(--adm-text-subtle);
+  font-size: 13px;
+}
+
+/* Tooltip */
+.tooltip {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  background: var(--adm-chart-tooltip-bg);
+  color: var(--adm-chart-tooltip-text);
+  border-radius: var(--adm-radius-sm);
+  padding: 8px 12px;
+  font-size: 11px;
+  box-shadow: var(--adm-shadow-md);
+  pointer-events: none;
+  z-index: 20;
+  min-width: 120px;
+  white-space: nowrap;
+}
+
+.tooltipDate {
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: var(--adm-chart-tooltip-text);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  padding-bottom: 3px;
+}
+
+.tooltipItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+}
+
+.tooltipDot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--adm-radius-full);
+}
+
+.tooltipKey {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.tooltipVal {
+  margin-left: auto;
+  font-weight: 700;
+}
+
+.tooltipDivider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.15);
+  margin: 5px 0 3px 0;
+}
+
+.tooltipTotal {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+}
+
+/* Bar Segments */
+.barGroup {
+  cursor: pointer;
+}
+
+.barSegment {
+  transition: opacity var(--adm-transition-fast);
+}
+
+.barGroup:hover .barSegment {
+  opacity: 0.85;
+}
+
+/* Category Breakdown Card */
+.breakdownCard {
+  background: var(--adm-bg-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-md);
+  padding: 18px 20px;
+  box-shadow: var(--adm-shadow-xs);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.breakdownHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.breakdownTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--adm-text-main);
+  margin: 0;
+}
+
+.breakdownTotal {
+  font-size: 12px;
+  color: var(--adm-text-subtle);
+}
+
+.segmentBar {
+  display: flex;
+  height: 10px;
+  border-radius: var(--adm-radius-full);
+  overflow: hidden;
+  background: var(--adm-bg-surface-muted);
+  gap: 2px;
+}
+
+.segmentItem {
+  height: 100%;
+  transition: width var(--adm-transition-normal);
+}
+
+.breakdownList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.breakdownRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.breakdownLabelGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.breakdownDot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--adm-radius-full);
+}
+
+.breakdownLabel {
+  color: var(--adm-text-muted);
+  font-weight: 500;
+}
+
+.breakdownValGroup {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.breakdownCount {
+  font-family: var(--adm-font-display);
+  font-weight: 700;
+  color: var(--adm-text-main);
+}
+
+.breakdownPercent {
+  color: var(--adm-text-subtle);
+  font-size: 11px;
+}

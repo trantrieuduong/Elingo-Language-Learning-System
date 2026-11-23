@@ -1,1 +1,172 @@
-{}
+{
+  "lobby": {
+    "title": "Speaking rooms",
+    "history": "History",
+    "subtitle": "Join a room to practice speaking English with peers.",
+    "createRoom": "Create room",
+    "createRoomDesc": "Create a room and get an invite code to practice with friends",
+    "joinByCode": "Join by code",
+    "joinByCodeDesc": "Share this room code with friends. The conversation will start as soon as someone joins.",
+    "codePlaceholder": "Room code (6 chars)",
+    "join": "Join",
+    "codeInvalid": "Room code must be exactly 6 characters.",
+    "publicRooms": "Public rooms",
+    "refresh": "Refresh",
+    "retry": "Try again",
+    "empty": "No public rooms yet. Create the first one!",
+    "emptyFiltered": "No rooms match your filters.",
+    "clearFilters": "Clear filters",
+    "searchPlaceholder": "Search by topic",
+    "capacityFilter": "Capacity",
+    "capacityAll": "All",
+    "capacityOption": "{{count}} people",
+    "full": "Full",
+    "loadError": "Couldn't load rooms.",
+    "noTopic": "No topic yet",
+    "participants": "{{count}}/{{max}} people",
+    "activeRoom": {
+      "title": "You are currently in room {{code}}",
+      "desc": "You must leave your current room before creating or joining another.",
+      "back": "Back to your room",
+      "blocked": "You are in another room"
+    },
+    "status": {
+      "WAITING": "Waiting",
+      "ACTIVE": "In conversation"
+    }
+  },
+  "error": {
+    "socketNotConnected": "Not connected to server, please try again shortly."
+  },
+  "create": {
+    "title": "Create room",
+    "subtitle": "Set up a speaking practice room and invite friends to join.",
+    "topic": "Topic (optional)",
+    "capacity": "Max people",
+    "private": "Private room",
+    "privateHint": "The room is hidden from the list. Only people with the code can join.",
+    "submit": "Create room",
+    "cancel": "Cancel"
+  },
+  "room": {
+    "clock": { "waiting": "Not started", "label": "Your time in the room" },
+    "summary": { "title": "Session ended", "duration": "Time you spent in the room", "topic": "Topic", "roomCode": "Room code", "toLobby": "Back to lobby", "toHistory": "View history" },
+    "participantsTitle": "Participants",
+    "participantsWithCount": "Participants ({{count}})",
+    "rules": {
+      "title": "Room Rules & Regulations",
+      "tag": "Rules",
+      "respect": "Respect each other, maintain civil and polite communication",
+      "englishPriority": "Prioritize English to practice and learn together",
+      "muteWhenSilent": "Mute your mic when not speaking to avoid background noise",
+      "noSpam": "Do not share inappropriate content or spam"
+    },
+    "title": "Room {{code}}",
+    "placeholderTitle": "Room {{code}} - audio",
+    "preparing": "Preparing microphone and connection…",
+    "waitingOthers": "Waiting for others to join…",
+    "shareCode": "Share this code to invite friends",
+    "copy": "Copy",
+    "copied": "Copied",
+    "copyAria": "Copy room code {{code}}",
+    "private": "Private",
+    "public": "Public",
+    "privateHint": "The room is hidden from the list. Send this code to invite people.",
+    "you": "You",
+    "host": "Host",
+    "peerMuted": "{{name}} has muted their mic",
+    "muteAction": "Mute {{name}}'s mic",
+    "mutedByHost": "{{name}} muted your mic. You can turn it back on any time.",
+    "link": {
+      "connecting": "Connecting…",
+      "connected": "Connected",
+      "failed": "Connection failed",
+      "grace": "Connection lost, waiting…",
+      "hostGrace": "Host disconnected, waiting for them to return…"
+    },
+    "leaveDialog": {
+      "title": "You are the host",
+      "transferTitle": "Transfer host and leave",
+      "transferConfirm": "Transfer and leave",
+      "endTitle": "End the room for everyone",
+      "endConfirm": "End room",
+      "endWarning": "Everyone in the room will be removed.",
+      "leaveAlone": "Leave room",
+      "cancel": "Stay"
+    },
+    "kick": "Kick",
+    "kickAction": "Remove {{name}} from the room",
+    "kickConfirm": {
+      "title": "Remove {{name}} from the room?",
+      "body": "They'll be removed and can't rejoin until you allow it.",
+      "confirm": "Remove",
+      "cancel": "Cancel"
+    },
+    "kicked": {
+      "title": "The host removed you from the room",
+      "body": "You can't rejoin this room until the host allows it.",
+      "backToLobby": "Back to rooms"
+    },
+    "bans": {
+      "open": "Blocked Users List",
+      "openWithCount": "Blocked Users List ({{count}})",
+      "title": "Blocked Users List",
+      "titleWithCount": "Blocked Users List ({{count}})",
+      "hint": "Unblocking only lets them join again. They need to rejoin by themselves.",
+      "empty": "No one is blocked.",
+      "unban": "Unblock",
+      "loadError": "Couldn't load the list.",
+      "retry": "Try again",
+      "close": "Close"
+    },
+    "peerKicked": "{{name}} was removed from the room.",
+    "hostChanged": "{{name}} is now the host.",
+    "youAreHost": "You are now the host.",
+    "removed": "You are no longer in this room (disconnected too long).",
+    "linkFailedHint": "Can't connect to this person. Try turning off VPN or switching networks.",
+    "mute": "Mute mic",
+    "unmute": "Unmute mic",
+    "leave": "Leave room",
+    "reconnecting": "Lost connection to server, retrying…",
+    "enableAudio": "Click to enable audio",
+    "retry": "Try again",
+    "backToLobby": "Back to lobby",
+    "micDenied": "Microphone permission is blocked. Click the lock icon in the address bar, allow Microphone, and try again.",
+    "micUnavailable": "Microphone not found. Please connect a microphone/headset and try again.",
+    "closedTitle": "Room closed",
+    "closed": {
+      "EMPTY": "The room was closed because everyone left.",
+      "EXPIRED": "The room has expired.",
+      "SERVER_RESTART": "Server restarted, room has been closed.",
+      "ENDED_BY_HOST": "The host ended this room."
+    }
+  },
+  "history": {
+    "title": "Speaking history",
+    "subtitle": "Review your speaking rooms and practice time.",
+    "backToLobby": "Back to lobby",
+    "empty": "You have no sessions yet. Join a room to get started!",
+    "emptyFiltered": "No rooms match your filters.",
+    "summary": { "totalTime": "Total time", "rooms": "Rooms", "sessions": "Sessions" },
+    "visits": "{{count}} visits",
+    "status": { "WAITING": "Waiting", "ACTIVE": "Speaking", "CLOSED": "Closed" },
+    "rejoin": "Rejoin",
+    "backToRoom": "Back to room",
+    "cannotRejoin": { "inOtherRoom": "You are in another room", "closed": "Room closed", "kicked": "You were removed from this room" },
+    "role": { "HOST": "Host", "GUEST": "Member" },
+    "loadError": "Couldn't load history.",
+    "retry": "Try again"
+  },
+  "chat": {
+    "title": "Chat",
+    "toggle": "Open chat",
+    "close": "Close chat",
+    "placeholder": "Type a message…",
+    "send": "Send",
+    "empty": "No messages yet. Messages are not saved.",
+    "newMessages": "New messages",
+    "unreadLabel": "{{count}} unread",
+    "counter": "{{count}}/500"
+  }
+}
+

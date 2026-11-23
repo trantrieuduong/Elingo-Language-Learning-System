@@ -25,7 +25,8 @@ import com.elingo.common.entity.BaseEntity;
 @Table(
         name = "xp_events",
         indexes = {
-                @Index(name = "idx_xp_user_time", columnList = "user_id, created_at")
+                @Index(name = "idx_xp_user_time", columnList = "user_id, created_at"),
+                @Index(name = "idx_xp_created_source_user", columnList = "created_at, source, user_id")
         }
 )
 @Data

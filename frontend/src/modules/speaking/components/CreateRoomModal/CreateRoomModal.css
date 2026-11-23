@@ -1,0 +1,278 @@
+.speaking-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal, 400);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-md);
+  background-color: rgba(15, 23, 42, 0.32);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: fadeIn 0.2s ease;
+}
+
+.speaking-modal {
+  width: min(100%, 560px);
+  max-height: calc(100dvh - 2 * var(--spacing-md));
+  padding: var(--spacing-xl);
+  overflow-y: auto;
+  box-sizing: border-box;
+  border: 1.5px solid var(--color-glass-border-strong);
+  border-radius: var(--radius-card-lg);
+  background: var(--glass-modal-bg);
+  backdrop-filter: var(--blur-2xl) saturate(190%);
+  -webkit-backdrop-filter: var(--blur-2xl) saturate(190%);
+  box-shadow: var(--shadow-modal);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: none;
+}
+
+/* Cố định màu modal, không hover đổi màu */
+.speaking-modal:hover {
+  background: var(--glass-modal-bg);
+  transform: none;
+  box-shadow: var(--shadow-modal);
+}
+
+.speaking-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
+.speaking-modal__header-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.speaking-modal__header-icon {
+  padding: var(--spacing-sm);
+  color: var(--color-primary);
+  background: var(--color-secondary-container);
+  border-radius: var(--radius-pill);
+  font-size: 2rem;
+}
+
+.speaking-modal__header h2,
+.speaking-modal__header-subtitle {
+  margin: 0;
+}
+
+.speaking-modal__header-subtitle {
+  color: var(--color-text-body);
+}
+
+.speaking-modal__alert {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.speaking-modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.speaking-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.speaking-form-label {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-sm);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--color-text-secondary);
+}
+
+.speaking-input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px var(--spacing-md);
+  border-radius: var(--radius-input, 12px);
+  border: 1px solid var(--color-outline-variant, var(--color-border));
+  background: var(--color-surface-container-lowest, rgba(255, 255, 255, 0.05));
+  color: var(--color-text-high, var(--color-text-primary));
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-md);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.speaking-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-container, rgba(59, 130, 246, 0.15));
+}
+
+.speaking-capacity-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-xs);
+}
+
+.speaking-capacity-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2xs);
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-md, 12px);
+  border: 1.5px solid var(--color-glass-border-standard, rgba(255, 255, 255, 0.4));
+  background: var(--glass-pill-bg, rgba(255, 255, 255, 0.5));
+  color: var(--color-on-surface-variant);
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.speaking-capacity-btn:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-secondary-container);
+}
+
+.speaking-capacity-btn--active {
+  border-color: rgba(155, 183, 232, 0.4);
+  background: var(--color-secondary-container) !important;
+  color: var(--color-primary) !important;
+  font-weight: var(--font-weight-bold, 700);
+}
+
+.speaking-capacity-btn--active:hover:not(:disabled) {
+  border-color: rgba(155, 183, 232, 0.6);
+  background: var(--color-secondary-container) !important;
+  color: var(--color-primary) !important;
+}
+
+[data-theme='dark'] .speaking-capacity-btn {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-on-surface-variant);
+}
+
+[data-theme='dark'] .speaking-capacity-btn:hover:not(:disabled) {
+  background: rgba(43, 65, 93, 0.6);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+[data-theme='dark'] .speaking-capacity-btn--active {
+  background: var(--color-secondary-container) !important;
+  border-color: rgba(155, 183, 232, 0.3) !important;
+  color: var(--color-primary) !important;
+}
+
+.speaking-form-group--switch {
+  padding: var(--spacing-md);
+  background: var(--color-surface-container-lowest, rgba(255, 255, 255, 0.05));
+  border-radius: var(--radius-md, 12px);
+  border: 1px solid var(--color-outline-variant, var(--color-border));
+}
+
+.speaking-switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
+.speaking-switch-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.speaking-switch-title {
+  font-weight: var(--font-weight-semibold, 600);
+  font-size: var(--font-size-body-md);
+  color: var(--color-text-high, var(--color-text-primary));
+}
+
+.speaking-switch-hint {
+  font-size: var(--font-size-body-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+.speaking-switch {
+  width: 48px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--color-outline-variant, #cbd5e1);
+  position: relative;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  flex-shrink: 0;
+  transition: background-color 0.2s ease;
+}
+
+.speaking-switch--checked {
+  background: var(--color-primary, #3b82f6);
+}
+
+.speaking-switch__thumb {
+  display: block;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.speaking-switch--checked .speaking-switch__thumb {
+  transform: translateX(20px);
+}
+
+.speaking-modal__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-xs);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-outline-variant);
+}
+
+.speaking-modal__cancel-btn {
+  border-color: var(--color-outline-variant);
+  background: var(--color-surface-container-low);
+  box-shadow: var(--shadow-well);
+}
+
+@media (max-width: 480px) {
+  .speaking-modal {
+    padding: var(--spacing-lg) var(--spacing-md);
+  }
+
+  .speaking-modal__actions {
+    flex-direction: column-reverse;
+  }
+
+  .speaking-modal__actions button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

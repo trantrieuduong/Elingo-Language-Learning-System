@@ -1,5 +1,9 @@
 package com.elingo.user.service.impl;
 
+import com.elingo.admin.users.dto.request.AdminUserSearchRequest;
+import com.elingo.admin.users.dto.response.AdminUserResponse;
+import com.elingo.common.dto.PageResponse;
+import com.elingo.common.enums.StatsGranularity;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.user.dto.request.ChangePasswordRequest;
@@ -11,13 +15,18 @@ import com.elingo.common.enums.OtpType;
 import com.elingo.user.dto.request.SendOTPUpdateEmailRequest;
 import com.elingo.user.dto.request.UpdateEmailRequest;
 import com.elingo.user.dto.request.UpdateProfileRequest;
+import com.elingo.user.entity.Role;
 import com.elingo.user.entity.User;
 import com.elingo.user.repository.UserRepository;
+import com.elingo.user.repository.specification.UserSpecifications;
 import com.elingo.user.service.UserService;
 import com.elingo.user.dto.response.UserMeResponse;
 import com.elingo.user.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -162,6 +171,112 @@ public class UserServiceImpl implements UserService {
         updateAvatar(user, request.avatarUrl(), userId);
 
         return userMapper.toUserMeResponse(user);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserRepository.NewUserStats> countNewUsers(LocalDateTime from, LocalDateTime to, StatsGranularity granularity) {
+        return switch (granularity) {
+            case WEEK -> userRepository.countNewUsersByWeek(from, to);
+            case MONTH -> userRepository.countNewUsersByMonth(from, to);
+            case DAY -> userRepository.countNewUsersByDay(from, to);
+        };
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countTotalUsers() {
+        return userRepository.count();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countVerifiedUsers() {
+        return userRepository.countByIsVerified(true);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countActiveUsers() {
+        return userRepository.countByIsActive(true);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countUsersBefore(LocalDateTime before) {
+        return userRepository.countByCreatedAtBefore(before);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<AdminUserResponse> searchUsersForAdmin(AdminUserSearchRequest request, Pageable pageable) {
+        Specification<User> spec = UserSpecifications.from(request);
+        Page<User> page = userRepository.findAll(spec, pageable);
+        return PageResponse.of(page.map(userMapper::toAdminUserResponse));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public AdminUserResponse getById(Long userId) {
+        return userMapper.toAdminUserResponse(userRepository
+                .findById(userId).orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND))
+        );
+    }
+
+    @Override
+    @Transactional
+    public AdminUserResponse lockUser(Long adminId, Long userId, String reason) {
+        if (adminId != null && adminId.equals(userId)) {
+            throw new AppException(AppError.CANNOT_MODIFY_SELF);
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
+
+        if (Role.ADMIN.equals(user.getRole())) {
+            throw new AppException(AppError.CANNOT_MODIFY_ADMIN);
+        }
+
+        if (Boolean.FALSE.equals(user.getIsActive())) {
+            throw new AppException(AppError.USER_INACTIVE);
+        }
+
+        if (reason == null || reason.isBlank()) {
+            throw new AppException(AppError.INVALID_REQUEST);
+        }
+
+        user.setIsActive(Boolean.FALSE);
+        user.setBanReason(reason);
+
+        log.info("User locked targetUserId={} reason={}", userId, reason);
+
+        return userMapper.toAdminUserResponse(user);
+    }
+
+    @Override
+    @Transactional
+    public AdminUserResponse unlockUser(Long adminId, Long userId) {
+        if (adminId != null && adminId.equals(userId)) {
+            throw new AppException(AppError.CANNOT_MODIFY_SELF);
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
+
+        if (Role.ADMIN.equals(user.getRole())) {
+            throw new AppException(AppError.CANNOT_MODIFY_ADMIN);
+        }
+
+        if (Boolean.TRUE.equals(user.getIsActive())) {
+            throw new AppException(AppError.USER_ALREADY_ACTIVE);
+        }
+
+        user.setIsActive(Boolean.TRUE);
+        user.setBanReason(null);
+
+        log.info("User unlocked targetUserId={}", userId);
+
+        return userMapper.toAdminUserResponse(user);
     }
 
     private boolean validateUsernameChange(User user, String newUsername, Long userId) {

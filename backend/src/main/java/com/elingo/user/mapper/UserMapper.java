@@ -1,5 +1,6 @@
 package com.elingo.user.mapper;
 
+import com.elingo.admin.users.dto.response.AdminUserResponse;
 import com.elingo.auth.dto.request.RegisterRequest;
 import com.elingo.user.dto.request.UpdateProfileRequest;
 import com.elingo.user.dto.response.UserMeResponse;
@@ -16,6 +17,10 @@ public interface UserMapper {
     UserMeResponse toUserMeResponse(User user);
 
     UserPublicResponse toUserPublicResponse(User user);
+
+    @Mapping(target = "hasPassword", expression = "java(user.getPassword() != null)")
+    @Mapping(target = "linkedGoogle", expression = "java(user.getGoogleProviderId() != null)")
+    AdminUserResponse toAdminUserResponse(User user);
 
     User toUser(RegisterRequest request);
 

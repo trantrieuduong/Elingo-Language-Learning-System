@@ -4,6 +4,7 @@ import com.elingo.common.dto.PageResponse;
 import com.elingo.common.exception.AppException;
 import com.elingo.speaking.dto.request.CreateSpeakingRoomRequest;
 import com.elingo.speaking.dto.request.SpeakingRoomSearchRequest;
+import com.elingo.speaking.dto.response.ActiveRoomResponse;
 import com.elingo.speaking.dto.response.BanRemovedResponse;
 import com.elingo.speaking.dto.response.HostChangedResponse;
 import com.elingo.speaking.dto.response.PeerLeftResponse;
@@ -116,10 +117,13 @@ public class SpeakingRoomServiceImpl implements SpeakingRoomService {
         if (room != null) {
             room.lock();
             try {
-                for (LivePeer p : room.onlinePeers()) {
+                for (LivePeer p : room.getPeers().values()) {
                     if (!p.getUserId().equals(userId)) { // host nhận room:left bên dưới
-                        publisher.sendToUser(p.getUserId(), SpeakingEvents.ROOM_CLOSED,
-                                new RoomClosedResponse(r.roomCode(), "ENDED_BY_HOST"));
+                        if (p.isOnline()) {
+                            publisher.sendToUser(p.getUserId(), SpeakingEvents.ROOM_CLOSED,
+                                    new RoomClosedResponse(r.roomCode(), "ENDED_BY_HOST"));
+                        }
+                        clearActiveRoom(p.getUserId());
                     }
                 }
                 room.cancelAllGraces(); // người đang chờ quay lại sẽ nhận lỗi khi join
@@ -129,6 +133,7 @@ public class SpeakingRoomServiceImpl implements SpeakingRoomService {
                 room.unlock();
             }
         }
+        clearActiveRoom(userId);
         publisher.sendToUser(userId, SpeakingEvents.ROOM_LEFT,
                 new SpeakingSessionSummaryResponse(r.roomCode(), r.topic(), r.durationSeconds()));
     }
@@ -146,6 +151,7 @@ public class SpeakingRoomServiceImpl implements SpeakingRoomService {
                     if (target.isOnline()) {
                         publisher.sendToUser(targetUserId, SpeakingEvents.ROOM_KICKED, new RoomKickedResponse(detail.roomCode()));
                     }
+                    clearActiveRoom(targetUserId);
                     room.removePeer(targetUserId);
                     registry.unbindUser(targetUserId, detail.roomCode());
                     for (LivePeer other : room.onlinePeers()) { // gồm cả host
@@ -179,6 +185,9 @@ public class SpeakingRoomServiceImpl implements SpeakingRoomService {
             room.cancelGrace(userId); // hủy đồng hồ chờ (nếu người này đang trong grace)
             room.removePeer(userId);
             registry.unbindUser(userId, r.roomCode());
+            if ("TIMEOUT".equals(reason)) {
+                clearActiveRoom(userId);
+            }
             if (r.newHostId() != null) room.setHostId(r.newHostId());
 
             for (LivePeer other : room.onlinePeers()) {
@@ -207,9 +216,19 @@ public class SpeakingRoomServiceImpl implements SpeakingRoomService {
         }
     }
 
+    private void clearActiveRoom(Long userId) {
+        publisher.sendToUser(userId, SpeakingEvents.ROOM_ACTIVE, new ActiveRoomResponse(null));
+    }
+
     @Override
     public SpeakingRoomDetailResponse getRoom(String roomCode) {
         return persistence.getRoomDetail(roomCode);
+    }
+
+    @Override
+    public void sendActiveRoom(Long userId) {
+        String code = persistence.findActiveRoomCodeOrNull(userId);
+        publisher.sendToUser(userId, SpeakingEvents.ROOM_ACTIVE, new ActiveRoomResponse(code));
     }
 
     @Override

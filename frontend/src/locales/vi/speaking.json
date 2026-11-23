@@ -1,1 +1,172 @@
-{}
+{
+  "lobby": {
+    "title": "Phòng luyện nói",
+    "history": "Lịch sử",
+    "subtitle": "Vào một phòng để nói chuyện bằng giọng nói với bạn học.",
+    "createRoom": "Tạo phòng",
+    "createRoomDesc": "Tạo phòng và nhận mã mời để nói chuyện cùng bạn bè",
+    "joinByCode": "Vào phòng bằng mã",
+    "joinByCodeDesc": "Chia sẻ mã phòng này với bạn bè. Cuộc trò chuyện sẽ bắt đầu ngay khi có người tham gia.",
+    "codePlaceholder": "Mã phòng (6 ký tự)",
+    "join": "Vào phòng",
+    "codeInvalid": "Mã phòng phải gồm đúng 6 ký tự.",
+    "publicRooms": "Phòng công khai",
+    "refresh": "Làm mới",
+    "retry": "Thử lại",
+    "empty": "Chưa có phòng công khai nào. Hãy tạo phòng đầu tiên!",
+    "emptyFiltered": "Không có phòng nào khớp bộ lọc.",
+    "clearFilters": "Xóa bộ lọc",
+    "searchPlaceholder": "Tìm theo chủ đề",
+    "capacityFilter": "Sức chứa",
+    "capacityAll": "Tất cả",
+    "capacityOption": "{{count}} người",
+    "full": "Đã đầy",
+    "loadError": "Không tải được danh sách phòng.",
+    "noTopic": "Chưa đặt chủ đề",
+    "participants": "{{count}}/{{max}} người",
+    "activeRoom": {
+      "title": "Bạn đang ở trong phòng {{code}}",
+      "desc": "Bạn cần rời phòng hiện tại trước khi tạo hoặc vào phòng khác.",
+      "back": "Quay lại phòng",
+      "blocked": "Bạn đang ở phòng khác"
+    },
+    "status": {
+      "WAITING": "Đang chờ",
+      "ACTIVE": "Đang nói chuyện"
+    }
+  },
+  "error": {
+    "socketNotConnected": "Chưa kết nối máy chủ, thử lại sau giây lát."
+  },
+  "create": {
+    "title": "Tạo phòng",
+    "subtitle": "Thiết lập phòng luyện nói và mời bạn bè tham gia.",
+    "topic": "Chủ đề (tùy chọn)",
+    "capacity": "Số người tối đa",
+    "private": "Phòng riêng tư",
+    "privateHint": "Phòng không hiện trong danh sách. Chỉ người có mã mới vào được.",
+    "submit": "Tạo phòng",
+    "cancel": "Hủy"
+  },
+  "room": {
+    "clock": { "waiting": "Chưa bắt đầu", "label": "Thời gian của bạn trong phòng" },
+    "summary": { "title": "Buổi nói chuyện đã kết thúc", "duration": "Thời gian bạn ở trong phòng", "topic": "Chủ đề", "roomCode": "Mã phòng", "toLobby": "Về lobby", "toHistory": "Xem lịch sử" },
+    "participantsTitle": "Người tham gia",
+    "participantsWithCount": "Người tham gia ({{count}})",
+    "rules": {
+      "title": "Quy tắc & Quy định phòng",
+      "tag": "Quy định",
+      "respect": "Tôn trọng lẫn nhau, giao tiếp văn minh và lịch sự",
+      "englishPriority": "Ưu tiên sử dụng tiếng Anh để cùng nhau luyện tập",
+      "muteWhenSilent": "Tắt mic khi không phát biểu để tránh tạp âm",
+      "noSpam": "Không chia sẻ nội dung vi phạm hoặc spam"
+    },
+    "title": "Phòng {{code}}",
+    "placeholderTitle": "Phòng {{code}} - âm thanh",
+    "preparing": "Đang chuẩn bị micro và kết nối…",
+    "waitingOthers": "Đang chờ người khác vào phòng…",
+    "shareCode": "Chia sẻ mã này để mời bạn bè",
+    "copy": "Sao chép",
+    "copied": "Đã sao chép",
+    "copyAria": "Sao chép mã phòng {{code}}",
+    "private": "Riêng tư",
+    "public": "Công khai",
+    "privateHint": "Phòng riêng tư không hiện trong danh sách. Hãy gửi mã này cho người bạn muốn mời.",
+    "you": "Bạn",
+    "host": "Host",
+    "peerMuted": "{{name}} đang tắt mic",
+    "muteAction": "Tắt mic của {{name}}",
+    "mutedByHost": "{{name}} đã tắt mic của bạn. Bạn có thể bật lại bất cứ lúc nào.",
+    "link": {
+      "connecting": "Đang kết nối…",
+      "connected": "Đã kết nối",
+      "failed": "Kết nối lỗi",
+      "grace": "Mất kết nối, đang chờ quay lại…",
+      "hostGrace": "Host mất kết nối, đang chờ quay lại…"
+    },
+    "leaveDialog": {
+      "title": "Bạn đang là host",
+      "transferTitle": "Chuyển host rồi rời phòng",
+      "transferConfirm": "Chuyển và rời",
+      "endTitle": "Kết thúc phòng cho tất cả",
+      "endConfirm": "Kết thúc phòng",
+      "endWarning": "Mọi người trong phòng sẽ bị đưa ra ngoài.",
+      "leaveAlone": "Rời phòng",
+      "cancel": "Ở lại"
+    },
+    "kick": "Loại",
+    "kickAction": "Mời {{name}} ra khỏi phòng",
+    "kickConfirm": {
+      "title": "Mời {{name}} ra khỏi phòng?",
+      "body": "Người này sẽ bị đưa ra khỏi phòng và không vào lại được cho tới khi bạn cho phép.",
+      "confirm": "Mời ra",
+      "cancel": "Hủy"
+    },
+    "kicked": {
+      "title": "Bạn đã bị host mời ra khỏi phòng",
+      "body": "Bạn không thể vào lại phòng này cho tới khi host cho phép.",
+      "backToLobby": "Về danh sách phòng"
+    },
+    "bans": {
+      "open": "Danh sách người bị chặn",
+      "openWithCount": "Danh sách người bị chặn ({{count}})",
+      "title": "Danh sách người bị chặn",
+      "titleWithCount": "Danh sách người bị chặn ({{count}})",
+      "hint": "Cho vào lại chỉ gỡ chặn. Người đó cần tự vào phòng lại.",
+      "empty": "Chưa có ai bị chặn.",
+      "unban": "Cho vào lại",
+      "loadError": "Không tải được danh sách.",
+      "retry": "Thử lại",
+      "close": "Đóng"
+    },
+    "peerKicked": "{{name}} đã bị mời ra khỏi phòng.",
+    "hostChanged": "{{name}} đã trở thành host.",
+    "youAreHost": "Bạn đã trở thành host.",
+    "removed": "Bạn không còn ở trong phòng này (mất kết nối quá lâu).",
+    "linkFailedHint": "Không kết nối được với người này. Thử tắt VPN hoặc đổi mạng.",
+    "mute": "Tắt mic",
+    "unmute": "Bật mic",
+    "leave": "Rời phòng",
+    "reconnecting": "Mất kết nối máy chủ, đang thử lại…",
+    "enableAudio": "Bấm để bật âm thanh",
+    "retry": "Thử lại",
+    "backToLobby": "Về lobby",
+    "micDenied": "Bạn chưa cho phép dùng micro. Hãy bấm biểu tượng ổ khóa trên thanh địa chỉ, cho phép Micro rồi thử lại.",
+    "micUnavailable": "Không tìm thấy micro. Hãy cắm micro/tai nghe rồi thử lại.",
+    "closedTitle": "Phòng đã đóng",
+    "closed": {
+      "EMPTY": "Phòng đã đóng vì không còn ai.",
+      "EXPIRED": "Phòng đã hết hạn.",
+      "SERVER_RESTART": "Máy chủ khởi động lại, phòng đã đóng.",
+      "ENDED_BY_HOST": "Host đã kết thúc phòng học này."
+    }
+  },
+  "history": {
+    "title": "Lịch sử luyện nói",
+    "subtitle": "Xem lại các phòng bạn đã tham gia và thời gian luyện nói.",
+    "backToLobby": "Về lobby",
+    "empty": "Bạn chưa có buổi nói nào. Vào một phòng để bắt đầu!",
+    "emptyFiltered": "Không có phòng nào khớp bộ lọc.",
+    "summary": { "totalTime": "Tổng thời gian", "rooms": "Số phòng", "sessions": "Số lượt" },
+    "visits": "{{count}} lượt",
+    "status": { "WAITING": "Đang chờ", "ACTIVE": "Đang nói chuyện", "CLOSED": "Đã đóng" },
+    "rejoin": "Vào lại",
+    "backToRoom": "Quay lại phòng",
+    "cannotRejoin": { "inOtherRoom": "Bạn đang ở phòng khác", "closed": "Phòng đã đóng", "kicked": "Bạn đã bị mời ra khỏi phòng này" },
+    "role": { "HOST": "Host", "GUEST": "Thành viên" },
+    "loadError": "Không tải được lịch sử.",
+    "retry": "Thử lại"
+  },
+  "chat": {
+    "title": "Trò chuyện",
+    "toggle": "Mở khung chat",
+    "close": "Đóng khung chat",
+    "placeholder": "Nhập tin nhắn…",
+    "send": "Gửi",
+    "empty": "Chưa có tin nhắn. Tin nhắn không được lưu lại.",
+    "newMessages": "Tin nhắn mới",
+    "unreadLabel": "{{count}} tin chưa đọc",
+    "counter": "{{count}}/500"
+  }
+}
+

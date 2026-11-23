@@ -1,0 +1,324 @@
+/* ============================================================
+   admin-theme.css — Centralized Design Tokens & Scoped System
+   Elingo Language Learning System — Admin Operations Center
+   Aesthetic: Precision Operations Minimalist (No AI Slop)
+   ============================================================ */
+
+/* ── Typography Imports: Space Grotesk (Display) + Be Vietnam Pro (Body) ── */
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+/* ============================================================
+   1. DESIGN TOKENS (SCOPED TO .admin-scope)
+   ============================================================ */
+
+/* ── Light Theme (Default) ── */
+.admin-scope,
+.admin-scope[data-theme='light'] {
+  /* Typography */
+  --adm-font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  --adm-font-body: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+  --adm-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Surfaces & Backgrounds */
+  --adm-bg-canvas: #f6f8fb;
+  --adm-bg-surface: #ffffff;
+  --adm-bg-surface-subtle: #f1f4f9;
+  --adm-bg-surface-muted: #e8ecf3;
+  --adm-bg-surface-elevated: #ffffff;
+  --adm-bg-overlay: rgba(15, 23, 42, 0.45);
+
+  /* Borders & Dividers */
+  --adm-border: #e2e8f0;
+  --adm-border-subtle: #edf2f7;
+  --adm-border-strong: #cbd5e1;
+  --adm-border-focus: #0284c7;
+
+  /* Typography Colors (Slate undertone - No pure gray) */
+  --adm-text-main: #0f172a;
+  --adm-text-muted: #475569;
+  --adm-text-subtle: #64748b;
+  --adm-text-disabled: #94a3b8;
+  --adm-text-inverse: #ffffff;
+
+  /* Brand / Authority Color (Deep Marine Navy) */
+  --adm-primary: #0f172a;
+  --adm-primary-hover: #1e293b;
+  --adm-primary-active: #020617;
+  --adm-primary-subtle: #f1f5f9;
+  --adm-primary-contrast: #ffffff;
+
+  /* Technical Accent (Cerulean Blue) */
+  --adm-accent: #0284c7;
+  --adm-accent-hover: #0369a1;
+  --adm-accent-subtle: #e0f2fe;
+  --adm-accent-contrast: #ffffff;
+
+  /* Semantic State: Success (Emerald Ledger) */
+  --adm-success: #059669;
+  --adm-success-hover: #047857;
+  --adm-success-subtle: #ecfdf5;
+  --adm-success-border: #a7f3d0;
+  --adm-success-contrast: #ffffff;
+
+  /* Semantic State: Warning / Pending (Warm Amber) */
+  --adm-warning: #d97706;
+  --adm-warning-hover: #b45309;
+  --adm-warning-subtle: #fffbeb;
+  --adm-warning-border: #fde68a;
+  --adm-warning-contrast: #ffffff;
+
+  /* Semantic State: Danger / Violation (Crimson) */
+  --adm-danger: #dc2626;
+  --adm-danger-hover: #b91c1c;
+  --adm-danger-subtle: #fef2f2;
+  --adm-danger-border: #fecaca;
+  --adm-danger-contrast: #ffffff;
+
+  /* Sidebar Tokens */
+  --adm-sidebar-width: 260px;
+  --adm-sidebar-width-collapsed: 72px;
+  --adm-sidebar-bg: #0f172a;
+  --adm-sidebar-border: #1e293b;
+  --adm-sidebar-text: #cbd5e1;
+  --adm-sidebar-text-hover: #ffffff;
+  --adm-sidebar-text-active: #ffffff;
+  --adm-sidebar-item-hover: rgba(255, 255, 255, 0.08);
+  --adm-sidebar-item-active: rgba(255, 255, 255, 0.15);
+  --adm-sidebar-item-indicator: #38bdf8;
+
+  /* Header Tokens */
+  --adm-header-height: 64px;
+  --adm-header-bg: #ffffff;
+  --adm-header-border: #e2e8f0;
+
+  /* Chart Palette (Balanced contrast) */
+  --adm-chart-primary: #0284c7;
+  --adm-chart-secondary: #059669;
+  --adm-chart-tertiary: #d97706;
+  --adm-chart-quaternary: #8b5cf6;
+  --adm-chart-quinary: #ec4899;
+  --adm-chart-grid: #edf2f7;
+  --adm-chart-tooltip-bg: #0f172a;
+  --adm-chart-tooltip-text: #ffffff;
+
+  /* Structural Radii */
+  --adm-radius-xs: 3px;
+  --adm-radius-sm: 5px;
+  --adm-radius-md: 8px;
+  --adm-radius-lg: 12px;
+  --adm-radius-full: 9999px;
+
+  /* Elevation Shadows (Technical & Subdued - No blurry haze) */
+  --adm-shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --adm-shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --adm-shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+  --adm-shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+
+  /* Transitions */
+  --adm-transition-fast: 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  --adm-transition-normal: 220ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Compatibility & Semantic Badge Tokens */
+  --adm-text-primary: var(--adm-text-main);
+  --adm-text-secondary: var(--adm-text-subtle);
+  --adm-bg-hover: var(--adm-bg-surface-subtle);
+  --adm-bg-subtle: var(--adm-bg-surface-muted);
+  --adm-radius-pill: 9999px;
+  --adm-btn-primary-bg: var(--adm-primary);
+  --adm-btn-primary-text: var(--adm-primary-contrast);
+  --adm-badge-green-bg: var(--adm-success-subtle);
+  --adm-badge-green-text: var(--adm-success);
+  --adm-badge-amber-bg: var(--adm-warning-subtle);
+  --adm-badge-amber-text: var(--adm-warning);
+  --adm-badge-red-bg: var(--adm-danger-subtle);
+  --adm-badge-red-text: var(--adm-danger);
+  --adm-badge-blue-bg: var(--adm-accent-subtle);
+  --adm-badge-blue-text: var(--adm-accent);
+}
+
+/* ── Dark Theme ── */
+.admin-scope[data-theme='dark'] {
+  /* Surfaces & Backgrounds */
+  --adm-bg-canvas: #090d16;
+  --adm-bg-surface: #111827;
+  --adm-bg-surface-subtle: #172033;
+  --adm-bg-surface-muted: #1e293b;
+  --adm-bg-surface-elevated: #1a2337;
+  --adm-bg-overlay: rgba(0, 0, 0, 0.7);
+
+  /* Borders & Dividers */
+  --adm-border: #1f293d;
+  --adm-border-subtle: #172033;
+  --adm-border-strong: #334155;
+  --adm-border-focus: #38bdf8;
+
+  /* Typography Colors */
+  --adm-text-main: #f8fafc;
+  --adm-text-muted: #cbd5e1;
+  --adm-text-subtle: #94a3b8;
+  --adm-text-disabled: #64748b;
+  --adm-text-inverse: #0f172a;
+
+  /* Brand / Authority Color */
+  --adm-primary: #38bdf8;
+  --adm-primary-hover: #7dd3fc;
+  --adm-primary-active: #0284c7;
+  --adm-primary-subtle: rgba(56, 189, 248, 0.12);
+  --adm-primary-contrast: #0f172a;
+
+  /* Technical Accent */
+  --adm-accent: #38bdf8;
+  --adm-accent-hover: #7dd3fc;
+  --adm-accent-subtle: rgba(56, 189, 248, 0.15);
+  --adm-accent-contrast: #0f172a;
+
+  /* Semantic State: Success */
+  --adm-success: #10b981;
+  --adm-success-hover: #34d399;
+  --adm-success-subtle: rgba(16, 185, 129, 0.14);
+  --adm-success-border: rgba(16, 185, 129, 0.3);
+  --adm-success-contrast: #064e3b;
+
+  /* Semantic State: Warning / Pending */
+  --adm-warning: #f59e0b;
+  --adm-warning-hover: #fbbf24;
+  --adm-warning-subtle: rgba(245, 158, 11, 0.14);
+  --adm-warning-border: rgba(245, 158, 11, 0.3);
+  --adm-warning-contrast: #78350f;
+
+  /* Semantic State: Danger / Violation */
+  --adm-danger: #ef4444;
+  --adm-danger-hover: #f87171;
+  --adm-danger-subtle: rgba(239, 68, 68, 0.14);
+  --adm-danger-border: rgba(239, 68, 68, 0.3);
+  --adm-danger-contrast: #7f1d1d;
+
+  /* Sidebar Tokens in Dark Mode */
+  --adm-sidebar-bg: #0b0f19;
+  --adm-sidebar-border: #1a2234;
+  --adm-sidebar-text: #8896ab;
+  --adm-sidebar-text-hover: #f1f5f9;
+  --adm-sidebar-text-active: #ffffff;
+  --adm-sidebar-item-hover: rgba(255, 255, 255, 0.05);
+  --adm-sidebar-item-active: rgba(56, 189, 248, 0.12);
+  --adm-sidebar-item-indicator: #38bdf8;
+
+  /* Header Tokens in Dark Mode */
+  --adm-header-bg: #111827;
+  --adm-header-border: #1f293d;
+
+  /* Chart Palette in Dark Mode */
+  --adm-chart-primary: #38bdf8;
+  --adm-chart-secondary: #34d399;
+  --adm-chart-tertiary: #fbbf24;
+  --adm-chart-quaternary: #a78bfa;
+  --adm-chart-quinary: #f472b6;
+  --adm-chart-grid: #1a2335;
+  --adm-chart-tooltip-bg: #1e293b;
+  --adm-chart-tooltip-text: #f8fafc;
+
+  /* Elevation Shadows */
+  --adm-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --adm-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --adm-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.45), 0 2px 4px -2px rgba(0, 0, 0, 0.35);
+  --adm-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.55), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+
+  /* Compatibility & Semantic Badge Tokens */
+  --adm-text-primary: var(--adm-text-main);
+  --adm-text-secondary: var(--adm-text-subtle);
+  --adm-bg-hover: var(--adm-bg-surface-subtle);
+  --adm-bg-subtle: var(--adm-bg-surface-muted);
+  --adm-radius-pill: 9999px;
+  --adm-btn-primary-bg: var(--adm-primary);
+  --adm-btn-primary-text: var(--adm-primary-contrast);
+  --adm-badge-green-bg: var(--adm-success-subtle);
+  --adm-badge-green-text: var(--adm-success);
+  --adm-badge-amber-bg: var(--adm-warning-subtle);
+  --adm-badge-amber-text: var(--adm-warning);
+  --adm-badge-red-bg: var(--adm-danger-subtle);
+  --adm-badge-red-text: var(--adm-danger);
+  --adm-badge-blue-bg: var(--adm-accent-subtle);
+  --adm-badge-blue-text: var(--adm-accent);
+}
+
+/* ============================================================
+   2. SCOPED RESET & FOUNDATIONAL RULES (.admin-scope)
+   ============================================================ */
+.admin-scope {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  background-color: var(--adm-bg-canvas);
+  color: var(--adm-text-main);
+  font-family: var(--adm-font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.admin-scope *,
+.admin-scope *::before,
+.admin-scope *::after {
+  box-sizing: border-box;
+}
+
+/* Scoped interactive elements normalization (Zero-specificity :where() prevents overriding component styles) */
+.admin-scope :where(button, input, select, textarea) {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.admin-scope a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Headings within admin */
+.admin-scope h1,
+.admin-scope h2,
+.admin-scope h3,
+.admin-scope h4,
+.admin-scope h5,
+.admin-scope h6 {
+  font-family: var(--adm-font-display);
+  color: var(--adm-text-main);
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 0;
+}
+
+/* Custom Scrollbar for admin panel */
+.admin-scope ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.admin-scope ::-webkit-scrollbar-track {
+  background: transparent;
+}
+.admin-scope ::-webkit-scrollbar-thumb {
+  background: var(--adm-border-strong);
+  border-radius: var(--adm-radius-full);
+}
+.admin-scope ::-webkit-scrollbar-thumb:hover {
+  background: var(--adm-text-muted);
+}
+
+/* Focus outline accessibility */
+.admin-scope :focus-visible {
+  outline: 2px solid var(--adm-border-focus);
+  outline-offset: 2px;
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .admin-scope *,
+  .admin-scope *::before,
+  .admin-scope *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

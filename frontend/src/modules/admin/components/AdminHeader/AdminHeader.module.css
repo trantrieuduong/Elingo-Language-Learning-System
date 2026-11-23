@@ -1,0 +1,351 @@
+.header {
+  height: var(--adm-header-height);
+  background: var(--adm-header-bg);
+  border-bottom: 1px solid var(--adm-header-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  transition:
+    background var(--adm-transition-fast),
+    border-color var(--adm-transition-fast);
+}
+
+.menuBtn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--adm-text-main);
+  padding: 6px;
+  cursor: pointer;
+  border-radius: var(--adm-radius-sm);
+  margin-right: 12px;
+}
+
+/* Dynamic Interactive Breadcrumb */
+.breadcrumbNav {
+  display: flex;
+  align-items: center;
+  overflow-x: auto;
+  max-width: 50vw;
+}
+
+.breadcrumbList {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.breadcrumbItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.breadcrumbDivider {
+  color: var(--adm-border-strong);
+  font-size: 11px;
+  user-select: none;
+  padding: 0 2px;
+}
+
+.breadcrumbBtn {
+  background: transparent;
+  border: none;
+  color: var(--adm-text-subtle);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: var(--adm-radius-xs);
+  transition: all var(--adm-transition-fast);
+  display: inline-flex;
+  align-items: center;
+}
+
+.breadcrumbBtn:hover {
+  background: var(--adm-bg-surface-subtle);
+  color: var(--adm-text-main);
+}
+
+.breadcrumbCurrent {
+  color: var(--adm-text-main);
+  font-weight: 600;
+  cursor: default;
+  user-select: text;
+}
+
+.breadcrumbCurrent:hover {
+  background: transparent;
+}
+
+/* Actions Group */
+.actionGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--adm-bg-surface-subtle);
+  border: 1px solid var(--adm-border);
+  color: var(--adm-text-muted);
+  border-radius: var(--adm-radius-sm);
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--adm-transition-fast);
+}
+
+.iconBtn:hover {
+  background: var(--adm-bg-surface-muted);
+  color: var(--adm-text-main);
+  border-color: var(--adm-border-strong);
+}
+
+.langLabel {
+  letter-spacing: 0.05em;
+}
+
+.divider {
+  width: 1px;
+  height: 20px;
+  background: var(--adm-border);
+}
+
+/* ── Admin Identity Chip & Dropdown Container ── */
+.chipWrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.adminProfileChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 4px 6px;
+  background: var(--adm-bg-surface-subtle);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-full);
+  color: var(--adm-text-main);
+  cursor: pointer;
+  transition: all var(--adm-transition-fast);
+  outline: none;
+}
+
+.adminProfileChip:hover {
+  background: var(--adm-bg-surface-muted);
+  border-color: var(--adm-border-strong);
+}
+
+.adminProfileChip.chipActive {
+  background: var(--adm-bg-surface-muted);
+  border-color: var(--adm-border-focus);
+  box-shadow: 0 0 0 2px var(--adm-accent-subtle);
+}
+
+.adminAvatarBox {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--adm-radius-full);
+  background: var(--adm-primary);
+  color: var(--adm-primary-contrast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.adminAvatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.adminAvatarText {
+  font-family: var(--adm-font-display);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--adm-primary-contrast);
+}
+
+.adminNameText {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--adm-text-main);
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevronIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--adm-text-subtle);
+  transition: transform var(--adm-transition-fast);
+}
+
+.chevronRotated {
+  transform: rotate(180deg);
+}
+
+/* ── Profile Dropdown Menu ── */
+.profileDropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 230px;
+  background: var(--adm-bg-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-md);
+  box-shadow: var(--adm-shadow-md);
+  padding: 8px 6px;
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  animation: dropdownFadeIn 0.15s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdownUserInfo {
+  padding: 8px 10px 6px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.dropdownUserName {
+  font-family: var(--adm-font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--adm-text-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dropdownUserEmail {
+  font-size: 11px;
+  color: var(--adm-text-subtle);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dropdownUserRoleBadge {
+  display: inline-block;
+  align-self: flex-start;
+  margin-top: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: var(--adm-radius-full);
+  background: var(--adm-accent-subtle);
+  color: var(--adm-accent);
+  letter-spacing: 0.02em;
+}
+
+.dropdownDivider {
+  height: 1px;
+  background: var(--adm-border-subtle);
+  margin: 4px 0;
+}
+
+.dropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  background: transparent;
+  border: none;
+  border-radius: var(--adm-radius-xs);
+  color: var(--adm-text-main);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--adm-transition-fast);
+}
+
+.dropdownItem:hover {
+  background: var(--adm-bg-surface-subtle);
+  color: var(--adm-text-main);
+}
+
+.dropdownItem.dangerItem {
+  color: var(--adm-danger);
+}
+
+.dropdownItem.dangerItem:hover {
+  background: var(--adm-danger-subtle);
+  color: var(--adm-danger-hover);
+}
+
+.itemIcon {
+  flex-shrink: 0;
+  color: inherit;
+}
+
+@media (max-width: 1024px) {
+  .menuBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .breadcrumbNav {
+    display: none !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .header {
+    padding: 0 14px;
+  }
+  .actionGroup {
+    gap: 6px;
+  }
+  .iconBtn {
+    padding: 6px 8px;
+  }
+  .adminProfileChip {
+    padding: 4px 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .adminNameText {
+    max-width: 75px;
+  }
+}

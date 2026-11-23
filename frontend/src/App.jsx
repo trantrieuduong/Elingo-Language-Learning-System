@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
@@ -26,10 +26,17 @@ import PremiumListPage from './modules/premium/pages/PremiumListPage/PremiumList
 import MySubscriptionPage from './modules/premium/pages/MySubscriptionPage/MySubscriptionPage';
 import BattleHistoryPage from './modules/battle/pages/BattleHistoryPage';
 import BattleMatchDetailPage from './modules/battle/pages/BattleMatchDetailPage';
+import { SpeakingSocketProvider } from './modules/speaking/context/SpeakingSocketContext';
+import { SpeakingRoomProvider } from './modules/speaking/context/SpeakingRoomContext';
+import SpeakingLobbyPage from './modules/speaking/pages/SpeakingLobbyPage';
+import SpeakingRoomPage from './modules/speaking/pages/SpeakingRoomPage';
+import SpeakingHistoryPage from './modules/speaking/pages/SpeakingHistoryPage';
 import ReportPage from './modules/report/pages/ReportPage';
 import MyProfilePage from './modules/user/pages/MyProfilePage';
 import UserProfilePage from './modules/user/pages/UserProfilePage';
 import './App.css';
+
+const AdminRoutes = lazy(() => import('./modules/admin/routes'));
 
 const AUTH_PATHS = ['/login', '/signup', '/account-verification', '/reset-password'];
 
@@ -38,6 +45,7 @@ const PRIVATE_USER_PATHS = [
   '/review',
   '/battle',
   '/speaking',
+  '/speaking/history',
   '/community',
   '/community/groups',
   '/community/my-posts',
@@ -69,6 +77,7 @@ function App() {
   const shadowingMatch = currentPath.match(/^\/lessons\/shadowing\/([^/]+)$/);
   const battlePlayMatch = currentPath.match(/^\/battle\/play\/(\d+)$/);
   const battleDetailMatch = currentPath.match(/^\/battle\/history\/(\d+)$/);
+  const speakingRoomMatch = currentPath.match(/^\/speaking\/room\/([A-Za-z0-9]{6})$/);
   const deckTopicsMatch = currentPath.match(/^\/decks\/([^/]+)\/topics$/);
   const postDetailMatch = currentPath.match(/^\/community\/posts\/(\d+)$/);
   const userProfileMatch = currentPath.match(/^\/profile\/([^/]+)$/);
@@ -80,6 +89,7 @@ function App() {
     !!deckTopicsMatch ||
     !!dictationMatch ||
     !!shadowingMatch ||
+    !!speakingRoomMatch ||
     !!userProfileMatch;
 
   useEffect(() => {
@@ -101,11 +111,6 @@ function App() {
 
     if (user && isAdminPath && !isAdmin) {
       navigate('/dashboard');
-      return;
-    }
-
-    if (user && isAdmin && !isAdminPath) {
-      navigate('/admin');
     }
   }, [currentPath, user, loading, isPrivateUserPath]);
 
@@ -135,21 +140,21 @@ function App() {
 
   const renderAdminContent = () => {
     return (
-      <main className="placeholder-page">
-        <div className="placeholder-page__card glass-card">
-          <span className="material-symbols-outlined placeholder-page__icon">
-            admin_panel_settings
-          </span>
-          <h1 className="text-headline-md">Admin area</h1>
-          <p className="text-body-md text-disabled">
-            This module is outside the current implementation scope.
-          </p>
-        </div>
-      </main>
+      <Suspense
+        fallback={
+          <div className="app-loading-screen">
+            <div className="app-loading-spinner" />
+          </div>
+        }
+      >
+        <AdminRoutes currentPath={currentPath} onNavigate={navigate} />
+      </Suspense>
     );
   };
 
   const renderBattle = (page) => <BattleSocketProvider>{page}</BattleSocketProvider>;
+  const renderSpeaking = (page) => <SpeakingSocketProvider>{page}</SpeakingSocketProvider>;
+  const renderSpeakingRoom = (page) => <SpeakingRoomProvider>{page}</SpeakingRoomProvider>;
 
   const renderContent = () => {
     if (postDetailMatch) {
@@ -162,19 +167,20 @@ function App() {
           )}
           onNavigate={navigate}
         />
-    )}
-    if (battleDetailMatch) {
-      return (
-        <BattleMatchDetailPage
-          matchId={battleDetailMatch[1]}
-          onNavigate={navigate}
-        />
       );
+    }
+    if (battleDetailMatch) {
+      return <BattleMatchDetailPage matchId={battleDetailMatch[1]} onNavigate={navigate} />;
     }
 
     if (battlePlayMatch) {
-      return renderBattle(
-        <BattlePlayPage matchId={battlePlayMatch[1]} onNavigate={navigate} />
+      return renderBattle(<BattlePlayPage matchId={battlePlayMatch[1]} onNavigate={navigate} />);
+    }
+
+    if (speakingRoomMatch) {
+      const code = speakingRoomMatch[1].toUpperCase();
+      return renderSpeakingRoom(
+        <SpeakingRoomPage key={code} roomCode={code} onNavigate={navigate} />
       );
     }
 
@@ -234,7 +240,9 @@ function App() {
       case '/battle/history':
         return <BattleHistoryPage onNavigate={navigate} />;
       case '/speaking':
-        return <PlaceholderPage title="Speaking" path={currentPath} />;
+        return renderSpeaking(<SpeakingLobbyPage onNavigate={navigate} />);
+      case '/speaking/history':
+        return renderSpeaking(<SpeakingHistoryPage onNavigate={navigate} />);
       case '/community':
         return (
           <CommunityFeedPage

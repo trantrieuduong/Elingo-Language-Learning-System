@@ -1,5 +1,8 @@
 package com.elingo.user.service;
 
+import com.elingo.admin.users.dto.request.AdminUserSearchRequest;
+import com.elingo.admin.users.dto.response.AdminUserResponse;
+import com.elingo.common.dto.PageResponse;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.common.service.EmailService;
@@ -27,6 +30,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
@@ -439,7 +447,7 @@ class UserServiceTest {
         void getUserById_OtherUser_ReturnsUserPublicResponse() {
             Long otherUserId = 2L;
             UserPublicResponse expectedResponse = new UserPublicResponse(
-                    USER_ID, USERNAME, FULL_NAME, null, Role.USER);
+                    USER_ID, USERNAME, FULL_NAME, null);
             when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
             when(userMapper.toUserPublicResponse(testUser)).thenReturn(expectedResponse);
 
@@ -828,6 +836,357 @@ class UserServiceTest {
             assertThat(testUser.getAvatarUrl()).isEqualTo(OLD_UPLOADS_KEY);
             verifyNoInteractions(publisher);
             verify(userMapper, never()).updateUser(any(), any());
+        }
+    }
+
+    // ========================================================================
+    // User Statistics Queries Tests
+    // ========================================================================
+    @Nested
+    @DisplayName("User Statistics Queries Tests")
+    class UserStatsQueriesTests {
+
+        private final LocalDateTime from = LocalDateTime.of(2026, 11, 1, 0, 0);
+        private final LocalDateTime to = LocalDateTime.of(2026, 11, 5, 23, 59, 59);
+
+        @Test
+        @DisplayName("countNewUsers should delegate to countNewUsersByDay for DAY granularity")
+        void countNewUsers_Day_CallsRepository() {
+            UserRepository.NewUserStats stat = org.mockito.Mockito.mock(UserRepository.NewUserStats.class);
+            when(userRepository.countNewUsersByDay(from, to)).thenReturn(List.of(stat));
+
+            List<UserRepository.NewUserStats> result = userService.countNewUsers(from, to, com.elingo.common.enums.StatsGranularity.DAY);
+
+            assertThat(result).hasSize(1).contains(stat);
+            verify(userRepository).countNewUsersByDay(from, to);
+        }
+
+        @Test
+        @DisplayName("countNewUsers should delegate to countNewUsersByWeek for WEEK granularity")
+        void countNewUsers_Week_CallsRepository() {
+            UserRepository.NewUserStats stat = org.mockito.Mockito.mock(UserRepository.NewUserStats.class);
+            when(userRepository.countNewUsersByWeek(from, to)).thenReturn(List.of(stat));
+
+            List<UserRepository.NewUserStats> result = userService.countNewUsers(from, to, com.elingo.common.enums.StatsGranularity.WEEK);
+
+            assertThat(result).hasSize(1).contains(stat);
+            verify(userRepository).countNewUsersByWeek(from, to);
+        }
+
+        @Test
+        @DisplayName("countNewUsers should delegate to countNewUsersByMonth for MONTH granularity")
+        void countNewUsers_Month_CallsRepository() {
+            UserRepository.NewUserStats stat = org.mockito.Mockito.mock(UserRepository.NewUserStats.class);
+            when(userRepository.countNewUsersByMonth(from, to)).thenReturn(List.of(stat));
+
+            List<UserRepository.NewUserStats> result = userService.countNewUsers(from, to, com.elingo.common.enums.StatsGranularity.MONTH);
+
+            assertThat(result).hasSize(1).contains(stat);
+            verify(userRepository).countNewUsersByMonth(from, to);
+        }
+
+        @Test
+        @DisplayName("countTotalUsers should delegate to userRepository.count")
+        void countTotalUsers_CallsRepository() {
+            when(userRepository.count()).thenReturn(100L);
+
+            assertThat(userService.countTotalUsers()).isEqualTo(100L);
+            verify(userRepository).count();
+        }
+
+        @Test
+        @DisplayName("countVerifiedUsers should delegate to userRepository.countByIsVerified")
+        void countVerifiedUsers_CallsRepository() {
+            when(userRepository.countByIsVerified(true)).thenReturn(80L);
+
+            assertThat(userService.countVerifiedUsers()).isEqualTo(80L);
+            verify(userRepository).countByIsVerified(true);
+        }
+
+        @Test
+        @DisplayName("countActiveUsers should delegate to userRepository.countByIsActive")
+        void countActiveUsers_CallsRepository() {
+            when(userRepository.countByIsActive(true)).thenReturn(90L);
+
+            assertThat(userService.countActiveUsers()).isEqualTo(90L);
+            verify(userRepository).countByIsActive(true);
+        }
+
+        @Test
+        @DisplayName("countUsersBefore should delegate to userRepository.countByCreatedAtBefore")
+        void countUsersBefore_CallsRepository() {
+            when(userRepository.countByCreatedAtBefore(from)).thenReturn(50L);
+
+            assertThat(userService.countUsersBefore(from)).isEqualTo(50L);
+            verify(userRepository).countByCreatedAtBefore(from);
+        }
+    }
+
+    @Nested
+    @DisplayName("Admin User Management Tests")
+    class AdminUserManagementTests {
+
+        private static final Long ADMIN_ID = 1L;
+        private static final Long TARGET_USER_ID = 2L;
+
+        private AdminUserResponse sampleAdminUserResponse(Long id, boolean active) {
+            return new AdminUserResponse(
+                    id,
+                    "target_user",
+                    "target@example.com",
+                    "Target User",
+                    "avatar.png",
+                    Role.USER,
+                    true,
+                    active,
+                    null,
+                    null,
+                    true,
+                    false
+            );
+        }
+
+        @Nested
+        @DisplayName("searchUsersForAdmin Tests")
+        class SearchUsersForAdminTests {
+
+            @Test
+            @DisplayName("Should query repository with specification and return PageResponse")
+            @SuppressWarnings("unchecked")
+            void searchUsersForAdmin_Success() {
+                AdminUserSearchRequest request = new AdminUserSearchRequest(
+                        "target",
+                        Role.USER,
+                        true,
+                        true,
+                        null,
+                        null
+                );
+                Pageable pageable = PageRequest.of(0, 10);
+                User user = User.builder()
+                        .id(TARGET_USER_ID)
+                        .username("target_user")
+                        .email("target@example.com")
+                        .fullName("Target User")
+                        .role(Role.USER)
+                        .isActive(true)
+                        .build();
+                Page<User> page = new PageImpl<>(List.of(user), pageable, 1);
+                AdminUserResponse userResponse = sampleAdminUserResponse(TARGET_USER_ID, true);
+
+                when(userRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
+                when(userMapper.toAdminUserResponse(user)).thenReturn(userResponse);
+
+                PageResponse<AdminUserResponse> result = userService.searchUsersForAdmin(request, pageable);
+
+                assertThat(result).isNotNull();
+                assertThat(result.content()).hasSize(1);
+                assertThat(result.content().getFirst().username()).isEqualTo("target_user");
+                assertThat(result.totalElements()).isEqualTo(1L);
+                verify(userRepository).findAll(any(Specification.class), eq(pageable));
+            }
+        }
+
+        @Nested
+        @DisplayName("getById Tests")
+        class GetByIdTests {
+
+            @Test
+            @DisplayName("Should return AdminUserResponse when user exists")
+            void getById_WhenUserExists_ReturnsResponse() {
+                User user = User.builder().id(TARGET_USER_ID).username("target_user").build();
+                AdminUserResponse expected = sampleAdminUserResponse(TARGET_USER_ID, true);
+
+                when(userRepository.findById(TARGET_USER_ID)).thenReturn(Optional.of(user));
+                when(userMapper.toAdminUserResponse(user)).thenReturn(expected);
+
+                AdminUserResponse result = userService.getById(TARGET_USER_ID);
+
+                assertThat(result).isNotNull();
+                assertThat(result.id()).isEqualTo(TARGET_USER_ID);
+                verify(userRepository).findById(TARGET_USER_ID);
+            }
+
+            @Test
+            @DisplayName("Should throw USER_NOT_FOUND when user does not exist")
+            void getById_WhenUserNotFound_ThrowsException() {
+                when(userRepository.findById(999L)).thenReturn(Optional.empty());
+
+                assertThatThrownBy(() -> userService.getById(999L))
+                        .isInstanceOf(AppException.class)
+                        .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.USER_NOT_FOUND));
+            }
+        }
+
+        @Nested
+        @DisplayName("lockUser Tests")
+        class LockUserTests {
+
+            @Test
+            @DisplayName("Should lock user successfully, set inactive and update ban reason")
+            void lockUser_Success() {
+                User user = User.builder()
+                        .id(TARGET_USER_ID)
+                        .role(Role.USER)
+                        .isActive(true)
+                        .build();
+                AdminUserResponse expected = sampleAdminUserResponse(TARGET_USER_ID, false);
+
+                when(userRepository.findById(TARGET_USER_ID)).thenReturn(Optional.of(user));
+                when(userMapper.toAdminUserResponse(user)).thenReturn(expected);
+
+                AdminUserResponse result = userService.lockUser(ADMIN_ID, TARGET_USER_ID, "Violation of rules");
+
+                assertThat(result).isNotNull();
+                assertThat(user.getIsActive()).isFalse();
+                assertThat(user.getBanReason()).isEqualTo("Violation of rules");
+                verify(userRepository).findById(TARGET_USER_ID);
+            }
+
+            @Test
+            @DisplayName("Should throw CANNOT_MODIFY_SELF when admin tries to lock self")
+            void lockUser_WhenAdminLocksSelf_ThrowsCannotModifySelf() {
+                assertThatThrownBy(() -> userService.lockUser(ADMIN_ID, ADMIN_ID, "Self lock reason"))
+                        .isInstanceOf(AppException.class)
+                        .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.CANNOT_MODIFY_SELF));
+                verify(userRepository, never()).findById(any());
+            }
+
+            @Test
+            @DisplayName("Should throw CANNOT_MODIFY_ADMIN when target user is an administrator")
+            void lockUser_WhenTargetUserIsAdmin_ThrowsCannotModifyAdmin() {
+                User adminTarget = User.builder()
+                        .id(TARGET_USER_ID)
+                        .role(Role.ADMIN)
+                        .isActive(true)
+                        .build();
+
+                when(userRepository.findById(TARGET_USER_ID)).thenReturn(Optional.of(adminTarget));
+
+                assertThatThrownBy(() -> userService.lockUser(ADMIN_ID, TARGET_USER_ID, "Lock reason"))
+                        .isInstanceOf(AppException.class)
+                        .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.CANNOT_MODIFY_ADMIN));
+            }
+
+            @Test
+            @DisplayName("Should throw USER_INACTIVE when target user is already inactive")
+            void lockUser_WhenUserAlreadyInactive_ThrowsUserInactive() {
+                User inactiveUser = User.builder()
+                        .id(TARGET_USER_ID)
+                        .role(Role.USER)
+                        .isActive(false)
+                        .build();
+
+                when(userRepository.findById(TARGET_USER_ID)).thenReturn(Optional.of(inactiveUser));
+
+                assertThatThrownBy(() -> userService.lockUser(ADMIN_ID, TARGET_USER_ID, "Lock reason"))
+                        .isInstanceOf(AppException.class)
+                        .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.USER_INACTIVE));
+            }
+
+            @Test
+            @DisplayName("Should throw INVALID_REQUEST when lock reason is blank or null")
+            void lockUser_WhenReasonIsBlank_ThrowsInvalidRequest() {
+                User activeUser = User.builder()
+                        .id(TARGET_USER_ID)
+                        .role(Role.USER)
+                        .isActive(true)
+                        .build();
+
+                when(userRepository.findById(TARGET_USER_ID)).thenReturn(Optional.of(activeUser));
+
+                assertThatThrownBy(() -> userService.lockUser(ADMIN_ID, TARGET_USER_ID, "   "))
+                        .isInstanceOf(AppException.class)
+                        .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.INVALID_REQUEST));
+            }
+
+            @Test
+            @DisplayName("Should throw USER_NOT_FOUND when target user does not exist")
+            void lockUser_WhenUserNotFound_ThrowsUserNotFound() {
+                when(userRepository.findById(999L)).thenReturn(Optional.empty());
+
+                assertThatThrownBy(() -> userService.lockUser(ADMIN_ID, 999L, "Lock reason"))
+                        .isInstanceOf(AppException.class)
+                        .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.USER_NOT_FOUND));
+            }
+        }
+
+        @Nested
+        @DisplayName("unlockUser Tests")
+        class UnlockUserTests {
+
+            @Test
+            @DisplayName("Should unlock user successfully, set active and clear ban reason")
+            void unlockUser_Success() {
+                User lockedUser = User.builder()
+                        .id(TARGET_USER_ID)
+                        .role(Role.USER)
+                        .isActive(false)
+                        .banReason("Old reason")
+                        .build();
+                AdminUserResponse expected = sampleAdminUserResponse(TARGET_USER_ID, true);
+
+                when(userRepository.findById(TARGET_USER_ID)).thenReturn(Optional.of(lockedUser));
+                when(userMapper.toAdminUserResponse(lockedUser)).thenReturn(expected);
+
+                AdminUserResponse result = userService.unlockUser(ADMIN_ID, TARGET_USER_ID);
+
+                assertThat(result).isNotNull();
+                assertThat(lockedUser.getIsActive()).isTrue();
+                assertThat(lockedUser.getBanReason()).isNull();
+                verify(userRepository).findById(TARGET_USER_ID);
+            }
+
+            @Test
+            @DisplayName("Should throw CANNOT_MODIFY_SELF when admin tries to unlock self")
+            void unlockUser_WhenAdminUnlocksSelf_ThrowsCannotModifySelf() {
+                assertThatThrownBy(() -> userService.unlockUser(ADMIN_ID, ADMIN_ID))
+                        .isInstanceOf(AppException.class)
+                        .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.CANNOT_MODIFY_SELF));
+                verify(userRepository, never()).findById(any());
+            }
+
+            @Test
+            @DisplayName("Should throw CANNOT_MODIFY_ADMIN when target user is an administrator")
+            void unlockUser_WhenTargetUserIsAdmin_ThrowsCannotModifyAdmin() {
+                User adminTarget = User.builder()
+                        .id(TARGET_USER_ID)
+                        .role(Role.ADMIN)
+                        .isActive(false)
+                        .build();
+
+                when(userRepository.findById(TARGET_USER_ID)).thenReturn(Optional.of(adminTarget));
+
+                assertThatThrownBy(() -> userService.unlockUser(ADMIN_ID, TARGET_USER_ID))
+                        .isInstanceOf(AppException.class)
+                        .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.CANNOT_MODIFY_ADMIN));
+            }
+
+            @Test
+            @DisplayName("Should throw USER_ALREADY_ACTIVE when target user is already active")
+            void unlockUser_WhenUserAlreadyActive_ThrowsUserAlreadyActive() {
+                User activeUser = User.builder()
+                        .id(TARGET_USER_ID)
+                        .role(Role.USER)
+                        .isActive(true)
+                        .build();
+
+                when(userRepository.findById(TARGET_USER_ID)).thenReturn(Optional.of(activeUser));
+
+                assertThatThrownBy(() -> userService.unlockUser(ADMIN_ID, TARGET_USER_ID))
+                        .isInstanceOf(AppException.class)
+                        .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.USER_ALREADY_ACTIVE));
+            }
+
+            @Test
+            @DisplayName("Should throw USER_NOT_FOUND when target user does not exist")
+            void unlockUser_WhenUserNotFound_ThrowsUserNotFound() {
+                when(userRepository.findById(999L)).thenReturn(Optional.empty());
+
+                assertThatThrownBy(() -> userService.unlockUser(ADMIN_ID, 999L))
+                        .isInstanceOf(AppException.class)
+                        .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.USER_NOT_FOUND));
+            }
         }
     }
 }

@@ -29,6 +29,121 @@ const MATCH_TYPE_FILTERS = [
   { key: 'ROOM', labelKey: 'history.matchType.ROOM' },
 ];
 
+const BADGE_CLASSES = {
+  WIN: 'battle-history-badge--win',
+  LOSE: 'battle-history-badge--lose',
+  DRAW: 'battle-history-badge--draw',
+};
+
+const getBadgeClass = (result) => BADGE_CLASSES[result] || BADGE_CLASSES.DRAW;
+
+const BattleHistoryItem = ({ item, i18n, onNavigate, t }) => {
+  const opponent = item.opponent;
+  const opponentName = opponent?.displayName || t('play.opponentFallback');
+  const dateText = item.finishedAt
+    ? new Date(item.finishedAt).toLocaleString(i18n.language)
+    : '';
+
+  return (
+    <button
+      key={item.matchId}
+      type="button"
+      className="battle-history-item glass-card"
+      onClick={() => onNavigate(`/battle/history/${item.matchId}`)}
+      aria-label={`${t('history.title')} #${item.matchId}`}
+    >
+      <div className="battle-history-item__left">
+        <BattleAvatar name={opponentName} avatarUrl={opponent?.avatarUrl} size="md" />
+        <div className="battle-history-item__info">
+          <div className="battle-history-item__opponent-line">
+            <span className="text-title-sm battle-history-item__opponent-name">{opponentName}</span>
+            <div className="battle-history-item__chips">
+              <span className="battle-chip text-label-xs">
+                {t(item.mode === 'MULTIPLE_CHOICE' ? 'mode.multipleChoice' : 'mode.typing')}
+              </span>
+              <span className="battle-chip text-label-xs">
+                {t(item.matchType === 'ROOM' ? 'history.matchType.ROOM' : 'history.matchType.RANDOM')}
+              </span>
+            </div>
+          </div>
+          <div className="battle-history-item__date-row">
+            <span className="material-symbols-outlined battle-history-item__date-icon">schedule</span>
+            <span>{dateText}</span>
+          </div>
+        </div>
+      </div>
+      <div className="battle-history-item__right">
+        <div className="battle-history-item__score text-title-md">
+          <span className="battle-history-item__my-score">{item.myScore}</span>
+          <span className="text-disabled"> - </span>
+          <span className="battle-history-item__opp-score">{item.opponentScore}</span>
+        </div>
+        <span className={`battle-history-badge text-label-sm ${getBadgeClass(item.result)}`}>
+          {t(`history.result.${item.result}`)}
+        </span>
+        <span className="material-symbols-outlined battle-history-item__arrow">chevron_right</span>
+      </div>
+    </button>
+  );
+};
+
+const BattleHistoryContent = ({
+  error,
+  handleClearFilters,
+  handlePageChange,
+  historyList,
+  i18n,
+  isFiltered,
+  loading,
+  onNavigate,
+  page,
+  setRetryCount,
+  t,
+  totalPages,
+}) => {
+  if (loading) {
+    return <div className="battle-history-loading"><PageLoading /></div>;
+  }
+
+  if (error) {
+    return (
+      <div className="battle-history-error glass-card">
+        <span className="material-symbols-outlined battle-history-error__icon">error</span>
+        <p className="text-body-md text-error">{error}</p>
+        <button type="button" className="btn-secondary" onClick={() => setRetryCount((prev) => prev + 1)}>
+          {t('history.retry')}
+        </button>
+      </div>
+    );
+  }
+
+  if (historyList.length === 0) {
+    return (
+      <EmptyState
+        icon="history"
+        title={t('history.emptyTitle')}
+        description={isFiltered ? t('history.emptyFiltered') : t('history.empty')}
+        actionLabel={isFiltered ? t('history.clearFilters') : undefined}
+        onAction={isFiltered ? handleClearFilters : undefined}
+        actionVariant="primary"
+      />
+    );
+  }
+
+  return (
+    <div className="battle-history-list">
+      {historyList.map((item) => (
+        <BattleHistoryItem key={item.matchId} item={item} i18n={i18n} onNavigate={onNavigate} t={t} />
+      ))}
+      {totalPages > 1 && (
+        <div className="battle-history-pagination">
+          <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} />
+        </div>
+      )}
+    </div>
+  );
+};
+
 const BattleHistoryPage = ({ onNavigate }) => {
   const { t, i18n } = useTranslation('battle');
   const { user } = useAuth();
@@ -242,137 +357,20 @@ const BattleHistoryPage = ({ onNavigate }) => {
           </div>
 
           {/* 3. Danh sách trận đấu */}
-          {loading ? (
-            <div className="battle-history-loading">
-              <PageLoading />
-            </div>
-          ) : error ? (
-            <div className="battle-history-error glass-card">
-              <span className="material-symbols-outlined battle-history-error__icon">
-                error
-              </span>
-              <p className="text-body-md text-error">{error}</p>
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={() => setRetryCount((prev) => prev + 1)}
-              >
-                {t('history.retry')}
-              </button>
-            </div>
-          ) : historyList.length === 0 ? (
-            <EmptyState
-              icon="history"
-              title={t('history.emptyTitle')}
-              description={
-                isFiltered
-                  ? t('history.emptyFiltered')
-                  : t('history.empty')
-              }
-              actionLabel={isFiltered ? t('history.clearFilters') : undefined}
-              onAction={isFiltered ? handleClearFilters : undefined}
-              actionVariant="primary"
-            />
-          ) : (
-            <div className="battle-history-list">
-              {historyList.map((item) => {
-                const opponent = item.opponent;
-                const opponentName =
-                  opponent?.displayName || t('play.opponentFallback');
-                const isWin = item.result === 'WIN';
-                const isLose = item.result === 'LOSE';
-                const isDraw = item.result === 'DRAW';
-
-                const badgeClass = isWin
-                  ? 'battle-history-badge--win'
-                  : isLose
-                    ? 'battle-history-badge--lose'
-                    : 'battle-history-badge--draw';
-
-                const dateText = item.finishedAt
-                  ? new Date(item.finishedAt).toLocaleString(i18n.language)
-                  : '';
-
-                return (
-                  <button
-                    key={item.matchId}
-                    type="button"
-                    className="battle-history-item glass-card"
-                    onClick={() => onNavigate(`/battle/history/${item.matchId}`)}
-                    aria-label={`${t('history.title')} #${item.matchId}`}
-                  >
-                    <div className="battle-history-item__left">
-                      <BattleAvatar
-                        name={opponentName}
-                        avatarUrl={opponent?.avatarUrl}
-                        size="md"
-                      />
-                      <div className="battle-history-item__info">
-                        <div className="battle-history-item__opponent-line">
-                          <span className="text-title-sm battle-history-item__opponent-name">
-                            {opponentName}
-                          </span>
-                          <div className="battle-history-item__chips">
-                            <span className="battle-chip text-label-xs">
-                              {t(
-                                item.mode === 'MULTIPLE_CHOICE'
-                                  ? 'mode.multipleChoice'
-                                  : 'mode.typing'
-                              )}
-                            </span>
-                            <span className="battle-chip text-label-xs">
-                              {t(
-                                item.matchType === 'ROOM'
-                                  ? 'history.matchType.ROOM'
-                                  : 'history.matchType.RANDOM'
-                              )}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="battle-history-item__date-row">
-                          <span className="material-symbols-outlined battle-history-item__date-icon">
-                            schedule
-                          </span>
-                          <span>{dateText}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="battle-history-item__right">
-                      <div className="battle-history-item__score text-title-md">
-                        <span className="battle-history-item__my-score">
-                          {item.myScore}
-                        </span>
-                        <span className="text-disabled"> - </span>
-                        <span className="battle-history-item__opp-score">
-                          {item.opponentScore}
-                        </span>
-                      </div>
-                      <span
-                        className={`battle-history-badge text-label-sm ${badgeClass}`}
-                      >
-                        {t(`history.result.${item.result}`)}
-                      </span>
-                      <span className="material-symbols-outlined battle-history-item__arrow">
-                        chevron_right
-                      </span>
-                    </div>
-                  </button>
-                );
-              })}
-
-              {/* Phân trang */}
-              {totalPages > 1 && (
-                <div className="battle-history-pagination">
-                  <Pagination
-                    currentPage={page}
-                    totalPages={totalPages}
-                    onPageChange={handlePageChange}
-                  />
-                </div>
-              )}
-            </div>
-          )}
+          <BattleHistoryContent
+            error={error}
+            handleClearFilters={handleClearFilters}
+            handlePageChange={handlePageChange}
+            historyList={historyList}
+            i18n={i18n}
+            isFiltered={isFiltered}
+            loading={loading}
+            onNavigate={onNavigate}
+            page={page}
+            setRetryCount={setRetryCount}
+            t={t}
+            totalPages={totalPages}
+          />
       </div>
     </main>
   );
