@@ -1,6 +1,8 @@
 {
   "editProfile": "Edit profile",
   "updateEmail": "Update email",
+  "setPassword": "Set password",
+  "changePassword": "Change password",
   "report": "Report",
   "options": "User options",
   "userNotFoundTitle": "User not found",
@@ -39,5 +41,24 @@
     "errorEmailInvalid": "Email format is invalid.",
     "errorOtpRequired": "OTP code is required.",
     "errorPasswordRequired": "Password confirmation is required."
+  },
+  "setPasswordModal": {
+    "title": "Set password",
+    "description": "Set a password so you can also sign in with your email or username.",
+    "changeTitle": "Change password",
+    "changeDescription": "Enter your current password and choose a new one.",
+    "oldPassword": "Current password",
+    "oldPasswordPlaceholder": "Enter your current password",
+    "oldPasswordRequired": "Current password is required.",
+    "newPassword": "New password",
+    "newPasswordPlaceholder": "Enter new password",
+    "confirmPassword": "Confirm password",
+    "confirmPasswordPlaceholder": "Re-enter new password",
+    "confirmPasswordRequired": "Confirm password is required.",
+    "newPasswordRequired": "New password is required.",
+    "newPasswordInvalidFormat": "Password must have at least 8 characters including uppercase, lowercase, number, and special character.",
+    "confirmPasswordMismatch": "Passwords do not match.",
+    "setPasswordSuccess": "Password set successfully!",
+    "changePasswordSuccess": "Password changed successfully!"
   }
 }

@@ -28,3 +28,13 @@ export const updateEmailApi = async ({ newEmail, newEmailOtp, password }) => {
   });
   return response.data;
 };
+
+export const setPasswordApi = async (newPassword) => {
+  const response = await apiClient.post('/users/me/password', { newPassword });
+  return response.data;
+};
+
+export const changePasswordApi = async ({ oldPassword, newPassword }) => {
+  const response = await apiClient.patch('/users/me/password', { oldPassword, newPassword });
+  return response.data;
+};

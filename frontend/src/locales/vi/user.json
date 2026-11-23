@@ -1,6 +1,8 @@
 {
   "editProfile": "Chỉnh sửa hồ sơ",
   "updateEmail": "Cập nhật email",
+  "setPassword": "Tạo mật khẩu",
+  "changePassword": "Đổi mật khẩu",
   "report": "Báo cáo",
   "options": "Tùy chọn người dùng",
   "userNotFoundTitle": "Không tìm thấy người dùng",
@@ -12,13 +14,13 @@
     "avatarInvalidType": "Chỉ chấp nhận định dạng ảnh {{formats}}.",
     "fullName": "Họ và tên",
     "fullNamePlaceholder": "Nhập họ và tên của bạn",
-    "username": "Tên người dùng",
-    "usernamePlaceholder": "Nhập tên người dùng",
-    "usernameCooldownNote": "Tên người dùng chỉ có thể thay đổi 1 lần mỗi tháng.",
+    "username": "Username",
+    "usernamePlaceholder": "Nhập username",
+    "usernameCooldownNote": "Username chỉ có thể thay đổi 1 lần mỗi tháng.",
     "errorFullNameRequired": "Họ và tên không được để trống.",
     "errorFullNameMaxLength": "Họ và tên không được vượt quá 150 ký tự.",
-    "errorUsernameRequired": "Tên người dùng không được để trống.",
-    "errorUsernameFormat": "Tên người dùng gồm 3-15 ký tự chữ hoặc số, không chứa khoảng trắng hay ký tự đặc biệt.",
+    "errorUsernameRequired": "Username không được để trống.",
+    "errorUsernameFormat": "Username gồm 3-15 ký tự chữ hoặc số, không chứa khoảng trắng hay ký tự đặc biệt.",
     "updateSuccess": "Cập nhật hồ sơ thành công!"
   },
   "updateEmailModal": {
@@ -39,5 +41,24 @@
     "errorEmailInvalid": "Email không đúng định dạng.",
     "errorOtpRequired": "Mã OTP không được để trống.",
     "errorPasswordRequired": "Mật khẩu xác nhận không được để trống."
+  },
+  "setPasswordModal": {
+    "title": "Tạo mật khẩu",
+    "description": "Tạo mật khẩu để có thể đăng nhập bằng email hoặc username.",
+    "changeTitle": "Đổi mật khẩu",
+    "changeDescription": "Nhập mật khẩu hiện tại và mật khẩu mới của bạn.",
+    "oldPassword": "Mật khẩu hiện tại",
+    "oldPasswordPlaceholder": "Nhập mật khẩu hiện tại",
+    "oldPasswordRequired": "Mật khẩu hiện tại không được để trống.",
+    "newPassword": "Mật khẩu mới",
+    "newPasswordPlaceholder": "Nhập mật khẩu mới",
+    "confirmPassword": "Xác nhận mật khẩu",
+    "confirmPasswordPlaceholder": "Nhập lại mật khẩu mới",
+    "confirmPasswordRequired": "Mật khẩu xác nhận không được để trống.",
+    "newPasswordRequired": "Mật khẩu mới không được để trống.",
+    "newPasswordInvalidFormat": "Mật khẩu phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.",
+    "confirmPasswordMismatch": "Mật khẩu xác nhận không khớp.",
+    "setPasswordSuccess": "Tạo mật khẩu thành công!",
+    "changePasswordSuccess": "Đổi mật khẩu thành công!"
   }
 }

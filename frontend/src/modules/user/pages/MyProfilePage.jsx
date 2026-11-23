@@ -8,19 +8,21 @@ import Toast from '../../../components/Toast/Toast';
 import ProfileCard from '../components/ProfileCard/ProfileCard';
 import UpdateProfileModal from '../components/UpdateProfileModal/UpdateProfileModal';
 import UpdateEmailModal from '../components/UpdateEmailModal/UpdateEmailModal';
+import SetPasswordModal from '../components/SetPasswordModal/SetPasswordModal';
 import { getMyProfileApi } from '../profileApi';
 import { useAuth } from '../../../context/AuthContext';
 import './MyProfilePage.css';
 
 function MyProfilePage() {
   const { t } = useTranslation(['user', 'common']);
-  const { setUser } = useAuth();
+  const { updateUser } = useAuth();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isOptionOpen, setIsOptionOpen] = useState(false);
   const [isUpdateProfileOpen, setIsUpdateProfileOpen] = useState(false);
   const [isUpdateEmailOpen, setIsUpdateEmailOpen] = useState(false);
+  const [isSetPasswordOpen, setIsSetPasswordOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
   useEffect(() => {
@@ -61,9 +63,13 @@ function MyProfilePage() {
     setIsUpdateEmailOpen(true);
   };
 
+  const handleOpenSetPassword = () => {
+    setIsSetPasswordOpen(true);
+  };
+
   const handleUpdateProfileSuccess = (updatedData) => {
     setProfile(updatedData);
-    setUser?.(updatedData);
+    updateUser?.(updatedData);
     setToastMessage(t('user:updateProfile.updateSuccess'));
   };
 
@@ -73,8 +79,16 @@ function MyProfilePage() {
 
   const handleUpdateEmailSuccess = (newEmail) => {
     setProfile((prev) => (prev ? { ...prev, email: newEmail } : prev));
-    setUser?.((prev) => (prev ? { ...prev, email: newEmail } : prev));
+    updateUser?.({ email: newEmail });
     setToastMessage(t('user:updateEmailModal.updateEmailSuccess'));
+  };
+
+  const handleSetPasswordSuccess = () => {
+    setProfile((prev) => (prev ? { ...prev, hasPassword: true } : prev));
+    updateUser?.({ hasPassword: true });
+    setToastMessage(t(profile.hasPassword
+      ? 'user:setPasswordModal.changePasswordSuccess'
+      : 'user:setPasswordModal.setPasswordSuccess'));
   };
 
   const options = [
@@ -90,6 +104,19 @@ function MyProfilePage() {
       icon: 'mail',
       onSelect: handleOpenUpdateEmail,
     },
+    ...(profile?.hasPassword
+      ? [{
+          id: 'change-password',
+          label: t('user:changePassword'),
+          icon: 'lock_reset',
+          onSelect: handleOpenSetPassword,
+        }]
+      : [{
+          id: 'set-password',
+          label: t('user:setPassword'),
+          icon: 'lock',
+          onSelect: handleOpenSetPassword,
+        }]),
   ];
 
   if (loading) {
@@ -141,6 +168,13 @@ function MyProfilePage() {
         onClose={() => setIsUpdateEmailOpen(false)}
         onOtpSent={handleOtpSentSuccess}
         onSuccess={handleUpdateEmailSuccess}
+      />
+
+      <SetPasswordModal
+        isOpen={isSetPasswordOpen}
+        hasPassword={profile.hasPassword}
+        onClose={() => setIsSetPasswordOpen(false)}
+        onSuccess={handleSetPasswordSuccess}
       />
 
       <Toast

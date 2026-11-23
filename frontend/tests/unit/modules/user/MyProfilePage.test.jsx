@@ -7,7 +7,7 @@ import { tr } from '../../../utils/i18n';
 vi.mock('../../../../src/modules/user/profileApi');
 vi.mock('@/context/AuthContext', () => ({
   useAuth: vi.fn(() => ({
-    setUser: vi.fn(),
+    updateUser: vi.fn(),
   })),
 }));
 
@@ -98,6 +98,50 @@ describe('MyProfilePage', () => {
     expect(screen.getByLabelText(tr('user:updateEmailModal.newEmail'))).toBeInTheDocument();
     expect(screen.getByLabelText(tr('user:updateEmailModal.otp'))).toBeInTheDocument();
     expect(screen.getByLabelText(tr('user:updateEmailModal.password'))).toBeInTheDocument();
+  });
+
+  it('shows set password option for Google-linked accounts without a password', async () => {
+    profileApi.getMyProfileApi.mockResolvedValueOnce({
+      success: true,
+      data: {
+        ...mockProfile,
+        linkedGoogle: true,
+        hasPassword: false,
+      },
+    });
+
+    render(<MyProfilePage onNavigate={vi.fn()} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Vo Le Khanh Duy')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button'));
+    fireEvent.click(await screen.findByText(tr('user:setPassword')));
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByLabelText(tr('user:setPasswordModal.newPassword'))).toBeInTheDocument();
+  });
+
+  it('shows change password option for accounts that already have a password', async () => {
+    profileApi.getMyProfileApi.mockResolvedValueOnce({
+      success: true,
+      data: {
+        ...mockProfile,
+        hasPassword: true,
+      },
+    });
+
+    render(<MyProfilePage onNavigate={vi.fn()} />);
+    await waitFor(() => {
+      expect(screen.getByText('Vo Le Khanh Duy')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button'));
+    fireEvent.click(await screen.findByText(tr('user:changePassword')));
+
+    expect(screen.getByLabelText(tr('user:setPasswordModal.oldPassword'))).toBeInTheDocument();
+    expect(screen.getByLabelText(tr('user:setPasswordModal.newPassword'))).toBeInTheDocument();
   });
 
   it('renders error state when api fails and retries on action click', async () => {
