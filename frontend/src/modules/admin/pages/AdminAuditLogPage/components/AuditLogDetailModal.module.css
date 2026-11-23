@@ -1,7 +1,7 @@
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.6);
+  background: var(--adm-bg-overlay, rgba(0, 0, 0, 0.7));
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -13,10 +13,10 @@
 .modal {
   width: 100%;
   max-width: 560px;
-  background: var(--adm-bg-surface, #ffffff);
-  border: 1px solid var(--adm-border, #e2e8f0);
+  background: var(--adm-bg-surface);
+  border: 1px solid var(--adm-border);
   border-radius: var(--adm-radius-lg, 12px);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--adm-shadow-lg);
   overflow: hidden;
   animation: modalIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -37,7 +37,7 @@
   align-items: flex-start;
   justify-content: space-between;
   padding: 20px 24px 16px;
-  border-bottom: 1px solid var(--adm-border, #e2e8f0);
+  border-bottom: 1px solid var(--adm-border);
 }
 
 .headerText {
@@ -50,13 +50,13 @@
   font-family: var(--adm-font-display, 'Space Grotesk', sans-serif);
   font-size: 18px;
   font-weight: 700;
-  color: var(--adm-text-primary, #0f172a);
+  color: var(--adm-text-main);
   margin: 0;
 }
 
 .subtitle {
   font-size: 13px;
-  color: var(--adm-text-secondary, #64748b);
+  color: var(--adm-text-muted);
   margin: 0;
 }
 
@@ -69,14 +69,14 @@
   border-radius: var(--adm-radius-md, 8px);
   border: none;
   background: transparent;
-  color: var(--adm-text-secondary, #64748b);
+  color: var(--adm-text-muted);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .closeBtn:hover {
-  background: var(--adm-bg-hover, #f8fafc);
-  color: var(--adm-text-primary, #0f172a);
+  background: var(--adm-bg-surface-subtle);
+  color: var(--adm-text-main);
 }
 
 /* Body */
@@ -93,8 +93,8 @@
   gap: 12px;
   padding: 14px;
   border-radius: var(--adm-radius-md, 8px);
-  background: var(--adm-bg-subtle, #f1f5f9);
-  border: 1px solid var(--adm-border, #e2e8f0);
+  background: var(--adm-bg-surface-muted);
+  border: 1px solid var(--adm-border);
 }
 
 .metaItem {
@@ -106,7 +106,7 @@
 .metaLabel {
   font-size: 11px;
   font-weight: 600;
-  color: var(--adm-text-secondary, #64748b);
+  color: var(--adm-text-subtle);
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
@@ -114,7 +114,7 @@
 .metaValue {
   font-size: 13px;
   font-weight: 600;
-  color: var(--adm-text-primary, #0f172a);
+  color: var(--adm-text-main);
 }
 
 .mono {
@@ -125,14 +125,14 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 12px;
   font-weight: 600;
-  color: var(--adm-accent, #0284c7);
+  color: var(--adm-accent);
 }
 
 .targetBadge {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 12px;
   font-weight: 600;
-  color: var(--adm-text-primary, #0f172a);
+  color: var(--adm-text-main);
 }
 
 /* Detail Section */
@@ -145,14 +145,14 @@
 .sectionLabel {
   font-size: 12px;
   font-weight: 600;
-  color: var(--adm-text-secondary, #64748b);
+  color: var(--adm-text-muted);
 }
 
 .codeBlock {
   padding: 12px;
   border-radius: var(--adm-radius-md, 8px);
-  background: var(--adm-bg-subtle, #f1f5f9);
-  border: 1px solid var(--adm-border, #e2e8f0);
+  background: var(--adm-bg-surface-muted);
+  border: 1px solid var(--adm-border);
   max-height: 180px;
   overflow-y: auto;
 }
@@ -161,7 +161,7 @@
   margin: 0;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 12px;
-  color: var(--adm-text-primary, #0f172a);
+  color: var(--adm-text-main);
   white-space: pre-wrap;
   word-break: break-all;
 }
@@ -171,15 +171,15 @@
   display: flex;
   justify-content: flex-end;
   padding: 14px 24px 20px;
-  border-top: 1px solid var(--adm-border, #e2e8f0);
+  border-top: 1px solid var(--adm-border);
 }
 
 .closeModalBtn {
   padding: 8px 18px;
   border-radius: var(--adm-radius-md, 8px);
-  border: 1px solid var(--adm-border, #e2e8f0);
-  background: var(--adm-bg-surface, #ffffff);
-  color: var(--adm-text-primary, #0f172a);
+  border: 1px solid var(--adm-border);
+  background: var(--adm-bg-surface);
+  color: var(--adm-text-main);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -187,5 +187,6 @@
 }
 
 .closeModalBtn:hover {
-  background: var(--adm-bg-hover, #f8fafc);
+  background: var(--adm-bg-surface-subtle);
+  border-color: var(--adm-border-strong);
 }
