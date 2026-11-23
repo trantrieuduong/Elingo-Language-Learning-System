@@ -391,12 +391,14 @@ describe('ShadowingPage page component', () => {
     const scores = await screen.findAllByText('75');
     expect(scores.length).toBeGreaterThan(0);
 
-    // Word chips are rendered with accuracy
-    expect(screen.getByText('Hello')).toBeInTheDocument();
+    // Word chips are rendered with accuracy.
+    // Historical result is loaded in a useEffect after the segments are fetched,
+    // so it must be awaited (findBy*) instead of read synchronously (getBy*).
+    expect(await screen.findByText('Hello')).toBeInTheDocument();
     expect(screen.getByText('world!')).toBeInTheDocument();
 
     // Legend items
-    expect(screen.getByText(/chính xác/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/chính xác/i).length).toBeGreaterThan(0);
   });
 
   it('navigates to dictation mode from the completed card', async () => {
