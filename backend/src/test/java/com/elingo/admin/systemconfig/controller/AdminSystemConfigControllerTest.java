@@ -1,8 +1,8 @@
-package com.elingo.admin.catalog.controller;
+package com.elingo.admin.systemconfig.controller;
 
-import com.elingo.admin.catalog.dto.request.UpdateSystemConfigRequest;
-import com.elingo.admin.catalog.dto.response.SystemConfigResponse;
-import com.elingo.admin.catalog.service.AdminCatalogService;
+import com.elingo.admin.systemconfig.dto.request.UpdateSystemConfigRequest;
+import com.elingo.admin.systemconfig.dto.response.SystemConfigResponse;
+import com.elingo.admin.systemconfig.service.AdminSystemConfigService;
 import com.elingo.common.entity.ConfigModule;
 import com.elingo.common.entity.ConfigValueType;
 import com.elingo.common.exception.AppError;
@@ -44,12 +44,13 @@ class AdminSystemConfigControllerTest {
     private ObjectMapper objectMapper;
 
     @Mock
-    private AdminCatalogService adminCatalogService;
+    private AdminSystemConfigService adminSystemConfigService;
 
     @InjectMocks
     private AdminSystemConfigController adminSystemConfigController;
 
     private static final String CONFIG_KEY = "app.premium.bank-transfer.code-prefix";
+    private static final String CONFIG_DESC = "Prefix code for bank transfer transactions";
 
     @BeforeEach
     void setUp() {
@@ -76,6 +77,7 @@ class AdminSystemConfigControllerTest {
                     .valueType(ConfigValueType.STRING)
                     .isSecret(false)
                     .module(ConfigModule.PREMIUM)
+                    .description(CONFIG_DESC)
                     .updatedBy(1L)
                     .createdAt(LocalDateTime.now())
                     .updatedAt(LocalDateTime.now())
@@ -88,12 +90,13 @@ class AdminSystemConfigControllerTest {
                     .valueType(ConfigValueType.STRING)
                     .isSecret(false)
                     .module(ConfigModule.COMMUNITY)
+                    .description("OpenAI model name used for moderation")
                     .updatedBy(1L)
                     .createdAt(LocalDateTime.now())
                     .updatedAt(LocalDateTime.now())
                     .build();
 
-            when(adminCatalogService.getConfigs(null)).thenReturn(List.of(item1, item2));
+            when(adminSystemConfigService.getConfigs(null)).thenReturn(List.of(item1, item2));
 
             mockMvc.perform(get("/admin/system-configs")
                             .contentType(MediaType.APPLICATION_JSON))
@@ -101,9 +104,11 @@ class AdminSystemConfigControllerTest {
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data", hasSize(2)))
                     .andExpect(jsonPath("$.data[0].configKey").value(CONFIG_KEY))
-                    .andExpect(jsonPath("$.data[1].configKey").value("app.community.moderation.openai-model"));
+                    .andExpect(jsonPath("$.data[0].description").value(CONFIG_DESC))
+                    .andExpect(jsonPath("$.data[1].configKey").value("app.community.moderation.openai-model"))
+                    .andExpect(jsonPath("$.data[1].description").value("OpenAI model name used for moderation"));
 
-            verify(adminCatalogService).getConfigs(null);
+            verify(adminSystemConfigService).getConfigs(null);
         }
 
         @Test
@@ -116,12 +121,13 @@ class AdminSystemConfigControllerTest {
                     .valueType(ConfigValueType.STRING)
                     .isSecret(false)
                     .module(ConfigModule.PREMIUM)
+                    .description(CONFIG_DESC)
                     .updatedBy(1L)
                     .createdAt(LocalDateTime.now())
                     .updatedAt(LocalDateTime.now())
                     .build();
 
-            when(adminCatalogService.getConfigs(ConfigModule.PREMIUM)).thenReturn(List.of(item));
+            when(adminSystemConfigService.getConfigs(ConfigModule.PREMIUM)).thenReturn(List.of(item));
 
             mockMvc.perform(get("/admin/system-configs")
                             .param("module", "PREMIUM")
@@ -130,15 +136,16 @@ class AdminSystemConfigControllerTest {
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data", hasSize(1)))
                     .andExpect(jsonPath("$.data[0].configKey").value(CONFIG_KEY))
-                    .andExpect(jsonPath("$.data[0].module").value("PREMIUM"));
+                    .andExpect(jsonPath("$.data[0].module").value("PREMIUM"))
+                    .andExpect(jsonPath("$.data[0].description").value(CONFIG_DESC));
 
-            verify(adminCatalogService).getConfigs(ConfigModule.PREMIUM);
+            verify(adminSystemConfigService).getConfigs(ConfigModule.PREMIUM);
         }
 
         @Test
         @DisplayName("Should return 200 with empty list when no configurations match filter")
         void shouldReturn200WithEmptyListWhenNoConfigsMatch() throws Exception {
-            when(adminCatalogService.getConfigs(ConfigModule.COMMUNITY)).thenReturn(Collections.emptyList());
+            when(adminSystemConfigService.getConfigs(ConfigModule.COMMUNITY)).thenReturn(Collections.emptyList());
 
             mockMvc.perform(get("/admin/system-configs")
                             .param("module", "COMMUNITY")
@@ -147,7 +154,7 @@ class AdminSystemConfigControllerTest {
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data", hasSize(0)));
 
-            verify(adminCatalogService).getConfigs(ConfigModule.COMMUNITY);
+            verify(adminSystemConfigService).getConfigs(ConfigModule.COMMUNITY);
         }
 
         @Test
@@ -159,7 +166,7 @@ class AdminSystemConfigControllerTest {
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.success").value(false));
 
-            verifyNoInteractions(adminCatalogService);
+            verifyNoInteractions(adminSystemConfigService);
         }
     }
 
@@ -173,7 +180,7 @@ class AdminSystemConfigControllerTest {
         @Test
         @DisplayName("Should return 200 and list of all available module names")
         void shouldReturn200AndListOfModuleNames() throws Exception {
-            when(adminCatalogService.getModules()).thenReturn(List.of("PREMIUM", "COMMUNITY"));
+            when(adminSystemConfigService.getModules()).thenReturn(List.of("PREMIUM", "COMMUNITY"));
 
             mockMvc.perform(get("/admin/system-configs/config-module")
                             .contentType(MediaType.APPLICATION_JSON))
@@ -182,20 +189,20 @@ class AdminSystemConfigControllerTest {
                     .andExpect(jsonPath("$.data", hasSize(2)))
                     .andExpect(jsonPath("$.data", containsInAnyOrder("PREMIUM", "COMMUNITY")));
 
-            verify(adminCatalogService).getModules();
+            verify(adminSystemConfigService).getModules();
         }
 
         @Test
         @DisplayName("Should return 500 when service throws unexpected runtime exception")
         void shouldReturn500WhenServiceThrowsUnexpectedException() throws Exception {
-            when(adminCatalogService.getModules()).thenThrow(new RuntimeException("Database error"));
+            when(adminSystemConfigService.getModules()).thenThrow(new RuntimeException("Database error"));
 
             mockMvc.perform(get("/admin/system-configs/config-module")
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isInternalServerError())
                     .andExpect(jsonPath("$.success").value(false));
 
-            verify(adminCatalogService).getModules();
+            verify(adminSystemConfigService).getModules();
         }
     }
 
@@ -209,7 +216,7 @@ class AdminSystemConfigControllerTest {
         @Test
         @DisplayName("Should return 200 and updated config response when payload is valid")
         void shouldReturn200AndUpdatedConfigWhenPayloadIsValid() throws Exception {
-            UpdateSystemConfigRequest request = new UpdateSystemConfigRequest("NEW_VALUE");
+            UpdateSystemConfigRequest request = new UpdateSystemConfigRequest("NEW_VALUE", CONFIG_DESC);
 
             SystemConfigResponse response = SystemConfigResponse.builder()
                     .id(1L)
@@ -218,12 +225,13 @@ class AdminSystemConfigControllerTest {
                     .valueType(ConfigValueType.STRING)
                     .isSecret(false)
                     .module(ConfigModule.PREMIUM)
+                    .description(CONFIG_DESC)
                     .updatedBy(99L)
                     .createdAt(LocalDateTime.now())
                     .updatedAt(LocalDateTime.now())
                     .build();
 
-            when(adminCatalogService.updateConfig(eq(CONFIG_KEY), any(UpdateSystemConfigRequest.class)))
+            when(adminSystemConfigService.updateConfig(eq(CONFIG_KEY), any(UpdateSystemConfigRequest.class)))
                     .thenReturn(response);
 
             mockMvc.perform(put("/admin/system-configs/{key}", CONFIG_KEY)
@@ -233,9 +241,10 @@ class AdminSystemConfigControllerTest {
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.configKey").value(CONFIG_KEY))
                     .andExpect(jsonPath("$.data.configValue").value("NEW_VALUE"))
+                    .andExpect(jsonPath("$.data.description").value(CONFIG_DESC))
                     .andExpect(jsonPath("$.data.updatedBy").value(99));
 
-            verify(adminCatalogService).updateConfig(eq(CONFIG_KEY), any(UpdateSystemConfigRequest.class));
+            verify(adminSystemConfigService).updateConfig(eq(CONFIG_KEY), any(UpdateSystemConfigRequest.class));
         }
 
         @Test
@@ -249,7 +258,7 @@ class AdminSystemConfigControllerTest {
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.success").value(false));
 
-            verifyNoInteractions(adminCatalogService);
+            verifyNoInteractions(adminSystemConfigService);
         }
 
         @Test
@@ -261,15 +270,15 @@ class AdminSystemConfigControllerTest {
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.success").value(false));
 
-            verifyNoInteractions(adminCatalogService);
+            verifyNoInteractions(adminSystemConfigService);
         }
 
         @Test
         @DisplayName("Should return 404 Not Found when target config key does not exist")
         void shouldReturn404WhenConfigKeyDoesNotExist() throws Exception {
-            UpdateSystemConfigRequest request = new UpdateSystemConfigRequest("any-value");
+            UpdateSystemConfigRequest request = new UpdateSystemConfigRequest("any-value", null);
 
-            when(adminCatalogService.updateConfig(eq("nonexistent.key"), any(UpdateSystemConfigRequest.class)))
+            when(adminSystemConfigService.updateConfig(eq("nonexistent.key"), any(UpdateSystemConfigRequest.class)))
                     .thenThrow(new AppException(AppError.SYSTEM_CONFIG_NOT_FOUND));
 
             mockMvc.perform(put("/admin/system-configs/{key}", "nonexistent.key")
@@ -279,15 +288,15 @@ class AdminSystemConfigControllerTest {
                     .andExpect(jsonPath("$.success").value(false))
                     .andExpect(jsonPath("$.errors[0].code").value("SYSTEM_CONFIG_NOT_FOUND"));
 
-            verify(adminCatalogService).updateConfig(eq("nonexistent.key"), any(UpdateSystemConfigRequest.class));
+            verify(adminSystemConfigService).updateConfig(eq("nonexistent.key"), any(UpdateSystemConfigRequest.class));
         }
 
         @Test
         @DisplayName("Should return 400 Bad Request when config value is invalid according to its value type")
         void shouldReturn400WhenConfigValueIsInvalidForType() throws Exception {
-            UpdateSystemConfigRequest request = new UpdateSystemConfigRequest("not-a-valid-int");
+            UpdateSystemConfigRequest request = new UpdateSystemConfigRequest("not-a-valid-int", null);
 
-            when(adminCatalogService.updateConfig(eq("some.int.key"), any(UpdateSystemConfigRequest.class)))
+            when(adminSystemConfigService.updateConfig(eq("some.int.key"), any(UpdateSystemConfigRequest.class)))
                     .thenThrow(new AppException(AppError.SYSTEM_CONFIG_VALUE_INVALID));
 
             mockMvc.perform(put("/admin/system-configs/{key}", "some.int.key")
@@ -297,7 +306,7 @@ class AdminSystemConfigControllerTest {
                     .andExpect(jsonPath("$.success").value(false))
                     .andExpect(jsonPath("$.errors[0].code").value("SYSTEM_CONFIG_VALUE_INVALID"));
 
-            verify(adminCatalogService).updateConfig(eq("some.int.key"), any(UpdateSystemConfigRequest.class));
+            verify(adminSystemConfigService).updateConfig(eq("some.int.key"), any(UpdateSystemConfigRequest.class));
         }
     }
 }

@@ -116,7 +116,7 @@ public class SystemConfigServiceImpl implements SystemConfigService {
 
     @Override
     @Transactional
-    public SystemConfig update(String configKey, String newValue, Long adminId) {
+    public SystemConfig update(String configKey, String newValue, String description, Long adminId) {
         SystemConfig config = repository.findByConfigKey(configKey)
                 .orElseThrow(() -> new AppException(AppError.SYSTEM_CONFIG_NOT_FOUND));
 
@@ -141,6 +141,7 @@ public class SystemConfigServiceImpl implements SystemConfigService {
         }
 
         config.setConfigValue(toStore);
+        config.setDescription(description);
         config.setUpdatedBy(adminId);
 
         SystemConfig saved = repository.save(config);
@@ -165,6 +166,7 @@ public class SystemConfigServiceImpl implements SystemConfigService {
                     .valueType(def.getType())
                     .isSecret(def.isSecret())
                     .module(def.getModule())
+                    .description(def.getDescription())
                     .build();
             repository.save(entity);
             log.info("Seeded system config key={}", def.getKey());
