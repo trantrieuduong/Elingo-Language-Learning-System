@@ -93,33 +93,29 @@ export const BattleSocketProvider = ({ children }) => {
         }
       }
 
-      switch (event) {
-        case 'queue:joined':
-          setStatus('searching');
-          break;
-        case 'queue:left':
-          setStatus('idle');
-          break;
-        case 'queue:timeout':
+      const handlers = {
+        'queue:joined': () => setStatus('searching'),
+        'queue:left': () => setStatus('idle'),
+        'queue:timeout': () => {
           setStatus('idle');
           setError('QUEUE_TIMEOUT');
-          break;
+        },
 
-        case 'room:created':
+        'room:created': (data) => {
           setRoomCode(data?.roomCode || null);
           if (data?.mode) setMode(data.mode);
           setError(null);
           setStatus('roomWaiting');
-          break;
+        },
 
-        case 'room:left':
+        'room:left': () => {
           setRoomCode(null);
           if (statusRef.current === 'roomWaiting') {
             setStatus('idle');
           }
-          break;
+        },
 
-        case 'match:found': {
+        'match:found': (data) => {
           setRoomCode(null);
           setOpponentDisconnected(null);
           setActiveMatchId(null);
@@ -148,19 +144,17 @@ export const BattleSocketProvider = ({ children }) => {
           setAnswered(false);
           setOpponentAnswered(false);
           setStatus('starting');
-          break;
-        }
+        },
 
-        case 'active-match': {
+        'active-match': (data) => {
           setActiveMatchId(data?.matchId ?? null);
           setActiveMatchChecked(true);
-          break;
-        }
+        },
 
-        case 'match:rejoined': {
+        'match:rejoined': (data) => {
           rejoiningRef.current = false;
           const s = data?.snapshot;
-          if (!s) break;
+          if (!s) return;
 
           const rejoined = {
             matchId: s.matchId,
@@ -208,23 +202,20 @@ export const BattleSocketProvider = ({ children }) => {
             setRoundResult(null);
             setStatus('starting');
           }
-          break;
-        }
+        },
 
-        case 'match:opponent-disconnected': {
+        'match:opponent-disconnected': (data) => {
           setOpponentDisconnected({
             graceMs: data?.graceMs,
             at: Date.now(),
           });
-          break;
-        }
+        },
 
-        case 'match:opponent-reconnected': {
+        'match:opponent-reconnected': () => {
           setOpponentDisconnected(null);
-          break;
-        }
+        },
 
-        case 'match:question': {
+        'match:question': (data) => {
           questionRef.current = data;
           answeredRef.current = false;
           setQuestion(data);
@@ -234,24 +225,21 @@ export const BattleSocketProvider = ({ children }) => {
           setOpponentAnswered(false);
           setError(null);
           setStatus('playing');
-          break;
-        }
+        },
 
-        case 'match:opponent-answered': {
+        'match:opponent-answered': () => {
           setOpponentAnswered(true);
-          break;
-        }
+        },
 
-        case 'match:round-result': {
+        'match:round-result': (data) => {
           setRoundResult(data);
           if (Array.isArray(data?.results)) {
             setScores(Object.fromEntries(data.results.map((r) => [r.userId, r.score])));
           }
           setStatus('roundResult');
-          break;
-        }
+        },
 
-        case 'match:finished': {
+        'match:finished': (data) => {
           finishedRef.current = true;
           setOpponentDisconnected(null);
           setFinished(data);
@@ -259,36 +247,32 @@ export const BattleSocketProvider = ({ children }) => {
             setScores(Object.fromEntries(data.players.map((p) => [p.userId, p.score])));
           }
           setStatus('finished');
-          break;
-        }
+        },
 
-        case 'match:cancelled': {
+        'match:cancelled': (data) => {
           setOpponentDisconnected(null);
           setCancelReason(data?.reason || null);
           setStatus('cancelled');
-          break;
-        }
+        },
 
-        case 'error': {
+        error: (data) => {
           if (rejoiningRef.current && data?.code === 'BATTLE_MATCH_NOT_FOUND') {
             rejoiningRef.current = false;
             setCancelReason('CONNECTION_LOST');
             setStatus('cancelled');
             setActiveMatchId(null);
             // không setError
-            break;
+            return;
           }
 
           if (data?.code) {
             setError(data.code);
           }
           setStatus((prev) => (prev === 'searching' ? 'idle' : prev));
-          break;
-        }
+        },
+      };
 
-        default:
-          break;
-      }
+      handlers[event]?.(data);
     };
 
     const offStatus = onStatus(setConnection);

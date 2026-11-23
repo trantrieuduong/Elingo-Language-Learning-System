@@ -12,6 +12,15 @@ import BattleResult from '../components/BattleResult/BattleResult';
 import DisconnectBanner from '../components/DisconnectBanner/DisconnectBanner';
 import './BattlePlayPage.css';
 
+const CANCEL_REASON_KEYS = {
+  BOTH_DISCONNECTED: 'result.cancelled.BOTH_DISCONNECTED',
+  INTERNAL_ERROR: 'result.cancelled.INTERNAL_ERROR',
+  CONNECTION_LOST: 'result.cancelled.CONNECTION_LOST',
+};
+
+const getCancelReasonKey = (reason) =>
+  CANCEL_REASON_KEYS[reason] || 'result.cancelled.unknown';
+
 const BattlePlayPage = ({ matchId, onNavigate }) => {
   const { t } = useTranslation('battle');
   const { t: tApi } = useTranslation('api');
@@ -326,13 +335,7 @@ const BattlePlayPage = ({ matchId, onNavigate }) => {
               {t('result.cancelled.title')}
             </h1>
             <p className="text-body-md text-disabled battle-cancelled-reason">
-              {cancelReason === 'BOTH_DISCONNECTED'
-                ? t('result.cancelled.BOTH_DISCONNECTED')
-                : cancelReason === 'INTERNAL_ERROR'
-                  ? t('result.cancelled.INTERNAL_ERROR')
-                  : cancelReason === 'CONNECTION_LOST'
-                    ? t('result.cancelled.CONNECTION_LOST')
-                    : t('result.cancelled.unknown')}
+              {t(getCancelReasonKey(cancelReason))}
             </p>
             <div className="battle-cancelled-actions">
               <button
