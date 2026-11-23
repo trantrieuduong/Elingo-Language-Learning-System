@@ -1,6 +1,5 @@
 package com.elingo.admin.stats.dto.response;
 
-import com.elingo.common.annotation.BuildMediaUrl;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDate;
@@ -76,7 +75,7 @@ public final class LearningStatsResponses {
             String title,
 
             @Schema(description = "Cover image URL of the deck", example = "https://cdn.elingo.com/decks/cover1.jpg")
-            @BuildMediaUrl String coverImageUrl,
+            String coverImageUrl,
 
             @Schema(description = "Publication status of the deck", example = "PUBLISHED")
             String status,
@@ -124,7 +123,7 @@ public final class LearningStatsResponses {
             String title,
 
             @Schema(description = "Thumbnail image URL of the lesson video", example = "https://cdn.elingo.com/lessons/thumb10.jpg")
-            @BuildMediaUrl String thumbnailUrl,
+            String thumbnailUrl,
 
             @Schema(description = "Publication status of the lesson", example = "PUBLISHED")
             String status,

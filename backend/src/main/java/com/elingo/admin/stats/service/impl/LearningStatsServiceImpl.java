@@ -6,6 +6,7 @@ import com.elingo.admin.stats.dto.response.LearningStatsResponses;
 import com.elingo.admin.stats.service.LearningStatsService;
 import com.elingo.admin.stats.util.StatsZeroFiller;
 import com.elingo.common.service.RedisService;
+import com.elingo.file.util.FileKey;
 import com.elingo.gamification.repository.XpEventRepository;
 import com.elingo.gamification.service.GamificationStatsQueryService;
 import com.elingo.learning.lesson.repository.LessonRepository;
@@ -15,6 +16,7 @@ import com.elingo.vocabulary.repository.DeckRepository;
 import com.elingo.vocabulary.service.VocabularyStatsQueryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
@@ -36,6 +38,9 @@ public class LearningStatsServiceImpl implements LearningStatsService {
     private final LessonStatsQueryService lessonStatsQueryService;
     private final RedisService redisService;
     private final ObjectMapper objectMapper;
+
+    @Value("${r2.public-url:}")
+    private String publicUrl;
 
     private static final long CACHE_TTL_ACTIVITY_MINUTES = 3L;
     private static final long CACHE_TTL_DECKS_MINUTES = 5L;
@@ -160,7 +165,7 @@ public class LearningStatsServiceImpl implements LearningStatsService {
                 new LearningStatsResponses.TopDeckItem(
                         p.getDeckId(),
                         p.getTitle(),
-                        p.getCoverImageUrl(),
+                        resolveMediaUrl(p.getCoverImageUrl()),
                         p.getStatus(),
                         p.getOwnerType(),
                         p.getIsPremium(),
@@ -174,7 +179,7 @@ public class LearningStatsServiceImpl implements LearningStatsService {
                 new LearningStatsResponses.TopDeckItem(
                         p.getDeckId(),
                         p.getTitle(),
-                        p.getCoverImageUrl(),
+                        resolveMediaUrl(p.getCoverImageUrl()),
                         p.getStatus(),
                         p.getOwnerType(),
                         p.getIsPremium(),
@@ -239,7 +244,7 @@ public class LearningStatsServiceImpl implements LearningStatsService {
                 new LearningStatsResponses.TopLessonItem(
                         p.getLessonId(),
                         p.getTitle(),
-                        p.getThumbnailUrl(),
+                        resolveMediaUrl(p.getThumbnailUrl()),
                         p.getStatus(),
                         p.getIsPremium(),
                         p.getLearnerCount() != null ? p.getLearnerCount() : 0L
@@ -272,5 +277,15 @@ public class LearningStatsServiceImpl implements LearningStatsService {
 
     private double roundDouble(double val) {
         return BigDecimal.valueOf(val).setScale(2, RoundingMode.HALF_UP).doubleValue();
+    }
+
+    private String resolveMediaUrl(String key) {
+        if (key == null || key.isBlank()) {
+            return null;
+        }
+        if (publicUrl == null || publicUrl.isBlank()) {
+            return key;
+        }
+        return FileKey.toPublicUrl(publicUrl, key);
     }
 }
