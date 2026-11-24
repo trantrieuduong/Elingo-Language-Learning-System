@@ -10,6 +10,7 @@ import TopicDetailPage from './pages/TopicManagementPage/TopicDetailPage';
 import TagListPage from './pages/TagManagementPage/TagListPage';
 import SystemConfigPage from './pages/SystemConfigPage/SystemConfigPage';
 import AdminAuditLogPage from './pages/AdminAuditLogPage/AdminAuditLogPage';
+import UserManagementPage from './pages/UserManagementPage/UserManagementPage';
 
 export default function AdminRoutes({ currentPath, onNavigate }) {
   const { t } = useTranslation('admin');
@@ -70,7 +71,7 @@ export default function AdminRoutes({ currentPath, onNavigate }) {
 
       // Module: Người dùng
       case '/admin/users':
-        return <PlaceholderAdminPage title={t('routes.users')} onNavigate={onNavigate} />;
+        return <UserManagementPage onNavigate={onNavigate} />;
       case '/admin/roles':
         return <PlaceholderAdminPage title={t('routes.roles')} onNavigate={onNavigate} />;
 

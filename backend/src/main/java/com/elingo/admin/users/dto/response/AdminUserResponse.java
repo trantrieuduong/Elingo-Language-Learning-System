@@ -51,6 +51,18 @@ public record AdminUserResponse(
         Boolean hasPassword,
 
         @Schema(description = "Whether the account is linked to Google OAuth", example = "false")
-        Boolean linkedGoogle
+        Boolean linkedGoogle,
+
+        @Schema(
+                description = "Timestamp when the user account was registered",
+                example = "2026-01-01T10:00:00"
+        )
+        LocalDateTime createdAt,
+
+        @Schema(
+                description = "Timestamp when the user account was last updated",
+                example = "2026-02-15T08:30:00"
+        )
+        LocalDateTime updatedAt
 ) {
 }

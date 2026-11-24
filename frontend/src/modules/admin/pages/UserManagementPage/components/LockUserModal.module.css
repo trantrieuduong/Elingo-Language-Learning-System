@@ -1,0 +1,251 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--adm-bg-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modal {
+  background: var(--adm-bg-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: 10px;
+  width: 100%;
+  max-width: 520px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--adm-border-subtle);
+}
+
+.headerIconWrapper {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--adm-badge-red-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.headerIcon {
+  color: var(--adm-badge-red-text);
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+}
+
+.title {
+  font-family: var(--font-display, 'Space Grotesk', sans-serif);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--adm-text-main);
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 12px;
+  color: var(--adm-text-muted);
+  margin: 0;
+}
+
+:where(button) {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+.closeBtn {
+  color: var(--adm-text-subtle);
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease;
+}
+
+.closeBtn:hover:not(:disabled) {
+  color: var(--adm-text-main);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+}
+
+.body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.targetCard {
+  background: var(--adm-bg-surface-subtle);
+  border: 1px solid var(--adm-border-subtle);
+  border-radius: 6px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.targetLabel {
+  font-size: 11px;
+  color: var(--adm-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.targetName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--adm-text-main);
+}
+
+.targetEmail {
+  font-size: 12px;
+  color: var(--adm-text-muted);
+}
+
+.warningBox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--adm-badge-red-bg);
+  border: 1px solid var(--adm-badge-red-text);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+
+.warningIcon {
+  color: var(--adm-badge-red-text);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.warningText {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--adm-badge-red-text);
+  margin: 0;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fieldHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.fieldLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--adm-text-main);
+}
+
+.required {
+  color: var(--adm-badge-red-text);
+}
+
+.charCounter {
+  font-size: 11px;
+  color: var(--adm-text-subtle);
+}
+
+.textarea {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--adm-bg-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: 6px;
+  font-family: var(--font-body, 'Be Vietnam Pro', sans-serif);
+  font-size: 13px;
+  color: var(--adm-text-main);
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.textarea:focus {
+  border-color: var(--adm-border-focus);
+  box-shadow: 0 0 0 1px var(--adm-border-focus);
+}
+
+.errorAlert {
+  padding: 8px 12px;
+  background: var(--adm-badge-red-bg);
+  color: var(--adm-badge-red-text);
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--adm-border-subtle);
+  background: var(--adm-bg-surface);
+}
+
+.cancelBtn {
+  height: 36px;
+  padding: 0 14px;
+  background: var(--adm-bg-surface-subtle);
+  color: var(--adm-text-main);
+  border: 1px solid var(--adm-border);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background-color 0.15s ease;
+}
+
+.cancelBtn:hover:not(:disabled) {
+  background: var(--adm-bg-surface-muted);
+}
+
+.submitBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 16px;
+  background: var(--adm-badge-red-text);
+  color: var(--adm-accent-contrast) !important;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: opacity 0.15s ease;
+}
+
+.submitBtn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.submitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

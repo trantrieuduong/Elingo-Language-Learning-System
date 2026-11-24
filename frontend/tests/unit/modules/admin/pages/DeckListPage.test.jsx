@@ -352,7 +352,7 @@ describe('DeckListPage component', () => {
         expect(screen.getByText('Oxford 3000')).toBeInTheDocument();
       });
 
-      const nextBtn = screen.getByRole('button', { name: '→' });
+      const nextBtn = screen.getByRole('button', { name: /Next Page|Trang sau/i });
       expect(nextBtn).not.toBeDisabled();
       await user.click(nextBtn);
 

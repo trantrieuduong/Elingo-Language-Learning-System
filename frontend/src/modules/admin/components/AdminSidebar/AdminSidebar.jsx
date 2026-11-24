@@ -29,11 +29,11 @@ export default function AdminSidebar({
 
   // Quản lý trạng thái mở dropdown của từng nhóm module
   const [openDropdowns, setOpenDropdowns] = useState({
-    content: false,
+    content: currentPath.startsWith('/admin/decks') || currentPath.startsWith('/admin/tags'),
     billing: false,
     community: false,
-    users: false,
-    settings: false,
+    users: currentPath.startsWith('/admin/users') || currentPath.startsWith('/admin/roles'),
+    settings: currentPath.startsWith('/admin/settings'),
   });
 
   const toggleDropdown = (key) => {
@@ -264,11 +264,15 @@ export default function AdminSidebar({
             )}
           </button>
 
-          {/* 6. Người dùng (dropdown chưa làm) */}
+          {/* 6. Người dùng (dropdown) */}
           <div className={styles.dropdownGroup}>
             <button
               type="button"
-              className={`${styles.navItem} ${styles.dropdownTrigger}`}
+              className={`${styles.navItem} ${styles.dropdownTrigger} ${
+                currentPath.startsWith('/admin/users') || currentPath.startsWith('/admin/roles')
+                  ? styles.active
+                  : ''
+              }`}
               onClick={() => toggleDropdown('users')}
               title={t('sidebar.users')}
             >
@@ -290,15 +294,18 @@ export default function AdminSidebar({
               <div className={styles.subMenuList}>
                 <button
                   type="button"
-                  className={styles.subMenuItem}
+                  className={`${styles.subMenuItem} ${
+                    currentPath.startsWith('/admin/users') ? styles.active : ''
+                  }`}
                   onClick={() => handleNav('/admin/users')}
                 >
                   <span>{t('sidebar.userList')}</span>
-                  <span className={styles.pendingBadge}>{t('sidebar.pendingBadge')}</span>
                 </button>
                 <button
                   type="button"
-                  className={styles.subMenuItem}
+                  className={`${styles.subMenuItem} ${
+                    currentPath.startsWith('/admin/roles') ? styles.active : ''
+                  }`}
                   onClick={() => handleNav('/admin/roles')}
                 >
                   <span>{t('sidebar.rolesAndPermissions')}</span>

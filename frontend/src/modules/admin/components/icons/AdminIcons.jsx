@@ -280,3 +280,25 @@ export const CrownIcon = createIcon(
   </>
 );
 
+export const LockIcon = createIcon(
+  <>
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+  </>
+);
+
+export const UnlockIcon = createIcon(
+  <>
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+    <path d="M7 11V7a5 5 0 0 1 9.9-1" />
+  </>
+);
+
+export const KeyIcon = createIcon(
+  <>
+    <path d="m15.5 7.5 2.3 2.3a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L19 4" />
+    <path d="m21 2-9.6 9.6" />
+    <circle cx="7.5" cy="15.5" r="5.5" />
+  </>
+);
+

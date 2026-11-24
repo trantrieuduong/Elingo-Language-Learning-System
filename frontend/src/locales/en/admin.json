@@ -233,7 +233,26 @@
     "total": "Total",
     "items": "items",
     "loading": "Loading...",
-    "retry": "Retry"
+    "retry": "Retry",
+    "refresh": "Refresh",
+    "search": "Search",
+    "filter": "Filter",
+    "apply": "Apply",
+    "reset": "Reset",
+    "cancel": "Cancel",
+    "save": "Save Changes",
+    "actions": "Actions",
+    "details": "Details",
+    "status": "Status",
+    "createdAt": "Created At",
+    "updatedAt": "Last Updated",
+    "admin": "Admin",
+    "close": "Close",
+    "page": "Page",
+    "prevPage": "Previous Page",
+    "nextPage": "Next Page",
+    "goToPage": "Go to page",
+    "goToPageTooltip": "Enter page number and press Enter"
   },
   "content": {
     "decks": {
@@ -379,25 +398,6 @@
       "tagDeleteSuccess": "Tag deleted successfully"
     }
   },
-  "common": {
-    "total": "Total",
-    "items": "items",
-    "all": "All",
-    "refresh": "Refresh",
-    "search": "Search",
-    "filter": "Filter",
-    "apply": "Apply",
-    "reset": "Reset",
-    "cancel": "Cancel",
-    "save": "Save Changes",
-    "actions": "Actions",
-    "details": "Details",
-    "status": "Status",
-    "createdAt": "Created At",
-    "updatedAt": "Last Updated",
-    "admin": "Admin",
-    "close": "Close"
-  },
   "systemConfig": {
     "title": "System Configuration",
     "subtitle": "Manage and calibrate runtime parameters, security tokens, and operational rules across the Elingo ecosystem",
@@ -453,5 +453,114 @@
     "ipAddress": "IP Address",
     "timestamp": "Recorded At",
     "detailPayload": "Payload / Detail"
+  },
+  "users": {
+    "title": "User Management",
+    "subtitle": "Search, inspect profile records, and control account activity status across the Elingo ecosystem",
+    "totalUsers": "Total Users",
+    "usersCountSuffix": "users",
+    "filters": {
+      "searchPlaceholder": "Search by username, email, full name...",
+      "role": "Role",
+      "allRoles": "All Roles",
+      "roleUser": "User (USER)",
+      "roleAdmin": "Administrator (ADMIN)",
+      "verified": "Email Verification",
+      "allVerified": "All Statuses",
+      "verifiedYes": "Verified",
+      "verifiedNo": "Unverified",
+      "status": "Account Status",
+      "allStatus": "All Statuses",
+      "statusActive": "Active",
+      "statusLocked": "Locked",
+      "createdFrom": "From Date",
+      "createdTo": "To Date",
+      "searchBtn": "Search",
+      "resetBtn": "Reset",
+      "invalidDateRange": "End date must be greater than or equal to start date"
+    },
+    "columns": {
+      "user": "User",
+      "email": "Email",
+      "role": "Role",
+      "verified": "Verified",
+      "status": "Status",
+      "createdAt": "Joined Date",
+      "authMethod": "Sign-in Method",
+      "actions": "Actions"
+    },
+    "badges": {
+      "active": "Active",
+      "locked": "Locked",
+      "verified": "Verified",
+      "unverified": "Unverified",
+      "hasPassword": "Password",
+      "noPassword": "No password",
+      "googleLinked": "Google",
+      "googleNotLinked": "Not linked"
+    },
+    "actions": {
+      "viewDetail": "View Details",
+      "lock": "Lock Account",
+      "unlock": "Unlock Account",
+      "cannotModifySelfTooltip": "You cannot lock or unlock your own account",
+      "cannotModifyAdminTooltip": "Cannot lock or unlock another administrator account"
+    },
+    "detailModal": {
+      "title": "User Details",
+      "subtitle": "Identity profile, security status, and account activity metadata",
+      "userId": "User ID",
+      "username": "Username",
+      "fullName": "Full Name",
+      "email": "Email Address",
+      "role": "System Role",
+      "accountStatus": "Account Status",
+      "emailVerified": "Email Verification",
+      "securitySection": "Security & Authentication",
+      "timestampsSection": "Account Timestamps",
+      "createdAt": "Registration Date",
+      "updatedAt": "Last Account Update",
+      "hasPassword": "Local Password",
+      "linkedGoogle": "Google OAuth Linked",
+      "passwordChangedAt": "Password Last Changed",
+      "usernameChangedAt": "Username Last Changed",
+      "never": "Never changed",
+      "lockAction": "Lock this account",
+      "unlockAction": "Unlock this account",
+      "close": "Close"
+    },
+    "lockModal": {
+      "title": "Lock User Account",
+      "subtitle": "Deactivate system access rights for this user account",
+      "targetLabel": "Target Account",
+      "warningText": "Warning: Once locked, this user will be logged out immediately and restricted from signing in or performing any activity on Elingo.",
+      "reasonLabel": "Lock Reason",
+      "reasonPlaceholder": "Enter mandatory lock reason (required, max 500 characters)...",
+      "reasonRequired": "Please enter a reason for locking this account",
+      "reasonMaxLength": "Lock reason must not exceed 500 characters",
+      "charCount": "characters",
+      "confirmBtn": "Confirm Lock",
+      "cancelling": "Cancel",
+      "success": "User account locked successfully",
+      "error": "Failed to lock user account. Please try again."
+    },
+    "unlockModal": {
+      "title": "Unlock User Account",
+      "subtitle": "Restore system access rights for this user account",
+      "confirmMessage": "Are you sure you want to unlock and reactivate this user account? The user will be able to sign in normally.",
+      "targetLabel": "Target Account",
+      "confirmBtn": "Confirm Unlock",
+      "cancelling": "Cancel",
+      "success": "User account unlocked successfully",
+      "error": "Failed to unlock user account. Please try again."
+    },
+    "errors": {
+      "cannotModifySelf": "You cannot perform this action on your own account",
+      "cannotModifyAdmin": "Cannot perform administrative actions on another administrator",
+      "userInactive": "User account is currently inactive",
+      "userAlreadyActive": "User account is already active",
+      "userNotFound": "User not found in system",
+      "invalidDateRange": "Invalid registration date range"
+    }
   }
 }
