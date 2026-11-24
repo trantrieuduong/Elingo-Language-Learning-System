@@ -1,0 +1,150 @@
+.paginationBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  background: var(--adm-bg-surface);
+  border-top: 1px solid var(--adm-border-subtle);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.paginationInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-body, 'Be Vietnam Pro', sans-serif);
+  font-size: 13px;
+  color: var(--adm-text-muted);
+}
+
+.infoLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.totalNumber {
+  font-family: var(--font-display, 'Space Grotesk', sans-serif);
+  color: var(--adm-text-main);
+  font-weight: 700;
+}
+
+.separator {
+  color: var(--adm-text-subtle);
+  font-size: 12px;
+}
+
+.pageIndicator {
+  color: var(--adm-text-muted);
+  font-weight: 500;
+}
+
+.paginationControls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+:where(button) {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+.navBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 6px;
+  background: var(--adm-bg-surface-subtle);
+  border: 1px solid var(--adm-border);
+  color: var(--adm-text-main);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.navBtn:hover:not(:disabled) {
+  background: var(--adm-bg-surface-muted);
+  border-color: var(--adm-border-strong);
+}
+
+.navBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.pageInputWrapper {
+  display: inline-flex;
+  align-items: center;
+}
+
+.pageInput {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 32px;
+  padding: 0 4px;
+  border-radius: 6px;
+  background: var(--adm-accent);
+  color: var(--adm-accent-contrast) !important;
+  font-family: var(--font-display, 'Space Grotesk', sans-serif);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  border: 1px solid transparent;
+  outline: none;
+  cursor: text;
+  transition: box-shadow 0.15s ease, opacity 0.15s ease;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.pageInput::-webkit-outer-spin-button,
+.pageInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.pageInput:focus {
+  border-color: var(--adm-border-focus);
+  box-shadow: 0 0 0 2px var(--adm-border-focus);
+}
+
+.pageInput:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .paginationBar {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 14px;
+  }
+
+  .paginationInfo {
+    font-size: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .navBtn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .pageInput {
+    width: 44px;
+    height: 36px;
+    font-size: 14px;
+  }
+}

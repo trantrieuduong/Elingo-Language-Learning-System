@@ -154,6 +154,14 @@ export const getInitials = (fullName) => {
 };
 
 /**
+ * Tạo URL avatar fallback từ tên hiển thị.
+ * @param {string} displayName
+ * @returns {string}
+ */
+export const getFallbackAvatarUrl = (displayName = '') =>
+  `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}`;
+
+/**
  * Format số thành chuỗi dễ đọc (vd: 1500 → '1.5K').
  * @param {number} num
  * @returns {string}

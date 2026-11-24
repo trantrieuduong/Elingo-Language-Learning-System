@@ -46,8 +46,6 @@ function charSimilarity(ref, hyp) {
 }
 
 /**
- * Chấm điểm bài Shadowing giữa câu chuẩn (transcriptNormalized) và câu Whisper nhận dạng.
- *
  * Thuật toán căn chỉnh Sequence Alignment (Levenshtein ở cấp độ từ có truy vết):
  * - Mỗi từ tham chiếu khớp / thay thế / bỏ sót.
  * - accuracy: khớp -> 100; thay thế -> charSimilarity (max 70); bỏ sót -> 0.
@@ -57,102 +55,117 @@ function charSimilarity(ref, hyp) {
  * @param {string} recognizedText - Câu nhận dạng từ Whisper
  * @returns {{ score: number, wordsAccuracy: Array<{ word: string, accuracy: number }> }}
  */
+const normalizeWords = (text, filterEmpty = false) => {
+  const words = splitWords(text || '').map((word) => cleanWord(word));
+  return filterEmpty ? words.filter(Boolean) : words;
+};
+
+const createAlignmentTables = (referenceLength, recognizedLength) => ({
+  // Quy hoạch động Levenshtein ở mức từ.
+  // costs[i][j] lưu chi phí tối thiểu giữa refWords[0..i-1] và recWords[0..j-1].
+  costs: Array.from({ length: referenceLength + 1 }, () => new Array(recognizedLength + 1).fill(0)),
+  // actions[i][j]: 'MATCH', 'SUB', 'DEL' (bỏ sót từ ref), 'INS' (từ thừa của rec).
+  actions: Array.from({ length: referenceLength + 1 }, () => new Array(recognizedLength + 1).fill('')),
+});
+
+const initializeAlignmentEdges = (costs, actions, referenceLength, recognizedLength) => {
+  for (let index = 1; index <= referenceLength; index++) {
+    costs[index][0] = index;
+    actions[index][0] = 'DEL';
+  }
+  for (let index = 1; index <= recognizedLength; index++) {
+    costs[0][index] = index;
+    actions[0][index] = 'INS';
+  }
+};
+
+const selectAlignmentAction = (isMatch, matchSubCost, deleteCost, insertCost) => {
+  const minCost = Math.min(matchSubCost, deleteCost, insertCost);
+  if (minCost === matchSubCost) return { cost: minCost, action: isMatch ? 'MATCH' : 'SUB' };
+  return { cost: minCost, action: minCost === deleteCost ? 'DEL' : 'INS' };
+};
+
+const fillAlignmentTables = (referenceWords, recognizedWords, costs, actions) => {
+  for (let refIndex = 1; refIndex <= referenceWords.length; refIndex++) {
+    for (let recIndex = 1; recIndex <= recognizedWords.length; recIndex++) {
+      const isMatch = referenceWords[refIndex - 1] === recognizedWords[recIndex - 1];
+      const selection = selectAlignmentAction(
+        isMatch,
+        costs[refIndex - 1][recIndex - 1] + (isMatch ? 0 : 1),
+        costs[refIndex - 1][recIndex] + 1,
+        costs[refIndex][recIndex - 1] + 1
+      );
+      costs[refIndex][recIndex] = selection.cost;
+      actions[refIndex][recIndex] = selection.action;
+    }
+  }
+};
+
+const getAlignedWordScore = (referenceWord, recognizedWord, action) => {
+  if (!referenceWord || action === 'MATCH') return 100;
+  return charSimilarity(referenceWord, recognizedWord);
+};
+
+const traceAlignment = (referenceWords, recognizedWords, actions) => {
+  // Truy vết ngược để gắn điểm cho từng từ tham chiếu.
+  let refIndex = referenceWords.length;
+  let recIndex = recognizedWords.length;
+  const scores = new Array(refIndex).fill(0);
+  let extraWordsCount = 0;
+
+  while (refIndex > 0 || recIndex > 0) {
+    const action = actions[refIndex][recIndex];
+    const consumesBoth = refIndex > 0 && recIndex > 0 && (action === 'MATCH' || action === 'SUB');
+    if (consumesBoth) {
+      scores[refIndex - 1] = getAlignedWordScore(referenceWords[refIndex - 1], recognizedWords[recIndex - 1], action);
+      refIndex--;
+      recIndex--;
+    } else if (refIndex > 0 && (action === 'DEL' || recIndex === 0)) {
+      // Từ tham chiếu bị bỏ sót (người học không nói hoặc mô hình không nghe thấy).
+      scores[refIndex - 1] = referenceWords[refIndex - 1] === '' ? 100 : 0;
+      refIndex--;
+    } else if (recIndex > 0) {
+      // Từ thừa mà người học nói chèn vào.
+      extraWordsCount++;
+      recIndex--;
+    } else {
+      break;
+    }
+  }
+  return { scores, extraWordsCount };
+};
+
+// Xây dựng mảng wordsAccuracy đúng thứ tự của referenceText.
+const buildWordsAccuracy = (rawWords, scores) => rawWords.map((word, index) => ({
+  word,
+  accuracy: Math.max(0, Math.min(100, scores[index])),
+}));
+
+const calculateFinalScore = (wordsAccuracy, referenceLength, extraWordsCount) => {
+  // Tính điểm tổng: trung bình các từ trừ điểm phạt từ thừa.
+  const sum = wordsAccuracy.reduce((total, word) => total + word.accuracy, 0);
+  const average = referenceLength > 0 ? sum / referenceLength : 0;
+  return Math.max(0, Math.min(100, Math.round(average - Math.min(20, extraWordsCount * 2))));
+};
+
+// Chấm điểm bài Shadowing giữa câu chuẩn (transcriptNormalized) và câu Whisper nhận dạng
 export function scoreShadowing(referenceText, recognizedText) {
   if (!referenceText || typeof referenceText !== 'string' || !referenceText.trim()) {
     return { score: 0, wordsAccuracy: [] };
   }
 
-  const rawRefWords = splitWords(referenceText);
-  const refWords = rawRefWords.map((w) => cleanWord(w));
+  const rawReferenceWords = splitWords(referenceText);
+  const referenceWords = normalizeWords(referenceText);
+  const recognizedWords = normalizeWords(recognizedText, true);
+  const { costs, actions } = createAlignmentTables(referenceWords.length, recognizedWords.length);
 
-  const rawRecWords = splitWords(recognizedText || '');
-  const recWords = rawRecWords.map((w) => cleanWord(w)).filter(Boolean);
+  initializeAlignmentEdges(costs, actions, referenceWords.length, recognizedWords.length);
+  fillAlignmentTables(referenceWords, recognizedWords, costs, actions);
 
-  const m = refWords.length;
-  const n = recWords.length;
-
-  // Quy hoạch động Levenshtein ở mức từ
-  // dp[i][j] lưu chi phí tối thiểu giữa refWords[0..i-1] và recWords[0..j-1]
-  const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
-  // backtrack[i][j]: 'MATCH', 'SUB', 'DEL' (bỏ sót từ ref), 'INS' (từ thừa của rec)
-  const backtrack = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(''));
-
-  for (let i = 1; i <= m; i++) {
-    dp[i][0] = i;
-    backtrack[i][0] = 'DEL';
-  }
-  for (let j = 1; j <= n; j++) {
-    dp[0][j] = j;
-    backtrack[0][j] = 'INS';
-  }
-
-  for (let i = 1; i <= m; i++) {
-    for (let j = 1; j <= n; j++) {
-      const isMatch = refWords[i - 1] === recWords[j - 1];
-      const matchSubCost = dp[i - 1][j - 1] + (isMatch ? 0 : 1);
-      const delCost = dp[i - 1][j] + 1;
-      const insCost = dp[i][j - 1] + 1;
-
-      const minCost = Math.min(matchSubCost, delCost, insCost);
-      dp[i][j] = minCost;
-
-      if (minCost === matchSubCost) {
-        backtrack[i][j] = isMatch ? 'MATCH' : 'SUB';
-      } else if (minCost === delCost) {
-        backtrack[i][j] = 'DEL';
-      } else {
-        backtrack[i][j] = 'INS';
-      }
-    }
-  }
-
-  // Truy vết ngược để gắn điểm cho từng từ tham chiếu
-  let i = m;
-  let j = n;
-  const alignedRefScores = new Array(m).fill(0);
-  let extraWordsCount = 0;
-
-  while (i > 0 || j > 0) {
-    const action = backtrack[i][j];
-    if (i > 0 && j > 0 && (action === 'MATCH' || action === 'SUB')) {
-      const refClean = refWords[i - 1];
-      const recClean = recWords[j - 1];
-      if (refClean === '') {
-        alignedRefScores[i - 1] = 100;
-      } else if (action === 'MATCH') {
-        alignedRefScores[i - 1] = 100;
-      } else {
-        alignedRefScores[i - 1] = charSimilarity(refClean, recClean);
-      }
-      i--;
-      j--;
-    } else if (i > 0 && (action === 'DEL' || j === 0)) {
-      // Từ tham chiếu bị bỏ sót (người học không nói hoặc mô hình không nghe thấy)
-      alignedRefScores[i - 1] = refWords[i - 1] === '' ? 100 : 0;
-      i--;
-    } else if (j > 0) {
-      // Từ thừa mà người học nói chèn vào
-      extraWordsCount++;
-      j--;
-    } else {
-      break;
-    }
-  }
-
-  // Xây dựng mảng wordsAccuracy đúng thứ tự của referenceText
-  const wordsAccuracy = rawRefWords.map((rawWord, idx) => ({
-    word: rawWord,
-    accuracy: Math.max(0, Math.min(100, alignedRefScores[idx])),
-  }));
-
-  // Tính điểm tổng: trung bình các từ trừ điểm phạt từ thừa
-  const sumAccuracy = wordsAccuracy.reduce((acc, curr) => acc + curr.accuracy, 0);
-  const avgScore = m > 0 ? sumAccuracy / m : 0;
-  const penalty = Math.min(20, extraWordsCount * 2);
-  const finalScore = Math.max(0, Math.min(100, Math.round(avgScore - penalty)));
-
+  const { scores, extraWordsCount } = traceAlignment(referenceWords, recognizedWords, actions);
+  const wordsAccuracy = buildWordsAccuracy(rawReferenceWords, scores);
   return {
-    score: finalScore,
+    score: calculateFinalScore(wordsAccuracy, referenceWords.length, extraWordsCount),
     wordsAccuracy,
   };
 }

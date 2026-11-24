@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { getFallbackAvatarUrl } from '../../../../../utils/utils';
+import {
+  ALLOWED_IMAGE_ACCEPT,
+  ALLOWED_IMAGE_TYPES,
+} from '../../../../../constants/fileTypes';
 import './PostCardCommentInput.css';
 
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
@@ -37,7 +42,7 @@ function PostCardCommentInput({
     setImageError('');
 
     if (!selectedFile) return;
-    if (!selectedFile.type.startsWith('image/')) {
+    if (!ALLOWED_IMAGE_TYPES.includes(selectedFile.type)) {
       setImageError(t('community:postCard.imageTypeError'));
       return;
     }
@@ -100,7 +105,7 @@ function PostCardCommentInput({
     >
       {!isEditMode && (
         <img
-          src={avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}`}
+          src={avatarUrl || getFallbackAvatarUrl(userName)}
           alt={userName}
           className="post-card-comment-input__avatar"
         />
@@ -121,7 +126,7 @@ function PostCardCommentInput({
         <input
           ref={imageInputRef}
           type="file"
-          accept="image/*"
+          accept={ALLOWED_IMAGE_ACCEPT}
           onChange={handleImageChange}
           className="post-card-comment-input__file-input"
           tabIndex={-1}

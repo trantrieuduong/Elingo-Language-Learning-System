@@ -7,6 +7,12 @@
   box-shadow: var(--adm-shadow-xs);
 }
 
+.borderless {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;

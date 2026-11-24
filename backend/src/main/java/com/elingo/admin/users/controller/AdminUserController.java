@@ -66,7 +66,9 @@ public class AdminUserController {
                                                     "passwordChangedAt": "2026-02-15T08:30:00",
                                                     "usernameChangedAt": "2026-01-10T14:20:00",
                                                     "hasPassword": true,
-                                                    "linkedGoogle": false
+                                                    "linkedGoogle": false,
+                                                    "createdAt": "2026-01-01T10:00:00",
+                                                    "updatedAt": "2026-02-15T08:30:00"
                                                   }
                                                 ],
                                                 "page": 1,
@@ -149,7 +151,9 @@ public class AdminUserController {
                                                 "passwordChangedAt": "2026-02-15T08:30:00",
                                                 "usernameChangedAt": "2026-01-10T14:20:00",
                                                 "hasPassword": true,
-                                                "linkedGoogle": false
+                                                "linkedGoogle": false,
+                                                "createdAt": "2026-01-01T10:00:00",
+                                                "updatedAt": "2026-02-15T08:30:00"
                                               }
                                             }
                                             """
@@ -242,7 +246,9 @@ public class AdminUserController {
                                                 "passwordChangedAt": "2026-02-15T08:30:00",
                                                 "usernameChangedAt": "2026-01-10T14:20:00",
                                                 "hasPassword": true,
-                                                "linkedGoogle": false
+                                                "linkedGoogle": false,
+                                                "createdAt": "2026-01-01T10:00:00",
+                                                "updatedAt": "2026-02-15T08:30:00"
                                               }
                                             }
                                             """
@@ -369,7 +375,9 @@ public class AdminUserController {
                                                 "passwordChangedAt": "2026-02-15T08:30:00",
                                                 "usernameChangedAt": "2026-01-10T14:20:00",
                                                 "hasPassword": true,
-                                                "linkedGoogle": false
+                                                "linkedGoogle": false,
+                                                "createdAt": "2026-01-01T10:00:00",
+                                                "updatedAt": "2026-02-15T08:30:00"
                                               }
                                             }
                                             """

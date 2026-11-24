@@ -11,6 +11,310 @@ import BackButton from '../../../../components/BackButton/BackButton';
 import EmptyState from '../../../../components/EmptyState/EmptyState';
 import './DictationPage.css';
 
+// ── Helper Components ──
+function LoadingState({ t }) {
+  return (
+    <div className="dictation-page-container">
+      <div className="dictation-status-card glass-card">
+        <div className="dictation-spinner" />
+        <p className="dictation-status-text">{t('dictation.loading')}</p>
+      </div>
+    </div>
+  );
+}
+
+function ErrorState({ errorType, errorMessage, t, onNavigate }) {
+  const isPremium = errorType === 'premium';
+  const description = isPremium
+    ? errorMessage
+    : errorType === 'not_found'
+      ? t('dictation.notFound')
+      : errorMessage || t('dictation.errorLoad');
+
+  return (
+    <div className="dictation-page-container">
+      <EmptyState
+        icon="error"
+        isError
+        description={description}
+        actionLabel={t('lessonStudy.backToLessons')}
+        actionVariant="primary"
+        onAction={() => onNavigate && onNavigate('/lessons')}
+      />
+    </div>
+  );
+}
+
+function EmptySegmentsState({ t, onNavigate }) {
+  return (
+    <div className="dictation-page-container">
+      <EmptyState
+        icon="layers_clear"
+        description={t('lessonStudy.noSegments')}
+        actionLabel={t('lessonStudy.backToLessons')}
+        actionVariant="primary"
+        onAction={() => onNavigate && onNavigate('/lessons')}
+      />
+    </div>
+  );
+}
+
+function CompletionCard({ t, passedSegmentsCount, totalSegments, onNavigate, slug }) {
+  return (
+    <div className="dictation-completion-card glass-card">
+      <div className="dictation-completion-icon-wrapper">
+        <span className="material-symbols-outlined dictation-completion-icon">
+          verified
+        </span>
+      </div>
+      <h2 className="dictation-completion-title">{t('dictation.completedTitle')}</h2>
+      <p className="dictation-completion-desc">{t('dictation.completedSubtitle')}</p>
+
+      <div className="dictation-completion-stats">
+        <span className="dictation-completion-stats-tag">
+          {t('lessonStudy.passedSegmentsStats', {
+            passed: passedSegmentsCount,
+            total: totalSegments,
+          })}
+        </span>
+      </div>
+
+      <div className="dictation-completion-actions">
+        <button
+          type="button"
+          className="btn-secondary"
+          onClick={() => onNavigate && onNavigate('/lessons')}
+        >
+          {t('common:back')}
+        </button>
+        <button
+          type="button"
+          className="btn-primary"
+          onClick={() =>
+            onNavigate && onNavigate(`/lessons/shadowing/${encodeURIComponent(slug)}`)
+          }
+        >
+          <span className="material-symbols-outlined">record_voice_over</span>
+          <span>{t('dictation.learnShadowing')}</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ResultCard({ segmentResult, t, onRetry, onNext, isLastSegment }) {
+  return (
+    <div className="dictation-result-card glass-card">
+      <div className="dictation-result-header">
+        <span
+          className={`dictation-result-badge ${
+            segmentResult.passed
+              ? 'dictation-result-badge--pass'
+              : 'dictation-result-badge--fail'
+          }`}
+        >
+          {segmentResult.passed
+            ? t('lessonStudy.passedBadge')
+            : t('lessonStudy.failedBadge')}
+        </span>
+        <span className="dictation-result-score">
+          {t('dictation.currentScore', { score: segmentResult.score })}
+        </span>
+      </div>
+
+      <div className="dictation-result-meta">
+        <p className="dictation-result-best">
+          {t('dictation.bestScore', {
+            score: Math.round(
+              segmentResult.segmentProgress?.dictationBestScore ?? segmentResult.score
+            ),
+          })}
+        </p>
+        {segmentResult.score < (segmentResult.segmentProgress?.dictationBestScore ?? 0) && (
+          <p className="dictation-result-notice">{t('dictation.bestScoreNotice')}</p>
+        )}
+        {segmentResult.hintUsedCount > 0 && (
+          <p className="dictation-result-hint-count">
+            {t('dictation.hintsUsedInfo', {
+              count: segmentResult.hintUsedCount,
+            })}
+          </p>
+        )}
+      </div>
+
+      <div className="dictation-result-actions">
+        <button type="button" className="btn-secondary" onClick={onRetry}>
+          <span className="material-symbols-outlined">refresh</span>
+          <span>{t('dictation.retrySegmentBtn')}</span>
+        </button>
+        <button type="button" className="btn-primary" onClick={onNext}>
+          <span>
+            {isLastSegment
+              ? t('lessonStudy.finishLesson')
+              : t('lessonStudy.nextSegment')}
+          </span>
+          <span className="material-symbols-outlined">arrow_forward</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function WordPill({ wordObj, idx, onRevealWord, t }) {
+  const isCorrect = wordObj.status === 'correct';
+  const isRevealed = wordObj.status === 'revealed';
+  const canReveal = !isCorrect && !isRevealed;
+
+  return (
+    <div className="dictation-word-wrapper">
+      {canReveal && (
+        <button
+          type="button"
+          className="dictation-eye-btn"
+          onClick={() => onRevealWord(idx)}
+          title={t('dictation.revealWord')}
+        >
+          <span className="material-symbols-outlined">visibility</span>
+        </button>
+      )}
+      <div className={`dictation-word-pill dictation-word-pill--${wordObj.status}`}>
+        {wordObj.displayText}
+      </div>
+    </div>
+  );
+}
+
+function StudyCard({
+  t,
+  textareaRef,
+  userInput,
+  onUserInputChange,
+  isSubmitting,
+  wordStatuses,
+  onRevealWord,
+  revealedIndices,
+  submitError,
+  onShowAllRemaining,
+  allDone,
+  onSubmit,
+}) {
+  return (
+    <div className="dictation-study-card glass-card">
+      <div className="dictation-study-header">
+        <h3 className="dictation-study-title">{t('dictation.typeWhatYouHear')}</h3>
+      </div>
+
+      <div className="dictation-textarea-wrapper">
+        <textarea
+          ref={textareaRef}
+          value={userInput}
+          onChange={onUserInputChange}
+          placeholder={t('dictation.inputPlaceholder')}
+          className="dictation-textarea"
+          rows={4}
+          spellCheck={false}
+          autoCorrect="off"
+          autoCapitalize="off"
+          autoComplete="off"
+          lang="en"
+          disabled={isSubmitting}
+        />
+      </div>
+
+      <div className="dictation-words-section">
+        <div className="dictation-words-title">{t('dictation.vocabularyHint')}</div>
+        <div className="dictation-words-grid">
+          {wordStatuses.map((wordObj, idx) => (
+            <WordPill
+              key={idx}
+              wordObj={wordObj}
+              idx={idx}
+              onRevealWord={onRevealWord}
+              t={t}
+            />
+          ))}
+        </div>
+      </div>
+
+      {revealedIndices.size > 0 && (
+        <div className="dictation-hint-warning">
+          <span className="material-symbols-outlined dictation-hint-warning-icon">
+            warning
+          </span>
+          <span>{t('dictation.hintWarning')}</span>
+        </div>
+      )}
+
+      {submitError && (
+        <div className="dictation-submit-error">
+          <span className="material-symbols-outlined">error</span>
+          <span>{submitError}</span>
+        </div>
+      )}
+
+      <div className="dictation-actions-row">
+        <button
+          type="button"
+          className="btn-secondary"
+          onClick={onShowAllRemaining}
+          disabled={isSubmitting || allDone}
+        >
+          {t('dictation.showAllBtn')}
+        </button>
+
+        <button
+          type="button"
+          className={`btn-primary dictation-submit-btn ${
+            allDone ? 'dictation-submit-btn--ready' : ''
+          }`}
+          onClick={onSubmit}
+          disabled={!allDone || isSubmitting}
+        >
+          <span>
+            {isSubmitting ? t('dictation.submitting') : t('dictation.completeSegmentBtn')}
+          </span>
+          <span className="material-symbols-outlined">check</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Helper Functions ──
+function findFirstIncompleteSegmentIndex(segmentsList) {
+  const firstIncompleteIdx = segmentsList.findIndex((seg) => {
+    const count = seg?.userProgress?.dictationAttemptCount;
+    return typeof count !== 'number' || count <= 0;
+  });
+  return firstIncompleteIdx !== -1 ? firstIncompleteIdx : 0;
+}
+
+function handleApiError(err, t) {
+  const errorCode = err?.response?.data?.code;
+  
+  if (errorCode === 'PREMIUM_REQUIRED') {
+    return {
+      type: 'premium',
+      message: t('api:error.PREMIUM_REQUIRED', {
+        defaultValue: t('common:loadError'),
+      }),
+    };
+  }
+  
+  if (errorCode === 'LESSON_NOT_FOUND' || err?.response?.status === 404) {
+    return { type: 'not_found', message: '' };
+  }
+  
+  return { type: 'general', message: t('common:loadError') };
+}
+
+function countPassedSegments(segments, passScore) {
+  return segments.filter((seg) => {
+    const best = seg?.userProgress?.dictationBestScore;
+    return typeof best === 'number' && best >= passScore;
+  }).length;
+}
+
 function DictationPage({ slug, onNavigate }) {
   const { t } = useTranslation(['learning', 'api', 'common']);
 
@@ -66,30 +370,12 @@ function DictationPage({ slug, onNavigate }) {
 
         setLesson(lessonData);
         setSegments(segmentsList);
-
-        // Tìm segment đầu tiên chưa hoàn thành (chưa có dictationAttemptCount > 0)
-        const firstIncompleteIdx = segmentsList.findIndex((seg) => {
-          const count = seg?.userProgress?.dictationAttemptCount;
-          return typeof count !== 'number' || count <= 0;
-        });
-
-        setCurrentIndex(firstIncompleteIdx !== -1 ? firstIncompleteIdx : 0);
+        setCurrentIndex(findFirstIncompleteSegmentIndex(segmentsList));
       } catch (err) {
         if (!isSubscribed) return;
-        const errorCode = err?.response?.data?.code;
-        if (errorCode === 'PREMIUM_REQUIRED') {
-          setErrorType('premium');
-          setErrorMessage(
-            t('api:error.PREMIUM_REQUIRED', {
-              defaultValue: t('common:loadError'),
-            })
-          );
-        } else if (errorCode === 'LESSON_NOT_FOUND' || err?.response?.status === 404) {
-          setErrorType('not_found');
-        } else {
-          setErrorType('general');
-          setErrorMessage(t('common:loadError'));
-        }
+        const error = handleApiError(err, t);
+        setErrorType(error.type);
+        setErrorMessage(error.message);
       } finally {
         if (isSubscribed) setLoading(false);
       }
@@ -248,59 +534,28 @@ function DictationPage({ slug, onNavigate }) {
 
   // ── Màn hình Đang tải ──
   if (loading) {
-    return (
-      <div className="dictation-page-container">
-        <div className="dictation-status-card glass-card">
-          <div className="dictation-spinner" />
-          <p className="dictation-status-text">{t('dictation.loading')}</p>
-        </div>
-      </div>
-    );
+    return <LoadingState t={t} />;
   }
 
   // ── Màn hình Lỗi hoặc Không tìm thấy ──
   if (errorType || !lesson) {
-    const isPremium = errorType === 'premium';
     return (
-      <div className="dictation-page-container">
-        <EmptyState
-          icon="error"
-          isError
-          description={
-            isPremium
-              ? errorMessage
-              : errorType === 'not_found'
-                ? t('dictation.notFound')
-                : errorMessage || t('dictation.errorLoad')
-          }
-          actionLabel={t('lessonStudy.backToLessons')}
-          actionVariant="primary"
-          onAction={() => onNavigate && onNavigate('/lessons')}
-        />
-      </div>
+      <ErrorState
+        errorType={errorType}
+        errorMessage={errorMessage}
+        t={t}
+        onNavigate={onNavigate}
+      />
     );
   }
 
   // ── Màn hình Bài học rỗng không có segment ──
   if (segments.length === 0) {
-    return (
-      <div className="dictation-page-container">
-        <EmptyState
-          icon="layers_clear"
-          description={t('lessonStudy.noSegments')}
-          actionLabel={t('lessonStudy.backToLessons')}
-          actionVariant="primary"
-          onAction={() => onNavigate && onNavigate('/lessons')}
-        />
-      </div>
-    );
+    return <EmptySegmentsState t={t} onNavigate={onNavigate} />;
   }
 
   // Đếm số segment đạt yêu cầu (bestScore >= passScore)
-  const passedSegmentsCount = segments.filter((seg) => {
-    const best = seg?.userProgress?.dictationBestScore;
-    return typeof best === 'number' && best >= passScore;
-  }).length;
+  const passedSegmentsCount = countPassedSegments(segments, passScore);
 
   return (
     <div className="dictation-page-container">
@@ -338,201 +593,36 @@ function DictationPage({ slug, onNavigate }) {
         {/* Cột 2: Khu vực học chính hoặc Màn hình kết quả */}
         <main className="dictation-col-main">
           {isCompletedLesson ? (
-            /* ── MÀN HÌNH HOÀN THÀNH TOÀN BỘ BÀI HỌC ── */
-            <div className="dictation-completion-card glass-card">
-              <div className="dictation-completion-icon-wrapper">
-                <span className="material-symbols-outlined dictation-completion-icon">
-                  verified
-                </span>
-              </div>
-              <h2 className="dictation-completion-title">{t('dictation.completedTitle')}</h2>
-              <p className="dictation-completion-desc">{t('dictation.completedSubtitle')}</p>
-
-              <div className="dictation-completion-stats">
-                <span className="dictation-completion-stats-tag">
-                  {t('lessonStudy.passedSegmentsStats', {
-                    passed: passedSegmentsCount,
-                    total: segments.length,
-                  })}
-                </span>
-              </div>
-
-              <div className="dictation-completion-actions">
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={() => onNavigate && onNavigate('/lessons')}
-                >
-                  {t('common:back')}
-                </button>
-                <button
-                  type="button"
-                  className="btn-primary"
-                  onClick={() =>
-                    onNavigate && onNavigate(`/lessons/shadowing/${encodeURIComponent(slug)}`)
-                  }
-                >
-                  <span className="material-symbols-outlined">record_voice_over</span>
-                  <span>{t('dictation.learnShadowing')}</span>
-                </button>
-              </div>
-            </div>
+            <CompletionCard
+              t={t}
+              passedSegmentsCount={passedSegmentsCount}
+              totalSegments={segments.length}
+              onNavigate={onNavigate}
+              slug={slug}
+            />
           ) : segmentResult ? (
-            /* ── MÀN HÌNH KẾT QUẢ CỦA PHÂN ĐOẠN ── */
-            <div className="dictation-result-card glass-card">
-              <div className="dictation-result-header">
-                <span
-                  className={`dictation-result-badge ${
-                    segmentResult.passed
-                      ? 'dictation-result-badge--pass'
-                      : 'dictation-result-badge--fail'
-                  }`}
-                >
-                  {segmentResult.passed
-                    ? t('lessonStudy.passedBadge')
-                    : t('lessonStudy.failedBadge')}
-                </span>
-                <span className="dictation-result-score">
-                  {t('dictation.currentScore', { score: segmentResult.score })}
-                </span>
-              </div>
-
-              <div className="dictation-result-meta">
-                <p className="dictation-result-best">
-                  {t('dictation.bestScore', {
-                    score: Math.round(
-                      segmentResult.segmentProgress?.dictationBestScore ?? segmentResult.score
-                    ),
-                  })}
-                </p>
-                {segmentResult.score < (segmentResult.segmentProgress?.dictationBestScore ?? 0) && (
-                  <p className="dictation-result-notice">{t('dictation.bestScoreNotice')}</p>
-                )}
-                {segmentResult.hintUsedCount > 0 && (
-                  <p className="dictation-result-hint-count">
-                    {t('dictation.hintsUsedInfo', {
-                      count: segmentResult.hintUsedCount,
-                    })}
-                  </p>
-                )}
-              </div>
-
-              <div className="dictation-result-actions">
-                <button type="button" className="btn-secondary" onClick={handleRetrySegment}>
-                  <span className="material-symbols-outlined">refresh</span>
-                  <span>{t('dictation.retrySegmentBtn')}</span>
-                </button>
-                <button type="button" className="btn-primary" onClick={handleNextSegment}>
-                  <span>
-                    {currentIndex < segments.length - 1
-                      ? t('lessonStudy.nextSegment')
-                      : t('lessonStudy.finishLesson')}
-                  </span>
-                  <span className="material-symbols-outlined">arrow_forward</span>
-                </button>
-              </div>
-            </div>
+            <ResultCard
+              segmentResult={segmentResult}
+              t={t}
+              onRetry={handleRetrySegment}
+              onNext={handleNextSegment}
+              isLastSegment={currentIndex >= segments.length - 1}
+            />
           ) : (
-            /* ── KHU VỰC GÕ CHÍNH TẢ & GỢI Ý ── */
-            <div className="dictation-study-card glass-card">
-              <div className="dictation-study-header">
-                <h3 className="dictation-study-title">{t('dictation.typeWhatYouHear')}</h3>
-              </div>
-
-              {/* Textarea nhập câu */}
-              <div className="dictation-textarea-wrapper">
-                <textarea
-                  ref={textareaRef}
-                  value={userInput}
-                  onChange={(e) => setUserInput(e.target.value)}
-                  placeholder={t('dictation.inputPlaceholder')}
-                  className="dictation-textarea"
-                  rows={4}
-                  spellCheck={false}
-                  autoCorrect="off"
-                  autoCapitalize="off"
-                  autoComplete="off"
-                  lang="en"
-                  disabled={isSubmitting}
-                />
-              </div>
-
-              {/* Lưới các viên từ so khớp */}
-              <div className="dictation-words-section">
-                <div className="dictation-words-title">{t('dictation.vocabularyHint')}</div>
-                <div className="dictation-words-grid">
-                  {wordStatuses.map((wordObj, idx) => {
-                    const isCorrect = wordObj.status === 'correct';
-                    const isRevealed = wordObj.status === 'revealed';
-                    const canReveal = !isCorrect && !isRevealed;
-
-                    return (
-                      <div key={idx} className="dictation-word-wrapper">
-                        {canReveal && (
-                          <button
-                            type="button"
-                            className="dictation-eye-btn"
-                            onClick={() => handleRevealWord(idx)}
-                            title={t('dictation.revealWord')}
-                          >
-                            <span className="material-symbols-outlined">visibility</span>
-                          </button>
-                        )}
-                        <div
-                          className={`dictation-word-pill dictation-word-pill--${wordObj.status}`}
-                        >
-                          {wordObj.displayText}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Cảnh báo khi đã dùng gợi ý */}
-              {revealedIndices.size > 0 && (
-                <div className="dictation-hint-warning">
-                  <span className="material-symbols-outlined dictation-hint-warning-icon">
-                    warning
-                  </span>
-                  <span>{t('dictation.hintWarning')}</span>
-                </div>
-              )}
-
-              {/* Hiển thị lỗi nộp bài nếu có */}
-              {submitError && (
-                <div className="dictation-submit-error">
-                  <span className="material-symbols-outlined">error</span>
-                  <span>{submitError}</span>
-                </div>
-              )}
-
-              {/* Thanh thao tác: Hiện tất cả & Hoàn thành đoạn */}
-              <div className="dictation-actions-row">
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={handleShowAllRemaining}
-                  disabled={isSubmitting || allDone}
-                >
-                  {t('dictation.showAllBtn')}
-                </button>
-
-                <button
-                  type="button"
-                  className={`btn-primary dictation-submit-btn ${
-                    allDone ? 'dictation-submit-btn--ready' : ''
-                  }`}
-                  onClick={handleSubmitSegment}
-                  disabled={!allDone || isSubmitting}
-                >
-                  <span>
-                    {isSubmitting ? t('dictation.submitting') : t('dictation.completeSegmentBtn')}
-                  </span>
-                  <span className="material-symbols-outlined">check</span>
-                </button>
-              </div>
-            </div>
+            <StudyCard
+              t={t}
+              textareaRef={textareaRef}
+              userInput={userInput}
+              onUserInputChange={(e) => setUserInput(e.target.value)}
+              isSubmitting={isSubmitting}
+              wordStatuses={wordStatuses}
+              onRevealWord={handleRevealWord}
+              revealedIndices={revealedIndices}
+              submitError={submitError}
+              onShowAllRemaining={handleShowAllRemaining}
+              allDone={allDone}
+              onSubmit={handleSubmitSegment}
+            />
           )}
         </main>
 

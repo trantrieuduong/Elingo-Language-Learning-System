@@ -55,7 +55,9 @@ class AdminUserControllerTest {
             LocalDateTime.now(),
             LocalDateTime.now(),
             true,
-            false
+            false,
+            LocalDateTime.now(),
+            LocalDateTime.now()
     );
 
     private static final AdminUserResponse LOCKED_USER_RESPONSE = new AdminUserResponse(
@@ -70,7 +72,9 @@ class AdminUserControllerTest {
             LocalDateTime.now(),
             LocalDateTime.now(),
             true,
-            false
+            false,
+            LocalDateTime.now(),
+            LocalDateTime.now()
     );
 
     @Nested

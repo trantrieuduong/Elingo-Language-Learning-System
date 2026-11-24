@@ -230,10 +230,29 @@
   },
   "common": {
     "all": "Tất cả",
-    "total": "Tổng cộng",
+    "total": "Tổng số",
     "items": "mục",
     "loading": "Đang tải...",
-    "retry": "Thử lại"
+    "retry": "Thử lại",
+    "refresh": "Làm mới",
+    "search": "Tìm kiếm",
+    "filter": "Bộ lọc",
+    "apply": "Áp dụng",
+    "reset": "Đặt lại",
+    "cancel": "Hủy",
+    "save": "Lưu thay đổi",
+    "actions": "Thao tác",
+    "details": "Chi tiết",
+    "status": "Trạng thái",
+    "createdAt": "Thời điểm tạo",
+    "updatedAt": "Cập nhật lần cuối",
+    "admin": "Quản trị viên",
+    "close": "Đóng",
+    "page": "Trang",
+    "prevPage": "Trang trước",
+    "nextPage": "Trang sau",
+    "goToPage": "Đến trang",
+    "goToPageTooltip": "Nhập số trang và nhấn Enter"
   },
   "content": {
     "decks": {
@@ -379,25 +398,6 @@
       "tagDeleteSuccess": "Đã xóa thẻ chủ đề"
     }
   },
-  "common": {
-    "total": "Tổng số",
-    "items": "mục",
-    "all": "Tất cả",
-    "refresh": "Làm mới",
-    "search": "Tìm kiếm",
-    "filter": "Bộ lọc",
-    "apply": "Áp dụng",
-    "reset": "Đặt lại",
-    "cancel": "Hủy",
-    "save": "Lưu thay đổi",
-    "actions": "Thao tác",
-    "details": "Chi tiết",
-    "status": "Trạng thái",
-    "createdAt": "Thời điểm tạo",
-    "updatedAt": "Cập nhật lần cuối",
-    "admin": "Quản trị viên",
-    "close": "Đóng"
-  },
   "systemConfig": {
     "title": "Cấu hình hệ thống",
     "subtitle": "Quản lý và điều chỉnh các tham số vận hành, bảo mật và quy tắc nghiệp vụ toàn hệ sinh thái Elingo",
@@ -453,5 +453,114 @@
     "ipAddress": "Địa chỉ IP",
     "timestamp": "Thời điểm ghi nhận",
     "detailPayload": "Nội dung chi tiết (Payload)"
+  },
+  "users": {
+    "title": "Quản lý Người dùng",
+    "subtitle": "Tra cứu, theo dõi hồ sơ và kiểm soát trạng thái hoạt động của người dùng toàn hệ sinh thái Elingo",
+    "totalUsers": "Tổng số người dùng",
+    "usersCountSuffix": "người dùng",
+    "filters": {
+      "searchPlaceholder": "Tìm kiếm theo username, email, họ tên...",
+      "role": "Vai trò",
+      "allRoles": "Tất cả vai trò",
+      "roleUser": "Người dùng (USER)",
+      "roleAdmin": "Quản trị viên (ADMIN)",
+      "verified": "Xác thực email",
+      "allVerified": "Tất cả trạng thái",
+      "verifiedYes": "Đã xác thực",
+      "verifiedNo": "Chưa xác thực",
+      "status": "Trạng thái tài khoản",
+      "allStatus": "Tất cả trạng thái",
+      "statusActive": "Đang hoạt động",
+      "statusLocked": "Đã bị khóa",
+      "createdFrom": "Từ ngày",
+      "createdTo": "Đến ngày",
+      "searchBtn": "Tìm kiếm",
+      "resetBtn": "Đặt lại",
+      "invalidDateRange": "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu"
+    },
+    "columns": {
+      "user": "Người dùng",
+      "email": "Email",
+      "role": "Vai trò",
+      "verified": "Xác thực",
+      "status": "Trạng thái",
+      "createdAt": "Ngày tham gia",
+      "authMethod": "Đăng nhập",
+      "actions": "Thao tác"
+    },
+    "badges": {
+      "active": "Hoạt động",
+      "locked": "Bị khóa",
+      "verified": "Đã xác thực",
+      "unverified": "Chưa xác thực",
+      "hasPassword": "Mật khẩu",
+      "noPassword": "Không có MK",
+      "googleLinked": "Google",
+      "googleNotLinked": "Chưa liên kết"
+    },
+    "actions": {
+      "viewDetail": "Xem chi tiết",
+      "lock": "Khóa tài khoản",
+      "unlock": "Mở khóa tài khoản",
+      "cannotModifySelfTooltip": "Không thể khóa hoặc mở khóa tài khoản của chính mình",
+      "cannotModifyAdminTooltip": "Không thể khóa hoặc mở khóa tài khoản của quản trị viên khác"
+    },
+    "detailModal": {
+      "title": "Chi tiết người dùng",
+      "subtitle": "Thông tin định danh, bảo mật và trạng thái tài khoản",
+      "userId": "Mã ID",
+      "username": "Tên đăng nhập",
+      "fullName": "Họ và tên",
+      "email": "Địa chỉ Email",
+      "role": "Vai trò hệ thống",
+      "accountStatus": "Trạng thái tài khoản",
+      "emailVerified": "Xác thực email",
+      "securitySection": "Bảo mật & Đăng nhập",
+      "timestampsSection": "Mốc thời gian tài khoản",
+      "createdAt": "Ngày đăng ký tài khoản",
+      "updatedAt": "Cập nhật tài khoản lần cuối",
+      "hasPassword": "Mật khẩu cục bộ",
+      "linkedGoogle": "Liên kết Google OAuth",
+      "passwordChangedAt": "Đổi mật khẩu lần cuối",
+      "usernameChangedAt": "Đổi username lần cuối",
+      "never": "Chưa từng cập nhật",
+      "lockAction": "Khóa tài khoản này",
+      "unlockAction": "Mở khóa tài khoản này",
+      "close": "Đóng"
+    },
+    "lockModal": {
+      "title": "Khóa tài khoản người dùng",
+      "subtitle": "Vô hiệu hóa quyền truy cập hệ thống của tài khoản",
+      "targetLabel": "Tài khoản bị khóa",
+      "warningText": "Cảnh báo: Sau khi bị khóa, người dùng sẽ bị đăng xuất và không thể đăng nhập hoặc thực hiện bất kỳ hoạt động nào trong hệ thống.",
+      "reasonLabel": "Lý do khóa tài khoản",
+      "reasonPlaceholder": "Nhập chi tiết lý do khóa tài khoản (bắt buộc, tối đa 500 ký tự)...",
+      "reasonRequired": "Vui lòng nhập lý do khóa tài khoản",
+      "reasonMaxLength": "Lý do khóa không được vượt quá 500 ký tự",
+      "charCount": "ký tự",
+      "confirmBtn": "Xác nhận khóa",
+      "cancelling": "Hủy bỏ",
+      "success": "Đã khóa tài khoản thành công",
+      "error": "Không thể khóa tài khoản. Vui lòng thử lại."
+    },
+    "unlockModal": {
+      "title": "Mở khóa tài khoản người dùng",
+      "subtitle": "Khôi phục quyền truy cập hệ thống cho tài khoản",
+      "confirmMessage": "Bạn có chắc chắn muốn mở khóa và kích hoạt lại tài khoản này không? Người dùng sẽ có thể đăng nhập bình thường.",
+      "targetLabel": "Tài khoản được mở khóa",
+      "confirmBtn": "Xác nhận mở khóa",
+      "cancelling": "Hủy bỏ",
+      "success": "Đã mở khóa tài khoản thành công",
+      "error": "Không thể mở khóa tài khoản. Vui lòng thử lại."
+    },
+    "errors": {
+      "cannotModifySelf": "Bạn không thể thực hiện thao tác này trên tài khoản của chính mình",
+      "cannotModifyAdmin": "Không thể thực hiện thao tác quản trị trên một quản trị viên khác",
+      "userInactive": "Tài khoản người dùng này hiện tại đang bị khóa",
+      "userAlreadyActive": "Tài khoản người dùng này hiện tại đang hoạt động",
+      "userNotFound": "Không tìm thấy người dùng trong hệ thống",
+      "invalidDateRange": "Khoảng thời gian đăng ký không hợp lệ"
+    }
   }
 }

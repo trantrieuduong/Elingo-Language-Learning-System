@@ -942,7 +942,9 @@ class UserServiceTest {
                     null,
                     null,
                     true,
-                    false
+                    false,
+                    LocalDateTime.now(),
+                    LocalDateTime.now()
             );
         }
 

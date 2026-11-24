@@ -32,6 +32,8 @@ import SpeakingLobbyPage from './modules/speaking/pages/SpeakingLobbyPage';
 import SpeakingRoomPage from './modules/speaking/pages/SpeakingRoomPage';
 import SpeakingHistoryPage from './modules/speaking/pages/SpeakingHistoryPage';
 import ReportPage from './modules/report/pages/ReportPage';
+import MyProfilePage from './modules/user/pages/MyProfilePage';
+import UserProfilePage from './modules/user/pages/UserProfilePage';
 import './App.css';
 
 const AdminRoutes = lazy(() => import('./modules/admin/routes'));
@@ -76,9 +78,9 @@ function App() {
   const battlePlayMatch = currentPath.match(/^\/battle\/play\/(\d+)$/);
   const battleDetailMatch = currentPath.match(/^\/battle\/history\/(\d+)$/);
   const speakingRoomMatch = currentPath.match(/^\/speaking\/room\/([A-Za-z0-9]{6})$/);
-  const deckListMatch = currentPath === '/decks';
   const deckTopicsMatch = currentPath.match(/^\/decks\/([^/]+)\/topics$/);
   const postDetailMatch = currentPath.match(/^\/community\/posts\/(\d+)$/);
+  const userProfileMatch = currentPath.match(/^\/profile\/([^/]+)$/);
   const isPrivateUserPath =
     PRIVATE_USER_PATHS.some((path) => {
       return currentPath === path || currentPath.startsWith(`${path}/`);
@@ -87,7 +89,8 @@ function App() {
     !!deckTopicsMatch ||
     !!dictationMatch ||
     !!shadowingMatch ||
-    !!speakingRoomMatch;
+    !!speakingRoomMatch ||
+    !!userProfileMatch;
 
   useEffect(() => {
     if (loading) return;
@@ -205,6 +208,16 @@ function App() {
       return <ShadowingPage slug={decodeURIComponent(shadowingMatch[1])} onNavigate={navigate} />;
     }
 
+    if (userProfileMatch) {
+      return (
+        <UserProfilePage
+          key={currentPath}
+          userId={decodeURIComponent(userProfileMatch[1])}
+          onNavigate={navigate}
+        />
+      );
+    }
+
     switch (currentPath) {
       case '/':
         return <LandingPage onNavigate={navigate} />;
@@ -251,7 +264,7 @@ function App() {
       case '/premium/my-subscription':
         return <MySubscriptionPage onNavigate={navigate} />;
       case '/profile':
-        return <PlaceholderPage title="Profile" path={currentPath} />;
+        return <MyProfilePage onNavigate={navigate} />;
       case '/reports':
         return <ReportPage onNavigate={navigate} />;
       case '/decks':

@@ -99,7 +99,7 @@ describe('AdminAuditLogPage component', () => {
 
       // Check pagination info
       expect(screen.getByText('25')).toBeInTheDocument();
-      expect(screen.getByText('(1/2)', { exact: false })).toBeInTheDocument();
+      expect(screen.getByText(/1\/2/)).toBeInTheDocument();
     });
 
     it('applies filters when submitting filter form', async () => {
@@ -195,7 +195,7 @@ describe('AdminAuditLogPage component', () => {
 
       // Click next page
       adminAuditApi.fetchAuditLogs.mockResolvedValueOnce(samplePage2);
-      const nextBtn = screen.getByRole('button', { name: 'Next Page' });
+      const nextBtn = screen.getByRole('button', { name: /Next Page|Trang sau/i });
       await user.click(nextBtn);
 
       await waitFor(() => {
@@ -210,7 +210,7 @@ describe('AdminAuditLogPage component', () => {
 
       // Click previous page
       adminAuditApi.fetchAuditLogs.mockResolvedValueOnce(samplePage1);
-      const prevBtn = screen.getByRole('button', { name: 'Previous Page' });
+      const prevBtn = screen.getByRole('button', { name: /Previous Page|Trang trước/i });
       await user.click(prevBtn);
 
       await waitFor(() => {

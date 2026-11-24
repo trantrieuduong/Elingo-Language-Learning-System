@@ -181,6 +181,9 @@
   border: 1px solid var(--adm-border);
   border-radius: var(--adm-radius-lg, 12px);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--adm-shadow-xs);
 }
 
 .timeText {
@@ -306,54 +309,6 @@
   background: var(--adm-bg-surface-subtle);
   color: var(--adm-accent);
   border-color: var(--adm-accent);
-}
-
-/* Pagination Bar */
-.paginationBar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 20px;
-  border-top: 1px solid var(--adm-border);
-  background: var(--adm-bg-surface);
-  font-size: 13px;
-  color: var(--adm-text-muted);
-}
-
-.paginationInfo strong {
-  color: var(--adm-text-main);
-}
-
-.paginationControls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.pageBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--adm-radius-md, 8px);
-  border: 1px solid var(--adm-border);
-  background: var(--adm-bg-surface);
-  color: var(--adm-text-main);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.pageBtn:hover:not(:disabled) {
-  background: var(--adm-bg-surface-subtle);
-  border-color: var(--adm-border-strong);
-}
-
-.pageBtn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
 }
 
 @media (max-width: 768px) {
