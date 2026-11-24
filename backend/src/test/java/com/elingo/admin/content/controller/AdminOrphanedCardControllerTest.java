@@ -1,7 +1,7 @@
 package com.elingo.admin.content.controller;
 
-import com.elingo.admin.content.dto.response.OrphanedCardCleanupResponse;
-import com.elingo.admin.content.dto.response.OrphanedCardStatsResponse;
+import com.elingo.vocabulary.dto.response.OrphanedCardCleanupResponse;
+import com.elingo.vocabulary.dto.response.OrphanedCardStatsResponse;
 import com.elingo.admin.content.service.AdminOrphanedCardService;
 import com.elingo.common.dto.PageResponse;
 import com.elingo.common.exception.GlobalExceptionHandler;

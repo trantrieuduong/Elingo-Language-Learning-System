@@ -7,12 +7,17 @@ import com.elingo.admin.stats.service.LearningStatsService;
 import com.elingo.admin.stats.util.StatsZeroFiller;
 import com.elingo.common.service.RedisService;
 import com.elingo.file.util.FileKey;
-import com.elingo.gamification.repository.XpEventRepository;
+import com.elingo.gamification.dto.projection.ActivityByDateProjection;
 import com.elingo.gamification.service.GamificationStatsQueryService;
-import com.elingo.learning.lesson.repository.LessonRepository;
+import com.elingo.learning.lesson.dto.projection.LessonPremiumCountProjection;
+import com.elingo.learning.lesson.dto.projection.LessonStatusCountProjection;
+import com.elingo.learning.lesson.dto.projection.TopLessonProjection;
 import com.elingo.learning.lesson.service.LessonStatsQueryService;
+import com.elingo.vocabulary.dto.projection.OwnerTypeCountProjection;
+import com.elingo.vocabulary.dto.projection.PremiumCountProjection;
+import com.elingo.vocabulary.dto.projection.StatusCountProjection;
+import com.elingo.vocabulary.dto.projection.TopDeckProjection;
 import com.elingo.vocabulary.entity.OwnerType;
-import com.elingo.vocabulary.repository.DeckRepository;
 import com.elingo.vocabulary.service.VocabularyStatsQueryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -64,7 +69,7 @@ public class LearningStatsServiceImpl implements LearningStatsService {
         LocalDateTime fromTime = safeRequest.from().atStartOfDay();
         LocalDateTime toTime = safeRequest.to().plusDays(1).atStartOfDay();
 
-        List<XpEventRepository.ActivityByDateProjection> rawList =
+        List<ActivityByDateProjection> rawList =
                 gamificationStatsQueryService.countActivityBySourceAndDate(fromTime, toTime);
 
         Map<String, StatsZeroFiller.RawLearningActivity> rawMap = new HashMap<>();
@@ -75,7 +80,7 @@ public class LearningStatsServiceImpl implements LearningStatsService {
         long totalCheckIn = 0L;
         long grandTotal = 0L;
 
-        for (XpEventRepository.ActivityByDateProjection p : rawList) {
+        for (ActivityByDateProjection p : rawList) {
             if (p.getDateKey() != null) {
                 long fc = p.getFlashcardCount() != null ? p.getFlashcardCount() : 0L;
                 long dc = p.getDictationCount() != null ? p.getDictationCount() : 0L;
@@ -133,7 +138,7 @@ public class LearningStatsServiceImpl implements LearningStatsService {
             }
         }
 
-        List<DeckRepository.StatusCountProjection> statusRaw = vocabularyStatsQueryService.countDecksByStatus();
+        List<StatusCountProjection> statusRaw = vocabularyStatsQueryService.countDecksByStatus();
         long totalDecks = statusRaw.stream()
                 .mapToLong(p -> p.getCountVal() != null ? p.getCountVal() : 0L)
                 .sum();
@@ -144,14 +149,14 @@ public class LearningStatsServiceImpl implements LearningStatsService {
             return new CategoryShare<>(p.getStatus().name(), count, pct);
         }).toList();
 
-        List<DeckRepository.OwnerTypeCountProjection> ownerRaw = vocabularyStatsQueryService.countDecksByOwnerType();
+        List<OwnerTypeCountProjection> ownerRaw = vocabularyStatsQueryService.countDecksByOwnerType();
         List<CategoryShare<String>> byOwnerType = ownerRaw.stream().map(p -> {
             long count = p.getCountVal() != null ? p.getCountVal() : 0L;
             double pct = totalDecks > 0 ? roundDouble(((double) count / totalDecks) * 100.0) : 0.0;
             return new CategoryShare<>(p.getOwnerType().name(), count, pct);
         }).toList();
 
-        List<DeckRepository.PremiumCountProjection> premiumRaw = vocabularyStatsQueryService.countDecksByPremium();
+        List<PremiumCountProjection> premiumRaw = vocabularyStatsQueryService.countDecksByPremium();
         List<CategoryShare<String>> byPremium = premiumRaw.stream().map(p -> {
             long count = p.getCountVal() != null ? p.getCountVal() : 0L;
             double pct = totalDecks > 0 ? roundDouble(((double) count / totalDecks) * 100.0) : 0.0;
@@ -159,7 +164,7 @@ public class LearningStatsServiceImpl implements LearningStatsService {
             return new CategoryShare<>(category, count, pct);
         }).toList();
 
-        List<DeckRepository.TopDeckProjection> systemDecksRaw =
+        List<TopDeckProjection> systemDecksRaw =
                 vocabularyStatsQueryService.getTopDecksByOwnerType(OwnerType.SYSTEM, safeLimit);
         List<LearningStatsResponses.TopDeckItem> topSystemDecks = systemDecksRaw.stream().map(p ->
                 new LearningStatsResponses.TopDeckItem(
@@ -173,7 +178,7 @@ public class LearningStatsServiceImpl implements LearningStatsService {
                 )
         ).toList();
 
-        List<DeckRepository.TopDeckProjection> userDecksRaw =
+        List<TopDeckProjection> userDecksRaw =
                 vocabularyStatsQueryService.getTopDecksByOwnerType(OwnerType.USER, safeLimit);
         List<LearningStatsResponses.TopDeckItem> topUserDecks = userDecksRaw.stream().map(p ->
                 new LearningStatsResponses.TopDeckItem(
@@ -220,7 +225,7 @@ public class LearningStatsServiceImpl implements LearningStatsService {
             }
         }
 
-        List<LessonRepository.LessonStatusCountProjection> statusRaw = lessonStatsQueryService.countLessonsByStatus();
+        List<LessonStatusCountProjection> statusRaw = lessonStatsQueryService.countLessonsByStatus();
         long totalLessons = statusRaw.stream()
                 .mapToLong(p -> p.getCountVal() != null ? p.getCountVal() : 0L)
                 .sum();
@@ -231,7 +236,7 @@ public class LearningStatsServiceImpl implements LearningStatsService {
             return new CategoryShare<>(p.getStatus().name(), count, pct);
         }).toList();
 
-        List<LessonRepository.LessonPremiumCountProjection> premiumRaw = lessonStatsQueryService.countLessonsByPremium();
+        List<LessonPremiumCountProjection> premiumRaw = lessonStatsQueryService.countLessonsByPremium();
         List<CategoryShare<String>> byPremium = premiumRaw.stream().map(p -> {
             long count = p.getCountVal() != null ? p.getCountVal() : 0L;
             double pct = totalLessons > 0 ? roundDouble(((double) count / totalLessons) * 100.0) : 0.0;
@@ -239,7 +244,7 @@ public class LearningStatsServiceImpl implements LearningStatsService {
             return new CategoryShare<>(category, count, pct);
         }).toList();
 
-        List<LessonRepository.TopLessonProjection> topRaw = lessonStatsQueryService.getTopLessonsByCompletion(safeLimit);
+        List<TopLessonProjection> topRaw = lessonStatsQueryService.getTopLessonsByCompletion(safeLimit);
         List<LearningStatsResponses.TopLessonItem> topLessons = topRaw.stream().map(p ->
                 new LearningStatsResponses.TopLessonItem(
                         p.getLessonId(),

@@ -34,9 +34,6 @@ class AdminSystemConfigServiceTest {
     @Mock
     private SystemConfigService systemConfigService;
 
-    @Mock
-    private CurrentAdminProvider currentAdminProvider;
-
     private AdminSystemConfigServiceImpl adminSystemConfigService;
 
     private static final Long ADMIN_ID = 99L;
@@ -46,7 +43,7 @@ class AdminSystemConfigServiceTest {
 
     @BeforeEach
     void setUp() {
-        adminSystemConfigService = new AdminSystemConfigServiceImpl(systemConfigService, currentAdminProvider);
+        adminSystemConfigService = new AdminSystemConfigServiceImpl(systemConfigService);
     }
 
     // ========================================================================
@@ -239,8 +236,6 @@ class AdminSystemConfigServiceTest {
         @Test
         @DisplayName("Should update non-secret configuration successfully and return plain value with description")
         void shouldUpdateNonSecretConfigSuccessfully() {
-            when(currentAdminProvider.id()).thenReturn(ADMIN_ID);
-
             SystemConfig updatedConfig = SystemConfig.builder()
                     .id(1L)
                     .configKey(NON_SECRET_KEY)
@@ -257,7 +252,7 @@ class AdminSystemConfigServiceTest {
                     .thenReturn(updatedConfig);
 
             UpdateSystemConfigRequest request = new UpdateSystemConfigRequest("NEW_PREFIX", "Updated description");
-            SystemConfigResponse response = adminSystemConfigService.updateConfig(NON_SECRET_KEY, request);
+            SystemConfigResponse response = adminSystemConfigService.updateConfig(NON_SECRET_KEY, request, ADMIN_ID);
 
             assertThat(response).isNotNull();
             assertThat(response.configKey()).isEqualTo(NON_SECRET_KEY);
@@ -270,8 +265,6 @@ class AdminSystemConfigServiceTest {
         @Test
         @DisplayName("Should update secret configuration successfully and return masked value")
         void shouldUpdateSecretConfigSuccessfullyAndReturnMaskedValue() {
-            when(currentAdminProvider.id()).thenReturn(ADMIN_ID);
-
             SystemConfig updatedSecret = SystemConfig.builder()
                     .id(2L)
                     .configKey(SECRET_KEY)
@@ -288,7 +281,7 @@ class AdminSystemConfigServiceTest {
                     .thenReturn(updatedSecret);
 
             UpdateSystemConfigRequest request = new UpdateSystemConfigRequest("my-new-secret-key", null);
-            SystemConfigResponse response = adminSystemConfigService.updateConfig(SECRET_KEY, request);
+            SystemConfigResponse response = adminSystemConfigService.updateConfig(SECRET_KEY, request, ADMIN_ID);
 
             assertThat(response).isNotNull();
             assertThat(response.configKey()).isEqualTo(SECRET_KEY);
@@ -302,13 +295,12 @@ class AdminSystemConfigServiceTest {
         @Test
         @DisplayName("Should throw AppException when config key is not found")
         void shouldThrowAppExceptionWhenConfigNotFound() {
-            when(currentAdminProvider.id()).thenReturn(ADMIN_ID);
             when(systemConfigService.update("invalid.key", "some-value", null, ADMIN_ID))
                     .thenThrow(new AppException(AppError.SYSTEM_CONFIG_NOT_FOUND));
 
             UpdateSystemConfigRequest request = new UpdateSystemConfigRequest("some-value", null);
 
-            assertThatThrownBy(() -> adminSystemConfigService.updateConfig("invalid.key", request))
+            assertThatThrownBy(() -> adminSystemConfigService.updateConfig("invalid.key", request, ADMIN_ID))
                     .isInstanceOf(AppException.class)
                     .hasFieldOrPropertyWithValue("appError", AppError.SYSTEM_CONFIG_NOT_FOUND);
 
@@ -318,32 +310,17 @@ class AdminSystemConfigServiceTest {
         @Test
         @DisplayName("Should throw AppException when value format validation fails")
         void shouldThrowAppExceptionWhenValueValidationFails() {
-            when(currentAdminProvider.id()).thenReturn(ADMIN_ID);
             when(systemConfigService.update("some.int.key", "not-a-number", null, ADMIN_ID))
                     .thenThrow(new AppException(AppError.SYSTEM_CONFIG_VALUE_INVALID));
 
             UpdateSystemConfigRequest request = new UpdateSystemConfigRequest("not-a-number", null);
 
-            assertThatThrownBy(() -> adminSystemConfigService.updateConfig("some.int.key", request))
+            assertThatThrownBy(() -> adminSystemConfigService.updateConfig("some.int.key", request, ADMIN_ID))
                     .isInstanceOf(AppException.class)
                     .hasFieldOrPropertyWithValue("appError", AppError.SYSTEM_CONFIG_VALUE_INVALID);
 
             verify(systemConfigService).update("some.int.key", "not-a-number", null, ADMIN_ID);
         }
 
-        @Test
-        @DisplayName("Should propagate exception when current admin is not authenticated")
-        void shouldThrowIllegalStateExceptionWhenAdminIsNotAuthenticated() {
-            when(currentAdminProvider.id())
-                    .thenThrow(new IllegalStateException("No authenticated admin in SecurityContext"));
-
-            UpdateSystemConfigRequest request = new UpdateSystemConfigRequest("value", null);
-
-            assertThatThrownBy(() -> adminSystemConfigService.updateConfig(NON_SECRET_KEY, request))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("No authenticated admin in SecurityContext");
-
-            verifyNoInteractions(systemConfigService);
-        }
     }
 }

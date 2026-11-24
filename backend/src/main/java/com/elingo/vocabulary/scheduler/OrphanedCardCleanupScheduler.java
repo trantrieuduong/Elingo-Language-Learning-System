@@ -1,6 +1,6 @@
 package com.elingo.vocabulary.scheduler;
 
-import com.elingo.admin.content.dto.response.OrphanedCardCleanupResponse;
+import com.elingo.vocabulary.dto.response.OrphanedCardCleanupResponse;
 import com.elingo.vocabulary.service.CardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

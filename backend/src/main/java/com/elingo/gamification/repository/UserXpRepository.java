@@ -1,5 +1,6 @@
 package com.elingo.gamification.repository;
 
+import com.elingo.gamification.dto.projection.LevelDistribution;
 import com.elingo.gamification.entity.UserXp;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -9,12 +10,6 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface UserXpRepository extends JpaRepository<UserXp, Long> {
-
-    interface LevelDistribution {
-        Short getLevelNo();
-        String getTitle();
-        Long getUserCount();
-    }
 
     @Modifying
     @Query(value = """

@@ -1,9 +1,9 @@
 package com.elingo.admin.content;
 
 import com.elingo.BaseIntegrationTest;
-import com.elingo.admin.content.dto.request.ReorderItemRequest;
-import com.elingo.admin.content.dto.request.SystemDeckRequest;
-import com.elingo.admin.content.dto.request.UpdateDeckStatusRequest;
+import com.elingo.vocabulary.dto.request.ReorderItemRequest;
+import com.elingo.vocabulary.dto.request.SystemDeckRequest;
+import com.elingo.vocabulary.dto.request.UpdateDeckStatusRequest;
 import com.elingo.auth.service.JwtService;
 import com.elingo.user.entity.Role;
 import com.elingo.user.entity.User;

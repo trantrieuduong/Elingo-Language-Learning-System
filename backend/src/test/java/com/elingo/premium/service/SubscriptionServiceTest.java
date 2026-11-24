@@ -189,10 +189,10 @@ class SubscriptionServiceTest {
         @DisplayName("countActiveSubscriptionsByPlan should delegate to userSubscriptionRepository")
         void countActiveSubscriptionsByPlan_Success() {
             LocalDateTime now = LocalDateTime.now();
-            UserSubscriptionRepository.PlanSubscriptionStat stat = mock(UserSubscriptionRepository.PlanSubscriptionStat.class);
+            com.elingo.premium.dto.projection.PlanSubscriptionStat stat = mock(com.elingo.premium.dto.projection.PlanSubscriptionStat.class);
             when(userSubscriptionRepository.countActiveSubscriptionsByPlan(now)).thenReturn(java.util.List.of(stat));
 
-            java.util.List<UserSubscriptionRepository.PlanSubscriptionStat> result =
+            java.util.List<com.elingo.premium.dto.projection.PlanSubscriptionStat> result =
                     subscriptionService.countActiveSubscriptionsByPlan(now);
 
             assertThat(result).hasSize(1).contains(stat);

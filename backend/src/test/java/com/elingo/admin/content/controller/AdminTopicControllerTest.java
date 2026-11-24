@@ -1,8 +1,8 @@
 package com.elingo.admin.content.controller;
 
-import com.elingo.admin.content.dto.request.CreateSystemTopicRequest;
-import com.elingo.admin.content.dto.request.ReorderItemRequest;
-import com.elingo.admin.content.dto.request.UpdateSystemTopicRequest;
+import com.elingo.vocabulary.dto.request.CreateSystemTopicRequest;
+import com.elingo.vocabulary.dto.request.ReorderItemRequest;
+import com.elingo.vocabulary.dto.request.UpdateSystemTopicRequest;
 import com.elingo.admin.content.service.AdminCardService;
 import com.elingo.admin.content.service.AdminTopicService;
 import com.elingo.common.exception.AppError;

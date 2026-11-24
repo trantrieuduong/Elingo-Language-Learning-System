@@ -1,5 +1,9 @@
 package com.elingo.vocabulary.repository;
 
+import com.elingo.vocabulary.dto.projection.OwnerTypeCountProjection;
+import com.elingo.vocabulary.dto.projection.PremiumCountProjection;
+import com.elingo.vocabulary.dto.projection.StatusCountProjection;
+import com.elingo.vocabulary.dto.projection.TopDeckProjection;
 import com.elingo.vocabulary.entity.Deck;
 import com.elingo.vocabulary.entity.DeckStatus;
 import com.elingo.vocabulary.entity.OwnerType;
@@ -19,31 +23,6 @@ public interface DeckRepository extends JpaRepository<Deck, Long>, JpaSpecificat
         OwnerType getOwnerType();
         Long getOwnerId();
         Boolean getIsPremium();
-    }
-
-    interface StatusCountProjection {
-        DeckStatus getStatus();
-        Long getCountVal();
-    }
-
-    interface OwnerTypeCountProjection {
-        OwnerType getOwnerType();
-        Long getCountVal();
-    }
-
-    interface PremiumCountProjection {
-        Boolean getIsPremium();
-        Long getCountVal();
-    }
-
-    interface TopDeckProjection {
-        Long getDeckId();
-        String getTitle();
-        String getCoverImageUrl();
-        String getStatus();
-        String getOwnerType();
-        Boolean getIsPremium();
-        Long getLearnerCount();
     }
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

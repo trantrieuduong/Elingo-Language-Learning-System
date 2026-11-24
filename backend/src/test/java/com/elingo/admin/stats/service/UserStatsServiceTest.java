@@ -5,11 +5,11 @@ import com.elingo.admin.stats.dto.response.UserStatsResponses;
 import com.elingo.admin.stats.service.impl.UserStatsServiceImpl;
 import com.elingo.common.enums.StatsGranularity;
 import com.elingo.common.service.RedisService;
-import com.elingo.gamification.repository.UserXpRepository;
-import com.elingo.gamification.repository.XpEventRepository;
+import com.elingo.gamification.dto.projection.LevelDistribution;
+import com.elingo.gamification.dto.projection.DateCountProjection;
 import com.elingo.gamification.service.GamificationStatsQueryService;
 import com.elingo.premium.service.SubscriptionService;
-import com.elingo.user.repository.UserRepository;
+import com.elingo.user.dto.projection.NewUserStats;
 import com.elingo.user.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -87,7 +87,7 @@ class UserStatsServiceTest {
 
             when(userService.countUsersBefore(any(LocalDateTime.class))).thenReturn(50L);
 
-            UserRepository.NewUserStats projection = mock(UserRepository.NewUserStats.class);
+            NewUserStats projection = mock(NewUserStats.class);
             when(projection.getPeriodKey()).thenReturn("2026-11-01");
             when(projection.getCountVal()).thenReturn(10L);
             when(userService.countNewUsers(any(LocalDateTime.class), any(LocalDateTime.class), eq(StatsGranularity.DAY)))
@@ -164,7 +164,7 @@ class UserStatsServiceTest {
         void getUserActivity_CacheMiss_CalculatesMetrics() throws Exception {
             when(redisService.get(anyString())).thenReturn(null);
 
-            XpEventRepository.DateCountProjection dauProj = mock(XpEventRepository.DateCountProjection.class);
+            DateCountProjection dauProj = mock(DateCountProjection.class);
             when(dauProj.getPeriodKey()).thenReturn("2026-11-03");
             when(dauProj.getCountVal()).thenReturn(25L);
 
@@ -233,7 +233,7 @@ class UserStatsServiceTest {
             when(userService.countActiveUsers()).thenReturn(180L);
             when(subscriptionService.countDistinctActivePremiumUsers(any())).thenReturn(50L);
 
-            UserXpRepository.LevelDistribution levelProj = mock(UserXpRepository.LevelDistribution.class);
+            LevelDistribution levelProj = mock(LevelDistribution.class);
             when(levelProj.getLevelNo()).thenReturn((short) 1);
             when(levelProj.getUserCount()).thenReturn(120L);
             when(gamificationStatsQueryService.countUsersByLevel()).thenReturn(List.of(levelProj));

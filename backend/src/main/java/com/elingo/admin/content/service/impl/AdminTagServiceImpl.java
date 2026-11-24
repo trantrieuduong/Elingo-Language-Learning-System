@@ -3,7 +3,7 @@ package com.elingo.admin.content.service.impl;
 import com.elingo.admin.audit.annotation.Audited;
 import com.elingo.admin.audit.entity.AdminAuditAction;
 import com.elingo.admin.audit.entity.AdminAuditTargetType;
-import com.elingo.admin.content.dto.request.TagRequest;
+import com.elingo.vocabulary.dto.request.TagRequest;
 import com.elingo.admin.content.service.AdminTagService;
 import com.elingo.vocabulary.dto.response.TagResponse;
 import com.elingo.vocabulary.service.TagService;
@@ -36,7 +36,9 @@ public class AdminTagServiceImpl implements AdminTagService {
             targetId = "#result.id",
             detail = "'Label: ' + #request.label")
     public TagResponse createTag(TagRequest request) {
-        return tagService.createTag(request);
+        TagResponse created = tagService.createTag(request);
+        log.info("Tag created tagId={}", created.id());
+        return created;
     }
 
     @Override
@@ -45,7 +47,9 @@ public class AdminTagServiceImpl implements AdminTagService {
             targetId = "#tagId",
             detail = "'Update label: ' + #request.label")
     public TagResponse updateTag(Long tagId, TagRequest request) {
-        return tagService.updateTag(tagId, request);
+        TagResponse updated = tagService.updateTag(tagId, request);
+        log.info("Tag updated tagId={}", tagId);
+        return updated;
     }
 
     @Override
@@ -54,5 +58,6 @@ public class AdminTagServiceImpl implements AdminTagService {
             targetId = "#tagId")
     public void deleteTag(Long tagId) {
         tagService.deleteTag(tagId);
+        log.info("Tag deleted tagId={}", tagId);
     }
 }

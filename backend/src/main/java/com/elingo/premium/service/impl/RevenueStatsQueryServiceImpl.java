@@ -1,6 +1,9 @@
 package com.elingo.premium.service.impl;
 
 import com.elingo.common.enums.StatsGranularity;
+import com.elingo.premium.dto.projection.DateAmountCountProjection;
+import com.elingo.premium.dto.projection.PlanRevenueStat;
+import com.elingo.premium.dto.projection.TransactionStatusCount;
 import com.elingo.premium.repository.PaymentTransactionRepository;
 import com.elingo.premium.service.RevenueStatsQueryService;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +21,7 @@ public class RevenueStatsQueryServiceImpl implements RevenueStatsQueryService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<PaymentTransactionRepository.DateAmountCountProjection> getRevenueTimeSeries(LocalDateTime from, LocalDateTime to, StatsGranularity granularity) {
+    public List<DateAmountCountProjection> getRevenueTimeSeries(LocalDateTime from, LocalDateTime to, StatsGranularity granularity) {
         return switch (granularity) {
             case MONTH -> paymentTransactionRepository.getRevenueTimeseriesByMonth(from, to);
             case WEEK -> paymentTransactionRepository.getRevenueTimeseriesByWeek(from, to);
@@ -28,13 +31,13 @@ public class RevenueStatsQueryServiceImpl implements RevenueStatsQueryService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<PaymentTransactionRepository.PlanRevenueStat> getRevenueBreakdownByPlan(LocalDateTime from, LocalDateTime to) {
+    public List<PlanRevenueStat> getRevenueBreakdownByPlan(LocalDateTime from, LocalDateTime to) {
         return paymentTransactionRepository.getRevenueBreakdownByPlan(from, to);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<PaymentTransactionRepository.TransactionStatusCount> countTransactionsByStatus(LocalDateTime from, LocalDateTime to) {
+    public List<TransactionStatusCount> countTransactionsByStatus(LocalDateTime from, LocalDateTime to) {
         return paymentTransactionRepository.countTransactionsByStatus(from, to);
     }
 }

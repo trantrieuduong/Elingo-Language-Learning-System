@@ -3,8 +3,8 @@ package com.elingo.admin.gamification.service.impl;
 import com.elingo.admin.audit.annotation.Audited;
 import com.elingo.admin.audit.entity.AdminAuditAction;
 import com.elingo.admin.audit.entity.AdminAuditTargetType;
-import com.elingo.admin.gamification.dto.request.BadgeRequest;
-import com.elingo.admin.gamification.dto.response.AdminBadgeResponse;
+import com.elingo.gamification.dto.request.BadgeRequest;
+import com.elingo.gamification.dto.response.AdminBadgeResponse;
 import com.elingo.admin.gamification.service.AdminBadgeService;
 import com.elingo.gamification.entity.BadgeConditionType;
 import com.elingo.gamification.service.BadgeService;
@@ -39,7 +39,9 @@ public class AdminBadgeServiceImpl implements AdminBadgeService {
             detail = "'Create badge code: ' + #request.code"
     )
     public AdminBadgeResponse createBadge(BadgeRequest request) {
-        return badgeService.createBadge(request);
+        AdminBadgeResponse created = badgeService.createBadge(request);
+        log.info("Badge created badgeId={}", created.id());
+        return created;
     }
 
     @Override
@@ -50,7 +52,9 @@ public class AdminBadgeServiceImpl implements AdminBadgeService {
             detail = "'Update badge id: ' + #id"
     )
     public AdminBadgeResponse updateBadge(Long id, BadgeRequest request) {
-        return badgeService.updateBadge(id, request);
+        AdminBadgeResponse updated = badgeService.updateBadge(id, request);
+        log.info("Badge updated badgeId={}", id);
+        return updated;
     }
 
     @Override
@@ -61,6 +65,7 @@ public class AdminBadgeServiceImpl implements AdminBadgeService {
     )
     public void deleteBadge(Long id) {
         badgeService.deleteBadge(id);
+        log.info("Badge deleted badgeId={}", id);
     }
 
     @Override

@@ -1,5 +1,8 @@
 package com.elingo.community.repository;
 
+import com.elingo.community.dto.projection.PostBacklogProjection;
+import com.elingo.community.dto.projection.PostGroupCountProjection;
+import com.elingo.community.dto.projection.PostStatusCountProjection;
 import com.elingo.community.entity.Post;
 import com.elingo.community.entity.PostStatus;
 import org.springframework.data.domain.Pageable;
@@ -13,22 +16,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
-
-    interface PostStatusCountProjection {
-        PostStatus getStatus();
-        Long getCountVal();
-    }
-
-    interface PostGroupCountProjection {
-        Long getGroupId();
-        String getGroupName();
-        Long getPostCount();
-    }
-
-    interface PostBacklogProjection {
-        Long getPendingCount();
-        Long getNeedsReviewCount();
-    }
 
     @Query("""
         SELECT p FROM Post p

@@ -1,5 +1,6 @@
 package com.elingo.admin.stats.controller;
 
+import com.elingo.admin.common.constant.AdminApiPaths;
 import com.elingo.admin.stats.dto.request.StatsDateRangeRequest;
 import com.elingo.admin.stats.dto.response.CommunityStatsResponses;
 import com.elingo.admin.stats.service.CommunityStatsService;
@@ -18,10 +19,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/admin/stats/community")
+@RequestMapping(AdminApiPaths.STATS_COMMUNITY)
 @PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
-@Tag(name = "Admin Community Stats",
+@Tag(name = "Admin - Stats Community",
         description = "Administrative analytics endpoints for social engagements, content moderation, and violation reports")
 public class CommunityStatsController {
 

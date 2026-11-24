@@ -1,9 +1,10 @@
 package com.elingo.user.service;
 
-import com.elingo.admin.users.dto.request.AdminUserSearchRequest;
-import com.elingo.admin.users.dto.response.AdminUserResponse;
+import com.elingo.user.dto.request.AdminUserSearchRequest;
+import com.elingo.user.dto.response.AdminUserResponse;
 import com.elingo.common.dto.PageResponse;
 import com.elingo.common.enums.StatsGranularity;
+import com.elingo.user.dto.projection.NewUserStats;
 import com.elingo.user.dto.request.ChangePasswordRequest;
 import com.elingo.user.dto.request.SendOTPUpdateEmailRequest;
 import com.elingo.user.dto.request.SetPasswordRequest;
@@ -26,7 +27,7 @@ public interface UserService {
     UserMeResponse updateProfile(Long userId, UpdateProfileRequest request);
 
     // User Stats for Admin
-    List<UserRepository.NewUserStats> countNewUsers(LocalDateTime from, LocalDateTime to, StatsGranularity granularity);
+    List<NewUserStats> countNewUsers(LocalDateTime from, LocalDateTime to, StatsGranularity granularity);
     long countTotalUsers();
     long countVerifiedUsers();
     long countActiveUsers();

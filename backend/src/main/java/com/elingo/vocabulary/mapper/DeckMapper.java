@@ -1,6 +1,6 @@
 package com.elingo.vocabulary.mapper;
 
-import com.elingo.admin.content.dto.request.SystemDeckRequest;
+import com.elingo.vocabulary.dto.request.SystemDeckRequest;
 import com.elingo.vocabulary.dto.request.UserDeckRequest;
 import com.elingo.vocabulary.dto.response.DeckResponse;
 import com.elingo.vocabulary.entity.Deck;

@@ -1,8 +1,8 @@
 package com.elingo.admin.content.service;
 
-import com.elingo.admin.content.dto.request.CreateSystemCardRequest;
-import com.elingo.admin.content.dto.request.ReorderItemRequest;
-import com.elingo.admin.content.dto.request.UpdateSystemCardRequest;
+import com.elingo.vocabulary.dto.request.CreateSystemCardRequest;
+import com.elingo.vocabulary.dto.request.ReorderItemRequest;
+import com.elingo.vocabulary.dto.request.UpdateSystemCardRequest;
 import com.elingo.vocabulary.dto.response.CardResponse;
 
 import java.util.List;

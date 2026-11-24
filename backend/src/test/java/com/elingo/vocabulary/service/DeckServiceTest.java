@@ -1,8 +1,8 @@
 package com.elingo.vocabulary.service;
 
-import com.elingo.admin.content.dto.request.AdminDeckSearchRequest;
-import com.elingo.admin.content.dto.request.SystemDeckRequest;
-import com.elingo.admin.content.dto.request.UpdateDeckStatusRequest;
+import com.elingo.vocabulary.dto.request.AdminDeckSearchRequest;
+import com.elingo.vocabulary.dto.request.SystemDeckRequest;
+import com.elingo.vocabulary.dto.request.UpdateDeckStatusRequest;
 import com.elingo.common.dto.PageResponse;
 import com.elingo.common.enums.SystemFileModule;
 import com.elingo.common.exception.AppError;

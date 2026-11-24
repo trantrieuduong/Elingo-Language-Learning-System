@@ -1,5 +1,6 @@
 package com.elingo.admin.stats.controller;
 
+import com.elingo.admin.common.constant.AdminApiPaths;
 import com.elingo.admin.stats.dto.request.StatsDateRangeRequest;
 import com.elingo.admin.stats.dto.response.RevenueStatsResponses;
 import com.elingo.admin.stats.service.RevenueStatsService;
@@ -18,10 +19,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/admin/stats/revenue")
+@RequestMapping(AdminApiPaths.STATS_REVENUE)
 @PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
-@Tag(name = "Admin Revenue & Premium Stats",
+@Tag(name = "Admin - Stats Revenue",
         description = "Administrative analytics endpoints for revenue, payment transactions, and subscription plans")
 public class RevenueStatsController {
 

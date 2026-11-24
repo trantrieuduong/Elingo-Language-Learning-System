@@ -1,7 +1,7 @@
 package com.elingo.admin.gamification.service;
 
-import com.elingo.admin.gamification.dto.request.BadgeRequest;
-import com.elingo.admin.gamification.dto.response.AdminBadgeResponse;
+import com.elingo.gamification.dto.request.BadgeRequest;
+import com.elingo.gamification.dto.response.AdminBadgeResponse;
 import com.elingo.admin.gamification.service.impl.AdminBadgeServiceImpl;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;

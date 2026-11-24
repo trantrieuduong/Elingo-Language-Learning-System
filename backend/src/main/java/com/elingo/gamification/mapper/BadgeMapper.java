@@ -1,7 +1,7 @@
 package com.elingo.gamification.mapper;
 
-import com.elingo.admin.gamification.dto.request.BadgeRequest;
-import com.elingo.admin.gamification.dto.response.AdminBadgeResponse;
+import com.elingo.gamification.dto.request.BadgeRequest;
+import com.elingo.gamification.dto.response.AdminBadgeResponse;
 import com.elingo.gamification.dto.response.UserBadgeEarnedResponse;
 import com.elingo.gamification.entity.Badge;
 import org.mapstruct.Mapper;

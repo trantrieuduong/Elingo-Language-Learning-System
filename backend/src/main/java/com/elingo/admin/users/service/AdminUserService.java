@@ -1,8 +1,8 @@
 package com.elingo.admin.users.service;
 
-import com.elingo.admin.users.dto.request.AdminUserSearchRequest;
+import com.elingo.user.dto.request.AdminUserSearchRequest;
 import com.elingo.admin.users.dto.request.LockUserRequest;
-import com.elingo.admin.users.dto.response.AdminUserResponse;
+import com.elingo.user.dto.response.AdminUserResponse;
 import com.elingo.common.dto.PageResponse;
 import org.springframework.data.domain.Pageable;
 

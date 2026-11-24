@@ -1,7 +1,7 @@
 package com.elingo.user.service;
 
-import com.elingo.admin.users.dto.request.AdminUserSearchRequest;
-import com.elingo.admin.users.dto.response.AdminUserResponse;
+import com.elingo.user.dto.request.AdminUserSearchRequest;
+import com.elingo.user.dto.response.AdminUserResponse;
 import com.elingo.common.dto.PageResponse;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
@@ -852,10 +852,10 @@ class UserServiceTest {
         @Test
         @DisplayName("countNewUsers should delegate to countNewUsersByDay for DAY granularity")
         void countNewUsers_Day_CallsRepository() {
-            UserRepository.NewUserStats stat = org.mockito.Mockito.mock(UserRepository.NewUserStats.class);
+            com.elingo.user.dto.projection.NewUserStats stat = org.mockito.Mockito.mock(com.elingo.user.dto.projection.NewUserStats.class);
             when(userRepository.countNewUsersByDay(from, to)).thenReturn(List.of(stat));
 
-            List<UserRepository.NewUserStats> result = userService.countNewUsers(from, to, com.elingo.common.enums.StatsGranularity.DAY);
+            List<com.elingo.user.dto.projection.NewUserStats> result = userService.countNewUsers(from, to, com.elingo.common.enums.StatsGranularity.DAY);
 
             assertThat(result).hasSize(1).contains(stat);
             verify(userRepository).countNewUsersByDay(from, to);
@@ -864,10 +864,10 @@ class UserServiceTest {
         @Test
         @DisplayName("countNewUsers should delegate to countNewUsersByWeek for WEEK granularity")
         void countNewUsers_Week_CallsRepository() {
-            UserRepository.NewUserStats stat = org.mockito.Mockito.mock(UserRepository.NewUserStats.class);
+            com.elingo.user.dto.projection.NewUserStats stat = org.mockito.Mockito.mock(com.elingo.user.dto.projection.NewUserStats.class);
             when(userRepository.countNewUsersByWeek(from, to)).thenReturn(List.of(stat));
 
-            List<UserRepository.NewUserStats> result = userService.countNewUsers(from, to, com.elingo.common.enums.StatsGranularity.WEEK);
+            List<com.elingo.user.dto.projection.NewUserStats> result = userService.countNewUsers(from, to, com.elingo.common.enums.StatsGranularity.WEEK);
 
             assertThat(result).hasSize(1).contains(stat);
             verify(userRepository).countNewUsersByWeek(from, to);
@@ -876,10 +876,10 @@ class UserServiceTest {
         @Test
         @DisplayName("countNewUsers should delegate to countNewUsersByMonth for MONTH granularity")
         void countNewUsers_Month_CallsRepository() {
-            UserRepository.NewUserStats stat = org.mockito.Mockito.mock(UserRepository.NewUserStats.class);
+            com.elingo.user.dto.projection.NewUserStats stat = org.mockito.Mockito.mock(com.elingo.user.dto.projection.NewUserStats.class);
             when(userRepository.countNewUsersByMonth(from, to)).thenReturn(List.of(stat));
 
-            List<UserRepository.NewUserStats> result = userService.countNewUsers(from, to, com.elingo.common.enums.StatsGranularity.MONTH);
+            List<com.elingo.user.dto.projection.NewUserStats> result = userService.countNewUsers(from, to, com.elingo.common.enums.StatsGranularity.MONTH);
 
             assertThat(result).hasSize(1).contains(stat);
             verify(userRepository).countNewUsersByMonth(from, to);

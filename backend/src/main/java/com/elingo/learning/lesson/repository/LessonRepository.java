@@ -1,5 +1,8 @@
 package com.elingo.learning.lesson.repository;
 
+import com.elingo.learning.lesson.dto.projection.LessonPremiumCountProjection;
+import com.elingo.learning.lesson.dto.projection.LessonStatusCountProjection;
+import com.elingo.learning.lesson.dto.projection.TopLessonProjection;
 import com.elingo.learning.lesson.entity.Lesson;
 import com.elingo.learning.lesson.entity.LessonStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,25 +14,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface LessonRepository extends JpaRepository<Lesson, Long>, JpaSpecificationExecutor<Lesson> {
-
-    interface LessonStatusCountProjection {
-        LessonStatus getStatus();
-        Long getCountVal();
-    }
-
-    interface LessonPremiumCountProjection {
-        Boolean getIsPremium();
-        Long getCountVal();
-    }
-
-    interface TopLessonProjection {
-        Long getLessonId();
-        String getTitle();
-        String getThumbnailUrl();
-        String getStatus();
-        Boolean getIsPremium();
-        Long getLearnerCount();
-    }
 
     Optional<Lesson> findByIdAndStatus(Long id, LessonStatus status);
     Optional<Lesson> findBySlugAndStatus(String slug, LessonStatus status);

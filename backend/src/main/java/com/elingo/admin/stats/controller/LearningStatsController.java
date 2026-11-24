@@ -1,5 +1,6 @@
 package com.elingo.admin.stats.controller;
 
+import com.elingo.admin.common.constant.AdminApiPaths;
 import com.elingo.admin.stats.dto.request.StatsDateRangeRequest;
 import com.elingo.admin.stats.dto.response.LearningStatsResponses;
 import com.elingo.admin.stats.service.LearningStatsService;
@@ -19,10 +20,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/admin/stats/learning")
+@RequestMapping(AdminApiPaths.STATS_LEARNING)
 @PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
-@Tag(name = "Admin Learning Stats",
+@Tag(name = "Admin - Stats Learning",
         description = "Administrative analytics endpoints for learning activities, deck distributions, and lesson performance")
 public class LearningStatsController {
 

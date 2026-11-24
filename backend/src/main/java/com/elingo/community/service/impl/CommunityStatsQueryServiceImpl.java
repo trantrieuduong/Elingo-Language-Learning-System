@@ -1,5 +1,11 @@
 package com.elingo.community.service.impl;
 
+import com.elingo.community.dto.projection.DateCountProjection;
+import com.elingo.community.dto.projection.PostBacklogProjection;
+import com.elingo.community.dto.projection.PostGroupCountProjection;
+import com.elingo.community.dto.projection.PostStatusCountProjection;
+import com.elingo.community.moderation.dto.projection.AiLabelCount;
+import com.elingo.community.moderation.dto.projection.ModerationActionCounts;
 import com.elingo.community.moderation.repository.PostModerationRepository;
 import com.elingo.community.repository.CommentRepository;
 import com.elingo.community.repository.PostLikeRepository;
@@ -23,43 +29,43 @@ public class CommunityStatsQueryServiceImpl implements CommunityStatsQueryServic
 
     @Override
     @Transactional(readOnly = true)
-    public List<PostRepository.PostStatusCountProjection> countPostsByStatus() {
+    public List<PostStatusCountProjection> countPostsByStatus() {
         return postRepository.countPostsByStatus();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<PostRepository.PostGroupCountProjection> countPostsByGroup() {
+    public List<PostGroupCountProjection> countPostsByGroup() {
         return postRepository.countPostsByGroup();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public PostRepository.PostBacklogProjection countPostBacklog() {
+    public PostBacklogProjection countPostBacklog() {
         return postRepository.countPostBacklog();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<PostLikeRepository.DateCountProjection> countLikesByDay(LocalDateTime from, LocalDateTime to) {
+    public List<DateCountProjection> countLikesByDay(LocalDateTime from, LocalDateTime to) {
         return postLikeRepository.countLikesByDay(from, to);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<CommentRepository.DateCountProjection> countCommentsByDay(LocalDateTime from, LocalDateTime to) {
+    public List<DateCountProjection> countCommentsByDay(LocalDateTime from, LocalDateTime to) {
         return commentRepository.countCommentsByDay(from, to);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public PostModerationRepository.ModerationActionCounts countModerationActions(LocalDateTime from, LocalDateTime to) {
+    public ModerationActionCounts countModerationActions(LocalDateTime from, LocalDateTime to) {
         return postModerationRepository.countModerationActions(from, to);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<PostModerationRepository.AiLabelCount> countAiLabels(LocalDateTime from, LocalDateTime to) {
+    public List<AiLabelCount> countAiLabels(LocalDateTime from, LocalDateTime to) {
         return postModerationRepository.countAiLabels(from, to);
     }
 

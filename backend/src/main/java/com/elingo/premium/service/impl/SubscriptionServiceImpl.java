@@ -1,6 +1,7 @@
 package com.elingo.premium.service.impl;
 
 import com.elingo.common.exception.AppError;
+import com.elingo.premium.dto.projection.PlanSubscriptionStat;
 import com.elingo.common.exception.AppException;
 import com.elingo.premium.entity.PremiumPlan;
 import com.elingo.premium.entity.SubscriptionStatus;
@@ -79,7 +80,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<UserSubscriptionRepository.PlanSubscriptionStat> countActiveSubscriptionsByPlan(LocalDateTime now) {
+    public List<PlanSubscriptionStat> countActiveSubscriptionsByPlan(LocalDateTime now) {
         return userSubscriptionRepository.countActiveSubscriptionsByPlan(now);
     }
 

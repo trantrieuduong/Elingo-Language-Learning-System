@@ -1,13 +1,16 @@
 package com.elingo.vocabulary.service;
 
+import com.elingo.vocabulary.dto.projection.OwnerTypeCountProjection;
+import com.elingo.vocabulary.dto.projection.PremiumCountProjection;
+import com.elingo.vocabulary.dto.projection.StatusCountProjection;
+import com.elingo.vocabulary.dto.projection.TopDeckProjection;
 import com.elingo.vocabulary.entity.OwnerType;
-import com.elingo.vocabulary.repository.DeckRepository;
 
 import java.util.List;
 
 public interface VocabularyStatsQueryService {
-    List<DeckRepository.StatusCountProjection> countDecksByStatus();
-    List<DeckRepository.OwnerTypeCountProjection> countDecksByOwnerType();
-    List<DeckRepository.PremiumCountProjection> countDecksByPremium();
-    List<DeckRepository.TopDeckProjection> getTopDecksByOwnerType(OwnerType ownerType, int limit);
+    List<StatusCountProjection> countDecksByStatus();
+    List<OwnerTypeCountProjection> countDecksByOwnerType();
+    List<PremiumCountProjection> countDecksByPremium();
+    List<TopDeckProjection> getTopDecksByOwnerType(OwnerType ownerType, int limit);
 }

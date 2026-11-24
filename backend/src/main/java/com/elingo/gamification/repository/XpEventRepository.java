@@ -1,5 +1,7 @@
 package com.elingo.gamification.repository;
 
+import com.elingo.gamification.dto.projection.ActivityByDateProjection;
+import com.elingo.gamification.dto.projection.DateCountProjection;
 import com.elingo.gamification.entity.XpEvent;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -10,24 +12,9 @@ import java.util.List;
 
 public interface XpEventRepository extends JpaRepository<XpEvent, Long> {
 
-    interface DateCountProjection {
-        String getPeriodKey();
-        Long getCountVal();
-    }
-
     interface UserPeriodXp {
         Long getUserId();
         Long getTotalXp();
-    }
-
-    interface ActivityByDateProjection {
-        String getDateKey();
-        Long getFlashcardCount();
-        Long getDictationCount();
-        Long getShadowingCount();
-        Long getBattleCount();
-        Long getCheckInCount();
-        Long getTotalCount();
     }
 
     @Query("SELECT e.user.id AS userId, SUM(e.amount) AS totalXp " +

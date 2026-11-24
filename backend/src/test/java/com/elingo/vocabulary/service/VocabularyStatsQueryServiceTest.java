@@ -35,12 +35,12 @@ class VocabularyStatsQueryServiceTest {
         @Test
         @DisplayName("Should delegate to deckRepository.countDecksByStatus")
         void countDecksByStatus_Success() {
-            DeckRepository.StatusCountProjection proj = mock(DeckRepository.StatusCountProjection.class);
+            com.elingo.vocabulary.dto.projection.StatusCountProjection proj = mock(com.elingo.vocabulary.dto.projection.StatusCountProjection.class);
             when(proj.getStatus()).thenReturn(DeckStatus.PUBLISHED);
             when(proj.getCountVal()).thenReturn(10L);
             when(deckRepository.countDecksByStatus()).thenReturn(List.of(proj));
 
-            List<DeckRepository.StatusCountProjection> result = vocabularyStatsQueryService.countDecksByStatus();
+            List<com.elingo.vocabulary.dto.projection.StatusCountProjection> result = vocabularyStatsQueryService.countDecksByStatus();
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getStatus()).isEqualTo(DeckStatus.PUBLISHED);
@@ -56,12 +56,12 @@ class VocabularyStatsQueryServiceTest {
         @Test
         @DisplayName("Should delegate to deckRepository.countDecksByOwnerType")
         void countDecksByOwnerType_Success() {
-            DeckRepository.OwnerTypeCountProjection proj = mock(DeckRepository.OwnerTypeCountProjection.class);
+            com.elingo.vocabulary.dto.projection.OwnerTypeCountProjection proj = mock(com.elingo.vocabulary.dto.projection.OwnerTypeCountProjection.class);
             when(proj.getOwnerType()).thenReturn(OwnerType.SYSTEM);
             when(proj.getCountVal()).thenReturn(5L);
             when(deckRepository.countDecksByOwnerType()).thenReturn(List.of(proj));
 
-            List<DeckRepository.OwnerTypeCountProjection> result = vocabularyStatsQueryService.countDecksByOwnerType();
+            List<com.elingo.vocabulary.dto.projection.OwnerTypeCountProjection> result = vocabularyStatsQueryService.countDecksByOwnerType();
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getOwnerType()).isEqualTo(OwnerType.SYSTEM);
@@ -77,12 +77,12 @@ class VocabularyStatsQueryServiceTest {
         @Test
         @DisplayName("Should delegate to deckRepository.countDecksByPremium")
         void countDecksByPremium_Success() {
-            DeckRepository.PremiumCountProjection proj = mock(DeckRepository.PremiumCountProjection.class);
+            com.elingo.vocabulary.dto.projection.PremiumCountProjection proj = mock(com.elingo.vocabulary.dto.projection.PremiumCountProjection.class);
             when(proj.getIsPremium()).thenReturn(true);
             when(proj.getCountVal()).thenReturn(8L);
             when(deckRepository.countDecksByPremium()).thenReturn(List.of(proj));
 
-            List<DeckRepository.PremiumCountProjection> result = vocabularyStatsQueryService.countDecksByPremium();
+            List<com.elingo.vocabulary.dto.projection.PremiumCountProjection> result = vocabularyStatsQueryService.countDecksByPremium();
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getIsPremium()).isTrue();
@@ -98,11 +98,11 @@ class VocabularyStatsQueryServiceTest {
         @Test
         @DisplayName("Should call repository with owner type name and enforced minimum limit of 1")
         void getTopDecksByOwnerType_Success() {
-            DeckRepository.TopDeckProjection proj = mock(DeckRepository.TopDeckProjection.class);
+            com.elingo.vocabulary.dto.projection.TopDeckProjection proj = mock(com.elingo.vocabulary.dto.projection.TopDeckProjection.class);
             when(proj.getDeckId()).thenReturn(1L);
             when(deckRepository.findTopDecksByOwnerType("SYSTEM", 10)).thenReturn(List.of(proj));
 
-            List<DeckRepository.TopDeckProjection> result =
+            List<com.elingo.vocabulary.dto.projection.TopDeckProjection> result =
                     vocabularyStatsQueryService.getTopDecksByOwnerType(OwnerType.SYSTEM, 10);
 
             assertThat(result).hasSize(1);
@@ -115,7 +115,7 @@ class VocabularyStatsQueryServiceTest {
         void getTopDecksByOwnerType_EnforcesMinimumLimit() {
             when(deckRepository.findTopDecksByOwnerType("USER", 1)).thenReturn(List.of());
 
-            List<DeckRepository.TopDeckProjection> result =
+            List<com.elingo.vocabulary.dto.projection.TopDeckProjection> result =
                     vocabularyStatsQueryService.getTopDecksByOwnerType(OwnerType.USER, 0);
 
             assertThat(result).isEmpty();

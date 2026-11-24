@@ -1,8 +1,8 @@
 package com.elingo.admin.content.service;
 
-import com.elingo.admin.content.dto.request.CreateSystemTopicRequest;
-import com.elingo.admin.content.dto.request.ReorderItemRequest;
-import com.elingo.admin.content.dto.request.UpdateSystemTopicRequest;
+import com.elingo.vocabulary.dto.request.CreateSystemTopicRequest;
+import com.elingo.vocabulary.dto.request.ReorderItemRequest;
+import com.elingo.vocabulary.dto.request.UpdateSystemTopicRequest;
 import com.elingo.admin.content.service.impl.AdminTopicServiceImpl;
 import com.elingo.vocabulary.dto.response.TopicResponse;
 import com.elingo.vocabulary.service.TopicService;
