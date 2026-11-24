@@ -302,7 +302,7 @@ describe('Header', () => {
 
       it.each([
         ['profile', '/profile'],
-        ['progress', '/progress'],
+        ['gamification', '/gamification'],
         ['premium', '/premium'],
       ])('click "%s" điều hướng tới %s và đóng dropdown', async (key, path) => {
         const user = userEvent.setup()

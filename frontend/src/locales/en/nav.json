@@ -5,7 +5,7 @@
   "community": "Community",
   "pricing": "Pricing",
   "battle": "Battle",
-  "gamification": "Leaderboard",
+  "gamification": "Gamification",
   "login": "Sign in",
   "signup": "Sign up",
   "speakingRoom": "Speaking Room",
@@ -40,7 +40,7 @@
     "speaking": "Speaking",
     "accountGroup": "Account",
     "profileLink": "Profile",
-    "progressLink": "Progress",
+    "gamificationLink": "Gamification",
     "premiumLink": "Premium",
     "copyright": "© {{year}} Elingo. All rights reserved."
   }
