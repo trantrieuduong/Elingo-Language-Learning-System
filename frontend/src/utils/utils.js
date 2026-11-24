@@ -65,7 +65,18 @@ export const formatRelativeTime = (dateInput, locale = 'vi') => {
   if (diffSec < 60 * 60) {
     return relativeTimeFormat.format(-Math.floor(diffSec / 60), 'minute');
   }
-  return relativeTimeFormat.format(-Math.floor(diffSec / (60 * 60)), 'hour');
+  if (diffSec < 60 * 60 * 24) {
+    return relativeTimeFormat.format(-Math.floor(diffSec / (60 * 60)), 'hour');
+  }
+
+  // Hơn 1 ngày: hiển thị ngày cụ thể
+  const now = new Date();
+  const isThisYear = date.getFullYear() === now.getFullYear();
+  return new Intl.DateTimeFormat(locale, {
+    day: 'numeric',
+    month: 'short',
+    ...(isThisYear ? {} : { year: 'numeric' }),
+  }).format(date);
 };
 
 /**

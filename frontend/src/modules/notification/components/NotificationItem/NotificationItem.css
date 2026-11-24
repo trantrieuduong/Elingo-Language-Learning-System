@@ -3,12 +3,12 @@
   align-items: flex-start;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-md);
+  border-radius: 0;
   cursor: pointer;
   transition: background-color var(--transition-fast), border-color var(--transition-fast);
   text-align: left;
   position: relative;
-  border-bottom: 1px solid var(--glass-card-border);
+  border-bottom: 1px solid var(--color-outline-variant);
   outline: none;
 }
 
@@ -43,7 +43,7 @@
   height: 2.25rem;
   border-radius: var(--radius-pill);
   background-color: var(--glass-card-bg);
-  border: 1px solid var(--glass-card-border);
+  border: 1px solid var(--color-outline-variant);
   flex-shrink: 0;
   color: var(--color-primary);
 }

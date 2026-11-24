@@ -1,12 +1,15 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNotification } from '../../context/NotificationContext';
 import NotificationItem from '../NotificationItem/NotificationItem';
 import EmptyState from '../../../../components/EmptyState/EmptyState';
 import PageLoading from '../../../../components/PageLoading/PageLoading';
+import Toast from '../../../../components/Toast/Toast';
 import './NotificationPanel.css';
 
 function NotificationPanel({ onClose, onNavigate }) {
-  const { t } = useTranslation(['notification', 'common']);
+  const { t } = useTranslation(['notification', 'common', 'api']);
+  const [toastMessage, setToastMessage] = useState('');
   const {
     notifications,
     unreadCount,
@@ -22,7 +25,10 @@ function NotificationPanel({ onClose, onNavigate }) {
 
   const handleItemClick = async (item) => {
     if (!item.read) {
-      await markAsRead(item.id);
+      const res = await markAsRead(item.id);
+      if (res && res.success === false) {
+        setToastMessage(t('api:common.UNKNOWN_ERROR'));
+      }
     }
 
     if (onClose) onClose();
@@ -36,16 +42,34 @@ function NotificationPanel({ onClose, onNavigate }) {
     } else if (item.refType === 'BADGE') {
       onNavigate('/progress');
     } else if (item.refType === 'REPORT') {
-      onNavigate('/profile');
+      onNavigate('/reports');
+    }
+  };
+
+  const handleMarkAsRead = async (id) => {
+    const res = await markAsRead(id);
+    if (res && res.success === false) {
+      setToastMessage(t('api:common.UNKNOWN_ERROR'));
     }
   };
 
   const handleMarkAllRead = async () => {
-    await markAllAsRead();
+    const res = await markAllAsRead();
+    if (res && res.success === false) {
+      setToastMessage(t('api:common.UNKNOWN_ERROR'));
+    }
+  };
+
+  const handleLoadMore = async () => {
+    const res = await loadMoreNotifications();
+    if (res && res.success === false) {
+      setToastMessage(t('api:common.UNKNOWN_ERROR'));
+    }
   };
 
   return (
-    <div className="notification-panel glass-card" onClick={(e) => e.stopPropagation()}>
+    <>
+      <div className="notification-panel glass-card">
       <div className="notification-panel__header">
         <div className="notification-panel__title-group">
           <span className="text-title-md notification-panel__title">{t('title')}</span>
@@ -99,7 +123,7 @@ function NotificationPanel({ onClose, onNavigate }) {
                 key={item.id}
                 item={item}
                 onSelect={handleItemClick}
-                onMarkAsRead={markAsRead}
+                onMarkAsRead={handleMarkAsRead}
               />
             ))}
 
@@ -108,7 +132,7 @@ function NotificationPanel({ onClose, onNavigate }) {
                 <button
                   type="button"
                   className="btn-secondary notification-panel__load-more-btn"
-                  onClick={loadMoreNotifications}
+                  onClick={handleLoadMore}
                   disabled={isLoadingMore}
                 >
                   {isLoadingMore ? t('loading') : t('loadMore')}
@@ -119,6 +143,15 @@ function NotificationPanel({ onClose, onNavigate }) {
         )}
       </div>
     </div>
+
+    {toastMessage && (
+      <Toast
+        message={toastMessage}
+        variant="error"
+        onDismiss={() => setToastMessage('')}
+      />
+    )}
+  </>
   );
 }
 

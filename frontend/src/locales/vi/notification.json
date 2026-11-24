@@ -33,6 +33,6 @@
   },
   "REPORT_RESOLVED": {
     "title": "Báo cáo của bạn đã được xử lý",
-    "content": "{{content}}"
+    "content": "{{description}}"
   }
 }
