@@ -9,13 +9,14 @@ export default function DataTable({
   keyField = 'id',
   emptyMessage,
   isLoading = false,
+  borderless = false,
 }) {
   const { t } = useTranslation('admin');
   const resolvedEmptyMessage = emptyMessage || t('feedback.emptyList');
 
   if (isLoading) {
     return (
-      <div className={styles.tableWrapper}>
+      <div className={`${styles.tableWrapper} ${borderless ? styles.borderless : ''}`}>
         <div className={styles.loadingContainer}>
           <div className={styles.loadingBar} />
           <span>{t('feedback.loadingList')}</span>
@@ -25,7 +26,7 @@ export default function DataTable({
   }
 
   return (
-    <div className={styles.tableWrapper}>
+    <div className={`${styles.tableWrapper} ${borderless ? styles.borderless : ''}`}>
       <table className={styles.table}>
         <thead>
           <tr>
@@ -86,4 +87,5 @@ DataTable.propTypes = {
   keyField: PropTypes.string,
   emptyMessage: PropTypes.string,
   isLoading: PropTypes.bool,
+  borderless: PropTypes.bool,
 };

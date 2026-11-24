@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import DataTable from '../../components/DataTable/DataTable';
+import AdminPagination from '../../components/AdminPagination/AdminPagination';
 import { AdminErrorState } from '../../components/Feedback/AdminFeedback';
 import {
   RefreshIcon,
@@ -421,6 +422,7 @@ export default function AdminAuditLogPage({ onNavigate: _onNavigate }) {
       ) : (
         <div className={styles.tableCard}>
           <DataTable
+            borderless
             columns={columns}
             data={logData.content}
             keyField="id"
@@ -430,32 +432,15 @@ export default function AdminAuditLogPage({ onNavigate: _onNavigate }) {
 
           {/* Pagination Bar */}
           {!loading && logData.totalElements > 0 && (
-            <div className={styles.paginationBar}>
-              <span className={styles.paginationInfo}>
-                {t('common.total')}: <strong>{logData.totalElements}</strong>{' '}
-                {t('common.items')} ({page}/{logData.totalPages || 1})
-              </span>
-              <div className={styles.paginationControls}>
-                <button
-                  type="button"
-                  className={styles.pageBtn}
-                  disabled={page <= 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  aria-label="Previous Page"
-                >
-                  &larr;
-                </button>
-                <button
-                  type="button"
-                  className={styles.pageBtn}
-                  disabled={Boolean(logData.isLast ?? logData.last) || page >= (logData.totalPages || 1)}
-                  onClick={() => setPage((p) => p + 1)}
-                  aria-label="Next Page"
-                >
-                  &rarr;
-                </button>
-              </div>
-            </div>
+            <AdminPagination
+              page={page}
+              totalPages={logData.totalPages}
+              totalElements={logData.totalElements}
+              isLast={Boolean(logData.isLast ?? logData.last)}
+              onPageChange={setPage}
+              unitLabel={t('common.items')}
+              isLoading={loading}
+            />
           )}
         </div>
       )}

@@ -95,6 +95,9 @@ Dự án tuân thủ nghiêm ngặt định hướng thẩm mỹ **Precision Ope
 - **Form lọc ngày trên Mobile**:
   - Nhóm Granularity (`Daily`, `Weekly`, `Monthly`) chia đều 33.3% chiều rộng (`flex: 1`) như iOS Segmented Control, không để khoảng xám thừa.
   - Nút Áp dụng (`.applyBtn`) và nút Làm mới (`.refreshBtn`) luôn nằm chung một hàng, không rớt nút lẻ loi.
+- **Xử lý Flexbox Form & Search Box trên Mobile (Tránh vỡ chiều cao `flex-basis`)**:
+  - Khi container chuyển từ `flex-direction: row` sang `flex-direction: column` trên màn hình nhỏ (<= 768px), các phần tử con dùng `flex: 1 1 <px>` BẮT BUỘC phải được reset thành `flex: none; width: 100%;` (kèm `height: 38px` hoặc `min-height: 0`). Tránh để trình duyệt hiểu `flex-basis` là chiều cao trong trục dọc, làm ô nhập bị kéo giãn khổng lồ và icon kính lúp bị đẩy lệch vị trí.
+  - Ô tìm kiếm (`.searchBox`) luôn dùng wrapper có `height` cố định khớp input để icon kính lúp (`SearchIcon`) luôn căn giữa chuẩn xác (`top: 50%; transform: translateY(-50%)`).
 - **Tương tác Sidebar thu nhỏ**: Khi Sidebar đang thu nhỏ (72px), click vào bất kỳ nhóm dropdown nào sẽ tự động mở rộng Sidebar sang 260px và xổ menu con xuống ngay lập tức.
 
 ---
@@ -113,26 +116,26 @@ Dự án tuân thủ nghiêm ngặt định hướng thẩm mỹ **Precision Ope
 4. **Luồng phân quyền và điều hướng**:
    - Admin được phép truy cập tự do vào cả phân hệ quản trị (`/admin/*`) lẫn các trang của học viên (`/dashboard`, `/decks`, ...). Không tự động cưỡng chế chuyển hướng khi admin chủ động sang trang học viên.
    - Tại menu tài khoản phía học viên, khi tài khoản có role `ADMIN`, tự động hiển thị lối tắt *Quản trị hệ thống* (`/admin`) để chuyển đổi nhanh chóng.
-5. **Quy chuẩn Phân trang 1-Indexed (One-Indexed Pagination Standard)**:
+5. **Quy chuẩn Phân trang 1-Indexed & Component `AdminPagination`**:
    - Backend Spring Boot cấu hình `spring.data.web.pageable.one-indexed-parameters: true`. Số thứ tự trang trên toàn hệ thống bắt đầu từ **1** (không bắt đầu từ 0).
+   - **Bắt buộc dùng Component dùng chung `AdminPagination`** (`src/modules/admin/components/AdminPagination/`):
+     Tuyệt đối không viết lại khối HTML/CSS phân trang thủ công ở từng trang quản trị.
+     ```jsx
+     <AdminPagination
+       page={page}
+       totalPages={data.totalPages}
+       totalElements={data.totalElements}
+       isLast={Boolean(data.isLast ?? data.last)}
+       onPageChange={setPage}
+       unitLabel={t('users.usersCountSuffix')}
+       isLoading={loading}
+     />
+     ```
    - **State mặc định**: `const [page, setPage] = useState(1);` (khởi tạo luôn là `1`).
    - **Tham số API**: Truyền trực tiếp `params: { page, size: 20, ... }`, TUYỆT ĐỐI KHÔNG trừ 1 (`page - 1`).
-   - **Cấu trúc DTO phản hồi (`PageResponse<T>`)**:
-     ```js
-     {
-       content: [...],
-       page: 1,           // Trang hiện tại (1-based)
-       size: 20,          // Kích thước trang
-       totalElements: 45, // Tổng số bản ghi
-       totalPages: 3,     // Tổng số trang
-       isLast: false      // Trang cuối cùng (hỗ trợ cả fallback last)
-     }
-     ```
-   - **Điều kiện phân trang trên giao diện**:
-     - Nút Lùi lại (Previous): `disabled={page <= 1}`, khi click: `setPage((p) => Math.max(1, p - 1))`.
-     - Nút Chuyển tiếp (Next): `disabled={Boolean(data.isLast ?? data.last) || page >= (data.totalPages || 1)}`, khi click: `setPage((p) => p + 1)`.
-     - Nhãn hiển thị: `({page}/{data.totalPages || 1})`.
+   - **Hiển thị tổng số bản ghi ngữ cảnh**: Thanh phân trang BẮT BUỘC hiển thị rõ tổng số bản ghi kèm tên đơn vị và trang hiện tại: `{totalElements} {unitLabel} • Trang {page}/{totalPages}`.
    - **Hành vi reset trang**: Khi người dùng nhấn Tìm kiếm, thay đổi bộ lọc hoặc bấm Đặt lại (Reset), BẮT BUỘC phải gọi `setPage(1)` để đưa kết quả về trang đầu tiên.
+   - **Responsive trên Mobile**: Trên màn hình nhỏ (<= 600px), component tự động xếp dọc, căn giữa và tăng kích thước nút (36px) để tối ưu thao tác chạm.
 6. **Kiểm tra độ tương thích Theme bắt buộc (Theme Verification Checklist)**:
    - Trước khi hoàn tất bất kỳ giao diện nào trong phân hệ admin, bắt buộc phải bật chuyển đổi theme qua lại giữa **Light Mode** và **Dark Mode** trên `AdminHeader` để kiểm tra trực quan.
    - Kiểm tra các phần tử dễ lỗi: nhãn form, văn bản trong input/select, chữ trong bảng, thời gian, địa chỉ IP, action badges, modal backdrop và các nút bấm.

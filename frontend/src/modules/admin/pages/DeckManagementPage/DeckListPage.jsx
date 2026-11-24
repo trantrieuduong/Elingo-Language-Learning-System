@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import DataTable from '../../components/DataTable/DataTable';
+import AdminPagination from '../../components/AdminPagination/AdminPagination';
 import { AdminErrorState } from '../../components/Feedback/AdminFeedback';
 import {
   BookOpenIcon,
@@ -574,42 +575,30 @@ export default function DeckListPage({ onNavigate }) {
         />
       )}
 
-      {/* Data Table */}
+      {/* Table & Pagination Card */}
       {!error && (
-        <DataTable
-          columns={columns}
-          data={deckData.content}
-          keyField="id"
-          isLoading={loading}
-          emptyMessage={t('feedback.emptyList')}
-        />
-      )}
+        <div className={styles.tableCard}>
+          <DataTable
+            borderless
+            columns={columns}
+            data={deckData.content}
+            keyField="id"
+            isLoading={loading}
+            emptyMessage={t('feedback.emptyList')}
+          />
 
-      {/* Pagination Bar */}
-      {!loading && !error && deckData.totalElements > 0 && (
-        <div className={styles.paginationBar}>
-          <span>
-            {t('common.total')}: {deckData.totalElements} {t('common.items')} (
-            {deckData.page || page}/{deckData.totalPages || 1})
-          </span>
-          <div className={styles.paginationControls}>
-            <button
-              type="button"
-              className={styles.pageBtn}
-              disabled={page <= 1}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-            >
-              &larr;
-            </button>
-            <button
-              type="button"
-              className={styles.pageBtn}
-              disabled={deckData.isLast || page >= (deckData.totalPages || 1)}
-              onClick={() => setPage((p) => p + 1)}
-            >
-              &rarr;
-            </button>
-          </div>
+          {/* Pagination Bar */}
+          {!loading && deckData.totalElements > 0 && (
+            <AdminPagination
+              page={page}
+              totalPages={deckData.totalPages}
+              totalElements={deckData.totalElements}
+              isLast={Boolean(deckData.isLast)}
+              onPageChange={setPage}
+              unitLabel={t('common.items')}
+              isLoading={loading}
+            />
+          )}
         </div>
       )}
 
