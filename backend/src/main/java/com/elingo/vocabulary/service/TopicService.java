@@ -1,7 +1,7 @@
 package com.elingo.vocabulary.service;
 
-import com.elingo.admin.content.dto.request.CreateSystemTopicRequest;
-import com.elingo.admin.content.dto.request.UpdateSystemTopicRequest;
+import com.elingo.vocabulary.dto.request.CreateSystemTopicRequest;
+import com.elingo.vocabulary.dto.request.UpdateSystemTopicRequest;
 import com.elingo.vocabulary.dto.request.CreateUserTopicRequest;
 import com.elingo.vocabulary.dto.request.UpdateUserTopicRequest;
 import com.elingo.vocabulary.dto.response.CardResponse;

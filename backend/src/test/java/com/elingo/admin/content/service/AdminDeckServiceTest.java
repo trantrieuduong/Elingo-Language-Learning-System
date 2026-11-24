@@ -1,10 +1,12 @@
 package com.elingo.admin.content.service;
 
-import com.elingo.admin.content.dto.request.AdminDeckSearchRequest;
-import com.elingo.admin.content.dto.request.SystemDeckRequest;
-import com.elingo.admin.content.dto.request.UpdateDeckStatusRequest;
+import com.elingo.vocabulary.dto.request.AdminDeckSearchRequest;
+import com.elingo.vocabulary.dto.request.SystemDeckRequest;
+import com.elingo.vocabulary.dto.request.UpdateDeckStatusRequest;
 import com.elingo.admin.content.service.impl.AdminDeckServiceImpl;
 import com.elingo.common.dto.PageResponse;
+import com.elingo.common.exception.AppError;
+import com.elingo.common.exception.AppException;
 import com.elingo.vocabulary.dto.response.DeckResponse;
 import com.elingo.vocabulary.entity.DeckStatus;
 import com.elingo.vocabulary.entity.OwnerType;
@@ -19,12 +21,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -80,6 +84,32 @@ class AdminDeckServiceTest {
 
             assertThat(actual).isEqualTo(expectedResponse);
             verify(deckService).searchDecksForAdmin(request, pageable);
+        }
+
+        @Test
+        @DisplayName("Should pass sanitized pageable when sort is allowed")
+        void searchDecks_WhenSortAllowed_Success() {
+            AdminDeckSearchRequest request = new AdminDeckSearchRequest("test", OwnerType.SYSTEM, DeckStatus.PUBLISHED, false, Set.of(), Set.of());
+            Pageable sortedPageable = PageRequest.of(0, 10, Sort.by("title"));
+            PageResponse<DeckResponse> expectedResponse = new PageResponse<>(List.of(), 1, 10, 0, 0, true);
+
+            when(deckService.searchDecksForAdmin(request, sortedPageable)).thenReturn(expectedResponse);
+
+            PageResponse<DeckResponse> actual = adminDeckService.searchDecks(request, sortedPageable);
+
+            assertThat(actual).isEqualTo(expectedResponse);
+            verify(deckService).searchDecksForAdmin(request, sortedPageable);
+        }
+
+        @Test
+        @DisplayName("Should throw INVALID_SORT when sort field is not allowed")
+        void searchDecks_WhenSortNotAllowed_ShouldThrowInvalidSort() {
+            AdminDeckSearchRequest request = new AdminDeckSearchRequest("test", OwnerType.SYSTEM, DeckStatus.PUBLISHED, false, Set.of(), Set.of());
+            Pageable invalidSortPageable = PageRequest.of(0, 10, Sort.by("unsupportedField"));
+
+            assertThatThrownBy(() -> adminDeckService.searchDecks(request, invalidSortPageable))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.INVALID_SORT));
         }
     }
 

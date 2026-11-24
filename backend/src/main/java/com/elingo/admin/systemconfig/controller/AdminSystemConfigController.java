@@ -1,8 +1,10 @@
 package com.elingo.admin.systemconfig.controller;
 
+import com.elingo.admin.common.constant.AdminApiPaths;
 import com.elingo.admin.systemconfig.dto.request.UpdateSystemConfigRequest;
 import com.elingo.admin.systemconfig.dto.response.SystemConfigResponse;
 import com.elingo.admin.systemconfig.service.AdminSystemConfigService;
+import com.elingo.common.annotation.CurrentUserId;
 import com.elingo.common.dto.ApiResponse;
 import com.elingo.common.entity.ConfigModule;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,11 +21,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/admin/system-configs")
+@RequestMapping(AdminApiPaths.SYSTEM_CONFIGS)
 @PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
 @Tag(
-        name = "Admin System Config Controller",
+        name = "Admin - System Config",
         description = "Management endpoints for system configurations in the admin console"
 )
 public class AdminSystemConfigController {
@@ -207,6 +209,7 @@ public class AdminSystemConfigController {
             description = "Forbidden - Admin privileges required"
     )
     public ApiResponse<SystemConfigResponse> updateConfig(
+            @CurrentUserId Long adminId,
             @Parameter(
                     description = "Configuration key to update",
                     required = true,
@@ -216,7 +219,7 @@ public class AdminSystemConfigController {
             @Valid @RequestBody UpdateSystemConfigRequest request) {
         return ApiResponse.<SystemConfigResponse>builder()
                 .success(true)
-                .data(adminSystemConfigService.updateConfig(key, request))
+                .data(adminSystemConfigService.updateConfig(key, request, adminId))
                 .build();
     }
 }

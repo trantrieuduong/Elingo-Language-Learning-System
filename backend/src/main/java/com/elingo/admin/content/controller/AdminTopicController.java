@@ -1,8 +1,9 @@
 package com.elingo.admin.content.controller;
 
-import com.elingo.admin.content.dto.request.CreateSystemTopicRequest;
-import com.elingo.admin.content.dto.request.ReorderItemRequest;
-import com.elingo.admin.content.dto.request.UpdateSystemTopicRequest;
+import com.elingo.admin.common.constant.AdminApiPaths;
+import com.elingo.vocabulary.dto.request.CreateSystemTopicRequest;
+import com.elingo.vocabulary.dto.request.ReorderItemRequest;
+import com.elingo.vocabulary.dto.request.UpdateSystemTopicRequest;
 import com.elingo.admin.content.service.AdminCardService;
 import com.elingo.admin.content.service.AdminTopicService;
 import com.elingo.common.dto.ApiResponse;
@@ -22,11 +23,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/admin/topics")
+@RequestMapping(AdminApiPaths.TOPICS)
 @PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
 @Tag(
-        name = "Admin Topic Controller",
+        name = "Admin - Topics",
         description = "Management endpoints for system topics and cards ordering in the admin console"
 )
 public class AdminTopicController {

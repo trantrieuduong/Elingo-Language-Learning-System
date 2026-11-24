@@ -1,7 +1,8 @@
 package com.elingo.admin.gamification.controller;
 
-import com.elingo.admin.gamification.dto.request.BadgeRequest;
-import com.elingo.admin.gamification.dto.response.AdminBadgeResponse;
+import com.elingo.admin.common.constant.AdminApiPaths;
+import com.elingo.gamification.dto.request.BadgeRequest;
+import com.elingo.gamification.dto.response.AdminBadgeResponse;
 import com.elingo.admin.gamification.service.AdminBadgeService;
 import com.elingo.common.dto.ApiResponse;
 import com.elingo.gamification.entity.BadgeConditionType;
@@ -10,7 +11,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
@@ -21,11 +21,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/admin/gamification/badges")
+@RequestMapping(AdminApiPaths.GAMIFICATION_BADGES)
 @PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
 @Tag(
-        name = "Admin Badge Controller",
+        name = "Admin - Badges",
         description = "Management endpoints for badges in the admin console"
 )
 public class AdminBadgeController {
@@ -34,9 +34,8 @@ public class AdminBadgeController {
 
     @GetMapping
     @Operation(summary = "Get all badges", description = "Retrieves all badges, optionally filtered by condition type")
-    @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "200",
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
                     description = "List of badges retrieved successfully",
                     content = @Content(
                             mediaType = "application/json",
@@ -63,10 +62,9 @@ public class AdminBadgeController {
                                             """
                             )
                     )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized - Authentication token is missing or expired"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden - Admin privileges required")
-    })
+            )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized - Authentication token is missing or expired")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden - Admin privileges required")
     public ApiResponse<List<AdminBadgeResponse>> getAllBadges(
             @Parameter(description = "Filter badges by condition type", example = "STREAK_DAYS")
             @RequestParam(required = false) BadgeConditionType conditionType) {
@@ -78,9 +76,8 @@ public class AdminBadgeController {
 
     @GetMapping("/condition-types")
     @Operation(summary = "Get all badge condition types", description = "Retrieves all supported badge condition types for filtering and dropdown options")
-    @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "200",
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
                     description = "List of supported badge condition types retrieved successfully",
                     content = @Content(
                             mediaType = "application/json",
@@ -103,10 +100,9 @@ public class AdminBadgeController {
                                             """
                             )
                     )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized - Authentication token is missing or expired"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden - Admin privileges required")
-    })
+            )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized - Authentication token is missing or expired")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden - Admin privileges required")
     public ApiResponse<List<BadgeConditionType>> getConditionTypes() {
         return ApiResponse.<List<BadgeConditionType>>builder()
                 .success(true)
@@ -116,9 +112,8 @@ public class AdminBadgeController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Get badge by ID", description = "Retrieves a specific badge by its ID")
-    @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "200",
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
                     description = "Badge retrieved successfully",
                     content = @Content(
                             mediaType = "application/json",
@@ -143,12 +138,11 @@ public class AdminBadgeController {
                                             """
                             )
                     )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad Request - Invalid badge ID"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized - Authentication token is missing or expired"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden - Admin privileges required"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Not Found - Badge does not exist")
-    })
+            )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad Request - Invalid badge ID")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized - Authentication token is missing or expired")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden - Admin privileges required")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Not Found - Badge does not exist")
     public ApiResponse<AdminBadgeResponse> getBadgeById(
             @Parameter(description = "Unique ID of the badge", example = "1")
             @PathVariable @Positive(message = "INVALID_REQUEST") Long id) {
@@ -181,9 +175,8 @@ public class AdminBadgeController {
                     )
             )
     )
-    @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "200",
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
                     description = "Badge created successfully",
                     content = @Content(
                             mediaType = "application/json",
@@ -208,11 +201,10 @@ public class AdminBadgeController {
                                             """
                             )
                     )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad Request - Invalid payload or duplicate badge code"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized - Authentication token is missing or expired"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden - Admin privileges required")
-    })
+            )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad Request - Invalid payload or duplicate badge code")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized - Authentication token is missing or expired")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden - Admin privileges required")
     public ApiResponse<AdminBadgeResponse> createBadge(
             @Valid @RequestBody BadgeRequest request) {
         return ApiResponse.<AdminBadgeResponse>builder()
@@ -244,9 +236,8 @@ public class AdminBadgeController {
                     )
             )
     )
-    @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "200",
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
                     description = "Badge updated successfully",
                     content = @Content(
                             mediaType = "application/json",
@@ -271,12 +262,11 @@ public class AdminBadgeController {
                                             """
                             )
                     )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad Request - Invalid payload or duplicate badge code"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized - Authentication token is missing or expired"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden - Admin privileges required"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Not Found - Badge does not exist")
-    })
+            )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad Request - Invalid payload or duplicate badge code")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized - Authentication token is missing or expired")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden - Admin privileges required")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Not Found - Badge does not exist")
     public ApiResponse<AdminBadgeResponse> updateBadge(
             @Parameter(description = "Unique ID of the badge to update", example = "1")
             @PathVariable @Positive(message = "INVALID_REQUEST") Long id,
@@ -289,9 +279,8 @@ public class AdminBadgeController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete badge", description = "Deletes a badge if it has not been earned by any user")
-    @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "200",
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
                     description = "Badge deleted successfully",
                     content = @Content(
                             mediaType = "application/json",
@@ -306,12 +295,11 @@ public class AdminBadgeController {
                                             """
                             )
                     )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad Request - Badge is in use and cannot be deleted"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized - Authentication token is missing or expired"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden - Admin privileges required"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Not Found - Badge does not exist")
-    })
+            )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad Request - Badge is in use and cannot be deleted")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized - Authentication token is missing or expired")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden - Admin privileges required")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Not Found - Badge does not exist")
     public ApiResponse<Void> deleteBadge(
             @Parameter(description = "Unique ID of the badge to delete", example = "1")
             @PathVariable @Positive(message = "INVALID_REQUEST") Long id) {

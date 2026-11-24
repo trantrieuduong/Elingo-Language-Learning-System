@@ -1,5 +1,6 @@
 package com.elingo.premium.repository;
 
+import com.elingo.premium.dto.projection.PlanSubscriptionStat;
 import com.elingo.premium.entity.SubscriptionStatus;
 import com.elingo.premium.entity.UserSubscription;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -15,12 +16,6 @@ import java.util.Optional;
 
 @Repository
 public interface UserSubscriptionRepository extends JpaRepository<UserSubscription, Long> {
-
-    interface PlanSubscriptionStat {
-        Long getPlanId();
-        String getPlanName();
-        Long getActiveCount();
-    }
 
     boolean existsByUserIdAndStatusAndEndAtAfter(Long userId, SubscriptionStatus status, LocalDateTime now);
 

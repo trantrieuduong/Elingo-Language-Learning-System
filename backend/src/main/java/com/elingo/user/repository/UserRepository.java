@@ -1,5 +1,6 @@
 package com.elingo.user.repository;
 
+import com.elingo.user.dto.projection.NewUserStats;
 import com.elingo.user.entity.User;
 import jakarta.persistence.LockModeType;
 import org.jspecify.annotations.NonNull;
@@ -14,10 +15,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
-    interface NewUserStats {
-        String getPeriodKey();
-        Long getCountVal();
-    }
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT u FROM User u WHERE u.id = :id")

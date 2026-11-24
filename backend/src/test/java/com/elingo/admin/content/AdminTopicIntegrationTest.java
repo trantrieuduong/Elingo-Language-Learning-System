@@ -1,9 +1,9 @@
 package com.elingo.admin.content;
 
 import com.elingo.BaseIntegrationTest;
-import com.elingo.admin.content.dto.request.CreateSystemTopicRequest;
-import com.elingo.admin.content.dto.request.ReorderItemRequest;
-import com.elingo.admin.content.dto.request.UpdateSystemTopicRequest;
+import com.elingo.vocabulary.dto.request.CreateSystemTopicRequest;
+import com.elingo.vocabulary.dto.request.ReorderItemRequest;
+import com.elingo.vocabulary.dto.request.UpdateSystemTopicRequest;
 import com.elingo.auth.service.JwtService;
 import com.elingo.user.entity.Role;
 import com.elingo.user.entity.User;

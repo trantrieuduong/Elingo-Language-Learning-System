@@ -1,6 +1,6 @@
 package com.elingo.vocabulary.service.impl;
 
-import com.elingo.admin.content.dto.request.*;
+import com.elingo.vocabulary.dto.request.*;
 import com.elingo.common.dto.PageResponse;
 import com.elingo.common.enums.SystemFileModule;
 import com.elingo.common.exception.AppError;

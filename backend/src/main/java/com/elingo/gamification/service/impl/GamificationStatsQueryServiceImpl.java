@@ -1,5 +1,8 @@
 package com.elingo.gamification.service.impl;
 
+import com.elingo.gamification.dto.projection.ActivityByDateProjection;
+import com.elingo.gamification.dto.projection.DateCountProjection;
+import com.elingo.gamification.dto.projection.LevelDistribution;
 import com.elingo.gamification.repository.UserXpRepository;
 import com.elingo.gamification.repository.XpEventRepository;
 import com.elingo.gamification.service.GamificationStatsQueryService;
@@ -19,7 +22,7 @@ public class GamificationStatsQueryServiceImpl implements GamificationStatsQuery
 
     @Override
     @Transactional(readOnly = true)
-    public List<XpEventRepository.DateCountProjection> countDauTimeSeries(LocalDateTime from, LocalDateTime to) {
+    public List<DateCountProjection> countDauTimeSeries(LocalDateTime from, LocalDateTime to) {
         return xpEventRepository.countDauByDay(from, to);
     }
 
@@ -31,13 +34,13 @@ public class GamificationStatsQueryServiceImpl implements GamificationStatsQuery
 
     @Override
     @Transactional(readOnly = true)
-    public List<UserXpRepository.LevelDistribution> countUsersByLevel() {
+    public List<LevelDistribution> countUsersByLevel() {
         return userXpRepository.countUsersByLevel();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<XpEventRepository.ActivityByDateProjection> countActivityBySourceAndDate(LocalDateTime from, LocalDateTime to) {
+    public List<ActivityByDateProjection> countActivityBySourceAndDate(LocalDateTime from, LocalDateTime to) {
         return xpEventRepository.countActivityBySourceAndDate(from, to);
     }
 }

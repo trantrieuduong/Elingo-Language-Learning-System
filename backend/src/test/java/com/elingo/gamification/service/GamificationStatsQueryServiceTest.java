@@ -41,10 +41,10 @@ class GamificationStatsQueryServiceTest {
         @Test
         @DisplayName("Should delegate to xpEventRepository.countDauByDay")
         void countDauTimeSeries_Success() {
-            XpEventRepository.DateCountProjection proj = mock(XpEventRepository.DateCountProjection.class);
+            com.elingo.gamification.dto.projection.DateCountProjection proj = mock(com.elingo.gamification.dto.projection.DateCountProjection.class);
             when(xpEventRepository.countDauByDay(from, to)).thenReturn(List.of(proj));
 
-            List<XpEventRepository.DateCountProjection> result = gamificationStatsQueryService.countDauTimeSeries(from, to);
+            List<com.elingo.gamification.dto.projection.DateCountProjection> result = gamificationStatsQueryService.countDauTimeSeries(from, to);
 
             assertThat(result).hasSize(1).contains(proj);
             verify(xpEventRepository).countDauByDay(from, to);
@@ -74,10 +74,10 @@ class GamificationStatsQueryServiceTest {
         @Test
         @DisplayName("Should delegate to userXpRepository.countUsersByLevel")
         void countUsersByLevel_Success() {
-            UserXpRepository.LevelDistribution dist = mock(UserXpRepository.LevelDistribution.class);
+            com.elingo.gamification.dto.projection.LevelDistribution dist = mock(com.elingo.gamification.dto.projection.LevelDistribution.class);
             when(userXpRepository.countUsersByLevel()).thenReturn(List.of(dist));
 
-            List<UserXpRepository.LevelDistribution> result = gamificationStatsQueryService.countUsersByLevel();
+            List<com.elingo.gamification.dto.projection.LevelDistribution> result = gamificationStatsQueryService.countUsersByLevel();
 
             assertThat(result).hasSize(1).contains(dist);
             verify(userXpRepository).countUsersByLevel();

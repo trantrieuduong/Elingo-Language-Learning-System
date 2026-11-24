@@ -6,12 +6,15 @@ import com.elingo.admin.stats.dto.response.CommunityStatsResponses;
 import com.elingo.admin.stats.service.CommunityStatsService;
 import com.elingo.admin.stats.util.StatsZeroFiller;
 import com.elingo.common.service.RedisService;
-import com.elingo.community.moderation.repository.PostModerationRepository;
-import com.elingo.community.repository.CommentRepository;
-import com.elingo.community.repository.PostLikeRepository;
-import com.elingo.community.repository.PostRepository;
+import com.elingo.community.dto.projection.DateCountProjection;
+import com.elingo.community.dto.projection.PostBacklogProjection;
+import com.elingo.community.dto.projection.PostGroupCountProjection;
+import com.elingo.community.dto.projection.PostStatusCountProjection;
+import com.elingo.community.moderation.dto.projection.AiLabelCount;
+import com.elingo.community.moderation.dto.projection.ModerationActionCounts;
 import com.elingo.community.service.CommunityStatsQueryService;
-import com.elingo.report.repository.ReportRepository;
+import com.elingo.report.dto.projection.StatusCountProjection;
+import com.elingo.report.dto.projection.TargetTypeCountProjection;
 import com.elingo.report.service.ReportStatsQueryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,7 +58,7 @@ public class CommunityStatsServiceImpl implements CommunityStatsService {
             }
         }
 
-        List<PostRepository.PostStatusCountProjection> statusRaw = communityStatsQueryService.countPostsByStatus();
+        List<PostStatusCountProjection> statusRaw = communityStatsQueryService.countPostsByStatus();
         long totalPosts = statusRaw.stream()
                 .mapToLong(p -> p.getCountVal() != null ? p.getCountVal() : 0L)
                 .sum();
@@ -66,7 +69,7 @@ public class CommunityStatsServiceImpl implements CommunityStatsService {
             return new CategoryShare<>(p.getStatus().name(), count, pct);
         }).toList();
 
-        List<PostRepository.PostGroupCountProjection> groupRaw = communityStatsQueryService.countPostsByGroup();
+        List<PostGroupCountProjection> groupRaw = communityStatsQueryService.countPostsByGroup();
         List<CommunityStatsResponses.GroupPostShare> byGroup = groupRaw.stream().map(p -> {
             long count = p.getPostCount() != null ? p.getPostCount() : 0L;
             double pct = totalPosts > 0 ? roundDouble(((double) count / totalPosts) * 100.0) : 0.0;
@@ -81,10 +84,10 @@ public class CommunityStatsServiceImpl implements CommunityStatsService {
         LocalDateTime fromTime = safeRequest.from().atStartOfDay();
         LocalDateTime toTime = safeRequest.to().plusDays(1).atStartOfDay();
 
-        List<PostLikeRepository.DateCountProjection> likesRaw = communityStatsQueryService.countLikesByDay(fromTime, toTime);
+        List<DateCountProjection> likesRaw = communityStatsQueryService.countLikesByDay(fromTime, toTime);
         Map<String, Long> likesMap = new HashMap<>();
         long totalLikes = 0L;
-        for (PostLikeRepository.DateCountProjection p : likesRaw) {
+        for (DateCountProjection p : likesRaw) {
             if (p.getDateKey() != null) {
                 long c = p.getCountVal() != null ? p.getCountVal() : 0L;
                 likesMap.put(p.getDateKey(), c);
@@ -92,10 +95,10 @@ public class CommunityStatsServiceImpl implements CommunityStatsService {
             }
         }
 
-        List<CommentRepository.DateCountProjection> commentsRaw = communityStatsQueryService.countCommentsByDay(fromTime, toTime);
+        List<DateCountProjection> commentsRaw = communityStatsQueryService.countCommentsByDay(fromTime, toTime);
         Map<String, Long> commentsMap = new HashMap<>();
         long totalComments = 0L;
-        for (CommentRepository.DateCountProjection p : commentsRaw) {
+        for (DateCountProjection p : commentsRaw) {
             if (p.getDateKey() != null) {
                 long c = p.getCountVal() != null ? p.getCountVal() : 0L;
                 commentsMap.put(p.getDateKey(), c);
@@ -143,7 +146,7 @@ public class CommunityStatsServiceImpl implements CommunityStatsService {
         LocalDateTime fromTime = safeRequest.from().atStartOfDay();
         LocalDateTime toTime = safeRequest.to().plusDays(1).atStartOfDay();
 
-        PostModerationRepository.ModerationActionCounts actionCounts =
+        ModerationActionCounts actionCounts =
                 communityStatsQueryService.countModerationActions(fromTime, toTime);
 
         long autoHandled = actionCounts.autoApproveCount() + actionCounts.autoRejectCount();
@@ -163,8 +166,8 @@ public class CommunityStatsServiceImpl implements CommunityStatsService {
                         automationRate
                 );
 
-        List<PostModerationRepository.AiLabelCount> aiLabelRaw = communityStatsQueryService.countAiLabels(fromTime, toTime);
-        long totalAiLabels = aiLabelRaw.stream().mapToLong(PostModerationRepository.AiLabelCount::countVal).sum();
+        List<AiLabelCount> aiLabelRaw = communityStatsQueryService.countAiLabels(fromTime, toTime);
+        long totalAiLabels = aiLabelRaw.stream().mapToLong(AiLabelCount::countVal).sum();
 
         List<CategoryShare<String>> aiLabelDistribution = aiLabelRaw.stream().map(p -> {
             long count = p.countVal();
@@ -175,7 +178,7 @@ public class CommunityStatsServiceImpl implements CommunityStatsService {
         Double avgManualSec = communityStatsQueryService.calculateAvgManualReviewDurationSeconds(fromTime, toTime);
         double avgManualReviewSeconds = avgManualSec != null ? roundDouble(avgManualSec) : 0.0;
 
-        PostRepository.PostBacklogProjection backlogRaw = communityStatsQueryService.countPostBacklog();
+        PostBacklogProjection backlogRaw = communityStatsQueryService.countPostBacklog();
         long pending = backlogRaw != null && backlogRaw.getPendingCount() != null ? backlogRaw.getPendingCount() : 0L;
         long needsReview = backlogRaw != null && backlogRaw.getNeedsReviewCount() != null ? backlogRaw.getNeedsReviewCount() : 0L;
         long totalBacklog = pending + needsReview;
@@ -218,7 +221,7 @@ public class CommunityStatsServiceImpl implements CommunityStatsService {
         LocalDateTime fromTime = safeRequest.from().atStartOfDay();
         LocalDateTime toTime = safeRequest.to().plusDays(1).atStartOfDay();
 
-        List<ReportRepository.StatusCountProjection> statusRaw =
+        List<StatusCountProjection> statusRaw =
                 reportStatsQueryService.countReportsByStatus(fromTime, toTime);
         long totalReports = statusRaw.stream()
                 .mapToLong(p -> p.getCountVal() != null ? p.getCountVal() : 0L)
@@ -228,7 +231,7 @@ public class CommunityStatsServiceImpl implements CommunityStatsService {
         long resolvedReports = 0L;
         long rejectedReports = 0L;
 
-        for (ReportRepository.StatusCountProjection p : statusRaw) {
+        for (StatusCountProjection p : statusRaw) {
             long count = p.getCountVal() != null ? p.getCountVal() : 0L;
             if (p.getStatus() == com.elingo.report.entity.ReportStatus.PENDING) {
                 pendingReports += count;
@@ -245,7 +248,7 @@ public class CommunityStatsServiceImpl implements CommunityStatsService {
             return new CategoryShare<>(p.getStatus().name(), count, pct);
         }).toList();
 
-        List<ReportRepository.TargetTypeCountProjection> targetRaw =
+        List<TargetTypeCountProjection> targetRaw =
                 reportStatsQueryService.countReportsByTargetType(fromTime, toTime);
         List<CategoryShare<String>> byTargetType = targetRaw.stream().map(p -> {
             long count = p.getCountVal() != null ? p.getCountVal() : 0L;

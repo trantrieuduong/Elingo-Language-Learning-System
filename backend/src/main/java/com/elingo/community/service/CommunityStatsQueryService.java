@@ -1,20 +1,22 @@
 package com.elingo.community.service;
 
-import com.elingo.community.moderation.repository.PostModerationRepository;
-import com.elingo.community.repository.CommentRepository;
-import com.elingo.community.repository.PostLikeRepository;
-import com.elingo.community.repository.PostRepository;
+import com.elingo.community.dto.projection.DateCountProjection;
+import com.elingo.community.dto.projection.PostBacklogProjection;
+import com.elingo.community.dto.projection.PostGroupCountProjection;
+import com.elingo.community.dto.projection.PostStatusCountProjection;
+import com.elingo.community.moderation.dto.projection.AiLabelCount;
+import com.elingo.community.moderation.dto.projection.ModerationActionCounts;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 public interface CommunityStatsQueryService {
-    List<PostRepository.PostStatusCountProjection> countPostsByStatus();
-    List<PostRepository.PostGroupCountProjection> countPostsByGroup();
-    PostRepository.PostBacklogProjection countPostBacklog();
-    List<PostLikeRepository.DateCountProjection> countLikesByDay(LocalDateTime from, LocalDateTime to);
-    List<CommentRepository.DateCountProjection> countCommentsByDay(LocalDateTime from, LocalDateTime to);
-    PostModerationRepository.ModerationActionCounts countModerationActions(LocalDateTime from, LocalDateTime to);
-    List<PostModerationRepository.AiLabelCount> countAiLabels(LocalDateTime from, LocalDateTime to);
+    List<PostStatusCountProjection> countPostsByStatus();
+    List<PostGroupCountProjection> countPostsByGroup();
+    PostBacklogProjection countPostBacklog();
+    List<DateCountProjection> countLikesByDay(LocalDateTime from, LocalDateTime to);
+    List<DateCountProjection> countCommentsByDay(LocalDateTime from, LocalDateTime to);
+    ModerationActionCounts countModerationActions(LocalDateTime from, LocalDateTime to);
+    List<AiLabelCount> countAiLabels(LocalDateTime from, LocalDateTime to);
     Double calculateAvgManualReviewDurationSeconds(LocalDateTime from, LocalDateTime to);
 }

@@ -3,9 +3,9 @@ package com.elingo.admin.content.service.impl;
 import com.elingo.admin.audit.annotation.Audited;
 import com.elingo.admin.audit.entity.AdminAuditAction;
 import com.elingo.admin.audit.entity.AdminAuditTargetType;
-import com.elingo.admin.content.dto.request.CreateSystemCardRequest;
-import com.elingo.admin.content.dto.request.ReorderItemRequest;
-import com.elingo.admin.content.dto.request.UpdateSystemCardRequest;
+import com.elingo.vocabulary.dto.request.CreateSystemCardRequest;
+import com.elingo.vocabulary.dto.request.ReorderItemRequest;
+import com.elingo.vocabulary.dto.request.UpdateSystemCardRequest;
 import com.elingo.admin.content.service.AdminCardService;
 import com.elingo.vocabulary.dto.response.CardResponse;
 import com.elingo.vocabulary.service.CardService;
@@ -38,7 +38,9 @@ public class AdminCardServiceImpl implements AdminCardService {
             targetId = "#result.id",
             detail = "'Topic: ' + #request.topicId + ', Term: ' + #request.term")
     public CardResponse createSystemCard(CreateSystemCardRequest request) {
-        return cardService.createSystemCard(request);
+        CardResponse created = cardService.createSystemCard(request);
+        log.info("System card created cardId={}", created.id());
+        return created;
     }
 
     @Override
@@ -47,7 +49,9 @@ public class AdminCardServiceImpl implements AdminCardService {
             targetId = "#cardId",
             detail = "'Update term: ' + #request.term")
     public CardResponse updateSystemCard(Long cardId, UpdateSystemCardRequest request) {
-        return cardService.updateSystemCard(cardId, request);
+        CardResponse updated = cardService.updateSystemCard(cardId, request);
+        log.info("System card updated cardId={}", cardId);
+        return updated;
     }
 
     @Override
@@ -57,6 +61,7 @@ public class AdminCardServiceImpl implements AdminCardService {
             detail = "'Reordered cards'")
     public void reorderSystemCards(Long topicId, ReorderItemRequest request) {
         cardService.reorderSystemCards(topicId, request.orderedIds());
+        log.info("System cards reordered topicId={}", topicId);
     }
 
     @Override
@@ -65,5 +70,6 @@ public class AdminCardServiceImpl implements AdminCardService {
             targetId = "#cardId")
     public void deleteSystemCard(Long cardId) {
         cardService.deleteSystemCard(cardId);
+        log.info("System card deleted cardId={}", cardId);
     }
 }

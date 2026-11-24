@@ -1,5 +1,8 @@
 package com.elingo.premium.repository;
 
+import com.elingo.premium.dto.projection.DateAmountCountProjection;
+import com.elingo.premium.dto.projection.PlanRevenueStat;
+import com.elingo.premium.dto.projection.TransactionStatusCount;
 import com.elingo.premium.entity.PaymentTransaction;
 import com.elingo.premium.entity.PaymentTransactionStatus;
 import jakarta.persistence.LockModeType;
@@ -20,24 +23,6 @@ import java.util.Optional;
 
 @Repository
 public interface PaymentTransactionRepository extends JpaRepository<PaymentTransaction, Long> {
-
-    interface DateAmountCountProjection {
-        String getPeriodKey();
-        BigDecimal getTotalAmount();
-        Long getTxCount();
-    }
-
-    interface PlanRevenueStat {
-        Long getPlanId();
-        String getPlanName();
-        BigDecimal getTotalAmount();
-        Long getTxCount();
-    }
-
-    interface TransactionStatusCount {
-        PaymentTransactionStatus getStatus();
-        Long getCountVal();
-    }
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT t FROM PaymentTransaction t WHERE t.providerRefCode = :refCode")

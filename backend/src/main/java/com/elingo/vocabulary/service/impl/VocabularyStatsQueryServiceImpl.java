@@ -1,5 +1,9 @@
 package com.elingo.vocabulary.service.impl;
 
+import com.elingo.vocabulary.dto.projection.OwnerTypeCountProjection;
+import com.elingo.vocabulary.dto.projection.PremiumCountProjection;
+import com.elingo.vocabulary.dto.projection.StatusCountProjection;
+import com.elingo.vocabulary.dto.projection.TopDeckProjection;
 import com.elingo.vocabulary.entity.OwnerType;
 import com.elingo.vocabulary.repository.DeckRepository;
 import com.elingo.vocabulary.service.VocabularyStatsQueryService;
@@ -17,25 +21,25 @@ public class VocabularyStatsQueryServiceImpl implements VocabularyStatsQueryServ
 
     @Override
     @Transactional(readOnly = true)
-    public List<DeckRepository.StatusCountProjection> countDecksByStatus() {
+    public List<StatusCountProjection> countDecksByStatus() {
         return deckRepository.countDecksByStatus();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<DeckRepository.OwnerTypeCountProjection> countDecksByOwnerType() {
+    public List<OwnerTypeCountProjection> countDecksByOwnerType() {
         return deckRepository.countDecksByOwnerType();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<DeckRepository.PremiumCountProjection> countDecksByPremium() {
+    public List<PremiumCountProjection> countDecksByPremium() {
         return deckRepository.countDecksByPremium();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<DeckRepository.TopDeckProjection> getTopDecksByOwnerType(OwnerType ownerType, int limit) {
+    public List<TopDeckProjection> getTopDecksByOwnerType(OwnerType ownerType, int limit) {
         return deckRepository.findTopDecksByOwnerType(ownerType.name(), Math.max(1, limit));
     }
 }

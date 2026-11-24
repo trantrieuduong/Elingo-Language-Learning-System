@@ -6,14 +6,17 @@ import com.elingo.admin.stats.service.impl.CommunityStatsServiceImpl;
 import com.elingo.common.enums.StatsGranularity;
 import com.elingo.common.service.RedisService;
 import com.elingo.community.entity.PostStatus;
-import com.elingo.community.moderation.repository.PostModerationRepository;
-import com.elingo.community.repository.CommentRepository;
-import com.elingo.community.repository.PostLikeRepository;
-import com.elingo.community.repository.PostRepository;
+import com.elingo.community.dto.projection.DateCountProjection;
+import com.elingo.community.dto.projection.PostBacklogProjection;
+import com.elingo.community.dto.projection.PostGroupCountProjection;
+import com.elingo.community.dto.projection.PostStatusCountProjection;
+import com.elingo.community.moderation.dto.projection.AiLabelCount;
+import com.elingo.community.moderation.dto.projection.ModerationActionCounts;
 import com.elingo.community.service.CommunityStatsQueryService;
 import com.elingo.report.entity.ReportStatus;
 import com.elingo.report.entity.ReportTargetType;
-import com.elingo.report.repository.ReportRepository;
+import com.elingo.report.dto.projection.StatusCountProjection;
+import com.elingo.report.dto.projection.TargetTypeCountProjection;
 import com.elingo.report.service.ReportStatsQueryService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -86,23 +89,23 @@ class CommunityStatsServiceTest {
             String cacheKey = "admin:stats:community:social:from=2026-11-01&to=2026-11-03&granularity=DAY";
             when(redisService.get(cacheKey)).thenReturn(null);
 
-            PostRepository.PostStatusCountProjection statusProj = mock(PostRepository.PostStatusCountProjection.class);
+            PostStatusCountProjection statusProj = mock(PostStatusCountProjection.class);
             when(statusProj.getStatus()).thenReturn(PostStatus.PUBLISHED);
             when(statusProj.getCountVal()).thenReturn(100L);
             when(communityStatsQueryService.countPostsByStatus()).thenReturn(List.of(statusProj));
 
-            PostRepository.PostGroupCountProjection groupProj = mock(PostRepository.PostGroupCountProjection.class);
+            PostGroupCountProjection groupProj = mock(PostGroupCountProjection.class);
             when(groupProj.getGroupId()).thenReturn(1L);
             when(groupProj.getGroupName()).thenReturn("Grammar");
             when(groupProj.getPostCount()).thenReturn(100L);
             when(communityStatsQueryService.countPostsByGroup()).thenReturn(List.of(groupProj));
 
-            PostLikeRepository.DateCountProjection likeProj = mock(PostLikeRepository.DateCountProjection.class);
+            DateCountProjection likeProj = mock(DateCountProjection.class);
             when(likeProj.getDateKey()).thenReturn("2026-11-01");
             when(likeProj.getCountVal()).thenReturn(15L);
             when(communityStatsQueryService.countLikesByDay(any(), any())).thenReturn(List.of(likeProj));
 
-            CommentRepository.DateCountProjection commentProj = mock(CommentRepository.DateCountProjection.class);
+            DateCountProjection commentProj = mock(DateCountProjection.class);
             when(commentProj.getDateKey()).thenReturn("2026-11-01");
             when(commentProj.getCountVal()).thenReturn(5L);
             when(communityStatsQueryService.countCommentsByDay(any(), any())).thenReturn(List.of(commentProj));
@@ -193,16 +196,16 @@ class CommunityStatsServiceTest {
             String cacheKey = "admin:stats:community:moderation:from=2026-11-01&to=2026-11-03";
             when(redisService.get(cacheKey)).thenReturn(null);
 
-            PostModerationRepository.ModerationActionCounts actionCounts =
-                    new PostModerationRepository.ModerationActionCounts(80L, 10L, 10L, 5L, 5L, 110L);
+            ModerationActionCounts actionCounts =
+                    new ModerationActionCounts(80L, 10L, 10L, 5L, 5L, 110L);
             when(communityStatsQueryService.countModerationActions(any(), any())).thenReturn(actionCounts);
 
-            PostModerationRepository.AiLabelCount labelProj = new PostModerationRepository.AiLabelCount("SPAM", 10L);
+            AiLabelCount labelProj = new AiLabelCount("SPAM", 10L);
             when(communityStatsQueryService.countAiLabels(any(), any())).thenReturn(List.of(labelProj));
 
             when(communityStatsQueryService.calculateAvgManualReviewDurationSeconds(any(), any())).thenReturn(150.0);
 
-            PostRepository.PostBacklogProjection backlogProj = mock(PostRepository.PostBacklogProjection.class);
+            PostBacklogProjection backlogProj = mock(PostBacklogProjection.class);
             when(backlogProj.getPendingCount()).thenReturn(4L);
             when(backlogProj.getNeedsReviewCount()).thenReturn(6L);
             when(communityStatsQueryService.countPostBacklog()).thenReturn(backlogProj);
@@ -233,8 +236,8 @@ class CommunityStatsServiceTest {
         void getModerationStats_ZeroActionsAndNullAvg_HandlesDefaults() {
             when(redisService.get(anyString())).thenReturn(null);
 
-            PostModerationRepository.ModerationActionCounts zeroCounts =
-                    new PostModerationRepository.ModerationActionCounts(0L, 0L, 0L, 0L, 0L, 0L);
+            ModerationActionCounts zeroCounts =
+                    new ModerationActionCounts(0L, 0L, 0L, 0L, 0L, 0L);
             when(communityStatsQueryService.countModerationActions(any(), any())).thenReturn(zeroCounts);
             when(communityStatsQueryService.countAiLabels(any(), any())).thenReturn(Collections.emptyList());
             when(communityStatsQueryService.calculateAvgManualReviewDurationSeconds(any(), any())).thenReturn(null);
@@ -277,18 +280,18 @@ class CommunityStatsServiceTest {
             String cacheKey = "admin:stats:community:reports:from=2026-11-01&to=2026-11-03";
             when(redisService.get(cacheKey)).thenReturn(null);
 
-            ReportRepository.StatusCountProjection resolvedProj = mock(ReportRepository.StatusCountProjection.class);
+            StatusCountProjection resolvedProj = mock(StatusCountProjection.class);
             when(resolvedProj.getStatus()).thenReturn(ReportStatus.RESOLVED);
             when(resolvedProj.getCountVal()).thenReturn(8L);
 
-            ReportRepository.StatusCountProjection pendingProj = mock(ReportRepository.StatusCountProjection.class);
+            StatusCountProjection pendingProj = mock(StatusCountProjection.class);
             when(pendingProj.getStatus()).thenReturn(ReportStatus.PENDING);
             when(pendingProj.getCountVal()).thenReturn(2L);
 
             when(reportStatsQueryService.countReportsByStatus(any(), any()))
                     .thenReturn(List.of(resolvedProj, pendingProj));
 
-            ReportRepository.TargetTypeCountProjection targetProj = mock(ReportRepository.TargetTypeCountProjection.class);
+            TargetTypeCountProjection targetProj = mock(TargetTypeCountProjection.class);
             when(targetProj.getTargetType()).thenReturn(ReportTargetType.POST);
             when(targetProj.getCountVal()).thenReturn(10L);
             when(reportStatsQueryService.countReportsByTargetType(any(), any()))

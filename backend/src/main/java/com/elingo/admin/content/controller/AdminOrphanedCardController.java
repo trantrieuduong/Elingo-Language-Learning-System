@@ -1,7 +1,8 @@
 package com.elingo.admin.content.controller;
 
-import com.elingo.admin.content.dto.response.OrphanedCardCleanupResponse;
-import com.elingo.admin.content.dto.response.OrphanedCardStatsResponse;
+import com.elingo.admin.common.constant.AdminApiPaths;
+import com.elingo.vocabulary.dto.response.OrphanedCardCleanupResponse;
+import com.elingo.vocabulary.dto.response.OrphanedCardStatsResponse;
 import com.elingo.admin.content.service.AdminOrphanedCardService;
 import com.elingo.common.dto.ApiResponse;
 import com.elingo.common.dto.PageResponse;
@@ -12,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -19,11 +21,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/admin/orphaned-cards")
+@RequestMapping(AdminApiPaths.ORPHANED_CARDS)
 @PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
 @Tag(
-        name = "Admin Orphaned Card Controller",
+        name = "Admin - Orphaned Cards",
         description = "Management endpoints for inspecting and cleaning up orphaned flashcards"
 )
 public class AdminOrphanedCardController {
@@ -115,7 +117,7 @@ public class AdminOrphanedCardController {
             )
     )
     public ApiResponse<PageResponse<CardResponse>> getOrphanedCards(
-            @PageableDefault(size = 20, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+            @ParameterObject @PageableDefault(size = 20, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
         return ApiResponse.<PageResponse<CardResponse>>builder()
                 .success(true)
                 .data(adminOrphanedCardService.getOrphanedCards(pageable))

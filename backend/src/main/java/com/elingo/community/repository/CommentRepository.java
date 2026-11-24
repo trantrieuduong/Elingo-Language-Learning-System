@@ -1,5 +1,6 @@
 package com.elingo.community.repository;
 
+import com.elingo.community.dto.projection.DateCountProjection;
 import com.elingo.community.entity.Comment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,11 +16,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
-
-    interface DateCountProjection {
-        String getDateKey();
-        Long getCountVal();
-    }
 
     @EntityGraph(attributePaths = {"user"})
     Page<Comment> findByPostIdAndParentCommentIsNull(Long postId, Pageable pageable);

@@ -1,6 +1,7 @@
 package com.elingo.admin.content.controller;
 
-import com.elingo.admin.content.dto.request.*;
+import com.elingo.admin.common.constant.AdminApiPaths;
+import com.elingo.vocabulary.dto.request.*;
 import com.elingo.admin.content.service.AdminDeckService;
 import com.elingo.admin.content.service.AdminTopicService;
 import com.elingo.common.dto.ApiResponse;
@@ -15,6 +16,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -24,11 +26,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/admin/decks")
+@RequestMapping(AdminApiPaths.DECKS)
 @PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
 @Tag(
-        name = "Admin Deck Controller",
+        name = "Admin - Decks",
         description = "Management endpoints for system and user decks in the admin console"
 )
 public class AdminDeckController {
@@ -89,8 +91,8 @@ public class AdminDeckController {
             )
     )
     public ApiResponse<PageResponse<DeckResponse>> searchDecks(
-            @Valid @ModelAttribute AdminDeckSearchRequest request,
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+            @Valid @ParameterObject AdminDeckSearchRequest request,
+            @ParameterObject @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         return ApiResponse.<PageResponse<DeckResponse>>builder()
                 .success(true)
                 .data(adminDeckService.searchDecks(request, pageable))

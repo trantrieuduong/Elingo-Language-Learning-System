@@ -1,9 +1,9 @@
 package com.elingo.admin.content;
 
 import com.elingo.BaseIntegrationTest;
-import com.elingo.admin.content.dto.request.CardPhoneticRequest;
-import com.elingo.admin.content.dto.request.CreateSystemCardRequest;
-import com.elingo.admin.content.dto.request.UpdateSystemCardRequest;
+import com.elingo.vocabulary.dto.request.CardPhoneticRequest;
+import com.elingo.vocabulary.dto.request.CreateSystemCardRequest;
+import com.elingo.vocabulary.dto.request.UpdateSystemCardRequest;
 import com.elingo.auth.service.JwtService;
 import com.elingo.user.entity.Role;
 import com.elingo.user.entity.User;

@@ -1,6 +1,8 @@
 package com.elingo.community.moderation.repository;
 
 import com.elingo.common.enums.MediaKind;
+import com.elingo.community.moderation.dto.projection.AiLabelCount;
+import com.elingo.community.moderation.dto.projection.ModerationActionCounts;
 import com.elingo.community.entity.ModerationAction;
 import com.elingo.community.moderation.model.ModerationResult;
 import com.elingo.community.moderation.model.PostForModeration;
@@ -132,17 +134,6 @@ public class PostModerationRepository {
     private static String truncate(String s, int max) {
         return s == null || s.length() <= max ? s : s.substring(0, max);
     }
-
-    public record ModerationActionCounts(
-            long autoApproveCount,
-            long autoRejectCount,
-            long flagForReviewCount,
-            long manualApproveCount,
-            long manualRejectCount,
-            long totalActions
-    ) {}
-
-    public record AiLabelCount(String label, long countVal) {}
 
     public ModerationActionCounts countModerationActions(LocalDateTime from, LocalDateTime to) {
         return jdbc.sql("""

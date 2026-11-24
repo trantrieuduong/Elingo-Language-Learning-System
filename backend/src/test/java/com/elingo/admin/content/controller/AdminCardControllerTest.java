@@ -1,7 +1,7 @@
 package com.elingo.admin.content.controller;
 
-import com.elingo.admin.content.dto.request.CreateSystemCardRequest;
-import com.elingo.admin.content.dto.request.UpdateSystemCardRequest;
+import com.elingo.vocabulary.dto.request.CreateSystemCardRequest;
+import com.elingo.vocabulary.dto.request.UpdateSystemCardRequest;
 import com.elingo.admin.content.service.AdminCardService;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;

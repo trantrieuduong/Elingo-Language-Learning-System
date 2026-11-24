@@ -1,7 +1,6 @@
 package com.elingo.admin.systemconfig.service.impl;
 
 import com.elingo.admin.audit.annotation.Audited;
-import com.elingo.admin.audit.aspect.CurrentAdminProvider;
 import com.elingo.admin.audit.entity.AdminAuditAction;
 import com.elingo.admin.audit.entity.AdminAuditTargetType;
 import com.elingo.admin.systemconfig.dto.request.UpdateSystemConfigRequest;
@@ -25,7 +24,6 @@ public class AdminSystemConfigServiceImpl implements AdminSystemConfigService {
     private static final String MASKED_SECRET = "********";
 
     private final SystemConfigService systemConfigService;
-    private final CurrentAdminProvider currentAdminProvider;
 
     @Override
     public List<SystemConfigResponse> getConfigs(ConfigModule module) {
@@ -46,9 +44,9 @@ public class AdminSystemConfigServiceImpl implements AdminSystemConfigService {
     @Audited(action = AdminAuditAction.SYSTEM_CONFIG_UPDATE,
             target = AdminAuditTargetType.SYSTEM_CONFIG,
             detail = "#configKey")
-    public SystemConfigResponse updateConfig(String configKey, UpdateSystemConfigRequest request) {
-        Long adminId = currentAdminProvider.id();
+    public SystemConfigResponse updateConfig(String configKey, UpdateSystemConfigRequest request, Long adminId) {
         SystemConfig updated = systemConfigService.update(configKey, request.value(), request.description(), adminId);
+        log.info("System config updated configKey={} byAdminId={}", configKey, adminId);
         return toResponse(updated);
     }
 

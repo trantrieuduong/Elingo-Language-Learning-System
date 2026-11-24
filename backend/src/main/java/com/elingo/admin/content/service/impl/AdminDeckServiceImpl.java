@@ -3,9 +3,10 @@ package com.elingo.admin.content.service.impl;
 import com.elingo.admin.audit.annotation.Audited;
 import com.elingo.admin.audit.entity.AdminAuditAction;
 import com.elingo.admin.audit.entity.AdminAuditTargetType;
-import com.elingo.admin.content.dto.request.AdminDeckSearchRequest;
-import com.elingo.admin.content.dto.request.SystemDeckRequest;
-import com.elingo.admin.content.dto.request.UpdateDeckStatusRequest;
+import com.elingo.admin.common.util.AdminPageables;
+import com.elingo.vocabulary.dto.request.AdminDeckSearchRequest;
+import com.elingo.vocabulary.dto.request.SystemDeckRequest;
+import com.elingo.vocabulary.dto.request.UpdateDeckStatusRequest;
 import com.elingo.admin.content.service.AdminDeckService;
 import com.elingo.common.dto.PageResponse;
 import com.elingo.vocabulary.dto.response.DeckResponse;
@@ -16,16 +17,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Set;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "ADMIN-DECK-SERVICE")
 public class AdminDeckServiceImpl implements AdminDeckService {
 
+    private static final Set<String> ALLOWED_SORTS = Set.of("id", "createdAt", "title", "publishedAt");
+
     private final DeckService deckService;
 
     @Override
     public PageResponse<DeckResponse> searchDecks(AdminDeckSearchRequest request, Pageable pageable) {
-        return deckService.searchDecksForAdmin(request, pageable);
+        return deckService.searchDecksForAdmin(request, AdminPageables.sanitize(pageable, ALLOWED_SORTS));
     }
 
     @Override
@@ -39,7 +44,9 @@ public class AdminDeckServiceImpl implements AdminDeckService {
             targetId = "#result.id",
             detail = "'Title: ' + #request.title")
     public DeckResponse createSystemDeck(SystemDeckRequest request) {
-        return deckService.createSystemDeck(request);
+        DeckResponse created = deckService.createSystemDeck(request);
+        log.info("System deck created deckId={}", created.id());
+        return created;
     }
 
     @Override
@@ -48,7 +55,9 @@ public class AdminDeckServiceImpl implements AdminDeckService {
             targetId = "#deckId",
             detail = "'Update title: ' + #request.title")
     public DeckResponse updateSystemDeck(Long deckId, SystemDeckRequest request) {
-        return deckService.updateSystemDeck(deckId, request);
+        DeckResponse updated = deckService.updateSystemDeck(deckId, request);
+        log.info("System deck updated deckId={}", deckId);
+        return updated;
     }
 
     @Override
@@ -56,7 +65,9 @@ public class AdminDeckServiceImpl implements AdminDeckService {
             target = AdminAuditTargetType.DECK,
             targetId = "#deckId")
     public DeckResponse publishSystemDeck(Long deckId) {
-        return deckService.updateDeckStatus(deckId, new UpdateDeckStatusRequest(DeckStatus.PUBLISHED));
+        DeckResponse published = deckService.updateDeckStatus(deckId, new UpdateDeckStatusRequest(DeckStatus.PUBLISHED));
+        log.info("System deck published deckId={}", deckId);
+        return published;
     }
 
     @Override
@@ -64,7 +75,9 @@ public class AdminDeckServiceImpl implements AdminDeckService {
             target = AdminAuditTargetType.DECK,
             targetId = "#deckId")
     public DeckResponse archiveSystemDeck(Long deckId) {
-        return deckService.updateDeckStatus(deckId, new UpdateDeckStatusRequest(DeckStatus.ARCHIVED));
+        DeckResponse archived = deckService.updateDeckStatus(deckId, new UpdateDeckStatusRequest(DeckStatus.ARCHIVED));
+        log.info("System deck archived deckId={}", deckId);
+        return archived;
     }
 
     @Override
@@ -74,7 +87,9 @@ public class AdminDeckServiceImpl implements AdminDeckService {
         } else if (request.status() == DeckStatus.ARCHIVED) {
             return archiveSystemDeck(deckId);
         }
-        return deckService.updateDeckStatus(deckId, request);
+        DeckResponse updated = deckService.updateDeckStatus(deckId, request);
+        log.info("Deck status updated deckId={} status={}", deckId, request.status());
+        return updated;
     }
 
     @Override
@@ -84,5 +99,6 @@ public class AdminDeckServiceImpl implements AdminDeckService {
             detail = "'Reason: ' + #reason")
     public void deleteUserDeck(Long deckId, String reason) {
         deckService.deleteUserDeckByAdmin(deckId, reason);
+        log.info("User deck deleted deckId={}", deckId);
     }
 }
