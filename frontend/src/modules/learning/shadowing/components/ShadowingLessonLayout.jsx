@@ -2,7 +2,6 @@ import LessonYoutubePlayer from "../../lesson/components/LessonYoutubePlayer/Les
 import StudySegmentSidebar from "../../lesson/components/StudySegmentSidebar/StudySegmentSidebar";
 import BackButton from "../../../../components/BackButton/BackButton";
 import ShadowingCompletionCard from "./ShadowingCompletionCard";
-import ShadowingModelModal from "./ShadowingModelModal";
 import ShadowingPracticeCard from "./ShadowingPracticeCard";
 
 function ShadowingLessonLayout(props) {
@@ -79,9 +78,6 @@ function ShadowingLessonLayout(props) {
           />
         </div>
       </div>
-
-      {/* ── MODAL HỎI ĐỒNG Ý TẢI MÔ HÌNH AI ── */}
-      <ShadowingModelModal {...props} />
     </div>
   );
 }

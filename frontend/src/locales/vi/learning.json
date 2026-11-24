@@ -98,11 +98,8 @@
     "noSegments": "Bài học này hiện chưa có phân đoạn nào để luyện tập."
   },
   "shadowing": {
-    "askDownloadModelDesc": "Để chấm điểm trực tiếp trên máy, Elingo cần tải mô hình nhận dạng giọng nói Whisper (khoảng {{size}}). Mô hình chỉ tải một lần duy nhất và lưu vào bộ nhớ đệm trình duyệt.",
-    "askDownloadModelTitle": "Tải mô hình AI chấm phát âm",
     "attemptsCount": "Số lần thử: {{count}}",
     "bestScoreLabel": "Điểm cao nhất: {{score}}",
-    "btnDownload": "Tải mô hình",
     "cannotStartRecording": "Không thể bắt đầu ghi âm.",
     "completedSubtitle": "Bạn đã luyện nói toàn bộ các phân đoạn trong bài học này.",
     "completedTitle": "Chúc mừng bạn đã hoàn thành bài Shadowing!",
@@ -113,11 +110,9 @@
     "loading": "Đang tải bài học...",
     "micNotSupported": "Trình duyệt của bạn không hỗ trợ thu âm từ micro.",
     "micPermissionDenied": "Không thể truy cập microphone. Vui lòng cho phép quyền truy cập micro trong trình duyệt.",
-    "modelLight": "Mô hình nhẹ (tải nhanh, phù hợp máy yếu)",
     "modelLoadFailed": "Không thể tải mô hình Whisper. Vui lòng thử lại.",
     "modelPreparing": "Đang chuẩn bị mô hình nhận dạng...",
     "modelReady": "Mô hình đã sẵn sàng, bấm để ghi âm.",
-    "modelStandard": "Mô hình chuẩn (chính xác hơn)",
     "modelTimeout": "Tải mô hình Whisper quá thời gian chờ (120s). Vui lòng thử lại.",
     "notFoundDesc": "Bài học này không tồn tại hoặc đã bị xóa.",
     "notFoundTitle": "Không tìm thấy bài học",
