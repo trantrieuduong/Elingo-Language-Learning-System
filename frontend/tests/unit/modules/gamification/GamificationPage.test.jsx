@@ -94,7 +94,7 @@ describe('GamificationPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    gamificationApi.getMyBadgesApi.mockResolvedValue({
+    gamificationApi.getUserBadgesApi.mockResolvedValue({
       success: true,
       data: mockBadges,
     });
@@ -102,11 +102,11 @@ describe('GamificationPage', () => {
       success: true,
       data: mockRank,
     });
-    gamificationApi.getMyLevelProgressApi.mockResolvedValue({
+    gamificationApi.getUserLevelProgressApi.mockResolvedValue({
       success: true,
       data: mockLevelProgress,
     });
-    gamificationApi.getMyStreakApi.mockResolvedValue({
+    gamificationApi.getUserStreakApi.mockResolvedValue({
       success: true,
       data: mockStreak,
     });
@@ -129,21 +129,24 @@ describe('GamificationPage', () => {
   });
 
   it('renders Gamification page with tabs and loads Overview data initially', async () => {
-    render(<GamificationPage />);
+    render(<GamificationPage userId={1} />);
 
     // Chờ loading kết thúc và kiểm tra dữ liệu Overview được hiển thị
     await waitFor(() => {
       expect(screen.getByText('7-Day Streak Master')).toBeInTheDocument();
     });
 
-    expect(gamificationApi.getMyBadgesApi).toHaveBeenCalledTimes(1);
+    expect(gamificationApi.getUserBadgesApi).toHaveBeenCalledWith(1);
     expect(gamificationApi.getMyRankApi).toHaveBeenCalledWith('WEEKLY');
-    expect(gamificationApi.getMyLevelProgressApi).toHaveBeenCalledTimes(1);
-    expect(gamificationApi.getMyStreakApi).toHaveBeenCalledTimes(1);
+    expect(gamificationApi.getUserLevelProgressApi).toHaveBeenCalledWith(1);
+    expect(gamificationApi.getUserStreakApi).toHaveBeenCalledWith(
+      1,
+      expect.objectContaining({ year: expect.any(Number), month: expect.any(Number) })
+    );
   });
 
   it('switches to Levels tab and loads roadmap data', async () => {
-    render(<GamificationPage />);
+    render(<GamificationPage userId={1} />);
 
 
     const levelsTabBtn = screen.getByRole('button', { name: trRx('gamification:tabs.levels') });
@@ -156,11 +159,11 @@ describe('GamificationPage', () => {
     });
 
     expect(gamificationApi.getAllLevelsApi).toHaveBeenCalledTimes(1);
-    expect(gamificationApi.getMyLevelProgressApi).toHaveBeenCalledTimes(2);
+    expect(gamificationApi.getUserLevelProgressApi).toHaveBeenCalledTimes(2);
   });
 
   it('switches to Leaderboard tab and renders realtime rankings and user banner', async () => {
-    render(<GamificationPage />);
+    render(<GamificationPage userId={1} />);
 
     // Click tab Bảng xếp hạng / Leaderboard
     const lbTabBtn = screen.getByRole('button', {

@@ -83,7 +83,7 @@ describe('UserProfilePage', () => {
       expect(screen.getByText('Le Thi Thanh Nhi')).toBeInTheDocument();
     });
 
-    const moreBtn = screen.getByRole('button');
+    const moreBtn = screen.getByRole('button', { name: tr('user:options') });
     fireEvent.click(moreBtn);
 
     const reportOption = await screen.findByText(tr('user:report'));

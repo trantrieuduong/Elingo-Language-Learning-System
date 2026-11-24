@@ -1,11 +1,17 @@
 import apiClient from '../../services/apiClient';
 
-/**
- * Lấy danh sách các huy hiệu đã đạt của người dùng hiện tại.
- * @returns {Promise<{success: boolean, data: Array}>}
- */
 export const getMyBadgesApi = async () => {
   const response = await apiClient.get('/users/me/badges');
+  return response.data;
+};
+
+export const getUserBadgesApi = async (userId) => {
+  const response = await apiClient.get(`/users/${userId}/badges`);
+  return response.data;
+};
+
+export const getMyLevelProgressApi = async () => {
+  const response = await apiClient.get('/users/me/levels');
   return response.data;
 };
 
@@ -21,12 +27,8 @@ export const getMyRankApi = async (periodType = 'WEEKLY') => {
   return response.data;
 };
 
-/**
- * Lấy thông tin level hiện tại, tổng XP, tiến độ lên cấp của người dùng hiện tại.
- * @returns {Promise<{success: boolean, data: Object}>}
- */
-export const getMyLevelProgressApi = async () => {
-  const response = await apiClient.get('/users/me/levels');
+export const getUserLevelProgressApi = async (userId) => {
+  const response = await apiClient.get(`/users/${userId}/levels`);
   return response.data;
 };
 
@@ -37,6 +39,11 @@ export const getMyLevelProgressApi = async () => {
  */
 export const getMyStreakApi = async (params = {}) => {
   const response = await apiClient.get('/users/me/streaks', { params });
+  return response.data;
+};
+
+export const getUserStreakApi = async (userId, params = {}) => {
+  const response = await apiClient.get(`/users/${userId}/streaks`, { params });
   return response.data;
 };
 

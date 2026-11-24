@@ -1,0 +1,31 @@
+.profile-gamification-overview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+.profile-gamification-overview__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-lg);
+  align-items: stretch;
+}
+.profile-gamification-overview__left-column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.profile-gamification-overview__left-column .profile-card {
+  max-width: none;
+  margin: 0;
+}
+
+.profile-gamification-overview__left-column .gamification-overview__card {
+  flex: 1;
+}
+
+@media (max-width: 1024px) {
+  .profile-gamification-overview__grid {
+    grid-template-columns: 1fr;
+  }
+}

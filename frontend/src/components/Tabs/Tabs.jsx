@@ -26,7 +26,10 @@ function Tabs({ tabs = [], activeTab, onChange, className = '' }) {
             }}
           >
             {tab.icon && (
-              <span className="material-symbols-outlined tabs-btn__icon">
+              <span
+                className="material-symbols-outlined tabs-btn__icon"
+                aria-hidden="true"
+              >
                 {tab.icon}
               </span>
             )}

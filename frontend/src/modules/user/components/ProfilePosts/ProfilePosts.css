@@ -1,0 +1,27 @@
+.profile-posts {
+  margin-top: var(--spacing-xl);
+}
+.profile-posts__heading {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+.profile-posts__heading-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-pill);
+  color: var(--color-primary);
+}
+.profile-posts__list {
+  display: grid;
+  gap: var(--spacing-md);
+}
+.profile-posts__loading {
+  display: grid;
+  place-items: center;
+  min-height: 160px;
+  border-radius: var(--radius-card);
+}

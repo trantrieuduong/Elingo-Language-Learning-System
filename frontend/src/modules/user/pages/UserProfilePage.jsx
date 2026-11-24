@@ -6,7 +6,8 @@ import OptionsMenu from '../../../components/OptionsMenu/OptionsMenu';
 import OptionsModal from '../../../components/OptionsModal/OptionsModal';
 import ReportModal from '../../report/components/ReportModal/ReportModal';
 import { useReportModal } from '../../report/hooks/useReportModal';
-import ProfileCard from '../components/ProfileCard/ProfileCard';
+import ProfilePosts from '../components/ProfilePosts/ProfilePosts';
+import ProfileGamificationOverview from '../components/ProfileGamificationOverview/ProfileGamificationOverview';
 import { getUserByIdApi } from '../profileApi';
 import './UserProfilePage.css';
 
@@ -17,7 +18,8 @@ function UserProfilePage({ userId, onNavigate }) {
   const [error, setError] = useState(null);
   const [isNotFound, setIsNotFound] = useState(false);
   const [isOptionOpen, setIsOptionOpen] = useState(false);
-  const { isReportOpen, targetType, targetId, targetLabel, openReport, closeReport } = useReportModal();
+  const { isReportOpen, targetType, targetId, targetLabel, openReport, closeReport } =
+    useReportModal();
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
@@ -51,11 +53,7 @@ function UserProfilePage({ userId, onNavigate }) {
       if (firstError?.code === 'USER_NOT_FOUND') {
         setIsNotFound(true);
       } else {
-        setError(
-          firstError?.message ||
-            err?.response?.data?.message ||
-            t('common:loadError')
-        );
+        setError(firstError?.message || err?.response?.data?.message || t('common:loadError'));
       }
     } finally {
       setLoading(false);
@@ -71,7 +69,8 @@ function UserProfilePage({ userId, onNavigate }) {
       id: 'report-user',
       label: t('user:report'),
       icon: 'flag',
-      onSelect: () => openReport({ targetType: 'USER', targetId: profile?.id, targetLabel: profile?.username }),
+      onSelect: () =>
+        openReport({ targetType: 'USER', targetId: profile?.id, targetLabel: profile?.username }),
     },
   ];
 
@@ -111,14 +110,16 @@ function UserProfilePage({ userId, onNavigate }) {
 
   return (
     <main className="user-profile-page container">
-      <ProfileCard
+      <ProfileGamificationOverview
         profile={profile}
         actionMenu={
           <OptionsMenu
             onClick={() => setIsOptionOpen(true)}
+            ariaLabel={t('user:options')}
           />
         }
       />
+      <ProfilePosts userId={userId} onNavigate={onNavigate} />
 
       <OptionsModal
         isOpen={isOptionOpen}

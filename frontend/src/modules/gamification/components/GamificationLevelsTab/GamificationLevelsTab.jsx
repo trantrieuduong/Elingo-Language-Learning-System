@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getAllLevelsApi, getMyLevelProgressApi } from '../../gamificationApi';
+import { getAllLevelsApi, getUserLevelProgressApi } from '../../gamificationApi';
 import ProgressBar from '../../../../components/ProgressBar/ProgressBar';
 import EmptyState from '../../../../components/EmptyState/EmptyState';
 import PageLoading from '../../../../components/PageLoading/PageLoading';
 import './GamificationLevelsTab.css';
 
-function GamificationLevelsTab() {
+function GamificationLevelsTab({ userId }) {
   const { t } = useTranslation('gamification');
 
   const [loading, setLoading] = useState(true);
@@ -20,7 +20,7 @@ function GamificationLevelsTab() {
     try {
       const [levelsRes, progressRes] = await Promise.all([
         getAllLevelsApi(),
-        getMyLevelProgressApi(),
+        getUserLevelProgressApi(userId),
       ]);
 
       if (levelsRes?.success) {
@@ -38,7 +38,7 @@ function GamificationLevelsTab() {
 
   useEffect(() => {
     fetchLevelsData();
-  }, []);
+  }, [userId]);
 
   if (loading) {
     return <PageLoading />;

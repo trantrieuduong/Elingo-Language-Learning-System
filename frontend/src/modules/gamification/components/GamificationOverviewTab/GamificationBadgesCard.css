@@ -1,0 +1,59 @@
+.gamification-overview__badges-card {
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+.overview-badges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--spacing-md);
+}
+.overview-badge-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-apple);
+  border: 1px solid var(--color-outline-variant);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.overview-badge-item:hover {
+  transform: translateY(-3px);
+}
+.overview-badge-item__icon-wrap {
+  width: 54px;
+  height: 54px;
+  border-radius: var(--radius-pill);
+  background: var(--color-secondary-container);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.overview-badge-item__icon {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+.overview-badge-item__default-icon {
+  font-size: 30px;
+  color: var(--color-primary);
+}
+.overview-badge-item__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.overview-badge-item__name {
+  color: var(--color-text-high);
+}
+.overview-badge-item__desc {
+  line-height: 1.4;
+}
+.overview-badge-item__date {
+  color: var(--color-primary);
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 4px;
+}

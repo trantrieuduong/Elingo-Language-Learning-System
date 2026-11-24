@@ -259,7 +259,7 @@ function App() {
       case '/progress':
         return <PlaceholderPage title="Progress" path={currentPath} />;
       case '/gamification':
-        return <GamificationPage onNavigate={navigate} />;
+        return <GamificationPage onNavigate={navigate} userId={user.id} />;
       case '/premium':
         return <PremiumListPage onNavigate={navigate} />;
       case '/premium/my-subscription':

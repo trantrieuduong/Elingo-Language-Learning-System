@@ -1,0 +1,96 @@
+.overview-streak-highlight {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.overview-streak-count {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.overview-fire-icon {
+  color: var(--color-warning);
+  font-size: 28px;
+}
+.overview-streak-days {
+  font-family: var(--font-display);
+  font-size: var(--font-size-headline-md);
+  font-weight: 800;
+  color: var(--color-text-high);
+}
+.overview-streak-label {
+  font-size: var(--font-size-label-sm);
+  color: var(--color-text-disabled);
+  text-transform: uppercase;
+}
+.overview-streak-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.overview-checkin-help {
+  color: var(--color-error);
+  background: var(--color-error-container);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+}
+.overview-calendar {
+  border-top: 1px solid var(--color-outline-variant);
+  padding-top: var(--spacing-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.overview-calendar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.overview-calendar__weekdays,
+.overview-calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+.overview-calendar__weekdays {
+  text-align: center;
+}
+.overview-calendar__weekday-label {
+  font-size: var(--font-size-label-sm);
+  color: var(--color-text-disabled);
+  font-weight: 600;
+}
+.overview-calendar__grid {
+  gap: 4px;
+}
+.overview-calendar__cell {
+  height: 34px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  position: relative;
+  font-size: var(--font-size-label-sm);
+  color: var(--color-text-mid);
+  background: var(--color-surface-container-low);
+  transition: all 0.2s ease;
+}
+.overview-calendar__cell--empty {
+  background: transparent;
+}
+.overview-calendar__cell--checked {
+  background: var(--color-pastel-mint);
+  color: var(--color-pastel-mint-text);
+  font-weight: 700;
+}
+.overview-calendar__cell--today {
+  outline: 2px solid var(--color-primary);
+}
+.overview-calendar__check-icon {
+  font-size: 10px;
+  position: absolute;
+  bottom: 2px;
+}
+.overview-calendar__footer {
+  text-align: center;
+}

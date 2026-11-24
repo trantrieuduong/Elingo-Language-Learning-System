@@ -14,7 +14,7 @@ import './GamificationPage.css';
  *
  * @param {Function} [onNavigate] - Navigate function từ App.jsx
  */
-function GamificationPage({ onNavigate: _onNavigate }) {
+function GamificationPage({ onNavigate: _onNavigate, userId }) {
   const { t } = useTranslation('gamification');
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'levels' | 'leaderboard'
 
@@ -46,8 +46,8 @@ function GamificationPage({ onNavigate: _onNavigate }) {
 
       {/* Tab Content */}
       <main className="gamification-page__content">
-        {activeTab === 'overview' && <GamificationOverviewTab />}
-        {activeTab === 'levels' && <GamificationLevelsTab />}
+        {activeTab === 'overview' && <GamificationOverviewTab userId={userId} />}
+        {activeTab === 'levels' && <GamificationLevelsTab userId={userId} />}
         {activeTab === 'leaderboard' && <GamificationLeaderboardTab />}
       </main>
     </div>
