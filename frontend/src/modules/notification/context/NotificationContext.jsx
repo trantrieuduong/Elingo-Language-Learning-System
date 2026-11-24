@@ -103,7 +103,7 @@ export const NotificationProvider = ({ children }) => {
   };
 
   const loadMoreNotifications = async () => {
-    if (!user || isLoadingMore || isLast) return;
+    if (!user || isLoadingMore || isLast) return { success: false };
     setIsLoadingMore(true);
     setHasError(false);
     const nextPage = page + 1;
@@ -117,12 +117,15 @@ export const NotificationProvider = ({ children }) => {
         setNotifications((prev) => [...prev, ...newItems]);
         setPage(res.data.page);
         setIsLast(res.data.isLast);
+        return { success: true };
       } else {
         setHasError(true);
+        return { success: false };
       }
     } catch (err) {
       console.error('Failed to fetch more notifications:', err);
       setHasError(true);
+      return { success: false };
     } finally {
       setIsLoadingMore(false);
     }
@@ -130,7 +133,9 @@ export const NotificationProvider = ({ children }) => {
 
   const markAsRead = async (id) => {
     const notification = notifications.find((item) => item.id === id);
-    if (!notification || notification.read || markingReadIdsRef.current.has(id)) return;
+    if (!notification || notification.read || markingReadIdsRef.current.has(id)) {
+      return { success: true };
+    }
 
     markingReadIdsRef.current.add(id);
     try {
@@ -140,15 +145,18 @@ export const NotificationProvider = ({ children }) => {
           prev.map((item) => (item.id === id ? { ...item, read: true } : item))
         );
         setUnreadCount((prev) => Math.max(0, prev - 1));
+        return { success: true };
       } else {
         console.error(
           'Failed to mark notification as read:',
           res?.message ?? 'Invalid API response'
         );
+        return { success: false, message: res?.message };
       }
     } catch (err) {
       console.error('Failed to mark notification as read:', err);
       fetchUnreadCount();
+      return { success: false, error: err };
     } finally {
       markingReadIdsRef.current.delete(id);
       // chỉ để theo dõi request đang chạy. Nếu API lỗi, thao tác sau vẫn được thử lại
@@ -161,15 +169,18 @@ export const NotificationProvider = ({ children }) => {
       if (res?.success) {
         setNotifications((prev) => prev.map((item) => ({ ...item, read: true })));
         setUnreadCount(0);
+        return { success: true };
       } else {
         console.error(
           'Failed to mark all notifications as read:',
           res?.message ?? 'Invalid API response'
         );
+        return { success: false, message: res?.message };
       }
     } catch (err) {
       console.error('Failed to mark all notifications as read:', err);
       fetchUnreadCount();
+      return { success: false, error: err };
     }
   };
 
