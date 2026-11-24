@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import OptionsModal from '../../../../../components/OptionsModal/OptionsModal';
 import OptionsMenu from '../../../../../components/OptionsMenu/OptionsMenu';
 import ConfirmModal from '../../../../../components/ConfirmModal/ConfirmModal';
-import { formatRelativeTime } from '../../../../../utils/utils';
+import { formatRelativeTime, getFallbackAvatarUrl } from '../../../../../utils/utils';
 import PostCardCommentInput from '../PostCardCommentInput/PostCardCommentInput';
 import PostCardLikeButton from '../PostCardActions/PostCardLikeButton';
 import useScrollEnd from '../../../hooks/useScrollEnd';
@@ -156,7 +156,7 @@ function PostCardCommentItem({
       <img
         src={
           comment.author?.avatarUrl ||
-          `https://ui-avatars.com/api/?name=${encodeURIComponent(authorName)}`
+          getFallbackAvatarUrl(authorName)
         }
         alt=""
         className="post-card-comment-item__avatar"

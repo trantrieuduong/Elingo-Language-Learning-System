@@ -1,6 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import OptionsMenu from '../../../../../components/OptionsMenu/OptionsMenu';
-import { formatDate, formatRelativeTime } from '../../../../../utils/utils';
+import {
+  formatDate,
+  formatRelativeTime,
+  getFallbackAvatarUrl,
+} from '../../../../../utils/utils';
 import './PostCardHeader.css';
 
 /**
@@ -64,7 +68,7 @@ function PostCardHeader({
           <img
             src={
               author?.avatarUrl ||
-              `https://ui-avatars.com/api/?name=${encodeURIComponent(authorDisplayName)}`
+              getFallbackAvatarUrl(authorDisplayName)
             }
             alt={authorDisplayName}
             className="post-card-header__avatar"

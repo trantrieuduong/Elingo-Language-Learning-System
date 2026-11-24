@@ -53,7 +53,7 @@
 | `/progress` | `ProgressPage` | `progress/pages/` | Tiến độ học tập cá nhân |
 | `/premium/my-subscription` | `MySubscriptionPage` | `premium/pages/` | Gói Premium của tôi |
 | `/reports` | `ReportPage` | `report/pages/` | Danh sách báo cáo của tôi |
-| `/profile` | `ProfilePage` | `user/pages/` | Trang cá nhân (own) |
+| `/profile` | `MyProfilePage` | `user/pages/` | Trang cá nhân (own) |
 | `/profile/:userId` | `UserProfilePage` | `user/pages/` | Trang cá nhân người dùng khác |
 
 ### 1.3 Admin Routes (Cần đăng nhập — role: ADMIN)

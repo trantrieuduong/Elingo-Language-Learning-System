@@ -1,0 +1,8 @@
+.user-profile-page {
+  padding-top: calc(var(--header-total-offset) + var(--spacing-xl));
+  padding-bottom: var(--spacing-3xl);
+  min-height: calc(100vh - var(--header-total-offset));
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
