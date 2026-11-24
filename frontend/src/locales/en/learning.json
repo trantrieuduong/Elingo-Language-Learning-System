@@ -98,11 +98,8 @@
     "noSegments": "This lesson does not have any segments for practice yet."
   },
   "shadowing": {
-    "askDownloadModelDesc": "To grade your pronunciation locally, Elingo needs to download the Whisper speech recognition model (approx. {{size}}). The model is downloaded only once and cached in your browser.",
-    "askDownloadModelTitle": "Download Pronunciation AI Model",
     "attemptsCount": "Attempts: {{count}}",
     "bestScoreLabel": "Best score: {{score}}",
-    "btnDownload": "Download model",
     "cannotStartRecording": "Cannot start recording.",
     "completedSubtitle": "You have practiced speaking all segments in this lesson.",
     "completedTitle": "Congratulations! You completed the Shadowing practice!",
@@ -113,11 +110,9 @@
     "loading": "Loading lesson...",
     "micNotSupported": "Your browser does not support audio recording from a microphone.",
     "micPermissionDenied": "Cannot access microphone. Please allow microphone access in your browser settings.",
-    "modelLight": "Lightweight Model (Faster download, for low-end devices)",
     "modelLoadFailed": "Failed to load Whisper model. Please try again.",
     "modelPreparing": "Preparing speech recognition model...",
     "modelReady": "Model is ready, click to start recording.",
-    "modelStandard": "Standard Model (More accurate)",
     "modelTimeout": "Whisper model loading timed out (120s). Please try again.",
     "notFoundDesc": "This lesson does not exist or has been deleted.",
     "notFoundTitle": "Lesson Not Found",

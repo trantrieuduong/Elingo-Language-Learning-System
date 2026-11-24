@@ -45,8 +45,9 @@ function ShadowingPage({ slug, onNavigate }) {
     transcribe,
   } = useWhisper();
 
-  const [showModelModal, setShowModelModal] = useState(false);
-  const [chosenModelType, setChosenModelType] = useState('standard');
+  // Tự nhận diện thiết bị để chọn model: mobile -> tiny (light), PC -> base (standard)
+  // Chỉ tính một lần khi mount để cấu hình ổn định suốt phiên
+  const modelConfig = useMemo(() => pickModelConfig({ isMobile: isMobileDevice() }), []);
 
   // Cờ kiểm tra mô hình đã từng được nạp/tải hoàn tất trong các phiên trước hay chưa
   const [modelLoadedBefore] = useState(() => {
@@ -70,31 +71,10 @@ function ShadowingPage({ slug, onNavigate }) {
     segmentsRef.current = segments;
   }, [segments]);
 
-  // 1. Khởi tạo chọn loại mô hình và tự động nạp ngầm mô hình nếu người dùng đã đồng ý trước đó
+  // 1. Tự động tải model phù hợp với thiết bị ngay khi vào trang (lần sau lấy từ cache trình duyệt)
   useEffect(() => {
-    let savedModel = null;
-    let hasAgreed = false;
-
-    try {
-      hasAgreed = !!localStorage.getItem('el_whisper_agreed');
-      savedModel = localStorage.getItem('el_whisper_model');
-    } catch {
-      /* noop */
-    }
-
-    const mobile = isMobileDevice();
-    const activeModel = savedModel || (mobile ? 'light' : 'standard');
-    setChosenModelType(activeModel);
-
-    // Nếu đã đồng ý tải trước đó, nạp ngầm vào RAM ngay khi mount (từ cache trình duyệt)
-    if (hasAgreed) {
-      const config = pickModelConfig({
-        isMobile: mobile,
-        userOverride: activeModel,
-      });
-      loadModel(config);
-    }
-  }, [loadModel]);
+    loadModel(modelConfig);
+  }, [loadModel, modelConfig]);
 
   // 2. Tải bài học và danh sách segment khi slug thay đổi
   useEffect(() => {
@@ -292,12 +272,12 @@ function ShadowingPage({ slug, onNavigate }) {
   // Bấm nút Ghi âm / Dừng ghi âm
   const handleToggleRecording = createRecordingHandler({
     attemptCount,
-    chosenModelType,
     currentIndex,
     currentSegment,
     handleAutoStopRecording,
     lesson,
     loadModel,
+    modelConfig,
     modelLoadedBefore,
     recorderRef,
     recordingTimerRef,
@@ -308,7 +288,6 @@ function ShadowingPage({ slug, onNavigate }) {
     setSavedFileKey,
     setSegmentResult,
     setSegments,
-    setShowModelModal,
     setStatusMessage,
     setStatusType,
     setStepState,
@@ -321,25 +300,6 @@ function ShadowingPage({ slug, onNavigate }) {
   useEffect(() => {
     toggleRecordingRef.current = handleToggleRecording;
   });
-
-  // Xác nhận tải mô hình từ modal
-  const handleConfirmDownloadModel = () => {
-    try {
-      localStorage.setItem('el_whisper_agreed', 'true');
-      localStorage.setItem('el_whisper_model', chosenModelType);
-    } catch {
-      /* noop */
-    }
-    setShowModelModal(false);
-
-    const config = pickModelConfig({
-      isMobile: isMobileDevice(),
-      userOverride: chosenModelType,
-    });
-    loadModel(config);
-    setStatusType('processing');
-    setStatusMessage(t('shadowing.modelPreparing'));
-  };
 
   // Chuyển sang đoạn tiếp theo
   const handleNextSegment = () => {
@@ -373,14 +333,12 @@ function ShadowingPage({ slug, onNavigate }) {
   return (
     <ShadowingPageContent
       attemptCount={attemptCount}
-      chosenModelType={chosenModelType}
       currentIndex={currentIndex}
       currentSegment={currentSegment}
       displayWordsList={displayWordsList}
       downloadProgress={downloadProgress}
       errorMessage={errorMessage}
       errorType={errorType}
-      handleConfirmDownloadModel={handleConfirmDownloadModel}
       handleNextSegment={handleNextSegment}
       handleReplay={handleReplay}
       handleSelectSegment={handleSelectSegment}
@@ -397,9 +355,6 @@ function ShadowingPage({ slug, onNavigate }) {
       recordingSeconds={recordingSeconds}
       segmentResult={segmentResult}
       segments={segments}
-      setChosenModelType={setChosenModelType}
-      setShowModelModal={setShowModelModal}
-      showModelModal={showModelModal}
       slug={slug}
       statusMessage={statusMessage}
       statusType={statusType}

@@ -1,7 +1,6 @@
 import { AudioRecorder } from './audioRecorder';
 import { encodeWav } from './wav';
 import { scoreShadowing } from './shadowingScore';
-import { pickModelConfig, isMobileDevice } from '../whisper/modelConfig';
 import { patchShadowingProgressApi } from '../shadowingApi';
 import { uploadFileForVerification } from '../../../../services/uploadFile';
 
@@ -25,12 +24,12 @@ const shouldDiscardFileKey = (error) => {
  */
 export const createRecordingHandler = ({
   attemptCount,
-  chosenModelType,
   currentIndex,
   currentSegment,
   handleAutoStopRecording,
   lesson,
   loadModel,
+  modelConfig,
   modelLoadedBefore,
   recorderRef,
   recordingTimerRef,
@@ -41,7 +40,6 @@ export const createRecordingHandler = ({
   setSavedFileKey,
   setSegmentResult,
   setSegments,
-  setShowModelModal,
   setStatusMessage,
   setStatusType,
   setStepState,
@@ -186,25 +184,9 @@ export const createRecordingHandler = ({
     }
   };
 
-  // Kiểm tra sự đồng ý của người dùng trước khi tải model Whisper
+  // Model được tự tải khi vào trang; nếu chưa sẵn sàng thì thử tải lại khi người dùng bấm ghi âm
   const prepareModel = () => {
-    let agreed = false;
-    let canReadStorage = true;
-    try {
-      agreed = !!localStorage.getItem('el_whisper_agreed');
-    } catch {
-      canReadStorage = false;
-      // Một số chế độ duyệt web có thể không cho phép truy cập localStorage
-    }
-
-    // Nếu đọc được localStorage và người dùng chưa đồng ý, yêu cầu xác nhận trước
-    if (canReadStorage && !agreed) {
-      setShowModelModal(true);
-      return;
-    }
-
-    // Lựa chọn cấu hình Whisper phù hợp với thiết bị và tùy chọn của người dùng
-    loadModel(pickModelConfig({ isMobile: isMobileDevice(), userOverride: chosenModelType }));
+    loadModel(modelConfig);
     showModelPreparing();
   };
 
