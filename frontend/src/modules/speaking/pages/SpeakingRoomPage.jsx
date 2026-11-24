@@ -16,6 +16,198 @@ import SummaryModal from '../components/SummaryModal/SummaryModal';
 import { useSpeakingRoom } from '../context/SpeakingRoomContext';
 import './SpeakingRoomPage.css';
 
+const renderRoomPhaseScreen = ({
+  phase,
+  micError,
+  error,
+  closedReason,
+  kicked,
+  roomCode,
+  t,
+  tApi,
+  onNavigate,
+  startSession,
+}) => {
+  if (phase === 'preparing') {
+    return (
+      <main className="speaking-room-page">
+        <PageLoading message={t('room.preparing')} />
+      </main>
+    );
+  }
+
+  if (phase === 'error') {
+    if (micError) {
+      const micErrorTitle =
+        micError === 'MIC_DENIED' ? t('room.micDenied') : t('room.micUnavailable');
+
+      return (
+        <main className="speaking-room-page speaking-room-page--center">
+          <div className="speaking-room-error-wrapper">
+            <EmptyState
+              icon="mic_off"
+              isError
+              title={micErrorTitle}
+              actionLabel={t('room.retry')}
+              onAction={() => startSession(roomCode)}
+              actionVariant="primary"
+            />
+            <div className="speaking-room-error-subaction">
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => onNavigate('/speaking')}
+              >
+                {t('room.backToLobby')}
+              </button>
+            </div>
+          </div>
+        </main>
+      );
+    }
+
+    const errorTitle =
+      error === 'SPEAKING_ROOM_ACCESS_DENIED'
+        ? t('room.removed')
+        : error
+        ? tApi(`error.${error}`, { defaultValue: tApi('common.fallback') })
+        : tApi('common.fallback');
+
+    return (
+      <main className="speaking-room-page">
+        <div className="speaking-room-container">
+          <EmptyState
+            icon="error"
+            isError
+            title={errorTitle}
+            actionLabel={t('room.backToLobby')}
+            onAction={() => onNavigate('/speaking')}
+            actionVariant="primary"
+          />
+        </div>
+      </main>
+    );
+  }
+
+  if (phase !== 'closed') return null;
+
+  if (closedReason === 'KICKED' || kicked) {
+    return (
+      <main className="speaking-room-page">
+        <div className="speaking-room-container">
+          <EmptyState
+            icon="block"
+            isError
+            title={t('room.kicked.title')}
+            description={t('room.kicked.body')}
+            actionLabel={t('room.kicked.backToLobby')}
+            onAction={() => onNavigate('/speaking')}
+            actionVariant="primary"
+          />
+        </div>
+      </main>
+    );
+  }
+
+  const closeDesc = closedReason
+    ? t(`room.closed.${closedReason}`, { defaultValue: t('room.closed.EMPTY') })
+    : t('room.closed.EMPTY');
+
+  return (
+    <main className="speaking-room-page">
+      <div className="speaking-room-container">
+        <EmptyState
+          icon="meeting_room"
+          title={t('room.closedTitle')}
+          description={closeDesc}
+          actionLabel={t('room.backToLobby')}
+          onAction={() => onNavigate('/speaking')}
+          actionVariant="primary"
+        />
+      </div>
+    </main>
+  );
+};
+
+const getNoticeMessage = ({ notice, selfId, peers, t }) => {
+  if (notice?.type === 'hostChanged') {
+    return String(notice.userId) === String(selfId)
+      ? t('room.youAreHost')
+      : t('room.hostChanged', {
+          name: peers[notice.userId]?.displayName || t('room.host'),
+        });
+  }
+
+  const noticeKeys = {
+    mutedByHost: 'room.mutedByHost',
+    peerKicked: 'room.peerKicked',
+  };
+  const translationKey = noticeKeys[notice?.type];
+
+  return translationKey
+    ? t(translationKey, {
+        name: peers[notice.userId]?.displayName || t('room.host'),
+      })
+    : '';
+};
+
+const RoomHeader = ({
+  room,
+  currentCode,
+  currentTopic,
+  copied,
+  isPrivate,
+  onCopyCode,
+  t,
+}) => (
+  <header className="speaking-room-header glass-card">
+    <div className="speaking-room-header__main">
+      <div className="speaking-room-header__title-group">
+        <div className="speaking-room-header__code-row">
+          <span className="speaking-room-header__code" title={currentCode}>
+            {currentCode}
+          </span>
+          <span className="speaking-room-header__clock">
+            <span className="material-symbols-outlined">timer</span>
+            <RoomClock joinedAtMs={room?.joinedAtMs} />
+          </span>
+          <button
+            type="button"
+            className={`btn-secondary speaking-room-header__copy-btn ${
+              copied ? 'speaking-room-header__copy-btn--copied' : ''
+            }`}
+            onClick={onCopyCode}
+            aria-label={t('room.copyAria', { code: currentCode })}
+            title={t('room.copyAria', { code: currentCode })}
+          >
+            <span className="material-symbols-outlined">
+              {copied ? 'check' : 'content_copy'}
+            </span>
+            <span>{copied ? t('room.copied') : t('room.copy')}</span>
+          </button>
+          <span
+            className={`speaking-room-badge ${
+              isPrivate
+                ? 'speaking-room-badge--private'
+                : 'speaking-room-badge--public'
+            }`}
+          >
+            <span className="material-symbols-outlined">{isPrivate ? 'lock' : 'public'}</span>
+            <span>{isPrivate ? t('room.private') : t('room.public')}</span>
+          </span>
+        </div>
+        <h1 className="text-title-lg speaking-room-header__topic">{currentTopic}</h1>
+      </div>
+      {isPrivate && (
+        <p className="speaking-room-header__private-hint text-body-xs text-disabled">
+          <span className="material-symbols-outlined">info</span>
+          <span>{t('room.privateHint')}</span>
+        </p>
+      )}
+    </div>
+  </header>
+);
+
 const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
   const { t } = useTranslation('speaking');
   const { t: tApi } = useTranslation('api');
@@ -92,22 +284,7 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
     setNotice(null);
   }, [setNotice]);
 
-  const noticeMessage =
-    notice?.type === 'hostChanged'
-      ? String(notice.userId) === String(selfId)
-        ? t('room.youAreHost')
-        : t('room.hostChanged', {
-            name: peers[notice.userId]?.displayName || t('room.host'),
-          })
-      : notice?.type === 'mutedByHost'
-      ? t('room.mutedByHost', {
-          name: peers[notice.userId]?.displayName || t('room.host'),
-        })
-      : notice?.type === 'peerKicked'
-      ? t('room.peerKicked', {
-          name: peers[notice.userId]?.displayName || t('room.host'),
-        })
-      : '';
+  const noticeMessage = getNoticeMessage({ notice, selfId, peers, t });
 
   const handleLeave = async () => {
     const result = await leaveRoom();
@@ -188,109 +365,20 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
     };
   }, []);
 
-  // 1. Chuẩn bị (xin micro + kết nối socket)
-  if (phase === 'preparing') {
-    return (
-      <main className="speaking-room-page">
-        <PageLoading message={t('room.preparing')} />
-      </main>
-    );
-  }
+  const phaseScreen = renderRoomPhaseScreen({
+    phase,
+    micError,
+    error,
+    closedReason,
+    kicked,
+    roomCode,
+    t,
+    tApi,
+    onNavigate,
+    startSession,
+  });
 
-  // 2. Giai đoạn lỗi (micro hoặc lỗi vào phòng)
-  if (phase === 'error') {
-    if (micError) {
-      return (
-        <main className="speaking-room-page speaking-room-page--center">
-          <div className="speaking-room-error-wrapper">
-            <EmptyState
-              icon="mic_off"
-              isError
-              title={
-                micError === 'MIC_DENIED'
-                  ? t('room.micDenied')
-                  : t('room.micUnavailable')
-              }
-              actionLabel={t('room.retry')}
-              onAction={() => startSession(roomCode)}
-              actionVariant="primary"
-            />
-            <div className="speaking-room-error-subaction">
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={() => onNavigate('/speaking')}
-              >
-                {t('room.backToLobby')}
-              </button>
-            </div>
-          </div>
-        </main>
-      );
-    }
-
-    const errorTitle =
-      error === 'SPEAKING_ROOM_ACCESS_DENIED'
-        ? t('room.removed')
-        : error
-        ? tApi(`error.${error}`, { defaultValue: tApi('common.fallback') })
-        : tApi('common.fallback');
-
-    return (
-      <main className="speaking-room-page">
-        <div className="speaking-room-container">
-          <EmptyState
-            icon="error"
-            isError
-            title={errorTitle}
-            actionLabel={t('room.backToLobby')}
-            onAction={() => onNavigate('/speaking')}
-            actionVariant="primary"
-          />
-        </div>
-      </main>
-    );
-  }
-
-  // 3. Phòng bị đóng hoặc bị kick
-  if (phase === 'closed') {
-    if (closedReason === 'KICKED' || kicked) {
-      return (
-        <main className="speaking-room-page">
-          <div className="speaking-room-container">
-            <EmptyState
-              icon="block"
-              isError
-              title={t('room.kicked.title')}
-              description={t('room.kicked.body')}
-              actionLabel={t('room.kicked.backToLobby')}
-              onAction={() => onNavigate('/speaking')}
-              actionVariant="primary"
-            />
-          </div>
-        </main>
-      );
-    }
-
-    const closeDesc = closedReason
-      ? t(`room.closed.${closedReason}`, { defaultValue: t('room.closed.EMPTY') })
-      : t('room.closed.EMPTY');
-
-    return (
-      <main className="speaking-room-page">
-        <div className="speaking-room-container">
-          <EmptyState
-            icon="meeting_room"
-            title={t('room.closedTitle')}
-            description={closeDesc}
-            actionLabel={t('room.backToLobby')}
-            onAction={() => onNavigate('/speaking')}
-            actionVariant="primary"
-          />
-        </div>
-      </main>
-    );
-  }
+  if (phaseScreen) return phaseScreen;
 
   const currentCode = room?.roomCode || roomCode;
   const currentTopic = room?.topic || t('lobby.noTopic');
@@ -316,61 +404,15 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
           duration={4000}
         />
 
-        {/* Header thông tin phòng */}
-        <header className="speaking-room-header glass-card">
-          <div className="speaking-room-header__main">
-            <div className="speaking-room-header__title-group">
-              <div className="speaking-room-header__code-row">
-                <span className="speaking-room-header__code" title={currentCode}>
-                  {currentCode}
-                </span>
-                <span className="speaking-room-header__clock">
-                  <span className="material-symbols-outlined">timer</span>
-                  <RoomClock
-                    joinedAtMs={room?.joinedAtMs}
-                  />
-                </span>
-                <button
-                  type="button"
-                  className={`btn-secondary speaking-room-header__copy-btn ${
-                    copied ? 'speaking-room-header__copy-btn--copied' : ''
-                  }`}
-                  onClick={handleCopyCode}
-                  aria-label={t('room.copyAria', { code: currentCode })}
-                  title={t('room.copyAria', { code: currentCode })}
-                >
-                  <span className="material-symbols-outlined">
-                    {copied ? 'check' : 'content_copy'}
-                  </span>
-                  <span>{copied ? t('room.copied') : t('room.copy')}</span>
-                </button>
-                <span
-                  className={`speaking-room-badge ${
-                    isPrivate
-                      ? 'speaking-room-badge--private'
-                      : 'speaking-room-badge--public'
-                  }`}
-                >
-                  <span className="material-symbols-outlined">
-                    {isPrivate ? 'lock' : 'public'}
-                  </span>
-                  <span>{isPrivate ? t('room.private') : t('room.public')}</span>
-                </span>
-              </div>
-
-              <h1 className="text-title-lg speaking-room-header__topic">
-                {currentTopic}
-              </h1>
-            </div>
-
-            {isPrivate && (
-              <p className="speaking-room-header__private-hint text-body-xs text-disabled">
-                <span className="material-symbols-outlined">info</span>
-                <span>{t('room.privateHint')}</span>
-              </p>
-            )}
-          </div>
-        </header>
+        <RoomHeader
+          room={room}
+          currentCode={currentCode}
+          currentTopic={currentTopic}
+          copied={copied}
+          isPrivate={isPrivate}
+          onCopyCode={handleCopyCode}
+          t={t}
+        />
 
         {/* Bố cục chính: Cột trái (Người tham gia + Quy định) & Cột phải (Khung chat) */}
         <div className={`speaking-room-body ${chatOpen ? 'speaking-room-body--with-chat' : ''}`}>
