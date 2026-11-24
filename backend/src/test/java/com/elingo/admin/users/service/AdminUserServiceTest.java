@@ -1,8 +1,8 @@
 package com.elingo.admin.users.service;
 
-import com.elingo.admin.users.dto.request.AdminUserSearchRequest;
+import com.elingo.user.dto.request.AdminUserSearchRequest;
 import com.elingo.admin.users.dto.request.LockUserRequest;
-import com.elingo.admin.users.dto.response.AdminUserResponse;
+import com.elingo.user.dto.response.AdminUserResponse;
 import com.elingo.admin.users.service.impl.AdminUserServiceImpl;
 import com.elingo.common.dto.PageResponse;
 import com.elingo.common.exception.AppError;
@@ -111,6 +111,32 @@ class AdminUserServiceTest {
             assertThat(result.content().getFirst().id()).isEqualTo(USER_ID);
             assertThat(result.totalElements()).isEqualTo(1L);
             verify(userService).searchUsersForAdmin(request, pageable);
+        }
+
+        @Test
+        @DisplayName("Should pass sanitized pageable when sort is allowed")
+        void search_WhenSortAllowed_ShouldPassSanitizedPageable() {
+            AdminUserSearchRequest request = new AdminUserSearchRequest(null, null, null, null, null, null);
+            Pageable sortedPageable = PageRequest.of(0, 10, org.springframework.data.domain.Sort.by("createdAt"));
+            PageResponse<AdminUserResponse> expectedPage = new PageResponse<>(List.of(), 1, 10, 0L, 0, true);
+
+            when(userService.searchUsersForAdmin(request, sortedPageable)).thenReturn(expectedPage);
+
+            PageResponse<AdminUserResponse> result = adminUserService.search(request, sortedPageable);
+
+            assertThat(result).isNotNull();
+            verify(userService).searchUsersForAdmin(request, sortedPageable);
+        }
+
+        @Test
+        @DisplayName("Should throw INVALID_SORT when sort field is not allowed")
+        void search_WhenSortNotAllowed_ShouldThrowInvalidSort() {
+            AdminUserSearchRequest request = new AdminUserSearchRequest(null, null, null, null, null, null);
+            Pageable invalidSortPageable = PageRequest.of(0, 10, org.springframework.data.domain.Sort.by("passwordHash"));
+
+            assertThatThrownBy(() -> adminUserService.search(request, invalidSortPageable))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.INVALID_SORT));
         }
 
         @Test

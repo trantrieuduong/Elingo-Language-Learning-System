@@ -1,10 +1,10 @@
 package com.elingo.vocabulary.service.impl;
 
-import com.elingo.admin.content.dto.request.CardPhoneticRequest;
-import com.elingo.admin.content.dto.request.CreateSystemCardRequest;
-import com.elingo.admin.content.dto.request.UpdateSystemCardRequest;
-import com.elingo.admin.content.dto.response.OrphanedCardCleanupResponse;
-import com.elingo.admin.content.dto.response.OrphanedCardStatsResponse;
+import com.elingo.vocabulary.dto.request.CardPhoneticRequest;
+import com.elingo.vocabulary.dto.request.CreateSystemCardRequest;
+import com.elingo.vocabulary.dto.request.UpdateSystemCardRequest;
+import com.elingo.vocabulary.dto.response.OrphanedCardCleanupResponse;
+import com.elingo.vocabulary.dto.response.OrphanedCardStatsResponse;
 import com.elingo.common.dto.PageResponse;
 import com.elingo.common.enums.SystemFileModule;
 import com.elingo.common.event.FileDeletedEvent;

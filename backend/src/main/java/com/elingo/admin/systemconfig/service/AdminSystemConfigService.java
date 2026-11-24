@@ -12,5 +12,5 @@ public interface AdminSystemConfigService {
 
     List<String> getModules();
 
-    SystemConfigResponse updateConfig(String configKey, UpdateSystemConfigRequest request);
+    SystemConfigResponse updateConfig(String configKey, UpdateSystemConfigRequest request, Long adminId);
 }

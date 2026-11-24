@@ -1,7 +1,7 @@
 package com.elingo.vocabulary.mapper;
 
-import com.elingo.admin.content.dto.request.CreateSystemCardRequest;
-import com.elingo.admin.content.dto.request.UpdateSystemCardRequest;
+import com.elingo.vocabulary.dto.request.CreateSystemCardRequest;
+import com.elingo.vocabulary.dto.request.UpdateSystemCardRequest;
 import com.elingo.learning.flashcard.dto.response.CardLearningState;
 import com.elingo.vocabulary.dto.request.CreateUserCardRequest;
 import com.elingo.vocabulary.dto.request.UpdateUserCardRequest;

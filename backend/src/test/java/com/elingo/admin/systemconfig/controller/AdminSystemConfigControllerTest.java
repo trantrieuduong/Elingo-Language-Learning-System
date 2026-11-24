@@ -231,7 +231,7 @@ class AdminSystemConfigControllerTest {
                     .updatedAt(LocalDateTime.now())
                     .build();
 
-            when(adminSystemConfigService.updateConfig(eq(CONFIG_KEY), any(UpdateSystemConfigRequest.class)))
+            when(adminSystemConfigService.updateConfig(eq(CONFIG_KEY), any(UpdateSystemConfigRequest.class), any()))
                     .thenReturn(response);
 
             mockMvc.perform(put("/admin/system-configs/{key}", CONFIG_KEY)
@@ -244,7 +244,7 @@ class AdminSystemConfigControllerTest {
                     .andExpect(jsonPath("$.data.description").value(CONFIG_DESC))
                     .andExpect(jsonPath("$.data.updatedBy").value(99));
 
-            verify(adminSystemConfigService).updateConfig(eq(CONFIG_KEY), any(UpdateSystemConfigRequest.class));
+            verify(adminSystemConfigService).updateConfig(eq(CONFIG_KEY), any(UpdateSystemConfigRequest.class), any());
         }
 
         @Test
@@ -278,7 +278,7 @@ class AdminSystemConfigControllerTest {
         void shouldReturn404WhenConfigKeyDoesNotExist() throws Exception {
             UpdateSystemConfigRequest request = new UpdateSystemConfigRequest("any-value", null);
 
-            when(adminSystemConfigService.updateConfig(eq("nonexistent.key"), any(UpdateSystemConfigRequest.class)))
+            when(adminSystemConfigService.updateConfig(eq("nonexistent.key"), any(UpdateSystemConfigRequest.class), any()))
                     .thenThrow(new AppException(AppError.SYSTEM_CONFIG_NOT_FOUND));
 
             mockMvc.perform(put("/admin/system-configs/{key}", "nonexistent.key")
@@ -288,7 +288,7 @@ class AdminSystemConfigControllerTest {
                     .andExpect(jsonPath("$.success").value(false))
                     .andExpect(jsonPath("$.errors[0].code").value("SYSTEM_CONFIG_NOT_FOUND"));
 
-            verify(adminSystemConfigService).updateConfig(eq("nonexistent.key"), any(UpdateSystemConfigRequest.class));
+            verify(adminSystemConfigService).updateConfig(eq("nonexistent.key"), any(UpdateSystemConfigRequest.class), any());
         }
 
         @Test
@@ -296,7 +296,7 @@ class AdminSystemConfigControllerTest {
         void shouldReturn400WhenConfigValueIsInvalidForType() throws Exception {
             UpdateSystemConfigRequest request = new UpdateSystemConfigRequest("not-a-valid-int", null);
 
-            when(adminSystemConfigService.updateConfig(eq("some.int.key"), any(UpdateSystemConfigRequest.class)))
+            when(adminSystemConfigService.updateConfig(eq("some.int.key"), any(UpdateSystemConfigRequest.class), any()))
                     .thenThrow(new AppException(AppError.SYSTEM_CONFIG_VALUE_INVALID));
 
             mockMvc.perform(put("/admin/system-configs/{key}", "some.int.key")
@@ -306,7 +306,7 @@ class AdminSystemConfigControllerTest {
                     .andExpect(jsonPath("$.success").value(false))
                     .andExpect(jsonPath("$.errors[0].code").value("SYSTEM_CONFIG_VALUE_INVALID"));
 
-            verify(adminSystemConfigService).updateConfig(eq("some.int.key"), any(UpdateSystemConfigRequest.class));
+            verify(adminSystemConfigService).updateConfig(eq("some.int.key"), any(UpdateSystemConfigRequest.class), any());
         }
     }
 }

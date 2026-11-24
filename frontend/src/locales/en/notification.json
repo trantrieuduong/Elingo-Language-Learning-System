@@ -33,6 +33,6 @@
   },
   "REPORT_RESOLVED": {
     "title": "Your report has been processed",
-    "content": "{{content}}"
+    "content": "{{description}}"
   }
 }

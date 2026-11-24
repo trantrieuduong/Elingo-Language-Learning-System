@@ -3,9 +3,9 @@ package com.elingo.admin.content.service.impl;
 import com.elingo.admin.audit.annotation.Audited;
 import com.elingo.admin.audit.entity.AdminAuditAction;
 import com.elingo.admin.audit.entity.AdminAuditTargetType;
-import com.elingo.admin.content.dto.request.CreateSystemTopicRequest;
-import com.elingo.admin.content.dto.request.ReorderItemRequest;
-import com.elingo.admin.content.dto.request.UpdateSystemTopicRequest;
+import com.elingo.vocabulary.dto.request.CreateSystemTopicRequest;
+import com.elingo.vocabulary.dto.request.ReorderItemRequest;
+import com.elingo.vocabulary.dto.request.UpdateSystemTopicRequest;
 import com.elingo.admin.content.service.AdminTopicService;
 import com.elingo.vocabulary.dto.response.TopicResponse;
 import com.elingo.vocabulary.service.TopicService;
@@ -33,7 +33,9 @@ public class AdminTopicServiceImpl implements AdminTopicService {
             targetId = "#result.id",
             detail = "'Deck: ' + #request.deckId + ', Name: ' + #request.name")
     public TopicResponse createSystemTopic(CreateSystemTopicRequest request) {
-        return topicService.createSystemTopic(request);
+        TopicResponse created = topicService.createSystemTopic(request);
+        log.info("System topic created topicId={}", created.id());
+        return created;
     }
 
     @Override
@@ -42,7 +44,9 @@ public class AdminTopicServiceImpl implements AdminTopicService {
             targetId = "#topicId",
             detail = "'Update name: ' + #request.name")
     public TopicResponse updateSystemTopic(Long topicId, UpdateSystemTopicRequest request) {
-        return topicService.updateSystemTopic(topicId, request);
+        TopicResponse updated = topicService.updateSystemTopic(topicId, request);
+        log.info("System topic updated topicId={}", topicId);
+        return updated;
     }
 
     @Override
@@ -52,6 +56,7 @@ public class AdminTopicServiceImpl implements AdminTopicService {
             detail = "'Reordered topics'")
     public void reorderSystemTopics(Long deckId, ReorderItemRequest request) {
         topicService.reorderSystemTopics(deckId, request.orderedIds());
+        log.info("System topics reordered deckId={}", deckId);
     }
 
     @Override
@@ -60,5 +65,6 @@ public class AdminTopicServiceImpl implements AdminTopicService {
             targetId = "#topicId")
     public void deleteSystemTopic(Long topicId) {
         topicService.deleteSystemTopic(topicId);
+        log.info("System topic deleted topicId={}", topicId);
     }
 }

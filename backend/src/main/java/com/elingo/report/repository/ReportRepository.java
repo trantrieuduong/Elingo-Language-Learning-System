@@ -1,5 +1,7 @@
 package com.elingo.report.repository;
 
+import com.elingo.report.dto.projection.StatusCountProjection;
+import com.elingo.report.dto.projection.TargetTypeCountProjection;
 import com.elingo.report.entity.Report;
 import com.elingo.report.entity.ReportStatus;
 import com.elingo.report.entity.ReportTargetType;
@@ -14,16 +16,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ReportRepository extends JpaRepository<Report, Long> {
-
-    interface StatusCountProjection {
-        ReportStatus getStatus();
-        Long getCountVal();
-    }
-
-    interface TargetTypeCountProjection {
-        ReportTargetType getTargetType();
-        Long getCountVal();
-    }
 
     boolean existsByReporterIdAndTargetTypeAndTargetIdAndStatus(
             Long reporterId, ReportTargetType targetType, Long targetId, ReportStatus status);

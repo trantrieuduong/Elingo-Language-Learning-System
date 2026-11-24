@@ -610,7 +610,7 @@ ol {
   background: var(--glass-pill-bg);
   backdrop-filter: var(--blur-lg) saturate(180%);
   -webkit-backdrop-filter: var(--blur-lg) saturate(180%);
-  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  border: 1.5px solid var(--color-outline-variant);
   box-shadow: var(--shadow-pill);
   color: var(--color-on-surface);
   font-family: var(--font-display);

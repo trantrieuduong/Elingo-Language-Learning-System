@@ -1,5 +1,6 @@
 package com.elingo.community.repository;
 
+import com.elingo.community.dto.projection.DateCountProjection;
 import com.elingo.community.entity.PostLike;
 import com.elingo.community.entity.PostLikeId;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,11 +13,6 @@ import java.util.List;
 import java.util.Set;
 
 public interface PostLikeRepository extends JpaRepository<PostLike, PostLikeId> {
-
-    interface DateCountProjection {
-        String getDateKey();
-        Long getCountVal();
-    }
 
     boolean existsByIdPostIdAndIdUserId(Long postId, Long userId);
 

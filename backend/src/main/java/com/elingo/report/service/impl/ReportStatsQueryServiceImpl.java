@@ -1,5 +1,7 @@
 package com.elingo.report.service.impl;
 
+import com.elingo.report.dto.projection.StatusCountProjection;
+import com.elingo.report.dto.projection.TargetTypeCountProjection;
 import com.elingo.report.repository.ReportRepository;
 import com.elingo.report.service.ReportStatsQueryService;
 import lombok.RequiredArgsConstructor;
@@ -17,14 +19,14 @@ public class ReportStatsQueryServiceImpl implements ReportStatsQueryService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ReportRepository.StatusCountProjection> countReportsByStatus(
+    public List<StatusCountProjection> countReportsByStatus(
             LocalDateTime from, LocalDateTime to) {
         return reportRepository.countReportsByStatus(from, to);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ReportRepository.TargetTypeCountProjection> countReportsByTargetType(
+    public List<TargetTypeCountProjection> countReportsByTargetType(
             LocalDateTime from, LocalDateTime to) {
         return reportRepository.countReportsByTargetType(from, to);
     }

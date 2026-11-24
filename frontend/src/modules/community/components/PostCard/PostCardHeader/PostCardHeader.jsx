@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import OptionsMenu from '../../../../../components/OptionsMenu/OptionsMenu';
 import {
-  formatDate,
   formatRelativeTime,
   getFallbackAvatarUrl,
 } from '../../../../../utils/utils';
@@ -21,11 +20,7 @@ function PostCardHeader({
 }) {
   const { t, i18n } = useTranslation();
 
-  const formattedDate = formatDate(createdAt);
-  const formattedCreatedAt =
-    formattedDate === formatDate(new Date())
-      ? formatRelativeTime(createdAt, i18n.resolvedLanguage || 'vi')
-      : formattedDate || createdAt;
+  const formattedCreatedAt = formatRelativeTime(createdAt, i18n.resolvedLanguage || 'vi');
 
   const normalizedStatus = (status || 'PUBLISHED').toUpperCase();
 

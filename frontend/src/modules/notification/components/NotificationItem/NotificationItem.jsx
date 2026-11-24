@@ -47,7 +47,8 @@ function NotificationItem({ item, onSelect, onMarkAsRead }) {
     const badgeName = item.params.badgeName;
     contentText = t(`${item.type}.content`, { badgeName });
   } else if (item.refType === 'REPORT') {
-    contentText = t('REPORT_RESOLVED.content', { defaultValue: item.title });// TO DO thay "{ defaultValue: item.title }" khi module Report resolve xong
+    const description = item.params.description;
+    contentText = t('REPORT_RESOLVED.content', { description });
   }
 
   const relativeTime = formatRelativeTime(item.createdAt, currentLang);

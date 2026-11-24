@@ -3,8 +3,8 @@ package com.elingo.admin.gamification.service.impl;
 import com.elingo.admin.audit.annotation.Audited;
 import com.elingo.admin.audit.entity.AdminAuditAction;
 import com.elingo.admin.audit.entity.AdminAuditTargetType;
-import com.elingo.admin.gamification.dto.request.LevelRequest;
-import com.elingo.admin.gamification.dto.response.AdminLevelResponse;
+import com.elingo.gamification.dto.request.LevelRequest;
+import com.elingo.gamification.dto.response.AdminLevelResponse;
 import com.elingo.admin.gamification.service.AdminLevelService;
 import com.elingo.gamification.service.LevelService;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +38,9 @@ public class AdminLevelServiceImpl implements AdminLevelService {
             detail = "'Create level: ' + #result.levelNo + ' requiredXp=' + #request.requiredXp"
     )
     public AdminLevelResponse createLevel(LevelRequest request) {
-        return levelService.createLevel(request);
+        AdminLevelResponse created = levelService.createLevel(request);
+        log.info("Level created levelNo={}", created.levelNo());
+        return created;
     }
 
     @Override
@@ -49,7 +51,9 @@ public class AdminLevelServiceImpl implements AdminLevelService {
             detail = "'Update level: ' + #levelNo"
     )
     public AdminLevelResponse updateLevel(Short levelNo, LevelRequest request) {
-        return levelService.updateLevel(levelNo, request);
+        AdminLevelResponse updated = levelService.updateLevel(levelNo, request);
+        log.info("Level updated levelNo={}", levelNo);
+        return updated;
     }
 
     @Override
@@ -60,5 +64,6 @@ public class AdminLevelServiceImpl implements AdminLevelService {
     )
     public void deleteLevel(Short levelNo) {
         levelService.deleteLevel(levelNo);
+        log.info("Level deleted levelNo={}", levelNo);
     }
 }

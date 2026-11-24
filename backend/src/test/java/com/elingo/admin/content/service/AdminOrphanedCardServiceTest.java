@@ -1,9 +1,11 @@
 package com.elingo.admin.content.service;
 
-import com.elingo.admin.content.dto.response.OrphanedCardCleanupResponse;
-import com.elingo.admin.content.dto.response.OrphanedCardStatsResponse;
+import com.elingo.vocabulary.dto.response.OrphanedCardCleanupResponse;
+import com.elingo.vocabulary.dto.response.OrphanedCardStatsResponse;
 import com.elingo.admin.content.service.impl.AdminOrphanedCardServiceImpl;
 import com.elingo.common.dto.PageResponse;
+import com.elingo.common.exception.AppError;
+import com.elingo.common.exception.AppException;
 import com.elingo.vocabulary.dto.response.CardResponse;
 import com.elingo.vocabulary.service.CardService;
 import org.junit.jupiter.api.DisplayName;
@@ -16,11 +18,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -68,6 +72,29 @@ class AdminOrphanedCardServiceTest {
 
             assertThat(actual).isEqualTo(expected);
             verify(cardService).getOrphanedCards(pageable);
+        }
+
+        @Test
+        @DisplayName("Should pass sanitized pageable when sort is allowed")
+        void getOrphanedCards_WhenSortAllowed_Success() {
+            Pageable sortedPageable = PageRequest.of(0, 10, Sort.by("createdAt"));
+            PageResponse<CardResponse> expected = new PageResponse<>(List.of(), 1, 10, 0, 0, true);
+            when(cardService.getOrphanedCards(sortedPageable)).thenReturn(expected);
+
+            PageResponse<CardResponse> actual = adminOrphanedCardService.getOrphanedCards(sortedPageable);
+
+            assertThat(actual).isEqualTo(expected);
+            verify(cardService).getOrphanedCards(sortedPageable);
+        }
+
+        @Test
+        @DisplayName("Should throw INVALID_SORT when sort field is not allowed")
+        void getOrphanedCards_WhenSortNotAllowed_ShouldThrowInvalidSort() {
+            Pageable invalidSortPageable = PageRequest.of(0, 10, Sort.by("invalidColumn"));
+
+            assertThatThrownBy(() -> adminOrphanedCardService.getOrphanedCards(invalidSortPageable))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.INVALID_SORT));
         }
     }
 

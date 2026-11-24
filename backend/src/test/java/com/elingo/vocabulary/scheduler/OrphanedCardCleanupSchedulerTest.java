@@ -1,6 +1,6 @@
 package com.elingo.vocabulary.scheduler;
 
-import com.elingo.admin.content.dto.response.OrphanedCardCleanupResponse;
+import com.elingo.vocabulary.dto.response.OrphanedCardCleanupResponse;
 import com.elingo.vocabulary.service.CardService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

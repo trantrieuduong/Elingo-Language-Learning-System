@@ -1,6 +1,6 @@
 package com.elingo.vocabulary.service;
 
-import com.elingo.admin.content.dto.request.TagRequest;
+import com.elingo.vocabulary.dto.request.TagRequest;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.vocabulary.dto.response.TagResponse;

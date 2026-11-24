@@ -1,6 +1,7 @@
 package com.elingo.admin.content.controller;
 
-import com.elingo.admin.content.dto.request.TagRequest;
+import com.elingo.admin.common.constant.AdminApiPaths;
+import com.elingo.vocabulary.dto.request.TagRequest;
 import com.elingo.admin.content.service.AdminTagService;
 import com.elingo.common.dto.ApiResponse;
 import com.elingo.vocabulary.dto.response.TagResponse;
@@ -18,11 +19,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/admin/tags")
+@RequestMapping(AdminApiPaths.TAGS)
 @PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
 @Tag(
-        name = "Admin Tag Controller",
+        name = "Admin - Tags",
         description = "Management endpoints for vocabulary and lesson tags in the admin console"
 )
 public class AdminTagController {

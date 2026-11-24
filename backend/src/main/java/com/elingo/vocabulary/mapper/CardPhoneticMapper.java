@@ -1,6 +1,6 @@
 package com.elingo.vocabulary.mapper;
 
-import com.elingo.admin.content.dto.request.CardPhoneticRequest;
+import com.elingo.vocabulary.dto.request.CardPhoneticRequest;
 import com.elingo.vocabulary.dto.response.CardPhoneticResponse;
 import com.elingo.vocabulary.entity.CardPhonetic;
 import org.mapstruct.Mapper;

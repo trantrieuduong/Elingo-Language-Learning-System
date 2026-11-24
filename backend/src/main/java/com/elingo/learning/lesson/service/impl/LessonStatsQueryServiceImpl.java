@@ -1,5 +1,8 @@
 package com.elingo.learning.lesson.service.impl;
 
+import com.elingo.learning.lesson.dto.projection.LessonPremiumCountProjection;
+import com.elingo.learning.lesson.dto.projection.LessonStatusCountProjection;
+import com.elingo.learning.lesson.dto.projection.TopLessonProjection;
 import com.elingo.learning.lesson.repository.LessonRepository;
 import com.elingo.learning.lesson.service.LessonStatsQueryService;
 import lombok.RequiredArgsConstructor;
@@ -16,19 +19,19 @@ public class LessonStatsQueryServiceImpl implements LessonStatsQueryService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<LessonRepository.LessonStatusCountProjection> countLessonsByStatus() {
+    public List<LessonStatusCountProjection> countLessonsByStatus() {
         return lessonRepository.countLessonsByStatus();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<LessonRepository.LessonPremiumCountProjection> countLessonsByPremium() {
+    public List<LessonPremiumCountProjection> countLessonsByPremium() {
         return lessonRepository.countLessonsByPremium();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<LessonRepository.TopLessonProjection> getTopLessonsByCompletion(int limit) {
+    public List<TopLessonProjection> getTopLessonsByCompletion(int limit) {
         return lessonRepository.findTopLessonsByCompletion(Math.max(1, limit));
     }
 }

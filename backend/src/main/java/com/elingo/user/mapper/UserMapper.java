@@ -1,6 +1,6 @@
 package com.elingo.user.mapper;
 
-import com.elingo.admin.users.dto.response.AdminUserResponse;
+import com.elingo.user.dto.response.AdminUserResponse;
 import com.elingo.auth.dto.request.RegisterRequest;
 import com.elingo.user.dto.request.UpdateProfileRequest;
 import com.elingo.user.dto.response.UserMeResponse;

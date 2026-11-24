@@ -5,9 +5,11 @@ import com.elingo.admin.stats.dto.response.RevenueStatsResponses;
 import com.elingo.admin.stats.service.RevenueStatsService;
 import com.elingo.admin.stats.util.StatsZeroFiller;
 import com.elingo.common.service.RedisService;
+import com.elingo.premium.dto.projection.DateAmountCountProjection;
+import com.elingo.premium.dto.projection.PlanRevenueStat;
+import com.elingo.premium.dto.projection.PlanSubscriptionStat;
+import com.elingo.premium.dto.projection.TransactionStatusCount;
 import com.elingo.premium.entity.PaymentTransactionStatus;
-import com.elingo.premium.repository.PaymentTransactionRepository;
-import com.elingo.premium.repository.UserSubscriptionRepository;
 import com.elingo.premium.service.RevenueStatsQueryService;
 import com.elingo.premium.service.SubscriptionService;
 import com.elingo.user.service.UserService;
@@ -57,11 +59,11 @@ public class RevenueStatsServiceImpl implements RevenueStatsService {
         LocalDateTime fromTime = safeRequest.from().atStartOfDay();
         LocalDateTime toTime = safeRequest.to().plusDays(1).atStartOfDay();
 
-        List<PaymentTransactionRepository.DateAmountCountProjection> rawData = revenueStatsQueryService.getRevenueTimeSeries(
+        List<DateAmountCountProjection> rawData = revenueStatsQueryService.getRevenueTimeSeries(
                 fromTime, toTime, safeRequest.granularity());
 
         Map<String, StatsZeroFiller.RawRevenueData> rawMap = new HashMap<>();
-        for (PaymentTransactionRepository.DateAmountCountProjection proj : rawData) {
+        for (DateAmountCountProjection proj : rawData) {
             if (proj.getPeriodKey() != null) {
                 rawMap.put(proj.getPeriodKey(), new StatsZeroFiller.RawRevenueData(
                         proj.getTotalAmount() != null ? proj.getTotalAmount() : BigDecimal.ZERO,
@@ -115,7 +117,7 @@ public class RevenueStatsServiceImpl implements RevenueStatsService {
         LocalDateTime fromTime = safeRequest.from().atStartOfDay();
         LocalDateTime toTime = safeRequest.to().plusDays(1).atStartOfDay();
 
-        List<PaymentTransactionRepository.PlanRevenueStat> planRaw = revenueStatsQueryService.getRevenueBreakdownByPlan(fromTime, toTime);
+        List<PlanRevenueStat> planRaw = revenueStatsQueryService.getRevenueBreakdownByPlan(fromTime, toTime);
         BigDecimal totalPlanRevenue = planRaw.stream()
                 .map(p -> p.getTotalAmount() != null ? p.getTotalAmount() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -134,13 +136,13 @@ public class RevenueStatsServiceImpl implements RevenueStatsService {
             );
         }).toList();
 
-        List<PaymentTransactionRepository.TransactionStatusCount> statusRaw = revenueStatsQueryService.countTransactionsByStatus(fromTime, toTime);
+        List<TransactionStatusCount> statusRaw = revenueStatsQueryService.countTransactionsByStatus(fromTime, toTime);
         long successCount = 0L;
         long pendingCount = 0L;
         long failedCount = 0L;
         long refundedCount = 0L;
 
-        for (PaymentTransactionRepository.TransactionStatusCount item : statusRaw) {
+        for (TransactionStatusCount item : statusRaw) {
             long count = item.getCountVal() != null ? item.getCountVal() : 0L;
             if (item.getStatus() == PaymentTransactionStatus.SUCCESS) {
                 successCount += count;
@@ -195,7 +197,7 @@ public class RevenueStatsServiceImpl implements RevenueStatsService {
         }
 
         LocalDateTime now = LocalDateTime.now();
-        List<UserSubscriptionRepository.PlanSubscriptionStat> planRaw = subscriptionService.countActiveSubscriptionsByPlan(now);
+        List<PlanSubscriptionStat> planRaw = subscriptionService.countActiveSubscriptionsByPlan(now);
         long totalActiveSubs = subscriptionService.countTotalActiveSubscriptions(now);
         long totalPremiumUsers = subscriptionService.countDistinctActivePremiumUsers(now);
         long totalSystemUsers = userService.countTotalUsers();

@@ -1,9 +1,9 @@
 package com.elingo.vocabulary.service;
 
-import com.elingo.admin.content.dto.request.CreateSystemCardRequest;
-import com.elingo.admin.content.dto.request.UpdateSystemCardRequest;
-import com.elingo.admin.content.dto.response.OrphanedCardCleanupResponse;
-import com.elingo.admin.content.dto.response.OrphanedCardStatsResponse;
+import com.elingo.vocabulary.dto.request.CreateSystemCardRequest;
+import com.elingo.vocabulary.dto.request.UpdateSystemCardRequest;
+import com.elingo.vocabulary.dto.response.OrphanedCardCleanupResponse;
+import com.elingo.vocabulary.dto.response.OrphanedCardStatsResponse;
 import com.elingo.common.dto.PageResponse;
 import com.elingo.vocabulary.dto.request.CreateUserCardRequest;
 import com.elingo.vocabulary.dto.request.UpdateUserCardRequest;

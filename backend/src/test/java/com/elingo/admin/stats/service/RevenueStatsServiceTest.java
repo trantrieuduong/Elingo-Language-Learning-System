@@ -5,9 +5,11 @@ import com.elingo.admin.stats.dto.response.RevenueStatsResponses;
 import com.elingo.admin.stats.service.impl.RevenueStatsServiceImpl;
 import com.elingo.common.enums.StatsGranularity;
 import com.elingo.common.service.RedisService;
+import com.elingo.premium.dto.projection.DateAmountCountProjection;
+import com.elingo.premium.dto.projection.PlanRevenueStat;
+import com.elingo.premium.dto.projection.PlanSubscriptionStat;
+import com.elingo.premium.dto.projection.TransactionStatusCount;
 import com.elingo.premium.entity.PaymentTransactionStatus;
-import com.elingo.premium.repository.PaymentTransactionRepository;
-import com.elingo.premium.repository.UserSubscriptionRepository;
 import com.elingo.premium.service.RevenueStatsQueryService;
 import com.elingo.premium.service.SubscriptionService;
 import com.elingo.user.service.UserService;
@@ -85,7 +87,7 @@ class RevenueStatsServiceTest {
         void getRevenueTimeSeries_CacheMiss_FetchesAndCaches() throws Exception {
             when(redisService.get(anyString())).thenReturn(null);
 
-            PaymentTransactionRepository.DateAmountCountProjection proj = mock(PaymentTransactionRepository.DateAmountCountProjection.class);
+            DateAmountCountProjection proj = mock(DateAmountCountProjection.class);
             when(proj.getPeriodKey()).thenReturn("2026-11-01");
             when(proj.getTotalAmount()).thenReturn(BigDecimal.valueOf(200_000));
             when(proj.getTxCount()).thenReturn(2L);
@@ -145,7 +147,7 @@ class RevenueStatsServiceTest {
             when(redisService.get(anyString())).thenReturn(null);
 
             // Plan breakdown
-            PaymentTransactionRepository.PlanRevenueStat planProj = mock(PaymentTransactionRepository.PlanRevenueStat.class);
+            PlanRevenueStat planProj = mock(PlanRevenueStat.class);
             when(planProj.getPlanId()).thenReturn(1L);
             when(planProj.getPlanName()).thenReturn("Premium 1 Year");
             when(planProj.getTotalAmount()).thenReturn(BigDecimal.valueOf(1_000_000));
@@ -154,11 +156,11 @@ class RevenueStatsServiceTest {
             when(revenueStatsQueryService.getRevenueBreakdownByPlan(any(), any())).thenReturn(List.of(planProj));
 
             // Status breakdown
-            PaymentTransactionRepository.TransactionStatusCount statusSuccess = mock(PaymentTransactionRepository.TransactionStatusCount.class);
+            TransactionStatusCount statusSuccess = mock(TransactionStatusCount.class);
             when(statusSuccess.getStatus()).thenReturn(PaymentTransactionStatus.SUCCESS);
             when(statusSuccess.getCountVal()).thenReturn(8L);
 
-            PaymentTransactionRepository.TransactionStatusCount statusFailed = mock(PaymentTransactionRepository.TransactionStatusCount.class);
+            TransactionStatusCount statusFailed = mock(TransactionStatusCount.class);
             when(statusFailed.getStatus()).thenReturn(PaymentTransactionStatus.FAILED);
             when(statusFailed.getCountVal()).thenReturn(2L);
 
@@ -203,7 +205,7 @@ class RevenueStatsServiceTest {
         void getRevenueBreakdown_ZeroTotalPlanRevenue_PercentageIsZero() {
             when(redisService.get(anyString())).thenReturn(null);
 
-            PaymentTransactionRepository.PlanRevenueStat planProj = mock(PaymentTransactionRepository.PlanRevenueStat.class);
+            PlanRevenueStat planProj = mock(PlanRevenueStat.class);
             when(planProj.getPlanId()).thenReturn(1L);
             when(planProj.getPlanName()).thenReturn("Free Trial");
             when(planProj.getTotalAmount()).thenReturn(BigDecimal.ZERO);
@@ -243,7 +245,7 @@ class RevenueStatsServiceTest {
         void getSubscriptionStats_CacheMiss_CalculatesMetrics() throws Exception {
             when(redisService.get(anyString())).thenReturn(null);
 
-            UserSubscriptionRepository.PlanSubscriptionStat stat = mock(UserSubscriptionRepository.PlanSubscriptionStat.class);
+            PlanSubscriptionStat stat = mock(PlanSubscriptionStat.class);
             when(stat.getPlanId()).thenReturn(10L);
             when(stat.getPlanName()).thenReturn("Premium Pro");
             when(stat.getActiveCount()).thenReturn(50L);

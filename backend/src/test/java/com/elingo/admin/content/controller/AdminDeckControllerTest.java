@@ -1,9 +1,9 @@
 package com.elingo.admin.content.controller;
 
-import com.elingo.admin.content.dto.request.AdminDeckSearchRequest;
-import com.elingo.admin.content.dto.request.ReorderItemRequest;
-import com.elingo.admin.content.dto.request.SystemDeckRequest;
-import com.elingo.admin.content.dto.request.UpdateDeckStatusRequest;
+import com.elingo.vocabulary.dto.request.AdminDeckSearchRequest;
+import com.elingo.vocabulary.dto.request.ReorderItemRequest;
+import com.elingo.vocabulary.dto.request.SystemDeckRequest;
+import com.elingo.vocabulary.dto.request.UpdateDeckStatusRequest;
 import com.elingo.admin.content.service.AdminDeckService;
 import com.elingo.admin.content.service.AdminTopicService;
 import com.elingo.common.dto.PageResponse;

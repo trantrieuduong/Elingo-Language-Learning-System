@@ -1,6 +1,8 @@
 package com.elingo.community.service;
 
 import com.elingo.community.entity.PostStatus;
+import com.elingo.community.moderation.dto.projection.AiLabelCount;
+import com.elingo.community.moderation.dto.projection.ModerationActionCounts;
 import com.elingo.community.moderation.repository.PostModerationRepository;
 import com.elingo.community.repository.CommentRepository;
 import com.elingo.community.repository.PostLikeRepository;
@@ -50,12 +52,12 @@ class CommunityStatsQueryServiceTest {
         @Test
         @DisplayName("Should delegate to postRepository.countPostsByStatus")
         void countPostsByStatus_Success() {
-            PostRepository.PostStatusCountProjection proj = mock(PostRepository.PostStatusCountProjection.class);
+            com.elingo.community.dto.projection.PostStatusCountProjection proj = mock(com.elingo.community.dto.projection.PostStatusCountProjection.class);
             when(proj.getStatus()).thenReturn(PostStatus.PUBLISHED);
             when(proj.getCountVal()).thenReturn(100L);
             when(postRepository.countPostsByStatus()).thenReturn(List.of(proj));
 
-            List<PostRepository.PostStatusCountProjection> result = communityStatsQueryService.countPostsByStatus();
+            List<com.elingo.community.dto.projection.PostStatusCountProjection> result = communityStatsQueryService.countPostsByStatus();
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getStatus()).isEqualTo(PostStatus.PUBLISHED);
@@ -71,12 +73,12 @@ class CommunityStatsQueryServiceTest {
         @Test
         @DisplayName("Should delegate to postRepository.countPostsByGroup")
         void countPostsByGroup_Success() {
-            PostRepository.PostGroupCountProjection proj = mock(PostRepository.PostGroupCountProjection.class);
+            com.elingo.community.dto.projection.PostGroupCountProjection proj = mock(com.elingo.community.dto.projection.PostGroupCountProjection.class);
             when(proj.getGroupId()).thenReturn(1L);
             when(proj.getPostCount()).thenReturn(50L);
             when(postRepository.countPostsByGroup()).thenReturn(List.of(proj));
 
-            List<PostRepository.PostGroupCountProjection> result = communityStatsQueryService.countPostsByGroup();
+            List<com.elingo.community.dto.projection.PostGroupCountProjection> result = communityStatsQueryService.countPostsByGroup();
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getGroupId()).isEqualTo(1L);
@@ -92,12 +94,12 @@ class CommunityStatsQueryServiceTest {
         @Test
         @DisplayName("Should delegate to postRepository.countPostBacklog")
         void countPostBacklog_Success() {
-            PostRepository.PostBacklogProjection proj = mock(PostRepository.PostBacklogProjection.class);
+            com.elingo.community.dto.projection.PostBacklogProjection proj = mock(com.elingo.community.dto.projection.PostBacklogProjection.class);
             when(proj.getPendingCount()).thenReturn(3L);
             when(proj.getNeedsReviewCount()).thenReturn(7L);
             when(postRepository.countPostBacklog()).thenReturn(proj);
 
-            PostRepository.PostBacklogProjection result = communityStatsQueryService.countPostBacklog();
+            com.elingo.community.dto.projection.PostBacklogProjection result = communityStatsQueryService.countPostBacklog();
 
             assertThat(result).isNotNull();
             assertThat(result.getPendingCount()).isEqualTo(3L);
@@ -113,12 +115,12 @@ class CommunityStatsQueryServiceTest {
         @Test
         @DisplayName("Should delegate to postLikeRepository.countLikesByDay")
         void countLikesByDay_Success() {
-            PostLikeRepository.DateCountProjection proj = mock(PostLikeRepository.DateCountProjection.class);
+            com.elingo.community.dto.projection.DateCountProjection proj = mock(com.elingo.community.dto.projection.DateCountProjection.class);
             when(proj.getDateKey()).thenReturn("2026-11-01");
             when(proj.getCountVal()).thenReturn(30L);
             when(postLikeRepository.countLikesByDay(from, to)).thenReturn(List.of(proj));
 
-            List<PostLikeRepository.DateCountProjection> result = communityStatsQueryService.countLikesByDay(from, to);
+            List<com.elingo.community.dto.projection.DateCountProjection> result = communityStatsQueryService.countLikesByDay(from, to);
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getDateKey()).isEqualTo("2026-11-01");
@@ -129,12 +131,12 @@ class CommunityStatsQueryServiceTest {
         @Test
         @DisplayName("Should delegate to commentRepository.countCommentsByDay")
         void countCommentsByDay_Success() {
-            CommentRepository.DateCountProjection proj = mock(CommentRepository.DateCountProjection.class);
+            com.elingo.community.dto.projection.DateCountProjection proj = mock(com.elingo.community.dto.projection.DateCountProjection.class);
             when(proj.getDateKey()).thenReturn("2026-11-01");
             when(proj.getCountVal()).thenReturn(10L);
             when(commentRepository.countCommentsByDay(from, to)).thenReturn(List.of(proj));
 
-            List<CommentRepository.DateCountProjection> result = communityStatsQueryService.countCommentsByDay(from, to);
+            List<com.elingo.community.dto.projection.DateCountProjection> result = communityStatsQueryService.countCommentsByDay(from, to);
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getDateKey()).isEqualTo("2026-11-01");
@@ -150,12 +152,12 @@ class CommunityStatsQueryServiceTest {
         @Test
         @DisplayName("Should delegate to postModerationRepository methods")
         void moderationMetrics_Success() {
-            PostModerationRepository.ModerationActionCounts actionCounts =
-                    new PostModerationRepository.ModerationActionCounts(50L, 10L, 5L, 3L, 2L, 70L);
+            ModerationActionCounts actionCounts =
+                    new ModerationActionCounts(50L, 10L, 5L, 3L, 2L, 70L);
             when(postModerationRepository.countModerationActions(from, to)).thenReturn(actionCounts);
 
-            PostModerationRepository.AiLabelCount labelCount =
-                    new PostModerationRepository.AiLabelCount("SPAM", 10L);
+            AiLabelCount labelCount =
+                    new AiLabelCount("SPAM", 10L);
             when(postModerationRepository.countAiLabels(from, to)).thenReturn(List.of(labelCount));
 
             when(postModerationRepository.calculateAvgManualReviewDurationSeconds(from, to)).thenReturn(120.5);

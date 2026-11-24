@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ShadowingPage from '@/modules/learning/shadowing/pages/ShadowingPage';
@@ -7,6 +7,7 @@ import { patchShadowingProgressApi } from '@/modules/learning/shadowing/shadowin
 import { uploadFileForVerification } from '@/services/uploadFile';
 import { useWhisper } from '@/modules/learning/shadowing/whisper/useWhisper';
 import { AudioRecorder } from '@/modules/learning/shadowing/utils/audioRecorder';
+import { MODEL_OPTIONS } from '@/modules/learning/shadowing/whisper/modelConfig';
 
 vi.mock('@/modules/learning/lesson/lessonApi', () => ({
   getLessonDetailApi: vi.fn(),
@@ -98,6 +99,14 @@ describe('ShadowingPage page component', () => {
     getLessonDetailApi.mockResolvedValue({ data: mockLesson });
     getLessonSegmentsApi.mockResolvedValue({ data: mockSegments });
     uploadFileForVerification.mockResolvedValue('verified-audio-key-123');
+  });
+
+  afterEach(() => {
+    // Dọn giả lập thiết bị mobile (nếu test nào đó đã thêm)
+    delete window.navigator.userAgentData;
+    localStorage.removeItem('el_whisper_model');
+    localStorage.removeItem('el_whisper_agreed');
+    localStorage.removeItem('el_whisper_loaded');
   });
 
   it('renders loading state initially and then study card', async () => {
@@ -220,8 +229,7 @@ describe('ShadowingPage page component', () => {
     expect(onNavigate).toHaveBeenCalledWith('/lessons');
   });
 
-  it('opens download model modal when whisper is not ready and user has not agreed', async () => {
-    const user = userEvent.setup();
+  it('auto-loads the standard (base) model on PC without showing any model modal', async () => {
     useWhisper.mockReturnValue({
       status: 'idle',
       downloadProgress: 0,
@@ -233,26 +241,23 @@ describe('ShadowingPage page component', () => {
     render(<ShadowingPage slug="shadowing-lesson" onNavigate={vi.fn()} />);
     await screen.findByTestId('mock-yt-player');
 
-    // Click Record button to prompt download modal
-    const recordBtn = screen.getByRole('button', { name: /bấm để nói|record/i });
-    await user.click(recordBtn);
+    // Tự tải ngay khi vào trang, không cần người dùng bấm gì
+    await waitFor(() => {
+      expect(mockLoadModel).toHaveBeenCalledWith(
+        expect.objectContaining({ modelId: MODEL_OPTIONS.STANDARD, modelType: 'standard' })
+      );
+    });
 
-    // Modal is opened
-    expect(await screen.findByRole('heading', { level: 2, name: /tải mô hình|download model/i })).toBeInTheDocument();
-
-    // Select light model radio
-    const lightRadio = screen.getByLabelText(/mô hình nhẹ|light/i);
-    await user.click(lightRadio);
-
-    // Click confirm download
-    const confirmBtn = screen.getByRole('button', { name: /tải mô hình|download/i });
-    await user.click(confirmBtn);
-
-    expect(mockLoadModel).toHaveBeenCalled();
+    // Không còn modal hỏi / chọn model
+    expect(screen.queryByRole('heading', { level: 2, name: /tải mô hình|download model/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('radio')).not.toBeInTheDocument();
   });
 
-  it('can close the model download modal without downloading', async () => {
-    const user = userEvent.setup();
+  it('auto-loads the light (tiny) model on mobile devices', async () => {
+    Object.defineProperty(window.navigator, 'userAgentData', {
+      value: { mobile: true },
+      configurable: true,
+    });
     useWhisper.mockReturnValue({
       status: 'idle',
       downloadProgress: 0,
@@ -264,32 +269,70 @@ describe('ShadowingPage page component', () => {
     render(<ShadowingPage slug="shadowing-lesson" onNavigate={vi.fn()} />);
     await screen.findByTestId('mock-yt-player');
 
-    // Click Record button to prompt modal
+    await waitFor(() => {
+      expect(mockLoadModel).toHaveBeenCalledWith(
+        expect.objectContaining({ modelId: MODEL_OPTIONS.LIGHT, modelType: 'light' })
+      );
+    });
+    expect(mockLoadModel).not.toHaveBeenCalledWith(
+      expect.objectContaining({ modelType: 'standard' })
+    );
+  });
+
+  it('ignores legacy localStorage model choice and still picks the model by device', async () => {
+    // Dữ liệu cũ do bản có modal để lại: người dùng từng chọn light trên PC
+    localStorage.setItem('el_whisper_model', 'light');
+    localStorage.setItem('el_whisper_agreed', 'true');
+    useWhisper.mockReturnValue({
+      status: 'idle',
+      downloadProgress: 0,
+      error: null,
+      loadModel: mockLoadModel,
+      transcribe: mockTranscribe,
+    });
+
+    render(<ShadowingPage slug="shadowing-lesson" onNavigate={vi.fn()} />);
+    await screen.findByTestId('mock-yt-player');
+
+    await waitFor(() => {
+      expect(mockLoadModel).toHaveBeenCalledWith(
+        expect.objectContaining({ modelType: 'standard' })
+      );
+    });
+    expect(mockLoadModel).not.toHaveBeenCalledWith(
+      expect.objectContaining({ modelType: 'light' })
+    );
+  });
+
+  it('retries loading the model when user clicks record while whisper is not ready', async () => {
+    const user = userEvent.setup();
+    localStorage.removeItem('el_whisper_loaded');
+    useWhisper.mockReturnValue({
+      status: 'idle',
+      downloadProgress: 0,
+      error: null,
+      loadModel: mockLoadModel,
+      transcribe: mockTranscribe,
+    });
+
+    render(<ShadowingPage slug="shadowing-lesson" onNavigate={vi.fn()} />);
+    await screen.findByTestId('mock-yt-player');
+    await waitFor(() => expect(mockLoadModel).toHaveBeenCalled());
+    mockLoadModel.mockClear();
+
     const recordBtn = screen.getByRole('button', { name: /bấm để nói|record/i });
     await user.click(recordBtn);
 
-    // Click standard model radio
-    const standardRadio = screen.getByLabelText(/mô hình chuẩn|standard/i);
-    await user.click(standardRadio);
+    // Bấm ghi âm khi model chưa sẵn sàng: thử tải lại, báo đang chuẩn bị, chưa ghi âm
+    expect(mockLoadModel).toHaveBeenCalledTimes(1);
+    expect(mockLoadModel).toHaveBeenCalledWith(
+      expect.objectContaining({ modelType: 'standard' })
+    );
+    expect(await screen.findByText(/đang chuẩn bị mô hình/i)).toBeInTheDocument();
+    expect(mockRecorderInstance.start).not.toHaveBeenCalled();
 
-    // Click cancel button
-    const cancelBtn = screen.getByRole('button', { name: /hủy|cancel/i });
-    await user.click(cancelBtn);
-
-    expect(mockLoadModel).not.toHaveBeenCalled();
-
-    // Reopen and test close button
-    await user.click(recordBtn);
-    const closeBtn = screen.getByRole('button', { name: 'close' });
-    await user.click(closeBtn);
-
-    // Reopen and test clicking modal overlay
-    await user.click(recordBtn);
-    const modalHeading = await screen.findByRole('heading', { level: 2, name: /tải mô hình|download model/i });
-    const overlay = modalHeading.closest('.shadowing-model-modal-overlay');
-    if (overlay) {
-      await user.click(overlay);
-    }
+    // Không có modal nào xuất hiện
+    expect(screen.queryByRole('heading', { level: 2, name: /tải mô hình|download model/i })).not.toBeInTheDocument();
   });
 
   it('triggers replay when replay button is clicked', async () => {
@@ -494,8 +537,3 @@ describe('ShadowingPage page component', () => {
     expect(matches.length).toBeGreaterThan(0);
   });
 });
-
-
-
-
-

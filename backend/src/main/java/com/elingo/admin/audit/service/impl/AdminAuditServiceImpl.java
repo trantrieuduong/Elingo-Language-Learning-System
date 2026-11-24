@@ -9,12 +9,11 @@ import com.elingo.admin.audit.mapper.AdminAuditMapper;
 import com.elingo.admin.audit.repository.AdminAuditRepository;
 import com.elingo.admin.audit.repository.AdminAuditSpecifications;
 import com.elingo.admin.audit.service.AdminAuditService;
+import com.elingo.admin.common.util.AdminPageables;
 import com.elingo.common.dto.PageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,9 +24,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class AdminAuditServiceImpl implements AdminAuditService {
 
-    private static final Set<String> SORTABLE = Set.of("createdAt", "id");
-    private static final Sort DEFAULT_SORT = Sort.by(Sort.Direction.DESC, "createdAt", "id");
-
+    private static final Set<String> ALLOWED_SORTS = Set.of("createdAt", "id");
 
     private final AdminAuditRepository repository;
     private final AdminAuditMapper mapper;
@@ -58,8 +55,9 @@ public class AdminAuditServiceImpl implements AdminAuditService {
     @Override
     @Transactional(readOnly = true)
     public PageResponse<AdminAuditLogResponse> search(AdminAuditLogFilterRequest filter, Pageable pageable) {
+        Pageable sanitized = AdminPageables.sanitize(pageable, ALLOWED_SORTS);
         return PageResponse.of(repository
-                .findAll(AdminAuditSpecifications.from(filter), sanitize(pageable))
+                .findAll(AdminAuditSpecifications.from(filter), sanitized)
                 .map(mapper::toResponse));
     }
 
@@ -68,12 +66,5 @@ public class AdminAuditServiceImpl implements AdminAuditService {
             return value;
         }
         return value.substring(0, max);
-    }
-
-    private Pageable sanitize(Pageable pageable) {
-        boolean valid = pageable.getSort().isSorted()
-                && pageable.getSort().stream().allMatch(o -> SORTABLE.contains(o.getProperty()));
-        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
-                valid ? pageable.getSort() : DEFAULT_SORT);
     }
 }

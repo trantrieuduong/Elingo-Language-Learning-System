@@ -1,6 +1,6 @@
 package com.elingo.vocabulary.repository.specification;
 
-import com.elingo.admin.content.dto.request.AdminDeckSearchRequest;
+import com.elingo.vocabulary.dto.request.AdminDeckSearchRequest;
 import com.elingo.vocabulary.dto.request.DeckSearchRequest;
 import com.elingo.vocabulary.entity.DeckStatus;
 import com.elingo.vocabulary.entity.OwnerType;

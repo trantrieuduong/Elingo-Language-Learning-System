@@ -1,7 +1,8 @@
 package com.elingo.user.service.impl;
 
-import com.elingo.admin.users.dto.request.AdminUserSearchRequest;
-import com.elingo.admin.users.dto.response.AdminUserResponse;
+import com.elingo.user.dto.projection.NewUserStats;
+import com.elingo.user.dto.request.AdminUserSearchRequest;
+import com.elingo.user.dto.response.AdminUserResponse;
 import com.elingo.common.dto.PageResponse;
 import com.elingo.common.enums.StatsGranularity;
 import com.elingo.common.exception.AppError;
@@ -175,7 +176,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<UserRepository.NewUserStats> countNewUsers(LocalDateTime from, LocalDateTime to, StatsGranularity granularity) {
+    public List<NewUserStats> countNewUsers(LocalDateTime from, LocalDateTime to, StatsGranularity granularity) {
         return switch (granularity) {
             case WEEK -> userRepository.countNewUsersByWeek(from, to);
             case MONTH -> userRepository.countNewUsersByMonth(from, to);

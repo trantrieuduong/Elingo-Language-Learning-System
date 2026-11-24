@@ -39,12 +39,12 @@ class ReportStatsQueryServiceTest {
         @Test
         @DisplayName("Should delegate to reportRepository.countReportsByStatus")
         void countReportsByStatus_Success() {
-            ReportRepository.StatusCountProjection proj = mock(ReportRepository.StatusCountProjection.class);
+            com.elingo.report.dto.projection.StatusCountProjection proj = mock(com.elingo.report.dto.projection.StatusCountProjection.class);
             when(proj.getStatus()).thenReturn(ReportStatus.PENDING);
             when(proj.getCountVal()).thenReturn(5L);
             when(reportRepository.countReportsByStatus(from, to)).thenReturn(List.of(proj));
 
-            List<ReportRepository.StatusCountProjection> result = reportStatsQueryService.countReportsByStatus(from, to);
+            List<com.elingo.report.dto.projection.StatusCountProjection> result = reportStatsQueryService.countReportsByStatus(from, to);
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getStatus()).isEqualTo(ReportStatus.PENDING);
@@ -60,12 +60,12 @@ class ReportStatsQueryServiceTest {
         @Test
         @DisplayName("Should delegate to reportRepository.countReportsByTargetType")
         void countReportsByTargetType_Success() {
-            ReportRepository.TargetTypeCountProjection proj = mock(ReportRepository.TargetTypeCountProjection.class);
+            com.elingo.report.dto.projection.TargetTypeCountProjection proj = mock(com.elingo.report.dto.projection.TargetTypeCountProjection.class);
             when(proj.getTargetType()).thenReturn(ReportTargetType.POST);
             when(proj.getCountVal()).thenReturn(12L);
             when(reportRepository.countReportsByTargetType(from, to)).thenReturn(List.of(proj));
 
-            List<ReportRepository.TargetTypeCountProjection> result = reportStatsQueryService.countReportsByTargetType(from, to);
+            List<com.elingo.report.dto.projection.TargetTypeCountProjection> result = reportStatsQueryService.countReportsByTargetType(from, to);
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getTargetType()).isEqualTo(ReportTargetType.POST);

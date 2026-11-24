@@ -9,6 +9,8 @@ import com.elingo.admin.audit.mapper.AdminAuditMapper;
 import com.elingo.admin.audit.repository.AdminAuditRepository;
 import com.elingo.admin.audit.service.impl.AdminAuditServiceImpl;
 import com.elingo.common.dto.PageResponse;
+import com.elingo.common.exception.AppError;
+import com.elingo.common.exception.AppException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -30,6 +32,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -155,24 +158,16 @@ class AdminAuditServiceTest {
         }
 
         @Test
-        @DisplayName("Fallback to DEFAULT_SORT when sort property is not allowed")
-        void search_WhenSortInvalid_ShouldFallbackToDefaultSort() {
+        @DisplayName("Should throw INVALID_SORT when sort property is not allowed")
+        void search_WhenSortInvalid_ShouldThrowInvalidSort() {
             AdminAuditLogFilterRequest filter = new AdminAuditLogFilterRequest(
                     null, null, null, null, null, null
             );
             Pageable invalidSortPageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.ASC, "invalidColumn"));
 
-            ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
-            when(repository.findAll(any(Specification.class), pageableCaptor.capture()))
-                    .thenReturn(new PageImpl<>(Collections.emptyList()));
-
-            PageResponse<AdminAuditLogResponse> result = auditService.search(filter, invalidSortPageable);
-
-            assertThat(result).isNotNull();
-            assertThat(result.content()).isEmpty();
-
-            Pageable sanitized = pageableCaptor.getValue();
-            assertThat(sanitized.getSort()).isEqualTo(Sort.by(Sort.Direction.DESC, "createdAt", "id"));
+            assertThatThrownBy(() -> auditService.search(filter, invalidSortPageable))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.INVALID_SORT));
         }
 
         @Test

@@ -1,7 +1,7 @@
 package com.elingo.admin.gamification.controller;
 
-import com.elingo.admin.gamification.dto.request.LevelRequest;
-import com.elingo.admin.gamification.dto.response.AdminLevelResponse;
+import com.elingo.gamification.dto.request.LevelRequest;
+import com.elingo.gamification.dto.response.AdminLevelResponse;
 import com.elingo.admin.gamification.service.AdminLevelService;
 import com.elingo.common.dto.ApiResponse;
 import com.elingo.common.exception.AppError;

@@ -1,7 +1,7 @@
 package com.elingo.vocabulary.mapper;
 
-import com.elingo.admin.content.dto.request.CreateSystemTopicRequest;
-import com.elingo.admin.content.dto.request.UpdateSystemTopicRequest;
+import com.elingo.vocabulary.dto.request.CreateSystemTopicRequest;
+import com.elingo.vocabulary.dto.request.UpdateSystemTopicRequest;
 import com.elingo.vocabulary.dto.request.UpdateUserTopicRequest;
 import com.elingo.vocabulary.dto.response.TopicResponse;
 import com.elingo.vocabulary.entity.Topic;

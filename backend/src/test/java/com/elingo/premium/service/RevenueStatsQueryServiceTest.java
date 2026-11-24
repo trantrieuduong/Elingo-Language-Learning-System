@@ -38,10 +38,10 @@ class RevenueStatsQueryServiceTest {
         @Test
         @DisplayName("Should query month timeseries when granularity is MONTH")
         void getRevenueTimeSeries_Month_CallsMonthQuery() {
-            PaymentTransactionRepository.DateAmountCountProjection proj = mock(PaymentTransactionRepository.DateAmountCountProjection.class);
+            com.elingo.premium.dto.projection.DateAmountCountProjection proj = mock(com.elingo.premium.dto.projection.DateAmountCountProjection.class);
             when(paymentTransactionRepository.getRevenueTimeseriesByMonth(from, to)).thenReturn(List.of(proj));
 
-            List<PaymentTransactionRepository.DateAmountCountProjection> result =
+            List<com.elingo.premium.dto.projection.DateAmountCountProjection> result =
                     revenueStatsQueryService.getRevenueTimeSeries(from, to, StatsGranularity.MONTH);
 
             assertThat(result).hasSize(1).contains(proj);
@@ -52,10 +52,10 @@ class RevenueStatsQueryServiceTest {
         @Test
         @DisplayName("Should query day timeseries when granularity is DAY")
         void getRevenueTimeSeries_Day_CallsDayQuery() {
-            PaymentTransactionRepository.DateAmountCountProjection proj = mock(PaymentTransactionRepository.DateAmountCountProjection.class);
+            com.elingo.premium.dto.projection.DateAmountCountProjection proj = mock(com.elingo.premium.dto.projection.DateAmountCountProjection.class);
             when(paymentTransactionRepository.getRevenueTimeseriesByDay(from, to)).thenReturn(List.of(proj));
 
-            List<PaymentTransactionRepository.DateAmountCountProjection> result =
+            List<com.elingo.premium.dto.projection.DateAmountCountProjection> result =
                     revenueStatsQueryService.getRevenueTimeSeries(from, to, StatsGranularity.DAY);
 
             assertThat(result).hasSize(1).contains(proj);
@@ -66,10 +66,10 @@ class RevenueStatsQueryServiceTest {
         @Test
         @DisplayName("Should query week timeseries when granularity is WEEK")
         void getRevenueTimeSeries_Week_CallsWeekQuery() {
-            PaymentTransactionRepository.DateAmountCountProjection proj = mock(PaymentTransactionRepository.DateAmountCountProjection.class);
+            com.elingo.premium.dto.projection.DateAmountCountProjection proj = mock(com.elingo.premium.dto.projection.DateAmountCountProjection.class);
             when(paymentTransactionRepository.getRevenueTimeseriesByWeek(from, to)).thenReturn(List.of(proj));
 
-            List<PaymentTransactionRepository.DateAmountCountProjection> result =
+            List<com.elingo.premium.dto.projection.DateAmountCountProjection> result =
                     revenueStatsQueryService.getRevenueTimeSeries(from, to, StatsGranularity.WEEK);
 
             assertThat(result).hasSize(1).contains(proj);
@@ -84,10 +84,10 @@ class RevenueStatsQueryServiceTest {
         @Test
         @DisplayName("Should delegate to paymentTransactionRepository.getRevenueBreakdownByPlan")
         void getRevenueBreakdownByPlan_Success() {
-            PaymentTransactionRepository.PlanRevenueStat stat = mock(PaymentTransactionRepository.PlanRevenueStat.class);
+            com.elingo.premium.dto.projection.PlanRevenueStat stat = mock(com.elingo.premium.dto.projection.PlanRevenueStat.class);
             when(paymentTransactionRepository.getRevenueBreakdownByPlan(from, to)).thenReturn(List.of(stat));
 
-            List<PaymentTransactionRepository.PlanRevenueStat> result =
+            List<com.elingo.premium.dto.projection.PlanRevenueStat> result =
                     revenueStatsQueryService.getRevenueBreakdownByPlan(from, to);
 
             assertThat(result).hasSize(1).contains(stat);
@@ -102,10 +102,10 @@ class RevenueStatsQueryServiceTest {
         @Test
         @DisplayName("Should delegate to paymentTransactionRepository.countTransactionsByStatus")
         void countTransactionsByStatus_Success() {
-            PaymentTransactionRepository.TransactionStatusCount count = mock(PaymentTransactionRepository.TransactionStatusCount.class);
+            com.elingo.premium.dto.projection.TransactionStatusCount count = mock(com.elingo.premium.dto.projection.TransactionStatusCount.class);
             when(paymentTransactionRepository.countTransactionsByStatus(from, to)).thenReturn(List.of(count));
 
-            List<PaymentTransactionRepository.TransactionStatusCount> result =
+            List<com.elingo.premium.dto.projection.TransactionStatusCount> result =
                     revenueStatsQueryService.countTransactionsByStatus(from, to);
 
             assertThat(result).hasSize(1).contains(count);

@@ -1,6 +1,6 @@
 package com.elingo.user.repository.specification;
 
-import com.elingo.admin.users.dto.request.AdminUserSearchRequest;
+import com.elingo.user.dto.request.AdminUserSearchRequest;
 import com.elingo.user.entity.Role;
 import com.elingo.user.entity.User;
 import org.springframework.data.jpa.domain.Specification;

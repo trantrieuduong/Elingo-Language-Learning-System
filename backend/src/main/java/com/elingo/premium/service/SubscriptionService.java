@@ -1,5 +1,6 @@
 package com.elingo.premium.service;
 
+import com.elingo.premium.dto.projection.PlanSubscriptionStat;
 import com.elingo.premium.entity.UserSubscription;
 import com.elingo.premium.repository.UserSubscriptionRepository;
 
@@ -8,7 +9,7 @@ import java.util.List;
 
 public interface SubscriptionService {
     UserSubscription activateOrExtend(Long userId, Long planId);
-    List<UserSubscriptionRepository.PlanSubscriptionStat> countActiveSubscriptionsByPlan(LocalDateTime now);
+    List<PlanSubscriptionStat> countActiveSubscriptionsByPlan(LocalDateTime now);
     long countDistinctActivePremiumUsers(LocalDateTime now);
     long countTotalActiveSubscriptions(LocalDateTime now);
 }

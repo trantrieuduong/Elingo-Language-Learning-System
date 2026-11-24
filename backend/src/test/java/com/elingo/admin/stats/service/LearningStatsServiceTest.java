@@ -5,14 +5,19 @@ import com.elingo.admin.stats.dto.response.LearningStatsResponses;
 import com.elingo.admin.stats.service.impl.LearningStatsServiceImpl;
 import com.elingo.common.enums.StatsGranularity;
 import com.elingo.common.service.RedisService;
-import com.elingo.gamification.repository.XpEventRepository;
+import com.elingo.gamification.dto.projection.ActivityByDateProjection;
 import com.elingo.gamification.service.GamificationStatsQueryService;
 import com.elingo.learning.lesson.entity.LessonStatus;
-import com.elingo.learning.lesson.repository.LessonRepository;
+import com.elingo.learning.lesson.dto.projection.LessonPremiumCountProjection;
+import com.elingo.learning.lesson.dto.projection.LessonStatusCountProjection;
+import com.elingo.learning.lesson.dto.projection.TopLessonProjection;
 import com.elingo.learning.lesson.service.LessonStatsQueryService;
 import com.elingo.vocabulary.entity.DeckStatus;
 import com.elingo.vocabulary.entity.OwnerType;
-import com.elingo.vocabulary.repository.DeckRepository;
+import com.elingo.vocabulary.dto.projection.OwnerTypeCountProjection;
+import com.elingo.vocabulary.dto.projection.PremiumCountProjection;
+import com.elingo.vocabulary.dto.projection.StatusCountProjection;
+import com.elingo.vocabulary.dto.projection.TopDeckProjection;
 import com.elingo.vocabulary.service.VocabularyStatsQueryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -97,7 +102,7 @@ class LearningStatsServiceTest {
             String cacheKey = "admin:stats:learning:activity:from=2026-11-01&to=2026-11-03&granularity=DAY";
             when(redisService.get(cacheKey)).thenReturn(null);
 
-            XpEventRepository.ActivityByDateProjection proj = mock(XpEventRepository.ActivityByDateProjection.class);
+            ActivityByDateProjection proj = mock(ActivityByDateProjection.class);
             when(proj.getDateKey()).thenReturn("2026-11-01");
             when(proj.getFlashcardCount()).thenReturn(5L);
             when(proj.getDictationCount()).thenReturn(10L);
@@ -203,22 +208,22 @@ class LearningStatsServiceTest {
             String cacheKey = "admin:stats:learning:decks:limit=10";
             when(redisService.get(cacheKey)).thenReturn(null);
 
-            DeckRepository.StatusCountProjection statusProj = mock(DeckRepository.StatusCountProjection.class);
+            StatusCountProjection statusProj = mock(StatusCountProjection.class);
             when(statusProj.getStatus()).thenReturn(DeckStatus.PUBLISHED);
             when(statusProj.getCountVal()).thenReturn(80L);
             when(vocabularyStatsQueryService.countDecksByStatus()).thenReturn(List.of(statusProj));
 
-            DeckRepository.OwnerTypeCountProjection ownerProj = mock(DeckRepository.OwnerTypeCountProjection.class);
+            OwnerTypeCountProjection ownerProj = mock(OwnerTypeCountProjection.class);
             when(ownerProj.getOwnerType()).thenReturn(OwnerType.SYSTEM);
             when(ownerProj.getCountVal()).thenReturn(80L);
             when(vocabularyStatsQueryService.countDecksByOwnerType()).thenReturn(List.of(ownerProj));
 
-            DeckRepository.PremiumCountProjection premiumProj = mock(DeckRepository.PremiumCountProjection.class);
+            PremiumCountProjection premiumProj = mock(PremiumCountProjection.class);
             when(premiumProj.getIsPremium()).thenReturn(true);
             when(premiumProj.getCountVal()).thenReturn(80L);
             when(vocabularyStatsQueryService.countDecksByPremium()).thenReturn(List.of(premiumProj));
 
-            DeckRepository.TopDeckProjection topSys = mock(DeckRepository.TopDeckProjection.class);
+            TopDeckProjection topSys = mock(TopDeckProjection.class);
             when(topSys.getDeckId()).thenReturn(1L);
             when(topSys.getTitle()).thenReturn("System Deck");
             when(topSys.getCoverImageUrl()).thenReturn("img.jpg");
@@ -228,7 +233,7 @@ class LearningStatsServiceTest {
             when(topSys.getLearnerCount()).thenReturn(500L);
             when(vocabularyStatsQueryService.getTopDecksByOwnerType(OwnerType.SYSTEM, 10)).thenReturn(List.of(topSys));
 
-            DeckRepository.TopDeckProjection topUser = mock(DeckRepository.TopDeckProjection.class);
+            TopDeckProjection topUser = mock(TopDeckProjection.class);
             when(topUser.getDeckId()).thenReturn(2L);
             when(topUser.getTitle()).thenReturn("User Deck");
             when(topUser.getCoverImageUrl()).thenReturn(null);
@@ -303,17 +308,17 @@ class LearningStatsServiceTest {
             String cacheKey = "admin:stats:learning:lessons:limit=10";
             when(redisService.get(cacheKey)).thenReturn(null);
 
-            LessonRepository.LessonStatusCountProjection statusProj = mock(LessonRepository.LessonStatusCountProjection.class);
+            LessonStatusCountProjection statusProj = mock(LessonStatusCountProjection.class);
             when(statusProj.getStatus()).thenReturn(LessonStatus.PUBLISHED);
             when(statusProj.getCountVal()).thenReturn(50L);
             when(lessonStatsQueryService.countLessonsByStatus()).thenReturn(List.of(statusProj));
 
-            LessonRepository.LessonPremiumCountProjection premiumProj = mock(LessonRepository.LessonPremiumCountProjection.class);
+            LessonPremiumCountProjection premiumProj = mock(LessonPremiumCountProjection.class);
             when(premiumProj.getIsPremium()).thenReturn(false);
             when(premiumProj.getCountVal()).thenReturn(50L);
             when(lessonStatsQueryService.countLessonsByPremium()).thenReturn(List.of(premiumProj));
 
-            LessonRepository.TopLessonProjection topProj = mock(LessonRepository.TopLessonProjection.class);
+            TopLessonProjection topProj = mock(TopLessonProjection.class);
             when(topProj.getLessonId()).thenReturn(10L);
             when(topProj.getTitle()).thenReturn("Lesson 1");
             when(topProj.getThumbnailUrl()).thenReturn("thumb.jpg");

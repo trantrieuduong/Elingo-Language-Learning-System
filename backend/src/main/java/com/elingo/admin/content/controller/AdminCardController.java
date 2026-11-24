@@ -1,7 +1,8 @@
 package com.elingo.admin.content.controller;
 
-import com.elingo.admin.content.dto.request.CreateSystemCardRequest;
-import com.elingo.admin.content.dto.request.UpdateSystemCardRequest;
+import com.elingo.admin.common.constant.AdminApiPaths;
+import com.elingo.vocabulary.dto.request.CreateSystemCardRequest;
+import com.elingo.vocabulary.dto.request.UpdateSystemCardRequest;
 import com.elingo.admin.content.service.AdminCardService;
 import com.elingo.common.dto.ApiResponse;
 import com.elingo.vocabulary.dto.response.CardResponse;
@@ -17,11 +18,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/admin/cards")
+@RequestMapping(AdminApiPaths.CARDS)
 @PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
 @Tag(
-        name = "Admin Card Controller",
+        name = "Admin - Cards",
         description = "Management endpoints for system flashcards in the admin console"
 )
 public class AdminCardController {

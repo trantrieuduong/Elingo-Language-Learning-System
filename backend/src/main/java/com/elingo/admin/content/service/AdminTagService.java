@@ -1,6 +1,6 @@
 package com.elingo.admin.content.service;
 
-import com.elingo.admin.content.dto.request.TagRequest;
+import com.elingo.vocabulary.dto.request.TagRequest;
 import com.elingo.vocabulary.dto.response.TagResponse;
 
 import java.util.List;

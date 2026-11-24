@@ -5,11 +5,11 @@ import com.elingo.admin.stats.dto.response.UserStatsResponses;
 import com.elingo.admin.stats.service.UserStatsService;
 import com.elingo.admin.stats.util.StatsZeroFiller;
 import com.elingo.common.service.RedisService;
-import com.elingo.gamification.repository.UserXpRepository;
-import com.elingo.gamification.repository.XpEventRepository;
+import com.elingo.gamification.dto.projection.DateCountProjection;
+import com.elingo.gamification.dto.projection.LevelDistribution;
 import com.elingo.gamification.service.GamificationStatsQueryService;
 import com.elingo.premium.service.SubscriptionService;
-import com.elingo.user.repository.UserRepository;
+import com.elingo.user.dto.projection.NewUserStats;
 import com.elingo.user.service.UserService;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
@@ -56,11 +56,11 @@ public class UserStatsServiceImpl implements UserStatsService {
 
         long totalBeforeRange = userService.countUsersBefore(fromTime);
 
-        List<UserRepository.NewUserStats> rawData = userService.countNewUsers(
+        List<NewUserStats> rawData = userService.countNewUsers(
                 fromTime, toTime, safeRequest.granularity());
 
         Map<String, Long> rawMap = new HashMap<>();
-        for (UserRepository.NewUserStats proj : rawData) {
+        for (NewUserStats proj : rawData) {
             if (proj.getPeriodKey() != null) {
                 rawMap.put(proj.getPeriodKey(), proj.getCountVal() != null ? proj.getCountVal() : 0L);
             }
@@ -103,9 +103,9 @@ public class UserStatsServiceImpl implements UserStatsService {
         LocalDateTime fromTime = safeRequest.from().atStartOfDay();
         LocalDateTime toTime = safeRequest.to().plusDays(1).atStartOfDay();
 
-        List<XpEventRepository.DateCountProjection> rawData = gamificationStatsQueryService.countDauTimeSeries(fromTime, toTime);
+        List<DateCountProjection> rawData = gamificationStatsQueryService.countDauTimeSeries(fromTime, toTime);
         Map<String, Long> rawMap = new HashMap<>();
-        for (XpEventRepository.DateCountProjection proj : rawData) {
+        for (DateCountProjection proj : rawData) {
             if (proj.getPeriodKey() != null) {
                 rawMap.put(proj.getPeriodKey(), proj.getCountVal() != null ? proj.getCountVal() : 0L);
             }
@@ -170,7 +170,7 @@ public class UserStatsServiceImpl implements UserStatsService {
         double activePercentage = totalUsers > 0 ? Math.round(((double) activeCount / totalUsers) * 10000.0) / 100.0 : 0.0;
         double premiumPercentage = totalUsers > 0 ? Math.round(((double) premiumCount / totalUsers) * 10000.0) / 100.0 : 0.0;
 
-        List<UserXpRepository.LevelDistribution> rawLevels = gamificationStatsQueryService.countUsersByLevel();
+        List<LevelDistribution> rawLevels = gamificationStatsQueryService.countUsersByLevel();
         List<UserStatsResponses.StatPoint<Short, Long>> levelDistribution = rawLevels.stream().map(lvl ->
                 new UserStatsResponses.StatPoint<>(
                         lvl.getLevelNo(),

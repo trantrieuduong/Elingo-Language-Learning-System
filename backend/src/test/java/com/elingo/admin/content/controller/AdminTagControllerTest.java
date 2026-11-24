@@ -1,6 +1,6 @@
 package com.elingo.admin.content.controller;
 
-import com.elingo.admin.content.dto.request.TagRequest;
+import com.elingo.vocabulary.dto.request.TagRequest;
 import com.elingo.admin.content.service.AdminTagService;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;

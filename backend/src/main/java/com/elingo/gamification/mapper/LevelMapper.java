@@ -1,7 +1,7 @@
 package com.elingo.gamification.mapper;
 
-import com.elingo.admin.gamification.dto.request.LevelRequest;
-import com.elingo.admin.gamification.dto.response.AdminLevelResponse;
+import com.elingo.gamification.dto.request.LevelRequest;
+import com.elingo.gamification.dto.response.AdminLevelResponse;
 import com.elingo.gamification.dto.response.LevelResponse;
 import com.elingo.gamification.entity.Level;
 import org.mapstruct.Mapper;

@@ -1,7 +1,8 @@
 package com.elingo.admin.gamification.controller;
 
-import com.elingo.admin.gamification.dto.request.LevelRequest;
-import com.elingo.admin.gamification.dto.response.AdminLevelResponse;
+import com.elingo.admin.common.constant.AdminApiPaths;
+import com.elingo.gamification.dto.request.LevelRequest;
+import com.elingo.gamification.dto.response.AdminLevelResponse;
 import com.elingo.admin.gamification.service.AdminLevelService;
 import com.elingo.common.dto.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,7 +10,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
@@ -20,11 +20,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/admin/gamification/levels")
+@RequestMapping(AdminApiPaths.GAMIFICATION_LEVELS)
 @PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
 @Tag(
-        name = "Admin Level Controller",
+        name = "Admin - Levels",
         description = "Management endpoints for level XP thresholds in the admin console"
 )
 public class AdminLevelController {
@@ -33,9 +33,8 @@ public class AdminLevelController {
 
     @GetMapping
     @Operation(summary = "Get all levels", description = "Retrieves all level thresholds sorted by level number")
-    @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "200",
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
                     description = "List of level milestones retrieved successfully",
                     content = @Content(
                             mediaType = "application/json",
@@ -66,10 +65,9 @@ public class AdminLevelController {
                                             """
                             )
                     )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized - Authentication token is missing or expired"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden - Admin privileges required")
-    })
+            )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized - Authentication token is missing or expired")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden - Admin privileges required")
     public ApiResponse<List<AdminLevelResponse>> getAllLevels() {
         return ApiResponse.<List<AdminLevelResponse>>builder()
                 .success(true)
@@ -79,9 +77,8 @@ public class AdminLevelController {
 
     @GetMapping("/{levelNo}")
     @Operation(summary = "Get level by number", description = "Retrieves a specific level threshold by level number")
-    @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "200",
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
                     description = "Level milestone retrieved successfully",
                     content = @Content(
                             mediaType = "application/json",
@@ -103,12 +100,11 @@ public class AdminLevelController {
                                             """
                             )
                     )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad Request - Invalid level number"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized - Authentication token is missing or expired"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden - Admin privileges required"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Not Found - Level milestone does not exist")
-    })
+            )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad Request - Invalid level number")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized - Authentication token is missing or expired")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden - Admin privileges required")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Not Found - Level milestone does not exist")
     public ApiResponse<AdminLevelResponse> getLevelByNo(
             @Parameter(description = "Sequential level number", example = "2")
             @PathVariable @Positive(message = "INVALID_REQUEST") Short levelNo) {
@@ -137,9 +133,8 @@ public class AdminLevelController {
                     )
             )
     )
-    @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "200",
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
                     description = "Level milestone created successfully",
                     content = @Content(
                             mediaType = "application/json",
@@ -161,11 +156,10 @@ public class AdminLevelController {
                                             """
                             )
                     )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad Request - Invalid payload or required XP violates ascending order"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized - Authentication token is missing or expired"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden - Admin privileges required")
-    })
+            )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad Request - Invalid payload or required XP violates ascending order")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized - Authentication token is missing or expired")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden - Admin privileges required")
     public ApiResponse<AdminLevelResponse> createLevel(
             @Valid @RequestBody LevelRequest request) {
         return ApiResponse.<AdminLevelResponse>builder()
@@ -193,9 +187,8 @@ public class AdminLevelController {
                     )
             )
     )
-    @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "200",
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
                     description = "Level milestone updated successfully",
                     content = @Content(
                             mediaType = "application/json",
@@ -217,12 +210,11 @@ public class AdminLevelController {
                                             """
                             )
                     )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad Request - Invalid payload, modifying default level 1, or XP order violation"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized - Authentication token is missing or expired"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden - Admin privileges required"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Not Found - Level milestone does not exist")
-    })
+            )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad Request - Invalid payload, modifying default level 1, or XP order violation")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized - Authentication token is missing or expired")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden - Admin privileges required")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Not Found - Level milestone does not exist")
     public ApiResponse<AdminLevelResponse> updateLevel(
             @Parameter(description = "Sequential level number to update", example = "2")
             @PathVariable @Positive(message = "INVALID_REQUEST") Short levelNo,
@@ -235,9 +227,8 @@ public class AdminLevelController {
 
     @DeleteMapping("/{levelNo}")
     @Operation(summary = "Delete level", description = "Deletes a level threshold. Default level 1 cannot be deleted")
-    @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "200",
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
                     description = "Level milestone deleted successfully",
                     content = @Content(
                             mediaType = "application/json",
@@ -252,12 +243,11 @@ public class AdminLevelController {
                                             """
                             )
                     )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad Request - Default level 1 cannot be deleted"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized - Authentication token is missing or expired"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden - Admin privileges required"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Not Found - Level milestone does not exist")
-    })
+            )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Bad Request - Default level 1 cannot be deleted")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized - Authentication token is missing or expired")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden - Admin privileges required")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Not Found - Level milestone does not exist")
     public ApiResponse<Void> deleteLevel(
             @Parameter(description = "Sequential level number to delete", example = "2")
             @PathVariable @Positive(message = "INVALID_REQUEST") Short levelNo) {

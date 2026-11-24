@@ -34,12 +34,12 @@ class LessonStatsQueryServiceTest {
         @Test
         @DisplayName("Should delegate to lessonRepository.countLessonsByStatus")
         void countLessonsByStatus_Success() {
-            LessonRepository.LessonStatusCountProjection proj = mock(LessonRepository.LessonStatusCountProjection.class);
+            com.elingo.learning.lesson.dto.projection.LessonStatusCountProjection proj = mock(com.elingo.learning.lesson.dto.projection.LessonStatusCountProjection.class);
             when(proj.getStatus()).thenReturn(LessonStatus.PUBLISHED);
             when(proj.getCountVal()).thenReturn(20L);
             when(lessonRepository.countLessonsByStatus()).thenReturn(List.of(proj));
 
-            List<LessonRepository.LessonStatusCountProjection> result = lessonStatsQueryService.countLessonsByStatus();
+            List<com.elingo.learning.lesson.dto.projection.LessonStatusCountProjection> result = lessonStatsQueryService.countLessonsByStatus();
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getStatus()).isEqualTo(LessonStatus.PUBLISHED);
@@ -55,12 +55,12 @@ class LessonStatsQueryServiceTest {
         @Test
         @DisplayName("Should delegate to lessonRepository.countLessonsByPremium")
         void countLessonsByPremium_Success() {
-            LessonRepository.LessonPremiumCountProjection proj = mock(LessonRepository.LessonPremiumCountProjection.class);
+            com.elingo.learning.lesson.dto.projection.LessonPremiumCountProjection proj = mock(com.elingo.learning.lesson.dto.projection.LessonPremiumCountProjection.class);
             when(proj.getIsPremium()).thenReturn(false);
             when(proj.getCountVal()).thenReturn(15L);
             when(lessonRepository.countLessonsByPremium()).thenReturn(List.of(proj));
 
-            List<LessonRepository.LessonPremiumCountProjection> result = lessonStatsQueryService.countLessonsByPremium();
+            List<com.elingo.learning.lesson.dto.projection.LessonPremiumCountProjection> result = lessonStatsQueryService.countLessonsByPremium();
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getIsPremium()).isFalse();
@@ -76,11 +76,11 @@ class LessonStatsQueryServiceTest {
         @Test
         @DisplayName("Should delegate to lessonRepository.findTopLessonsByCompletion with limit")
         void getTopLessonsByCompletion_Success() {
-            LessonRepository.TopLessonProjection proj = mock(LessonRepository.TopLessonProjection.class);
+            com.elingo.learning.lesson.dto.projection.TopLessonProjection proj = mock(com.elingo.learning.lesson.dto.projection.TopLessonProjection.class);
             when(proj.getLessonId()).thenReturn(10L);
             when(lessonRepository.findTopLessonsByCompletion(10)).thenReturn(List.of(proj));
 
-            List<LessonRepository.TopLessonProjection> result = lessonStatsQueryService.getTopLessonsByCompletion(10);
+            List<com.elingo.learning.lesson.dto.projection.TopLessonProjection> result = lessonStatsQueryService.getTopLessonsByCompletion(10);
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getLessonId()).isEqualTo(10L);
@@ -92,7 +92,7 @@ class LessonStatsQueryServiceTest {
         void getTopLessonsByCompletion_EnforcesMinimumLimit() {
             when(lessonRepository.findTopLessonsByCompletion(1)).thenReturn(List.of());
 
-            List<LessonRepository.TopLessonProjection> result = lessonStatsQueryService.getTopLessonsByCompletion(-1);
+            List<com.elingo.learning.lesson.dto.projection.TopLessonProjection> result = lessonStatsQueryService.getTopLessonsByCompletion(-1);
 
             assertThat(result).isEmpty();
             verify(lessonRepository).findTopLessonsByCompletion(1);

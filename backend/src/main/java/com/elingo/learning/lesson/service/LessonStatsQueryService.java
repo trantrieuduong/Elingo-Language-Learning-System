@@ -1,11 +1,13 @@
 package com.elingo.learning.lesson.service;
 
-import com.elingo.learning.lesson.repository.LessonRepository;
+import com.elingo.learning.lesson.dto.projection.LessonPremiumCountProjection;
+import com.elingo.learning.lesson.dto.projection.LessonStatusCountProjection;
+import com.elingo.learning.lesson.dto.projection.TopLessonProjection;
 
 import java.util.List;
 
 public interface LessonStatsQueryService {
-    List<LessonRepository.LessonStatusCountProjection> countLessonsByStatus();
-    List<LessonRepository.LessonPremiumCountProjection> countLessonsByPremium();
-    List<LessonRepository.TopLessonProjection> getTopLessonsByCompletion(int limit);
+    List<LessonStatusCountProjection> countLessonsByStatus();
+    List<LessonPremiumCountProjection> countLessonsByPremium();
+    List<TopLessonProjection> getTopLessonsByCompletion(int limit);
 }
