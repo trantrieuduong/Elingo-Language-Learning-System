@@ -14,6 +14,7 @@ import {
 import Pagination from '../../../../components/Pagination/Pagination';
 import FilterSection from '../../../../components/FilterSection/FilterSection';
 import ProgressBar from '../../../../components/ProgressBar/ProgressBar';
+import Tabs from '../../../../components/Tabs/Tabs';
 import EmptyState from '../../../../components/EmptyState/EmptyState';
 import PageLoading from '../../../../components/PageLoading/PageLoading';
 import Toast from '../../../../components/Toast/Toast';
@@ -401,40 +402,36 @@ function DeckListPage({ onNavigate }) {
 
         {/* Thanh chuyển đổi tab bộ từ */}
         <section className="deck-tabs-section">
-          <div className="deck-tabs glass-well">
-            <button
-              type="button"
-              className={`deck-tab-btn ${activeTab === 'system-decks' ? 'deck-tab-btn--active' : ''}`}
-              onClick={() => {
-                setSelectedTab('system-decks');
+          <Tabs
+            tabs={[
+              {
+                key: 'system-decks',
+                label: t('userDeck.tabs.systemDecks'),
+                icon: 'auto_stories',
+              },
+              {
+                key: 'community-decks',
+                label: t('userDeck.tabs.explore'),
+                icon: 'explore',
+              },
+              ...(user
+                ? [
+                    {
+                      key: 'my-decks',
+                      label: t('userDeck.tabs.myDecks'),
+                      icon: 'folder_shared',
+                    },
+                  ]
+                : []),
+            ]}
+            activeTab={activeTab}
+            onChange={(tabKey) => {
+              setSelectedTab(tabKey);
+              if (tabKey !== 'my-decks') {
                 setPage(1);
-              }}
-            >
-              <span className="material-symbols-outlined">auto_stories</span>
-              {t('userDeck.tabs.systemDecks')}
-            </button>
-            <button
-              type="button"
-              className={`deck-tab-btn ${activeTab === 'community-decks' ? 'deck-tab-btn--active' : ''}`}
-              onClick={() => {
-                setSelectedTab('community-decks');
-                setPage(1);
-              }}
-            >
-              <span className="material-symbols-outlined">explore</span>
-              {t('userDeck.tabs.explore')}
-            </button>
-            {user && (
-              <button
-                type="button"
-                className={`deck-tab-btn ${activeTab === 'my-decks' ? 'deck-tab-btn--active' : ''}`}
-                onClick={() => setSelectedTab('my-decks')}
-              >
-                <span className="material-symbols-outlined">folder_shared</span>
-                {t('userDeck.tabs.myDecks')}
-              </button>
-            )}
-          </div>
+              }
+            }}
+          />
 
           {/* Nút tạo bộ từ mới khi ở tab Bộ từ của tôi */}
           {activeTab === 'my-decks' && (

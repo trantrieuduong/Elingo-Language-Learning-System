@@ -1,3 +1,104 @@
 {
-  "xpToast": "+{{xp}} XP"
+  "xpToast": "+{{xp}} XP",
+  "title": "Gamification & Achievements",
+  "subtitle": "Track your learning progress, badges, and rankings on the leaderboard.",
+  "tabs": {
+    "overview": "Overview",
+    "levels": "Levels",
+    "leaderboard": "Leaderboard"
+  },
+  "overview": {
+    "rankCard": {
+      "title": "Current Rank",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "rank": "Rank #{{rank}}",
+      "unranked": "Unranked",
+      "totalXp": "{{xp}} XP earned",
+      "diffToNext": "Need {{xp}} more XP to pass the next rank",
+      "topRank": "You are leading the leaderboard!"
+    },
+    "levelCard": {
+      "title": "Current Level",
+      "level": "Level {{level}}",
+      "totalXp": "Total XP: {{xp}}",
+      "progressTitle": "Level Progression",
+      "nextLevel": "Need {{xp}} more XP to reach {{title}} (Level {{level}})",
+      "maxLevel": "You have reached the maximum level!"
+    },
+    "streakCard": {
+      "title": "Learning Streak",
+      "currentStreak": "Current streak: {{days}} days",
+      "longestStreak": "Longest streak: {{days}} days",
+      "checkedInToday": "Checked in today",
+      "notCheckedInToday": "Not checked in today",
+      "checkinHelp": "Learn today to keep your streak going!",
+      "calendarTitle": "Activity Calendar {{month}}/{{year}}",
+      "checkinDaysCount": "Checked in {{count}} days this month",
+      "prevMonth": "Previous month",
+      "nextMonth": "Next month",
+      "weekDays": {
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat",
+        "sun": "Sun"
+      }
+    },
+    "badgesCard": {
+      "title": "Badge Collection",
+      "badgeCount": "{{count}} badges earned",
+      "emptyTitle": "No badges yet",
+      "emptyDesc": "Complete milestones and maintain your streak to unlock achievements!",
+      "earnedAt": "Earned on {{date}}"
+    }
+  },
+  "levels": {
+    "title": "Level Roadmap",
+    "desc": "Accumulate XP through learning lessons, vocabularies, checkin and matches to advance through levels.",
+    "currentLevelBadge": "Current Level",
+    "completedLevel": "Completed",
+    "lockedLevel": "Locked",
+    "requiredXp": "Requirement: {{xp}} XP",
+    "level": "Level {{level}}",
+    "myProgress": "Your Progress",
+    "emptyLevels": "No level milestones configured"
+  },
+  "leaderboard": {
+    "title": "Hall of Fame",
+    "desc": "Compete with friends and the Elingo community to reach the top rankings.",
+    "realtimeTab": "Live",
+    "historyTab": "History",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "periodKey": "Period: {{key}}",
+    "selectPeriod": "Select past period",
+    "currentPeriod": "Current Period",
+    "historyWeeklyHint": "e.g. 2026-W45",
+    "historyMonthlyHint": "e.g. 2026-10",
+    "columns": {
+      "rank": "Rank",
+      "user": "Learner",
+      "xp": "Total XP"
+    },
+    "myRankBanner": {
+      "title": "Your standing:",
+      "rank": "#{{rank}}",
+      "unranked": "Unranked",
+      "xp": "{{xp}} XP",
+      "diff": "Behind next rank: +{{xp}} XP"
+    },
+    "emptyTitle": "No rankings yet",
+    "emptyDesc": "No leaderboard rankings available for this period.",
+    "anonymousUser": "Elingo Learner"
+  },
+  "common": {
+    "loading": "Loading...",
+    "retry": "Retry",
+    "loadError": "Could not load gamification details. Please try again later.",
+    "viewHistory": "Past Periods",
+    "backToCurrent": "Back to Live"
+  }
 }

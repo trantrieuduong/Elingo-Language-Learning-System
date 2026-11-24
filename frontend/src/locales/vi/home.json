@@ -34,9 +34,18 @@
     "title": "Tất cả những gì bạn cần để làm chủ tiếng Anh",
     "description": "ELINGO đồng hành cùng bạn trong suốt quá trình học: học từ vựng, luyện nghe và cải thiện phát âm",
     "items": {
-      "vocabulary": { "title": "Kho từ vựng", "description": "Flashcard thông minh với lịch ôn tập cá nhân." },
-      "dictation": { "title": "Nghe chép", "description": "Bài luyện nghe theo ngữ cảnh đời sống." },
-      "shadowing": { "title": "Shadowing AI", "description": "Phản hồi phát âm theo từng âm tiết." },
+      "vocabulary": {
+        "title": "Kho từ vựng",
+        "description": "Flashcard thông minh với lịch ôn tập cá nhân."
+      },
+      "dictation": {
+        "title": "Nghe chép",
+        "description": "Bài luyện nghe theo ngữ cảnh đời sống."
+      },
+      "shadowing": {
+        "title": "Shadowing AI",
+        "description": "Phản hồi phát âm theo từng âm tiết."
+      },
       "arena": { "title": "Arena 1vs1", "description": "Đấu trường từ vựng theo thời gian thực." },
       "community": { "title": "Cộng đồng", "description": "Cùng học, chia sẻ và duy trì động lực." }
     }

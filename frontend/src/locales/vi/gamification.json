@@ -1,3 +1,104 @@
 {
-  "xpToast": "+{{xp}} XP"
+  "xpToast": "+{{xp}} XP",
+  "title": "Gamification & Thành tích",
+  "subtitle": "Theo dõi tiến trình học tập, huy hiệu và thứ hạng của bạn trên bảng xếp hạng.",
+  "tabs": {
+    "overview": "Tổng quan",
+    "levels": "Cấp độ",
+    "leaderboard": "Bảng xếp hạng"
+  },
+  "overview": {
+    "rankCard": {
+      "title": "Thứ hạng hiện tại",
+      "weekly": "Tuần",
+      "monthly": "Tháng",
+      "rank": "Hạng #{{rank}}",
+      "unranked": "Chưa xếp hạng",
+      "totalXp": "{{xp}} XP tích lũy",
+      "diffToNext": "Cần thêm {{xp}} XP để vượt người đứng trước",
+      "topRank": "Bạn đang dẫn đầu bảng xếp hạng!"
+    },
+    "levelCard": {
+      "title": "Cấp độ hiện tại",
+      "level": "Cấp {{level}}",
+      "totalXp": "Tổng XP: {{xp}}",
+      "progressTitle": "Tiến độ lên cấp",
+      "nextLevel": "Cần thêm {{xp}} XP để đạt {{title}} (Cấp {{level}})",
+      "maxLevel": "Bạn đã đạt cấp độ tối đa!"
+    },
+    "streakCard": {
+      "title": "Chuỗi học tập (Streak)",
+      "currentStreak": "Streak hiện tại: {{days}} ngày",
+      "longestStreak": "Kỷ lục dài nhất: {{days}} ngày",
+      "checkedInToday": "Đã check-in hôm nay",
+      "notCheckedInToday": "Chưa check-in hôm nay",
+      "checkinHelp": "Học bài ngay hôm nay để duy trì streak nhé!",
+      "calendarTitle": "Lịch hoạt động tháng {{month}}/{{year}}",
+      "checkinDaysCount": "Đã check-in {{count}} ngày trong tháng",
+      "prevMonth": "Tháng trước",
+      "nextMonth": "Tháng sau",
+      "weekDays": {
+        "mon": "T2",
+        "tue": "T3",
+        "wed": "T4",
+        "thu": "T5",
+        "fri": "T6",
+        "sat": "T7",
+        "sun": "CN"
+      }
+    },
+    "badgesCard": {
+      "title": "Bộ sưu tập huy hiệu",
+      "badgeCount": "{{count}} huy hiệu đã đạt",
+      "emptyTitle": "Chưa có huy hiệu nào",
+      "emptyDesc": "Hoàn thành các mốc học tập và duy trì streak để mở khóa các huy hiệu vinh danh!",
+      "earnedAt": "Đạt được ngày {{date}}"
+    }
+  },
+  "levels": {
+    "title": "Lộ trình cấp độ",
+    "desc": "Tích lũy XP từ việc học bài học, bộ từ, điểm danh và thi đấu để thăng hạng qua các cấp độ.",
+    "currentLevelBadge": "Cấp hiện tại",
+    "completedLevel": "Đã hoàn thành",
+    "lockedLevel": "Chưa mở khóa",
+    "requiredXp": "Yêu cầu: {{xp}} XP",
+    "level": "Cấp {{level}}",
+    "myProgress": "Tiến độ của bạn",
+    "emptyLevels": "Chưa có thông tin cấp độ"
+  },
+  "leaderboard": {
+    "title": "Bảng vinh danh",
+    "desc": "Cạnh tranh cùng bạn bè và cộng đồng Elingo để đạt thứ hạng cao nhất.",
+    "realtimeTab": "Hiện tại",
+    "historyTab": "Lịch sử",
+    "weekly": "Theo tuần",
+    "monthly": "Theo tháng",
+    "periodKey": "Kỳ: {{key}}",
+    "selectPeriod": "Chọn kỳ xem lại",
+    "currentPeriod": "Kỳ hiện tại",
+    "historyWeeklyHint": "Ví dụ: 2026-W45",
+    "historyMonthlyHint": "Ví dụ: 2026-10",
+    "columns": {
+      "rank": "Hạng",
+      "user": "Người dùng",
+      "xp": "Tổng XP"
+    },
+    "myRankBanner": {
+      "title": "Vị trí của bạn:",
+      "rank": "#{{rank}}",
+      "unranked": "Chưa có hạng",
+      "xp": "{{xp}} XP",
+      "diff": "Khoảng cách đến hạng kế: +{{xp}} XP"
+    },
+    "emptyTitle": "Chưa có bảng xếp hạng",
+    "emptyDesc": "Hiện tại chưa có dữ liệu xếp hạng cho kỳ này.",
+    "anonymousUser": "Học viên Elingo"
+  },
+  "common": {
+    "loading": "Đang tải dữ liệu...",
+    "retry": "Thử lại",
+    "loadError": "Không thể tải dữ liệu gamification. Vui lòng thử lại sau.",
+    "viewHistory": "Xem lịch sử",
+    "backToCurrent": "Quay lại hiện tại"
+  }
 }

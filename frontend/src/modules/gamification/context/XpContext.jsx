@@ -38,4 +38,3 @@ export const XpProvider = ({ children }) => {
 };
 
 export const useXp = () => useContext(XpContext);
-

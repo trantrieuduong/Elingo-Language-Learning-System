@@ -34,6 +34,7 @@ import SpeakingHistoryPage from './modules/speaking/pages/SpeakingHistoryPage';
 import ReportPage from './modules/report/pages/ReportPage';
 import MyProfilePage from './modules/user/pages/MyProfilePage';
 import UserProfilePage from './modules/user/pages/UserProfilePage';
+import GamificationPage from './modules/gamification/pages/GamificationPage';
 import './App.css';
 
 const AdminRoutes = lazy(() => import('./modules/admin/routes'));
@@ -258,7 +259,7 @@ function App() {
       case '/progress':
         return <PlaceholderPage title="Progress" path={currentPath} />;
       case '/gamification':
-        return <PlaceholderPage title="Gamification" path={currentPath} />;
+        return <GamificationPage onNavigate={navigate} />;
       case '/premium':
         return <PremiumListPage onNavigate={navigate} />;
       case '/premium/my-subscription':

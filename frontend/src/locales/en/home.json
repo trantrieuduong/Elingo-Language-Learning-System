@@ -34,11 +34,23 @@
     "title": "Everything you need to master English",
     "description": "ELINGO accompanies you throughout your learning journey: vocabulary, listening practice, and pronunciation improvement.",
     "items": {
-      "vocabulary": { "title": "Vocabulary vault", "description": "Smart flashcards with personalised review schedules." },
-      "dictation": { "title": "Dictation", "description": "Context-based listening exercises from everyday life." },
-      "shadowing": { "title": "Shadowing AI", "description": "Syllable-level pronunciation feedback." },
+      "vocabulary": {
+        "title": "Vocabulary vault",
+        "description": "Smart flashcards with personalised review schedules."
+      },
+      "dictation": {
+        "title": "Dictation",
+        "description": "Context-based listening exercises from everyday life."
+      },
+      "shadowing": {
+        "title": "Shadowing AI",
+        "description": "Syllable-level pronunciation feedback."
+      },
       "arena": { "title": "Arena 1vs1", "description": "Real-time vocabulary battle arena." },
-      "community": { "title": "Community", "description": "Learn together, share, and stay motivated." }
+      "community": {
+        "title": "Community",
+        "description": "Learn together, share, and stay motivated."
+      }
     }
   },
   "features": {
