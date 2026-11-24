@@ -145,94 +145,87 @@ export const createPeerManager = ({
     }
   };
 
+  const handleReadySignal = (fromUserId) => {
+    if (!shouldOffer(selfId, fromUserId)) return;
+
+    removePeerInternal(fromUserId);
+    const newEntry = create(fromUserId);
+    makeOffer(fromUserId, newEntry);
+  };
+
+  const handleOfferSignal = (fromUserId, sid, desc) => {
+    let entry = peers.get(fromUserId);
+    if (!entry || entry.sid !== sid || entry.remoteSet) {
+      removePeerInternal(fromUserId);
+      entry = create(fromUserId, sid);
+    }
+
+    enqueue(entry, async () => {
+      if (closed || peers.get(fromUserId) !== entry) return;
+      try {
+        entry.sid = sid;
+        await entry.pc.setRemoteDescription(desc);
+        entry.remoteSet = true;
+        await flushIce(entry);
+        const answer = await entry.pc.createAnswer();
+        await entry.pc.setLocalDescription(answer);
+        sendSignal(fromUserId, 'ANSWER', {
+          sid: entry.sid,
+          desc: entry.pc.localDescription.toJSON(),
+        });
+      } catch {
+        onLinkState(fromUserId, 'failed');
+      }
+    });
+  };
+
+  const handleAnswerSignal = (fromUserId, sid, desc) => {
+    const entry = peers.get(fromUserId);
+    if (!entry || (sid && entry.sid !== sid)) return;
+
+    enqueue(entry, async () => {
+      if (closed || peers.get(fromUserId) !== entry) return;
+      try {
+        await entry.pc.setRemoteDescription(desc);
+        entry.remoteSet = true;
+        await flushIce(entry);
+      } catch {
+        onLinkState(fromUserId, 'failed');
+      }
+    });
+  };
+
+  const handleIceSignal = (fromUserId, sid, candidate) => {
+    const entry = peers.get(fromUserId);
+    if (!entry || (sid && entry.sid !== sid)) return;
+
+    enqueue(entry, async () => {
+      if (closed || peers.get(fromUserId) !== entry) return;
+      if (!entry.remoteSet) {
+        entry.pendingIce.push(candidate);
+        return;
+      }
+
+      try {
+        await entry.pc.addIceCandidate(candidate);
+      } catch {
+        // bỏ qua candidate không hợp lệ
+      }
+    });
+  };
+
   const handleSignal = ({ fromUserId, type, payload }) => {
     if (closed || String(fromUserId) === String(selfId)) return;
 
-    // 1. Xử lý tín hiệu READY
-    if (type === 'READY') {
-      if (shouldOffer(selfId, fromUserId)) {
-        removePeerInternal(fromUserId);
-        const newEntry = create(fromUserId);
-        makeOffer(fromUserId, newEntry);
-      }
-      return;
-    }
-
     const { sid, desc, candidate } = payload || {};
+    const signalHandlers = new Map([
+      ['READY', () => handleReadySignal(fromUserId)],
+      ['OFFER', () => handleOfferSignal(fromUserId, sid, desc)],
+      ['ANSWER', () => handleAnswerSignal(fromUserId, sid, desc)],
+      ['ICE', () => handleIceSignal(fromUserId, sid, candidate)],
+    ]);
 
-    // 2. Xử lý tín hiệu OFFER
-    if (type === 'OFFER') {
-      let entry = peers.get(fromUserId);
-      // Nếu entry đã có và sid khác (hoặc đã remoteSet) -> removePeer rồi tạo entry mới với sid của OFFER
-      if (!entry || entry.sid !== sid || entry.remoteSet) {
-        removePeerInternal(fromUserId);
-        entry = create(fromUserId, sid);
-      }
-
-      enqueue(entry, async () => {
-        if (closed || peers.get(fromUserId) !== entry) return;
-        try {
-          entry.sid = sid;
-          await entry.pc.setRemoteDescription(desc);
-          entry.remoteSet = true;
-          await flushIce(entry);
-          const answer = await entry.pc.createAnswer();
-          await entry.pc.setLocalDescription(answer);
-          sendSignal(fromUserId, 'ANSWER', {
-            sid: entry.sid,
-            desc: entry.pc.localDescription.toJSON(),
-          });
-        } catch {
-          onLinkState(fromUserId, 'failed');
-        }
-      });
-      return;
-    }
-
-    // 3. Xử lý tín hiệu ANSWER
-    if (type === 'ANSWER') {
-      const entry = peers.get(fromUserId);
-      if (!entry) return;
-      if (sid && entry.sid !== sid) {
-        // Nhận ANSWER có sid khác entry.sid -> bỏ qua (phiên cũ)
-        return;
-      }
-
-      enqueue(entry, async () => {
-        if (closed || peers.get(fromUserId) !== entry) return;
-        try {
-          await entry.pc.setRemoteDescription(desc);
-          entry.remoteSet = true;
-          await flushIce(entry);
-        } catch {
-          onLinkState(fromUserId, 'failed');
-        }
-      });
-      return;
-    }
-
-    // 4. Xử lý tín hiệu ICE
-    if (type === 'ICE') {
-      const entry = peers.get(fromUserId);
-      if (!entry) return;
-      if (sid && entry.sid !== sid) {
-        // Nhận ICE có sid khác entry.sid -> bỏ qua (phiên cũ)
-        return;
-      }
-
-      enqueue(entry, async () => {
-        if (closed || peers.get(fromUserId) !== entry) return;
-        if (entry.remoteSet) {
-          try {
-            await entry.pc.addIceCandidate(candidate);
-          } catch {
-            // bỏ qua candidate không hợp lệ
-          }
-        } else {
-          entry.pendingIce.push(candidate);
-        }
-      });
-    }
+    signalHandlers.get(type)?.();
   };
 
   const removePeer = (userId) => {

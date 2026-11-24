@@ -14,6 +14,148 @@ import './SpeakingLobbyPage.css';
 
 const CODE_REGEX = /^[A-HJ-NP-Z2-9]{6}$/;
 
+const LobbyRooms = ({
+  debouncedKeyword,
+  fetchRooms,
+  handleClearFilters,
+  handleJoinFromCard,
+  handleOpenCreateModal,
+  hasActiveRoom,
+  isActionDisabled,
+  loadError,
+  loadingRooms,
+  maxParticipants,
+  page,
+  rooms,
+  setPage,
+  t,
+  totalPages,
+}) => {
+  const isFiltered = Boolean(debouncedKeyword.trim() || maxParticipants !== null);
+  const disabledTitle = hasActiveRoom ? t('lobby.activeRoom.blocked') : undefined;
+
+  if (loadingRooms) return <PageLoading />;
+
+  if (loadError) {
+    return (
+      <EmptyState
+        icon="error"
+        isError
+        title={t('lobby.loadError')}
+        actionLabel={t('lobby.retry')}
+        onAction={fetchRooms}
+      />
+    );
+  }
+
+  if (rooms.length === 0) {
+    return isFiltered ? (
+      <EmptyState
+        icon="filter_alt_off"
+        title={t('lobby.emptyFiltered')}
+        actionLabel={t('lobby.clearFilters')}
+        onAction={handleClearFilters}
+      />
+    ) : (
+      <EmptyState
+        icon="forum"
+        title={t('lobby.empty')}
+        actionLabel={t('lobby.createRoom')}
+        onAction={handleOpenCreateModal}
+        actionVariant="primary"
+        actionDisabled={isActionDisabled}
+        actionTitle={disabledTitle}
+      />
+    );
+  }
+
+  return (
+    <>
+      <div className="speaking-rooms-grid">
+        {rooms.map((room) => (
+          <RoomCard
+            key={room.roomCode}
+            room={room}
+            joining={isActionDisabled}
+            disabledTitle={disabledTitle}
+            onJoin={handleJoinFromCard}
+          />
+        ))}
+      </div>
+      <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+    </>
+  );
+};
+
+const LobbyFilters = ({
+  fetchRooms,
+  handleClearFilters,
+  keywordInput,
+  loadingRooms,
+  maxParticipants,
+  setKeywordInput,
+  setMaxParticipants,
+  t,
+}) => {
+  const isFiltered = Boolean(keywordInput.trim() || maxParticipants !== null);
+
+  return (
+    <section className="speaking-lobby-filters filter-section glass-well">
+      <div className="speaking-lobby-filters__top">
+        <SearchInput
+          id="speaking-lobby-search"
+          className="speaking-lobby-search-input"
+          placeholder={t('lobby.searchPlaceholder')}
+          value={keywordInput}
+          onChange={(event) => setKeywordInput(event.target.value)}
+          onClear={() => setKeywordInput('')}
+          clearLabel={t('lobby.clearFilters')}
+        />
+        <div className="speaking-capacity-filter-group">
+          <span className="speaking-capacity-filter-label text-label-md">
+            {t('lobby.capacityFilter')}:
+          </span>
+          <div className="speaking-capacity-pills">
+            {[null, 2, 3, 4].map((capacity) => (
+              <button
+                key={capacity ?? 'all'}
+                type="button"
+                className={`filter-pill ${
+                  maxParticipants === capacity ? 'filter-pill--active' : ''
+                }`}
+                onClick={() => setMaxParticipants(capacity)}
+              >
+                {capacity === null
+                  ? t('lobby.capacityAll')
+                  : t('lobby.capacityOption', { count: capacity })}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="speaking-lobby-filters__actions">
+          {isFiltered && (
+            <button type="button" className="btn-clear-filter" onClick={handleClearFilters}>
+              <span className="material-symbols-outlined">filter_alt_off</span>
+              <span>{t('lobby.clearFilters')}</span>
+            </button>
+          )}
+          <button
+            type="button"
+            className="btn-secondary speaking-refresh-btn"
+            onClick={fetchRooms}
+            disabled={loadingRooms}
+          >
+            <span className={`material-symbols-outlined ${loadingRooms ? 'spinning' : ''}`}>
+              refresh
+            </span>
+            <span>{t('lobby.refresh')}</span>
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+};
+
 const SpeakingLobbyPage = ({ onNavigate }) => {
   const { t } = useTranslation('speaking');
   const { t: tApi } = useTranslation('api');
@@ -340,74 +482,16 @@ const SpeakingLobbyPage = ({ onNavigate }) => {
           </div>
         </section>
 
-        {/* Bộ lọc danh sách — Bố cục & giao diện đồng bộ với FilterSection của Deck và Lesson */}
-        <section className="speaking-lobby-filters filter-section glass-well">
-          <div className="speaking-lobby-filters__top">
-            <SearchInput
-              id="speaking-lobby-search"
-              className="speaking-lobby-search-input"
-              placeholder={t('lobby.searchPlaceholder')}
-              value={keywordInput}
-              onChange={(e) => setKeywordInput(e.target.value)}
-              onClear={() => setKeywordInput('')}
-              clearLabel={t('lobby.clearFilters')}
-            />
-
-            <div className="speaking-capacity-filter-group">
-              <span className="speaking-capacity-filter-label text-label-md">
-                {t('lobby.capacityFilter')}:
-              </span>
-              <div className="speaking-capacity-pills">
-                <button
-                  type="button"
-                  className={`filter-pill ${
-                    maxParticipants === null ? 'filter-pill--active' : ''
-                  }`}
-                  onClick={() => setMaxParticipants(null)}
-                >
-                  {t('lobby.capacityAll')}
-                </button>
-                {[2, 3, 4].map((cap) => (
-                  <button
-                    key={cap}
-                    type="button"
-                    className={`filter-pill ${
-                      maxParticipants === cap ? 'filter-pill--active' : ''
-                    }`}
-                    onClick={() => setMaxParticipants(cap)}
-                  >
-                    {t('lobby.capacityOption', { count: cap })}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="speaking-lobby-filters__actions">
-              {(keywordInput.trim() || maxParticipants !== null) && (
-                <button
-                  type="button"
-                  className="btn-clear-filter"
-                  onClick={handleClearFilters}
-                >
-                  <span className="material-symbols-outlined">filter_alt_off</span>
-                  <span>{t('lobby.clearFilters')}</span>
-                </button>
-              )}
-
-              <button
-                type="button"
-                className="btn-secondary speaking-refresh-btn"
-                onClick={fetchRooms}
-                disabled={loadingRooms}
-              >
-                <span className={`material-symbols-outlined ${loadingRooms ? 'spinning' : ''}`}>
-                  refresh
-                </span>
-                <span>{t('lobby.refresh')}</span>
-              </button>
-            </div>
-          </div>
-        </section>
+        <LobbyFilters
+          fetchRooms={fetchRooms}
+          handleClearFilters={handleClearFilters}
+          keywordInput={keywordInput}
+          loadingRooms={loadingRooms}
+          maxParticipants={maxParticipants}
+          setKeywordInput={setKeywordInput}
+          setMaxParticipants={setMaxParticipants}
+          t={t}
+        />
 
         {/* Danh sách phòng */}
         <section className="speaking-lobby-rooms">
@@ -417,56 +501,23 @@ const SpeakingLobbyPage = ({ onNavigate }) => {
             </h2>
           </div>
 
-          {loadingRooms ? (
-            <PageLoading />
-          ) : loadError ? (
-            <EmptyState
-              icon="error"
-              isError
-              title={t('lobby.loadError')}
-              actionLabel={t('lobby.retry')}
-              onAction={fetchRooms}
-            />
-          ) : rooms.length === 0 ? (
-            debouncedKeyword.trim() || maxParticipants !== null ? (
-              <EmptyState
-                icon="filter_alt_off"
-                title={t('lobby.emptyFiltered')}
-                actionLabel={t('lobby.clearFilters')}
-                onAction={handleClearFilters}
-              />
-            ) : (
-              <EmptyState
-                icon="forum"
-                title={t('lobby.empty')}
-                actionLabel={t('lobby.createRoom')}
-                onAction={handleOpenCreateModal}
-                actionVariant="primary"
-                actionDisabled={isActionDisabled}
-                actionTitle={hasActiveRoom ? t('lobby.activeRoom.blocked') : undefined}
-              />
-            )
-          ) : (
-            <>
-              <div className="speaking-rooms-grid">
-                {rooms.map((room) => (
-                  <RoomCard
-                    key={room.roomCode}
-                    room={room}
-                    joining={isActionDisabled}
-                    disabledTitle={hasActiveRoom ? t('lobby.activeRoom.blocked') : undefined}
-                    onJoin={handleJoinFromCard}
-                  />
-                ))}
-              </div>
-
-              <Pagination
-                currentPage={page}
-                totalPages={totalPages}
-                onPageChange={(newPage) => setPage(newPage)}
-              />
-            </>
-          )}
+          <LobbyRooms
+            debouncedKeyword={debouncedKeyword}
+            fetchRooms={fetchRooms}
+            handleClearFilters={handleClearFilters}
+            handleJoinFromCard={handleJoinFromCard}
+            handleOpenCreateModal={handleOpenCreateModal}
+            hasActiveRoom={hasActiveRoom}
+            isActionDisabled={isActionDisabled}
+            loadError={loadError}
+            loadingRooms={loadingRooms}
+            maxParticipants={maxParticipants}
+            page={page}
+            rooms={rooms}
+            setPage={setPage}
+            t={t}
+            totalPages={totalPages}
+          />
         </section>
       </div>
 

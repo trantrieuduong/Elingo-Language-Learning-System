@@ -14,6 +14,135 @@ import './SpeakingHistoryPage.css';
 
 const PAGE_SIZE = 10;
 
+const getCannotRejoinReason = ({ activeRoomCode, item, t }) => {
+  if (activeRoomCode && activeRoomCode !== item.roomCode) {
+    return t('history.cannotRejoin.inOtherRoom');
+  }
+
+  if (!item.canRejoin) {
+    return item.roomStatus === 'CLOSED'
+      ? t('history.cannotRejoin.closed')
+      : t('history.cannotRejoin.kicked');
+  }
+
+  return '';
+};
+
+const HistoryItem = ({ item, activeRoomCode, connection, i18n, onNavigate, t }) => {
+  const cannotRejoinReason = getCannotRejoinReason({ activeRoomCode, item, t });
+  const isCurrentRoom = activeRoomCode === item.roomCode;
+  const isRejoinDisabled = Boolean(cannotRejoinReason) || connection !== 'connected';
+
+  return (
+    <article key={item.roomCode} className="speaking-history-item glass-card">
+      <div className="speaking-history-item__left">
+        <div className="speaking-history-item__icon-box glass-thumb">
+          <span className="material-symbols-outlined">record_voice_over</span>
+        </div>
+        <div className="speaking-history-item__info">
+          <div className="speaking-history-item__topic-line">
+            <h2 className="text-title-sm speaking-history-item__topic">
+              {item.topic || t('lobby.noTopic')}
+            </h2>
+            <div className="speaking-history-item__chips">
+              <span>{t('lobby.capacityOption', { count: item.maxParticipants })}</span>
+              <span>{t(`history.role.${item.role}`)}</span>
+              <span className={`speaking-history-status speaking-history-status--${item.roomStatus}`}>
+                {t(`history.status.${item.roomStatus}`)}
+              </span>
+            </div>
+          </div>
+          <div className="speaking-history-item__date-row">
+            <span className="material-symbols-outlined">schedule</span>
+            <span>{item.roomCode}</span>
+            <span>{item.leftAt ? new Date(item.leftAt).toLocaleString(i18n.language) : ''}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="speaking-history-item__right">
+        <div className="speaking-history-item__duration">
+          <span>{formatDuration(item.durationSeconds)}</span>
+          {item.visitCount > 1 && <small>{t('history.visits', { count: item.visitCount })}</small>}
+        </div>
+        <div className="speaking-history-item__action">
+          <button
+            type="button"
+            className="btn-primary"
+            disabled={isRejoinDisabled}
+            aria-disabled={isRejoinDisabled}
+            title={cannotRejoinReason || undefined}
+            onClick={() => onNavigate(`/speaking/room/${item.roomCode}`)}
+          >
+            {isCurrentRoom ? t('history.backToRoom') : t('history.rejoin')}
+          </button>
+          {cannotRejoinReason && <small>{cannotRejoinReason}</small>}
+        </div>
+      </div>
+    </article>
+  );
+};
+
+const HistoryContent = ({
+  activeRoomCode,
+  connection,
+  error,
+  i18n,
+  isFiltered,
+  items,
+  loading,
+  onClearFilters,
+  onNavigate,
+  onRetry,
+  page,
+  setPage,
+  t,
+  totalPages,
+}) => {
+  if (loading) return <PageLoading />;
+
+  if (error) {
+    return (
+      <div className="speaking-history-error glass-card">
+        <FormAlert message={t('history.loadError')} />
+        <button type="button" className="btn-secondary" onClick={onRetry}>
+          {t('history.retry')}
+        </button>
+      </div>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <EmptyState
+        icon={isFiltered ? 'filter_alt_off' : 'history'}
+        title={isFiltered ? t('history.emptyFiltered') : t('history.empty')}
+        actionLabel={isFiltered ? t('lobby.clearFilters') : undefined}
+        onAction={isFiltered ? onClearFilters : undefined}
+      />
+    );
+  }
+
+  return (
+    <>
+      <section className="speaking-history-list">
+        {items.map((item) => (
+          <HistoryItem
+            key={item.roomCode}
+            item={item}
+            activeRoomCode={activeRoomCode}
+            connection={connection}
+            i18n={i18n}
+            onNavigate={onNavigate}
+            t={t}
+          />
+        ))}
+      </section>
+      <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+    </>
+  );
+};
+
 const SpeakingHistoryPage = ({ onNavigate }) => {
   const { t, i18n } = useTranslation('speaking');
   const { connection, activeRoomCode, checkActiveRoom } = useSpeakingSocket();
@@ -98,20 +227,6 @@ const SpeakingHistoryPage = ({ onNavigate }) => {
     setKeywordInput('');
     setMaxParticipants(null);
     setPage(1);
-  };
-
-  const getCannotRejoinReason = (item) => {
-    if (activeRoomCode && activeRoomCode !== item.roomCode) {
-      return t('history.cannotRejoin.inOtherRoom');
-    }
-
-    if (!item.canRejoin) {
-      return item.roomStatus === 'CLOSED'
-        ? t('history.cannotRejoin.closed')
-        : t('history.cannotRejoin.kicked');
-    }
-
-    return '';
   };
 
   const isFiltered = Boolean(keyword.trim() || maxParticipants !== null);
@@ -202,105 +317,22 @@ const SpeakingHistoryPage = ({ onNavigate }) => {
           )}
         </section>
 
-        {loading ? (
-          <PageLoading />
-        ) : error ? (
-          <div className="speaking-history-error glass-card">
-            <FormAlert message={t('history.loadError')} />
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={() => setRetry((value) => value + 1)}
-            >
-              {t('history.retry')}
-            </button>
-          </div>
-        ) : items.length === 0 ? (
-          <EmptyState
-            icon={isFiltered ? 'filter_alt_off' : 'history'}
-            title={isFiltered ? t('history.emptyFiltered') : t('history.empty')}
-            actionLabel={isFiltered ? t('lobby.clearFilters') : undefined}
-            onAction={isFiltered ? handleClearFilters : undefined}
-          />
-        ) : (
-          <>
-            <section className="speaking-history-list">
-              {items.map((item) => {
-                const cannotRejoinReason = getCannotRejoinReason(item);
-                const isCurrentRoom = activeRoomCode === item.roomCode;
-                const isRejoinDisabled = Boolean(cannotRejoinReason) || connection !== 'connected';
-
-                return (
-                  <article
-                    key={item.roomCode}
-                    className="speaking-history-item glass-card"
-                  >
-                    <div className="speaking-history-item__left">
-                      <div className="speaking-history-item__icon-box glass-thumb">
-                        <span className="material-symbols-outlined">record_voice_over</span>
-                      </div>
-                      <div className="speaking-history-item__info">
-                        <div className="speaking-history-item__topic-line">
-                          <h2 className="text-title-sm speaking-history-item__topic">
-                            {item.topic || t('lobby.noTopic')}
-                          </h2>
-                          <div className="speaking-history-item__chips">
-                            <span>
-                              {t('lobby.capacityOption', { count: item.maxParticipants })}
-                            </span>
-                            <span>{t(`history.role.${item.role}`)}</span>
-                            <span
-                              className={`speaking-history-status speaking-history-status--${item.roomStatus}`}
-                            >
-                              {t(`history.status.${item.roomStatus}`)}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="speaking-history-item__date-row">
-                          <span className="material-symbols-outlined">schedule</span>
-                          <span>{item.roomCode}</span>
-                          <span>
-                            {item.leftAt
-                              ? new Date(item.leftAt).toLocaleString(i18n.language)
-                              : ''}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="speaking-history-item__right">
-                      <div className="speaking-history-item__duration">
-                        <span>{formatDuration(item.durationSeconds)}</span>
-                        {item.visitCount > 1 && (
-                          <small>{t('history.visits', { count: item.visitCount })}</small>
-                        )}
-                      </div>
-                      <div className="speaking-history-item__action">
-                        <button
-                          type="button"
-                          className="btn-primary"
-                          disabled={isRejoinDisabled}
-                          aria-disabled={isRejoinDisabled}
-                          title={cannotRejoinReason || undefined}
-                          onClick={() => onNavigate(`/speaking/room/${item.roomCode}`)}
-                        >
-                          {isCurrentRoom ? t('history.backToRoom') : t('history.rejoin')}
-                        </button>
-                        {cannotRejoinReason && <small>{cannotRejoinReason}</small>}
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </section>
-
-            <Pagination
-              currentPage={page}
-              totalPages={totalPages}
-              onPageChange={setPage}
-            />
-          </>
-        )}
+        <HistoryContent
+          activeRoomCode={activeRoomCode}
+          connection={connection}
+          error={error}
+          i18n={i18n}
+          isFiltered={isFiltered}
+          items={items}
+          loading={loading}
+          onClearFilters={handleClearFilters}
+          onNavigate={onNavigate}
+          onRetry={() => setRetry((value) => value + 1)}
+          page={page}
+          setPage={setPage}
+          t={t}
+          totalPages={totalPages}
+        />
       </div>
     </main>
   );
