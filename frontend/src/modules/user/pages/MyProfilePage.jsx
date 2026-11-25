@@ -5,7 +5,8 @@ import PageLoading from '../../../components/PageLoading/PageLoading';
 import OptionsMenu from '../../../components/OptionsMenu/OptionsMenu';
 import OptionsModal from '../../../components/OptionsModal/OptionsModal';
 import Toast from '../../../components/Toast/Toast';
-import ProfileCard from '../components/ProfileCard/ProfileCard';
+import ProfilePosts from '../components/ProfilePosts/ProfilePosts';
+import ProfileGamificationOverview from '../components/ProfileGamificationOverview/ProfileGamificationOverview';
 import UpdateProfileModal from '../components/UpdateProfileModal/UpdateProfileModal';
 import UpdateEmailModal from '../components/UpdateEmailModal/UpdateEmailModal';
 import SetPasswordModal from '../components/SetPasswordModal/SetPasswordModal';
@@ -13,7 +14,7 @@ import { getMyProfileApi } from '../profileApi';
 import { useAuth } from '../../../context/AuthContext';
 import './MyProfilePage.css';
 
-function MyProfilePage() {
+function MyProfilePage({ onNavigate }) {
   const { t } = useTranslation(['user', 'common']);
   const { updateUser } = useAuth();
   const [profile, setProfile] = useState(null);
@@ -86,9 +87,13 @@ function MyProfilePage() {
   const handleSetPasswordSuccess = () => {
     setProfile((prev) => (prev ? { ...prev, hasPassword: true } : prev));
     updateUser?.({ hasPassword: true });
-    setToastMessage(t(profile.hasPassword
-      ? 'user:setPasswordModal.changePasswordSuccess'
-      : 'user:setPasswordModal.setPasswordSuccess'));
+    setToastMessage(
+      t(
+        profile.hasPassword
+          ? 'user:setPasswordModal.changePasswordSuccess'
+          : 'user:setPasswordModal.setPasswordSuccess'
+      )
+    );
   };
 
   const options = [
@@ -105,18 +110,22 @@ function MyProfilePage() {
       onSelect: handleOpenUpdateEmail,
     },
     ...(profile?.hasPassword
-      ? [{
-          id: 'change-password',
-          label: t('user:changePassword'),
-          icon: 'lock_reset',
-          onSelect: handleOpenSetPassword,
-        }]
-      : [{
-          id: 'set-password',
-          label: t('user:setPassword'),
-          icon: 'lock',
-          onSelect: handleOpenSetPassword,
-        }]),
+      ? [
+          {
+            id: 'change-password',
+            label: t('user:changePassword'),
+            icon: 'lock_reset',
+            onSelect: handleOpenSetPassword,
+          },
+        ]
+      : [
+          {
+            id: 'set-password',
+            label: t('user:setPassword'),
+            icon: 'lock',
+            onSelect: handleOpenSetPassword,
+          },
+        ]),
   ];
 
   if (loading) {
@@ -140,14 +149,16 @@ function MyProfilePage() {
 
   return (
     <main className="my-profile-page container">
-      <ProfileCard
+      <ProfileGamificationOverview
         profile={profile}
         actionMenu={
           <OptionsMenu
             onClick={() => setIsOptionOpen(true)}
+            ariaLabel={t('user:options')}
           />
         }
       />
+      <ProfilePosts userId={profile.id} onNavigate={onNavigate} />
 
       <OptionsModal
         isOpen={isOptionOpen}
@@ -177,11 +188,7 @@ function MyProfilePage() {
         onSuccess={handleSetPasswordSuccess}
       />
 
-      <Toast
-        message={toastMessage}
-        variant="success"
-        onDismiss={() => setToastMessage('')}
-      />
+      <Toast message={toastMessage} variant="success" onDismiss={() => setToastMessage('')} />
     </main>
   );
 }

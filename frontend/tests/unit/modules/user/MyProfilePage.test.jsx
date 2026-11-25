@@ -48,7 +48,7 @@ describe('MyProfilePage', () => {
       'https://ui-avatars.com/api/?name=Vo%20Le%20Khanh%20Duy'
     );
 
-    const moreBtn = screen.getByRole('button');
+    const moreBtn = screen.getByRole('button', { name: tr('user:options') });
     expect(moreBtn).toBeInTheDocument();
   });
 
@@ -64,7 +64,7 @@ describe('MyProfilePage', () => {
       expect(screen.getByText('Vo Le Khanh Duy')).toBeInTheDocument();
     });
 
-    const moreBtn = screen.getByRole('button');
+    const moreBtn = screen.getByRole('button', { name: tr('user:options') });
     fireEvent.click(moreBtn);
 
     const editOption = await screen.findByText(tr('user:editProfile'));
@@ -88,7 +88,7 @@ describe('MyProfilePage', () => {
       expect(screen.getByText('Vo Le Khanh Duy')).toBeInTheDocument();
     });
 
-    const moreBtn = screen.getByRole('button');
+    const moreBtn = screen.getByRole('button', { name: tr('user:options') });
     fireEvent.click(moreBtn);
 
     const updateEmailOption = await screen.findByText(tr('user:updateEmail'));
@@ -116,7 +116,7 @@ describe('MyProfilePage', () => {
       expect(screen.getByText('Vo Le Khanh Duy')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole('button'));
+    fireEvent.click(screen.getByRole('button', { name: tr('user:options') }));
     fireEvent.click(await screen.findByText(tr('user:setPassword')));
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -137,7 +137,7 @@ describe('MyProfilePage', () => {
       expect(screen.getByText('Vo Le Khanh Duy')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole('button'));
+    fireEvent.click(screen.getByRole('button', { name: tr('user:options') }));
     fireEvent.click(await screen.findByText(tr('user:changePassword')));
 
     expect(screen.getByLabelText(tr('user:setPasswordModal.oldPassword'))).toBeInTheDocument();

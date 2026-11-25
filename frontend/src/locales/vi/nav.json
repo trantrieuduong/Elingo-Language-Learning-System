@@ -5,7 +5,7 @@
   "community": "Cộng đồng",
   "pricing": "Bảng giá",
   "battle": "Thi đấu",
-  "gamification": "Bảng xếp hạng",
+  "gamification": "Thành tích học tập",
   "login": "Đăng nhập",
   "signup": "Đăng ký",
   "speakingRoom": "Phòng Speaking",
@@ -40,7 +40,7 @@
     "speaking": "Luyện nói",
     "accountGroup": "Tài khoản",
     "profileLink": "Hồ sơ",
-    "progressLink": "Tiến độ",
+    "gamificationLink": "Thành tích học tập",
     "premiumLink": "Premium",
     "copyright": "© {{year}} Elingo. All rights reserved."
   }

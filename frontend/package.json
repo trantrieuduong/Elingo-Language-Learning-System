@@ -24,6 +24,7 @@
     "@huggingface/transformers": "^3.8.1",
     "@stomp/stompjs": "^7.5.0",
     "axios": "^1.20.0",
+    "dayjs": "^1.11.23",
     "i18next": "^26.4.2",
     "i18next-browser-languagedetector": "^8.2.1",
     "react": "^19.2.8",

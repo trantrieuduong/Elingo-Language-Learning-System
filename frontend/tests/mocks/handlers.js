@@ -24,6 +24,29 @@ export const handlers = [
     })
   }),
 
+  http.get(`${API_URL}/users/:userId/badges`, () => {
+    return HttpResponse.json({ success: true, data: [] })
+  }),
+
+  http.get(`${API_URL}/users/:userId/levels`, () => {
+    return HttpResponse.json({ success: true, data: null })
+  }),
+
+  http.get(`${API_URL}/users/:userId/streaks`, () => {
+    return HttpResponse.json({
+      success: true,
+      data: { currentStreak: 0, longestStreak: 0, checkinDates: [] },
+    })
+  }),
+
+  http.get(`${API_URL}/users/:userId/posts`, () => {
+    return HttpResponse.json({ success: true, data: { items: [] } })
+  }),
+
+  http.get(`${API_URL}/post-groups`, () => {
+    return HttpResponse.json({ success: true, data: [] })
+  }),
+
   http.post(`${API_URL}/auth/signup`, () => {
     return HttpResponse.json({ success: true, message: 'Đăng ký thành công' })
   }),

@@ -7,6 +7,7 @@
   "options": "Tùy chọn người dùng",
   "userNotFoundTitle": "Không tìm thấy người dùng",
   "userNotFoundDesc": "Người dùng bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.",
+  "posts": "Bài viết",
   "updateProfile": {
     "changeAvatar": "Thay đổi ảnh",
     "avatarHelp": "Hỗ trợ {{formats}}. Tối đa {{maxSize}}MB.",

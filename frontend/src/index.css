@@ -153,6 +153,11 @@ ol {
   --color-info: var(--color-primary);
   --color-info-bg: var(--color-secondary-container);
 
+  /* ── Gamification Medal Colors ── */
+  --color-medal-gold: #eab308;
+  --color-medal-silver: #94a3b8;
+  --color-medal-bronze: #b45309;
+
   /* ============================================================
      3. DESIGN TOKENS — Typography
      ============================================================ */
@@ -385,6 +390,11 @@ ol {
   --color-warning-bg: #5d421b;
   --color-info: #a9c7ff;
   --color-info-bg: #263b57;
+
+  /* ── Gamification Medal Colors ── */
+  --color-medal-gold: #facc15;
+  --color-medal-silver: #cbd5e1;
+  --color-medal-bronze: #d97706;
   --glass-well-bg: rgba(19, 32, 49, 0.52);
   --glass-thumb-bg: rgba(32, 49, 71, 0.78);
   --glass-pill-bg: rgba(29, 45, 66, 0.76);

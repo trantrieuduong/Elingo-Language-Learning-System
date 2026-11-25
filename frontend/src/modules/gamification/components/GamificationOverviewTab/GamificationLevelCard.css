@@ -1,0 +1,9 @@
+.overview-level-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.overview-level-progress,
+.overview-level-hint {
+  margin-top: 0;
+}

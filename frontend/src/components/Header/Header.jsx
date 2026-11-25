@@ -383,16 +383,16 @@ function Header({ onNavigate, currentPath }) {
                       {t('profile')}
                     </a>
                     <a
-                      href="/progress"
-                      className={`header__dropdown-item${currentPath === '/progress' ? ' header__dropdown-item--active' : ''}`}
+                      href="/gamification"
+                      className={`header__dropdown-item${currentPath === '/gamification' ? ' header__dropdown-item--active' : ''}`}
                       onClick={(e) => {
                         e.preventDefault();
                         setIsUserDropdownOpen(false);
-                        handleNav('/progress');
+                        handleNav('/gamification');
                       }}
                     >
                       <span className="material-symbols-outlined">insights</span>
-                      {t('progress')}
+                      {t('gamification')}
                     </a>
                     <a
                       href="/premium"

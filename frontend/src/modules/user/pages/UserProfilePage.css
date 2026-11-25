@@ -6,3 +6,21 @@
   flex-direction: column;
   justify-content: flex-start;
 }
+
+.user-profile-page.container {
+  width: calc(100% - 3rem);
+  max-width: var(--header-max-width);
+  padding-inline: 0;
+}
+
+@media (max-width: 1024px) {
+  .user-profile-page.container {
+    width: calc(100% - 1.5rem);
+  }
+}
+
+@media (max-width: 600px) {
+  .user-profile-page.container {
+    width: calc(100% - 1rem);
+  }
+}
