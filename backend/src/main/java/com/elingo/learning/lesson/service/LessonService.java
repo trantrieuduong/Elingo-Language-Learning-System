@@ -3,6 +3,7 @@ package com.elingo.learning.lesson.service;
 import com.elingo.common.dto.PageResponse;
 import com.elingo.learning.lesson.dto.request.AdminLessonSearchRequest;
 import com.elingo.learning.lesson.dto.request.GetPublishedLessonsRequest;
+import com.elingo.learning.lesson.dto.request.LessonRequest;
 import com.elingo.learning.lesson.dto.response.AdminLessonResponse;
 import com.elingo.learning.lesson.dto.response.LessonDetailResponse;
 import com.elingo.learning.lesson.dto.response.LessonResponse;
@@ -23,4 +24,9 @@ public interface LessonService {
     // Admin lesson management
     PageResponse<AdminLessonResponse> searchLessonsForAdmin(AdminLessonSearchRequest request, Pageable pageable);
     AdminLessonResponse getLessonByIdForAdmin(Long lessonId);
+    AdminLessonResponse createLesson(LessonRequest request);
+    AdminLessonResponse updateLesson(Long lessonId, LessonRequest request);
+    AdminLessonResponse publishLesson(Long lessonId);
+    AdminLessonResponse unpublishLesson(Long lessonId);
+    AdminLessonResponse archiveLesson(Long lessonId);
 }
