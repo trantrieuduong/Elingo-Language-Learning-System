@@ -31,7 +31,8 @@ import com.elingo.common.entity.BaseEntity;
                 @UniqueConstraint(name = "uk_webhook_log_provider_event", columnNames = {"provider_id", "event_id"})
         },
         indexes = {
-                @Index(name = "idx_webhook_transaction", columnList = "transaction_id")
+                @Index(name = "idx_webhook_transaction", columnList = "transaction_id"),
+                @Index(name = "idx_webhook_status_received", columnList = "status, received_at")
         }
 )
 @Data

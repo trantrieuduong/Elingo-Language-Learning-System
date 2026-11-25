@@ -608,7 +608,9 @@ CREATE TABLE payment_transactions (
   FOREIGN KEY (provider_id) REFERENCES payment_providers(id),
   INDEX idx_tx_user_created (user_id, created_at),
   INDEX idx_tx_status_created (status, created_at),
-  INDEX idx_tx_status_paid_plan_amount (status, paid_at, plan_id, amount)
+  INDEX idx_tx_status_paid_plan_amount (status, paid_at, plan_id, amount),
+  INDEX idx_tx_created_at (created_at),
+  INDEX idx_tx_plan_created (plan_id, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Log kỹ thuật: lưu MỌI lần webhook gọi tới, kể cả trùng lặp/lỗi — phục vụ tra soát, không phải nguồn tính tiền
@@ -625,7 +627,8 @@ CREATE TABLE payment_webhook_logs (
   FOREIGN KEY (provider_id) REFERENCES payment_providers(id),
   FOREIGN KEY (transaction_id) REFERENCES payment_transactions(id) ON DELETE SET NULL,
   UNIQUE KEY uk_webhook_log_provider_event (provider_id, event_id),
-  INDEX idx_webhook_transaction (transaction_id)
+  INDEX idx_webhook_transaction (transaction_id),
+  INDEX idx_webhook_status_received (status, received_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 ```
 

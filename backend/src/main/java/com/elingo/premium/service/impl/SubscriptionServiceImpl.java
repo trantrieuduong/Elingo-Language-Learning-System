@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -76,6 +77,54 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         log.info("Created new premium subscription id={} userId={} planId={} startAt={} endAt={}",
                 created.getId(), userId, planId, created.getStartAt(), created.getEndAt());
         return created;
+    }
+
+    @Override
+    @Transactional
+    public Duration revokeSubscriptionTime(Long userId, Long subscriptionId, int planDurationDays, LocalDateTime paidAt) {
+        userRepository.findByIdForUpdate(userId)
+                .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
+
+        if (subscriptionId == null) {
+            return Duration.ZERO;
+        }
+
+        UserSubscription sub = userSubscriptionRepository
+                .findById(subscriptionId).orElse(null);
+        if (sub == null || sub.getStatus() != SubscriptionStatus.ACTIVE) {
+            return Duration.ZERO;
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        if (sub.getEndAt() == null || !sub.getEndAt().isAfter(now)) {
+            sub.setStatus(SubscriptionStatus.EXPIRED);
+            userSubscriptionRepository.save(sub);
+            return Duration.ZERO;
+        }
+
+        LocalDateTime effectivePaidAt = paidAt != null ? paidAt : sub.getStartAt();
+        Duration elapsed = Duration.between(effectivePaidAt, now);
+        if (elapsed.isNegative()) {
+            elapsed = Duration.ZERO;
+        }
+
+        Duration revokeDuration = Duration.ofDays(planDurationDays).minus(elapsed);
+        if (revokeDuration.isNegative() || revokeDuration.isZero()) {
+            return Duration.ZERO;
+        }
+
+        LocalDateTime newEndAt = sub.getEndAt().minus(revokeDuration);
+        if (!newEndAt.isAfter(now)) {
+            sub.setEndAt(now);
+            sub.setStatus(SubscriptionStatus.CANCELLED);
+        } else {
+            sub.setEndAt(newEndAt);
+        }
+
+        userSubscriptionRepository.save(sub);
+        log.info("Revoked subscription time subId={} userId={} revokedHours={} newStatus={} newEndAt={}",
+                sub.getId(), userId, revokeDuration.toHours(), sub.getStatus(), sub.getEndAt());
+        return revokeDuration;
     }
 
     @Override
