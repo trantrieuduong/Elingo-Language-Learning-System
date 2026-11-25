@@ -24,15 +24,20 @@ public final class LessonSpecifications {
 
     public static Specification<Lesson> withFilter(LessonFilter filter) {
         return Specification.allOf(
-                isPublished(),
+                hasStatus(filter.status()),
+                hasPremium(filter.isPremium()),
                 hasCefrLevels(filter.cefrLevelIds()),
                 hasTags(filter.tagIds()),
                 matchesKeyword(filter.keyword())
         );
     }
 
-    private static Specification<Lesson> isPublished() {
-        return (root, query, cb) -> cb.equal(root.get("status"), LessonStatus.PUBLISHED);
+    private static Specification<Lesson> hasStatus(LessonStatus status) {
+        return (root, query, cb) -> status == null ? null : cb.equal(root.get("status"), status);
+    }
+
+    private static Specification<Lesson> hasPremium(Boolean isPremium) {
+        return (root, query, cb) -> isPremium == null ? null : cb.equal(root.get("isPremium"), isPremium);
     }
 
     private static Specification<Lesson> hasCefrLevels(Collection<Long> cefrLevelIds) {

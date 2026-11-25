@@ -131,6 +131,9 @@ public enum AppError {
     PROGRESS_UPDATE_CONFLICT("PROGRESS_UPDATE_CONFLICT", "Progress was updated concurrently, please retry", HttpStatus.CONFLICT),
     SOURCE_URL_INVALID("SOURCE_URL_INVALID", "Source url must be a valid YouTube link", HttpStatus.BAD_REQUEST),
     LESSON_PUBLISHED_FAILED("LESSON_PUBLISHED_FAILED", "Cannot publish a lesson without segments", HttpStatus.BAD_REQUEST),
+    SEGMENT_EXCEEDS_DURATION("SEGMENT_EXCEEDS_DURATION", "Segment end time exceeds the lesson duration", HttpStatus.BAD_REQUEST),
+    SEGMENT_TIME_OVERLAP("SEGMENT_TIME_OVERLAP", "Segment time range overlaps with another segment", HttpStatus.BAD_REQUEST),
+    LESSON_SEGMENT_REQUIRED("LESSON_SEGMENT_REQUIRED", "A published lesson must keep at least one segment", HttpStatus.BAD_REQUEST),
 
     // ==========================================
     // 6. Battle (Đấu trường từ vựng 1vs1)

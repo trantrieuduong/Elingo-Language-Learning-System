@@ -1,5 +1,6 @@
 package com.elingo.learning.lesson.mapper;
 
+import com.elingo.learning.lesson.dto.response.AdminLessonResponse;
 import com.elingo.learning.lesson.dto.response.LessonDetailResponse;
 import com.elingo.learning.lesson.dto.response.LessonProgressSummaryResponse;
 import com.elingo.learning.lesson.dto.response.LessonResponse;
@@ -14,4 +15,6 @@ public interface LessonMapper {
     LessonResponse toLessonResponse(Lesson lesson, LessonProgressSummaryResponse userProgress);
 
     LessonDetailResponse toLessonDetailResponse(Lesson lesson, Integer segmentCount, LessonProgressSummaryResponse userProgress, Integer dictationPassScore, Integer shadowingPassScore);
+
+    AdminLessonResponse toAdminLessonResponse(Lesson lesson, Integer segmentCount);
 }

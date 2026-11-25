@@ -1,8 +1,13 @@
 package com.elingo.learning.lesson.service.impl;
 
 import com.elingo.common.dto.PageResponse;
+import com.elingo.common.exception.AppError;
+import com.elingo.common.exception.AppException;
 import com.elingo.learning.lesson.config.LessonProperties;
+import com.elingo.learning.lesson.dto.projection.LessonSegmentCountProjection;
+import com.elingo.learning.lesson.dto.request.AdminLessonSearchRequest;
 import com.elingo.learning.lesson.dto.request.GetPublishedLessonsRequest;
+import com.elingo.learning.lesson.dto.response.AdminLessonResponse;
 import com.elingo.learning.lesson.dto.response.LessonDetailResponse;
 import com.elingo.learning.lesson.dto.response.LessonProgressSummaryResponse;
 import com.elingo.learning.lesson.dto.response.LessonResponse;
@@ -28,6 +33,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -51,7 +57,7 @@ public class LessonServiceImpl implements LessonService {
 
         // Lấy danh sách bài học theo bộ lọc và phân trang
         Page<Lesson> lessonPage = lessonRepository.findAll(
-                LessonSpecifications.withFilter(new LessonFilter(request.cefrLevelIds(), request.tagIds(), keyword)),
+                LessonSpecifications.withFilter(LessonFilter.forLearner(request.cefrLevelIds(), request.tagIds(), keyword)),
                 pageable);
 
         // Lấy tiến độ học của các bài học trong trang hiện tại
@@ -93,6 +99,31 @@ public class LessonServiceImpl implements LessonService {
     public List<LessonSegmentResponse> getSegmentsByLessonSlug(Long userId, String slug) {
         Lesson lesson = lessonAccessService.validateLessonAccess(userId, slug);
         return buildSegments(userId, lesson);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<AdminLessonResponse> searchLessonsForAdmin(AdminLessonSearchRequest request, Pageable pageable) {
+        Page<Lesson> page = lessonRepository.findAll(
+                LessonSpecifications.withFilter(LessonFilter.fromAdminRequest(request)), pageable);
+
+        List<Long> ids = page.getContent().stream().map(Lesson::getId).toList();
+        Map<Long, Long> countByLesson = ids.isEmpty()
+                ? Map.of()
+                : lessonSegmentRepository.countByLessonIds(ids).stream()
+                    .collect(Collectors.toMap(LessonSegmentCountProjection::getLessonId,
+                                              LessonSegmentCountProjection::getCountVal));
+
+        return PageResponse.of(page.map(lesson ->
+                lessonMapper.toAdminLessonResponse(lesson, countByLesson.getOrDefault(lesson.getId(), 0L).intValue())));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public AdminLessonResponse getLessonByIdForAdmin(Long lessonId) {
+        Lesson lesson = lessonRepository.findById(lessonId)
+                .orElseThrow(() -> new AppException(AppError.LESSON_NOT_FOUND));
+        return lessonMapper.toAdminLessonResponse(lesson, (int) lessonSegmentRepository.countByLessonId(lessonId));
     }
 
     private LessonDetailResponse buildLessonDetail(Long userId, Lesson lesson) {
