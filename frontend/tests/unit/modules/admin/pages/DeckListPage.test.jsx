@@ -14,6 +14,9 @@ vi.mock('@/modules/admin/services/adminContentApi', () => ({
   deleteUserDeck: vi.fn(),
   fetchAdminTags: vi.fn(),
   fetchCefrLevels: vi.fn(),
+  fetchOrphanedCardStats: vi.fn(),
+  fetchOrphanedCards: vi.fn(),
+  cleanupOrphanedCards: vi.fn(),
 }));
 
 describe('DeckListPage component', () => {
@@ -391,6 +394,51 @@ describe('DeckListPage component', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Oxford 3000')).toBeInTheDocument();
+      });
+    });
+
+    it('switches to Orphaned Cards tab and displays orphaned cards stats', async () => {
+      adminContentApi.fetchAdminDecks.mockResolvedValueOnce({
+        content: [sampleSystemDeck],
+        page: 1,
+        size: 20,
+        totalElements: 1,
+        totalPages: 1,
+        isLast: true,
+      });
+      adminContentApi.fetchOrphanedCardStats.mockResolvedValueOnce({
+        totalOrphanedCards: 12,
+        safeToDeleteCards: 5,
+        retainedInStudyCards: 7,
+      });
+      adminContentApi.fetchOrphanedCards.mockResolvedValueOnce({
+        content: [],
+        page: 1,
+        size: 20,
+        totalElements: 0,
+        totalPages: 1,
+        isLast: true,
+      });
+
+      const user = userEvent.setup();
+      render(<DeckListPage onNavigate={mockNavigate} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Oxford 3000')).toBeInTheDocument();
+      });
+
+      const orphanedTabBtn = screen.getByRole('tab', {
+        name: /Card mồ côi|Orphaned Cards/i,
+      });
+      await user.click(orphanedTabBtn);
+
+      await waitFor(() => {
+        expect(adminContentApi.fetchOrphanedCardStats).toHaveBeenCalledTimes(1);
+        expect(adminContentApi.fetchOrphanedCards).toHaveBeenCalledWith({
+          page: 1,
+          size: 20,
+          sort: 'id,desc',
+        });
       });
     });
   });

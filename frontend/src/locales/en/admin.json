@@ -311,7 +311,11 @@
       "deckInfo": "Deck Information",
       "metadata": "Attributes",
       "createdAt": "Created At",
-      "publishedAt": "Published At"
+      "publishedAt": "Published At",
+      "tabs": {
+        "deckList": "Decks List",
+        "orphanedCards": "Orphaned Cards"
+      }
     },
     "topics": {
       "title": "Topics List",
@@ -396,6 +400,34 @@
       "tagCreateSuccess": "Tag created successfully",
       "tagUpdateSuccess": "Tag updated successfully",
       "tagDeleteSuccess": "Tag deleted successfully"
+    },
+    "orphanedCards": {
+      "statsTotal": "Total Orphaned Cards",
+      "statsTotalSub": "Detached cards with no associated topic",
+      "statsSafe": "Safe to Delete",
+      "statsSafeSub": "No learner review history recorded",
+      "statsRetained": "Retained in Study",
+      "statsRetainedSub": "Preserved due to active learner progress",
+      "cleanupHintTitle": "Proactive Orphaned Card Cleanup",
+      "cleanupHintDesc": "Only cards with zero learning records (safe to delete) and their associated media assets on Cloud will be permanently removed.",
+      "refreshBtn": "Refresh",
+      "cleanupBtn": "Clean Up Safe Cards",
+      "cleaningBtn": "Cleaning up...",
+      "confirmModalTitle": "Confirm Orphaned Cards Cleanup",
+      "confirmModalDesc": "This action will permanently delete {{safeCount}} orphaned cards with no review history along with their R2 media assets. {{retainedCount}} cards with active learning progress will remain untouched.",
+      "confirmCleanupBtn": "Confirm Delete {{count}} Cards",
+      "cancelBtn": "Cancel",
+      "cleanupSuccessTitle": "Orphaned Cards Cleanup Completed",
+      "cleanupSuccessDetail": "Scanned {{scannedCount}} cards, permanently deleted {{deletedCardCount}} orphaned cards and {{deletedFileCount}} media files on R2.",
+      "colId": "ID",
+      "colTerm": "Term & Phonetics",
+      "colTranslation": "Translation",
+      "colMedia": "Media Assets",
+      "hasImage": "Image",
+      "hasAudio": "Audio ({{count}})",
+      "noMedia": "None",
+      "emptyList": "No orphaned cards found in the system",
+      "unitLabel": "cards"
     }
   },
   "systemConfig": {

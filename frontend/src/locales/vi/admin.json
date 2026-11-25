@@ -311,7 +311,11 @@
       "deckInfo": "Thông tin bộ từ",
       "metadata": "Thuộc tính",
       "createdAt": "Ngày tạo",
-      "publishedAt": "Ngày xuất bản"
+      "publishedAt": "Ngày xuất bản",
+      "tabs": {
+        "deckList": "Danh sách bộ từ",
+        "orphanedCards": "Card mồ côi"
+      }
     },
     "topics": {
       "title": "Danh sách Chủ đề",
@@ -396,6 +400,34 @@
       "tagCreateSuccess": "Tạo thẻ chủ đề thành công",
       "tagUpdateSuccess": "Cập nhật thẻ chủ đề thành công",
       "tagDeleteSuccess": "Đã xóa thẻ chủ đề"
+    },
+    "orphanedCards": {
+      "statsTotal": "Tổng card mồ côi",
+      "statsTotalSub": "Thẻ tách rời không còn thuộc chủ đề nào",
+      "statsSafe": "An toàn để xóa",
+      "statsSafeSub": "Chưa có dữ liệu ôn tập của học viên",
+      "statsRetained": "Giữ lại do đang học",
+      "statsRetainedSub": "Đang gắn với tiến độ học của học viên",
+      "cleanupHintTitle": "Dọn dẹp chủ động card mồ côi",
+      "cleanupHintDesc": "Hệ thống chỉ xóa vĩnh viễn các thẻ không có lịch sử học (an toàn để xóa) cùng tệp hình ảnh/âm thanh đi kèm trên Cloud.",
+      "refreshBtn": "Làm mới",
+      "cleanupBtn": "Xóa card mồ côi an toàn",
+      "cleaningBtn": "Đang dọn dẹp...",
+      "confirmModalTitle": "Xác nhận xóa card mồ côi chủ động",
+      "confirmModalDesc": "Thao tác này sẽ xóa vĩnh viễn {{safeCount}} card mồ côi chưa có lịch sử học và toàn bộ tệp media liên quan trên R2. {{retainedCount}} card đang có tiến độ học sẽ được giữ lại an toàn.",
+      "confirmCleanupBtn": "Xác nhận xóa {{count}} card",
+      "cancelBtn": "Hủy bỏ",
+      "cleanupSuccessTitle": "Dọn dẹp card mồ côi hoàn tất",
+      "cleanupSuccessDetail": "Đã quét {{scannedCount}} thẻ, xóa vĩnh viễn {{deletedCardCount}} thẻ mồ côi và {{deletedFileCount}} tệp media trên R2.",
+      "colId": "ID",
+      "colTerm": "Thuật ngữ & Phiên âm",
+      "colTranslation": "Nghĩa tiếng Việt",
+      "colMedia": "Tài nguyên Media",
+      "hasImage": "Hình ảnh",
+      "hasAudio": "Âm thanh ({{count}})",
+      "noMedia": "Không có",
+      "emptyList": "Không có card mồ côi nào trong hệ thống",
+      "unitLabel": "card"
     }
   },
   "systemConfig": {

@@ -6,6 +6,7 @@ import AdminPagination from '../../components/AdminPagination/AdminPagination';
 import { AdminErrorState } from '../../components/Feedback/AdminFeedback';
 import {
   BookOpenIcon,
+  LayersIcon,
   PlusIcon,
   SearchIcon,
   EyeIcon,
@@ -23,10 +24,14 @@ import {
   fetchCefrLevels,
 } from '../../services/adminContentApi';
 import DeckFormModal from './components/DeckFormModal';
+import OrphanedCardsTab from './components/OrphanedCardsTab';
 import styles from './DeckListPage.module.css';
 
 export default function DeckListPage({ onNavigate }) {
   const { t } = useTranslation('admin');
+
+  // Page-level tab: 'decks' | 'orphanedCards'
+  const [activeTab, setActiveTab] = useState('decks');
 
   // Filter state (ownerType default to SYSTEM)
   const [ownerType, setOwnerType] = useState('SYSTEM');
@@ -443,13 +448,43 @@ export default function DeckListPage({ onNavigate }) {
           <h1 className={styles.title}>{t('content.decks.title')}</h1>
           <p className={styles.subtitle}>{t('content.decks.subtitle')}</p>
         </div>
-        <button type="button" className={styles.primaryBtn} onClick={handleOpenCreate}>
-          <PlusIcon size={16} />
-          {t('content.decks.createSystemDeck')}
+        {activeTab === 'decks' && (
+          <button type="button" className={styles.primaryBtn} onClick={handleOpenCreate}>
+            <PlusIcon size={16} />
+            {t('content.decks.createSystemDeck')}
+          </button>
+        )}
+      </div>
+
+      {/* Page Tabs */}
+      <div className={styles.tabNavRow} role="tablist">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'decks'}
+          className={`${styles.tabBtn} ${activeTab === 'decks' ? styles.tabBtnActive : ''}`}
+          onClick={() => setActiveTab('decks')}
+        >
+          <BookOpenIcon size={16} />
+          <span>{t('content.decks.tabs.deckList')}</span>
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'orphanedCards'}
+          className={`${styles.tabBtn} ${activeTab === 'orphanedCards' ? styles.tabBtnActive : ''}`}
+          onClick={() => setActiveTab('orphanedCards')}
+        >
+          <LayersIcon size={16} />
+          <span>{t('content.decks.tabs.orphanedCards')}</span>
         </button>
       </div>
 
-      {/* Filter Card */}
+      {activeTab === 'orphanedCards' ? (
+        <OrphanedCardsTab />
+      ) : (
+        <>
+          {/* Filter Card */}
       <div className={styles.filterCard}>
         {/* OwnerType Segments: Only 2 options (SYSTEM and USER) */}
         <div className={styles.ownerTypeBar}>
@@ -751,6 +786,8 @@ export default function DeckListPage({ onNavigate }) {
             </form>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );

@@ -24,6 +24,9 @@ import {
   createAdminTag,
   updateAdminTag,
   deleteAdminTag,
+  fetchOrphanedCardStats,
+  fetchOrphanedCards,
+  cleanupOrphanedCards,
 } from '@/modules/admin/services/adminContentApi';
 
 vi.mock('@/services/apiClient', () => ({
@@ -279,6 +282,52 @@ describe('adminContentApi service', () => {
       const result = await deleteAdminTag(2);
       expect(apiClient.delete).toHaveBeenCalledWith('/admin/tags/2');
       expect(result.success).toBe(true);
+    });
+  });
+
+  describe('Orphaned Cards API', () => {
+    it('fetchOrphanedCardStats calls GET /admin/orphaned-cards/stats', async () => {
+      const mockStats = {
+        totalOrphanedCards: 120,
+        safeToDeleteCards: 45,
+        retainedInStudyCards: 75,
+      };
+      apiClient.get.mockResolvedValueOnce({ data: { data: mockStats } });
+
+      const result = await fetchOrphanedCardStats();
+      expect(apiClient.get).toHaveBeenCalledWith('/admin/orphaned-cards/stats');
+      expect(result).toEqual(mockStats);
+    });
+
+    it('fetchOrphanedCards calls GET /admin/orphaned-cards with 1-indexed pagination params', async () => {
+      const mockPage = {
+        content: [{ id: 505, term: 'obsolete' }],
+        page: 2,
+        size: 20,
+        totalElements: 25,
+        totalPages: 2,
+        isLast: true,
+      };
+      apiClient.get.mockResolvedValueOnce({ data: { data: mockPage } });
+
+      const result = await fetchOrphanedCards({ page: 2, size: 20, sort: 'id,desc' });
+      expect(apiClient.get).toHaveBeenCalledWith('/admin/orphaned-cards', {
+        params: { page: 2, size: 20, sort: 'id,desc' },
+      });
+      expect(result).toEqual(mockPage);
+    });
+
+    it('cleanupOrphanedCards calls POST /admin/orphaned-cards/cleanup', async () => {
+      const mockCleanup = {
+        scannedCount: 45,
+        deletedCardCount: 45,
+        deletedFileCount: 38,
+      };
+      apiClient.post.mockResolvedValueOnce({ data: { data: mockCleanup } });
+
+      const result = await cleanupOrphanedCards();
+      expect(apiClient.post).toHaveBeenCalledWith('/admin/orphaned-cards/cleanup');
+      expect(result).toEqual(mockCleanup);
     });
   });
 });

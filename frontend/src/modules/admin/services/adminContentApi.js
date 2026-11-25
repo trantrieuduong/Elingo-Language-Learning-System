@@ -247,3 +247,43 @@ export const deleteAdminTag = async (tagId) => {
   const res = await apiClient.delete(`/admin/tags/${tagId}`);
   return res.data;
 };
+
+/* ============================================================
+   6. ORPHANED CARDS API (AdminOrphanedCardController)
+   ============================================================ */
+
+/**
+ * Lấy thống kê tổng quan các thẻ từ vựng mồ côi
+ */
+export const fetchOrphanedCardStats = async () => {
+  const res = await apiClient.get('/admin/orphaned-cards/stats');
+  return res.data?.data;
+};
+
+/**
+ * Lấy danh sách phân trang các thẻ từ vựng mồ côi (1-indexed)
+ */
+export const fetchOrphanedCards = async (params = {}) => {
+  const query = {};
+  if (params.page !== undefined && params.page !== null) {
+    query.page = params.page;
+  }
+  if (params.size !== undefined && params.size !== null) {
+    query.size = params.size;
+  }
+  if (params.sort) {
+    query.sort = params.sort;
+  }
+  const res = await apiClient.get('/admin/orphaned-cards', {
+    params: query,
+  });
+  return res.data?.data;
+};
+
+/**
+ * Kích hoạt dọn dẹp các thẻ mồ côi an toàn (chưa có lịch sử học) và media trên R2
+ */
+export const cleanupOrphanedCards = async () => {
+  const res = await apiClient.post('/admin/orphaned-cards/cleanup');
+  return res.data?.data;
+};
