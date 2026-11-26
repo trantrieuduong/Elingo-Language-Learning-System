@@ -28,6 +28,12 @@ public interface UserCardStateRepository extends JpaRepository<UserCardState, Lo
         Long getLearnedCount();
     }
 
+    interface FlashcardProgressStats {
+        long getMasteredCards();
+        long getDueCards();
+        long getStarredCards();
+    }
+
     @Query("""
             select s from UserCardState s
             join fetch s.card c
@@ -86,4 +92,15 @@ public interface UserCardStateRepository extends JpaRepository<UserCardState, Lo
       and (s.srsNextReviewAt is not null or s.flagsHidden = true)
     """)
     long countLearnedCardsByUserId(@Param("userId") Long userId);
+
+    @Query("""
+    select
+      coalesce(sum(case when s.flagsHidden = true then 1 else 0 end), 0) as masteredCards,
+      coalesce(sum(case when s.flagsHidden = false and s.srsNextReviewAt is not null and s.srsNextReviewAt <= :now then 1 else 0 end), 0) as dueCards,
+      coalesce(sum(case when s.flagsStarred = true then 1 else 0 end), 0) as starredCards
+    from UserCardState s
+    where s.user.id = :userId
+    """)
+    FlashcardProgressStats getFlashcardProgressStats(@Param("userId") Long userId,
+                                                     @Param("now") LocalDateTime now);
 }

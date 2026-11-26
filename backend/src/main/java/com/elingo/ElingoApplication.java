@@ -5,6 +5,7 @@ import com.elingo.community.moderation.config.ModerationProperties;
 import com.elingo.config.ThreadPoolProperties;
 import com.elingo.vocabulary.config.FlashcardProperties;
 import com.elingo.learning.lesson.config.LessonProperties;
+import com.elingo.progress.config.ProgressProperties;
 import com.elingo.speaking.config.SpeakingProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -19,7 +20,8 @@ import java.util.TimeZone;
         BattleProperties.class,
         ModerationProperties.class,
         ThreadPoolProperties.class,
-        SpeakingProperties.class
+        SpeakingProperties.class,
+        ProgressProperties.class
 })
 public class ElingoApplication {
 

@@ -50,4 +50,10 @@ public interface XpEventRepository extends JpaRepository<XpEvent, Long> {
             @Param("from") LocalDateTime from,
             @Param("to") LocalDateTime to
     );
+
+    List<XpEvent> findAllByUserIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThanOrderByCreatedAtAsc(
+            Long userId,
+            LocalDateTime from,
+            LocalDateTime to
+    );
 }
