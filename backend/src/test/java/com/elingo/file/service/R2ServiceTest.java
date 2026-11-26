@@ -45,6 +45,7 @@ import java.net.URI;
 import java.net.URL;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -104,7 +105,7 @@ class R2ServiceTest {
         @Test
         @DisplayName("valid config -> no exception")
         void valid() {
-            r2Service.afterPropertiesSet();
+            assertThatCode(() -> r2Service.afterPropertiesSet()).doesNotThrowAnyException();
         }
 
         @Test
@@ -304,7 +305,9 @@ class R2ServiceTest {
                     .thenThrow(s3Error(500));
 
             // không ném exception
-            r2Service.abortMultipart(new AbortMultipartRequest("staging/12/a.mp4", "upload-1"), USER_ID);
+            assertThatCode(() -> r2Service.abortMultipart(new AbortMultipartRequest("staging/12/a.mp4", "upload-1"), USER_ID))
+                    .doesNotThrowAnyException();
+            verify(s3Client).abortMultipartUpload(any(AbortMultipartUploadRequest.class));
         }
     }
 
