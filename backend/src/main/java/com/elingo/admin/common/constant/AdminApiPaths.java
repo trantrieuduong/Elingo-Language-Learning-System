@@ -10,6 +10,8 @@ public final class AdminApiPaths {
     public static final String DECKS = BASE + "/decks";
     public static final String TOPICS = BASE + "/topics";
     public static final String CARDS = BASE + "/cards";
+    public static final String LESSONS = BASE + "/lessons";
+    public static final String LESSON_SEGMENTS = BASE + "/lesson-segments";
     public static final String TAGS = BASE + "/tags";
     public static final String ORPHANED_CARDS = BASE + "/orphaned-cards";
 

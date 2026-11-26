@@ -12,6 +12,7 @@ public enum SystemFileModule {
     CARDS("cards", Set.of(MediaKind.IMAGE)),
     PHONETICS("phonetics", Set.of(MediaKind.AUDIO)),
     BADGES("badges", Set.of(MediaKind.IMAGE)),
+    LESSONS("lessons", Set.of(MediaKind.IMAGE)),
     MISC("misc", Set.of(MediaKind.IMAGE, MediaKind.AUDIO, MediaKind.VIDEO));
 
     private final String path;
