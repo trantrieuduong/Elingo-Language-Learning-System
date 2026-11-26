@@ -25,6 +25,11 @@ public interface LessonSegmentRepository extends JpaRepository<LessonSegment, Lo
 
     long countByLessonId(Long lessonId);
 
+    List<LessonSegment> findAllByIdInAndLessonId(Collection<Long> ids, Long lessonId);
+
+    @Query("SELECT MAX(s.endMs) FROM LessonSegment s WHERE s.lesson.id = :lessonId")
+    Optional<Integer> findMaxEndMsByLessonId(@Param("lessonId") Long lessonId);
+
     @Query("""
             SELECT s.lesson.id AS lessonId, COUNT(s.id) AS countVal
             FROM LessonSegment s

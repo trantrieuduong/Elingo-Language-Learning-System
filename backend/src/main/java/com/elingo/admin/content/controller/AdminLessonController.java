@@ -7,6 +7,7 @@ import com.elingo.common.annotation.CurrentUserId;
 import com.elingo.common.dto.ApiResponse;
 import com.elingo.common.dto.PageResponse;
 import com.elingo.learning.lesson.dto.request.AdminLessonSearchRequest;
+import com.elingo.learning.lesson.dto.request.DeleteLessonSegmentsRequest;
 import com.elingo.learning.lesson.dto.request.LessonRequest;
 import com.elingo.learning.lesson.dto.response.AdminLessonResponse;
 import com.elingo.learning.lesson.dto.response.AdminLessonSegmentResponse;
@@ -717,5 +718,108 @@ public class AdminLessonController {
                 .success(true)
                 .data(adminLessonSegmentService.getSegmentsByLessonId(lessonId))
                 .build();
+    }
+
+    @DeleteMapping("/{lessonId}/segments")
+    @Operation(summary = "Delete one or more segments of a lesson",
+               description = "All-or-nothing. Send a single id in segmentIds to delete one segment. A published lesson must keep at least one segment. Also deletes learners' segment progress (segment_word_accuracy, user_segment_progress). Writes audit action SEGMENT_DELETE.")
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "IDs of segments to delete",
+            required = true,
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = DeleteLessonSegmentsRequest.class)
+            )
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "Segments deleted successfully",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiResponse.class),
+                    examples = @ExampleObject(
+                            name = "DeleteSegmentsSuccessResponse",
+                            summary = "Bulk delete success",
+                            value = """
+                                    {
+                                      "success": true,
+                                      "data": null
+                                    }
+                                    """
+                    )
+            )
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "400",
+            description = "Bad Request — INVALID_REQUEST, LESSON_SEGMENT_REQUIRED",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiResponse.class),
+                    examples = {
+                            @ExampleObject(
+                                    name = "InvalidRequestResponse",
+                                    summary = "segmentIds empty or invalid",
+                                    value = """
+                                            {
+                                              "success": false,
+                                              "error": {
+                                                "code": "INVALID_REQUEST",
+                                                "message": "Invalid request parameters or body"
+                                              }
+                                            }
+                                            """
+                            ),
+                            @ExampleObject(
+                                    name = "LessonSegmentRequiredResponse",
+                                    summary = "Cannot delete last segment of a published lesson",
+                                    value = """
+                                            {
+                                              "success": false,
+                                              "error": {
+                                                "code": "LESSON_SEGMENT_REQUIRED",
+                                                "message": "A published lesson must have at least one segment"
+                                              }
+                                            }
+                                            """
+                            )
+                    }
+            )
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Authentication token is missing or expired"
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - Admin privileges required"
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "404",
+            description = "Not Found — LESSON_NOT_FOUND, LESSON_SEGMENT_NOT_FOUND",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiResponse.class),
+                    examples = @ExampleObject(
+                            name = "NotFoundResponse",
+                            summary = "Lesson or segment not found",
+                            value = """
+                                    {
+                                      "success": false,
+                                      "error": {
+                                        "code": "LESSON_NOT_FOUND",
+                                        "message": "Lesson not found"
+                                      }
+                                    }
+                                    """
+                    )
+            )
+    )
+    public ApiResponse<Void> deleteSegments(
+            @CurrentUserId Long adminId,
+            @Parameter(description = "Identifier of the lesson", example = "7", required = true)
+            @PathVariable @Positive Long lessonId,
+            @Valid @RequestBody DeleteLessonSegmentsRequest request) {
+        adminLessonSegmentService.deleteSegments(adminId, lessonId, request);
+        return ApiResponse.<Void>builder().success(true).build();
     }
 }

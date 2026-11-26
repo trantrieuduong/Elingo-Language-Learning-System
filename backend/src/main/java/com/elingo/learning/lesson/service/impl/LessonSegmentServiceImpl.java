@@ -3,10 +3,12 @@ package com.elingo.learning.lesson.service.impl;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.learning.lesson.dto.request.CreateLessonSegmentRequest;
+import com.elingo.learning.lesson.dto.request.DeleteLessonSegmentsRequest;
 import com.elingo.learning.lesson.dto.request.UpdateLessonSegmentRequest;
 import com.elingo.learning.lesson.dto.response.AdminLessonSegmentResponse;
 import com.elingo.learning.lesson.entity.Lesson;
 import com.elingo.learning.lesson.entity.LessonSegment;
+import com.elingo.learning.lesson.entity.LessonStatus;
 import com.elingo.learning.lesson.mapper.LessonSegmentMapper;
 import com.elingo.learning.lesson.repository.LessonRepository;
 import com.elingo.learning.lesson.repository.LessonSegmentRepository;
@@ -95,19 +97,30 @@ public class LessonSegmentServiceImpl implements LessonSegmentService {
 
     @Override
     @Transactional
-    public void deleteSegment(Long segmentId) {
-        LessonSegment segment = lessonSegmentRepository.findById(segmentId)
-                .orElseThrow(() -> new AppException(AppError.LESSON_SEGMENT_NOT_FOUND));
-
-        // Xóa đúng thứ tự để tránh FK violation: word accuracy -> segment progress -> segment
-        segmentWordAccuracyRepository.deleteAllBySegmentIds(List.of(segmentId));
-        userSegmentProgressRepository.deleteAllBySegmentIds(List.of(segmentId));
-        lessonSegmentRepository.delete(segment);
+    public void deleteSegments(Long lessonId, DeleteLessonSegmentsRequest request) {
+        Lesson lesson = lessonRepository.findById(lessonId)
+                .orElseThrow(() -> new AppException(AppError.LESSON_NOT_FOUND));
+        List<LessonSegment> segments = lessonSegmentRepository.findAllByIdInAndLessonId(request.segmentIds(), lessonId);
+        if (segments.size() != request.segmentIds().size()) {
+            throw new AppException(AppError.LESSON_SEGMENT_NOT_FOUND);
+        }
+        assertNotRemovingAllFromPublished(lesson, segments.size());
+        List<Long> ids = segments.stream().map(LessonSegment::getId).toList();
+        segmentWordAccuracyRepository.deleteAllBySegmentIds(ids);
+        userSegmentProgressRepository.deleteAllBySegmentIds(ids);
+        lessonSegmentRepository.deleteAll(segments);
     }
 
     // ==========================================
     // Helper Methods
     // ==========================================
+
+    private void assertNotRemovingAllFromPublished(Lesson lesson, int removeCount) {
+        if (lesson.getStatus() == LessonStatus.PUBLISHED
+                && lessonSegmentRepository.countByLessonId(lesson.getId()) - removeCount <= 0) {
+            throw new AppException(AppError.LESSON_SEGMENT_REQUIRED);
+        }
+    }
 
     private void validateTimeRange(Lesson lesson, Integer startMs, Integer endMs) {
         if (startMs >= endMs) {

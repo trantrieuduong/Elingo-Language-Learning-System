@@ -1,6 +1,7 @@
 package com.elingo.learning.lesson.service;
 
 import com.elingo.learning.lesson.dto.request.CreateLessonSegmentRequest;
+import com.elingo.learning.lesson.dto.request.DeleteLessonSegmentsRequest;
 import com.elingo.learning.lesson.dto.request.UpdateLessonSegmentRequest;
 import com.elingo.learning.lesson.dto.response.AdminLessonSegmentResponse;
 
@@ -10,5 +11,5 @@ public interface LessonSegmentService {
     List<AdminLessonSegmentResponse> getSegmentsByLessonIdForAdmin(Long lessonId);
     AdminLessonSegmentResponse createSegment(CreateLessonSegmentRequest request);
     AdminLessonSegmentResponse updateSegment(Long segmentId, UpdateLessonSegmentRequest request);
-    void deleteSegment(Long segmentId);
+    void deleteSegments(Long lessonId, DeleteLessonSegmentsRequest request);
 }

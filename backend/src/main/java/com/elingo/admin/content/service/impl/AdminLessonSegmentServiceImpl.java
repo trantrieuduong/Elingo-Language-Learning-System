@@ -5,6 +5,7 @@ import com.elingo.admin.audit.entity.AdminAuditAction;
 import com.elingo.admin.audit.entity.AdminAuditTargetType;
 import com.elingo.admin.content.service.AdminLessonSegmentService;
 import com.elingo.learning.lesson.dto.request.CreateLessonSegmentRequest;
+import com.elingo.learning.lesson.dto.request.DeleteLessonSegmentsRequest;
 import com.elingo.learning.lesson.dto.request.UpdateLessonSegmentRequest;
 import com.elingo.learning.lesson.dto.response.AdminLessonSegmentResponse;
 import com.elingo.learning.lesson.service.LessonSegmentService;
@@ -50,10 +51,11 @@ public class AdminLessonSegmentServiceImpl implements AdminLessonSegmentService 
 
     @Override
     @Audited(action = AdminAuditAction.SEGMENT_DELETE,
-             target = AdminAuditTargetType.LESSON_SEGMENT,
-             targetId = "#segmentId")
-    public void deleteSegment(Long adminId, Long segmentId) {
-        lessonSegmentService.deleteSegment(segmentId);
-        log.info("Lesson segment deleted segmentId={} byAdminId={}", segmentId, adminId);
+             target = AdminAuditTargetType.LESSON,
+             targetId = "#lessonId",
+             detail = "'Deleted segmentIds: ' + #request.segmentIds()")
+    public void deleteSegments(Long adminId, Long lessonId, DeleteLessonSegmentsRequest request) {
+        lessonSegmentService.deleteSegments(lessonId, request);
+        log.info("Lesson segments deleted lessonId={} count={} byAdminId={}", lessonId, request.segmentIds().size(), adminId);
     }
 }

@@ -172,6 +172,12 @@ public class LessonServiceImpl implements LessonService {
         }
         var thumbnail = mediaKeyResolver.forUpdate(request.thumbnailUrl(), lesson.getThumbnailUrl(), SystemFileModule.LESSONS);
 
+        lessonSegmentRepository.findMaxEndMsByLessonId(lessonId).ifPresent(maxEnd -> {
+            if (request.durationMs() < maxEnd) {
+                throw new AppException(AppError.SEGMENT_EXCEEDS_DURATION);
+            }
+        });
+
         lessonMapper.updateLesson(lesson, request);
         lesson.setThumbnailUrl(thumbnail.key());
         lesson.setTags(resolveTags(request.tagIds()));
