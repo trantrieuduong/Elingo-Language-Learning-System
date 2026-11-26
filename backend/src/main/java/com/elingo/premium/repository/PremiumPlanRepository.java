@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface PremiumPlanRepository extends JpaRepository<PremiumPlan, Long> {
     List<PremiumPlan> findAllByIsActiveTrueOrderByPriceAsc();
+
+    List<PremiumPlan> findAllByOrderByPriceAscIdAsc();
 }

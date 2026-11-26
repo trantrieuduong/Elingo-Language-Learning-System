@@ -222,6 +222,10 @@ public enum AppError {
     PAYMENT_AMOUNT_MISMATCH("PAYMENT_AMOUNT_MISMATCH", "Paid amount does not match transaction plan price", HttpStatus.BAD_REQUEST),
     USER_SUBSCRIPTION_NOT_FOUND("USER_SUBSCRIPTION_NOT_FOUND", "User subscription not found", HttpStatus.NOT_FOUND),
     ACTIVE_SUBSCRIPTION_ALREADY_EXISTS("ACTIVE_SUBSCRIPTION_ALREADY_EXISTS", "User already has an active premium subscription", HttpStatus.BAD_REQUEST),
+    PREMIUM_PLAN_ALREADY_ACTIVE("PREMIUM_PLAN_ALREADY_ACTIVE", "Premium plan is already active", HttpStatus.BAD_REQUEST),
+    PREMIUM_PLAN_ALREADY_INACTIVE("PREMIUM_PLAN_ALREADY_INACTIVE", "Premium plan is already inactive", HttpStatus.BAD_REQUEST),
+    PAYMENT_TRANSACTION_NOT_REFUNDABLE("PAYMENT_TRANSACTION_NOT_REFUNDABLE", "Only successful payment transactions can be refunded", HttpStatus.BAD_REQUEST),
+    PAYMENT_WEBHOOK_LOG_NOT_FOUND("PAYMENT_WEBHOOK_LOG_NOT_FOUND", "Payment webhook log not found", HttpStatus.NOT_FOUND),
 
     // ==========================================
     // 12. Notification (Thông báo)

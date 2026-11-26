@@ -23,4 +23,8 @@ public final class AdminApiPaths {
     public static final String STATS_REVENUE = BASE + "/stats/revenue";
     public static final String STATS_LEARNING = BASE + "/stats/learning";
     public static final String STATS_COMMUNITY = BASE + "/stats/community";
+
+    public static final String PREMIUM_PLANS = BASE + "/premium/plans";
+    public static final String PREMIUM_TRANSACTIONS = BASE + "/premium/transactions";
+    public static final String PREMIUM_WEBHOOK_LOGS = BASE + "/premium/webhook-logs";
 }

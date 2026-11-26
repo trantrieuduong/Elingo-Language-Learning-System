@@ -21,6 +21,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -28,6 +29,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -221,6 +224,150 @@ class SubscriptionServiceTest {
 
             assertThat(count).isEqualTo(20L);
             org.mockito.Mockito.verify(userSubscriptionRepository).countTotalActiveSubscriptions(now);
+        }
+    }
+
+    @Nested
+    @DisplayName("revokeSubscriptionTime tests")
+    class RevokeSubscriptionTimeTests {
+
+        @Test
+        @DisplayName("Should throw USER_NOT_FOUND when user does not exist")
+        void shouldThrowUserNotFound_whenUserDoesNotExist() {
+            when(userRepository.findByIdForUpdate(999L)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> subscriptionService.revokeSubscriptionTime(999L, 50L, 30, LocalDateTime.now()))
+                    .isInstanceOf(AppException.class)
+                    .hasFieldOrPropertyWithValue("appError", AppError.USER_NOT_FOUND);
+
+            verify(userSubscriptionRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Should return zero duration when subscriptionId is null")
+        void shouldReturnZero_whenSubscriptionIdIsNull() {
+            when(userRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(testUser));
+
+            Duration result = subscriptionService.revokeSubscriptionTime(1L, null, 30, LocalDateTime.now());
+
+            assertThat(result).isEqualTo(Duration.ZERO);
+            verify(userSubscriptionRepository, never()).findById(any());
+        }
+
+        @Test
+        @DisplayName("Should return zero duration when subscription is not found or not ACTIVE")
+        void shouldReturnZero_whenSubscriptionNotActive() {
+            UserSubscription cancelledSub = UserSubscription.builder()
+                    .id(50L)
+                    .user(testUser)
+                    .plan(testPlan)
+                    .status(SubscriptionStatus.CANCELLED)
+                    .build();
+            when(userRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(testUser));
+            when(userSubscriptionRepository.findById(50L)).thenReturn(Optional.of(cancelledSub));
+
+            Duration result = subscriptionService.revokeSubscriptionTime(1L, 50L, 30, LocalDateTime.now());
+
+            assertThat(result).isEqualTo(Duration.ZERO);
+            verify(userSubscriptionRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Should mark EXPIRED and return zero when subscription already passed endAt")
+        void shouldMarkExpired_whenSubscriptionAlreadyExpired() {
+            UserSubscription expiredSub = UserSubscription.builder()
+                    .id(50L)
+                    .user(testUser)
+                    .plan(testPlan)
+                    .status(SubscriptionStatus.ACTIVE)
+                    .startAt(LocalDateTime.now().minusDays(40))
+                    .endAt(LocalDateTime.now().minusDays(1))
+                    .build();
+            when(userRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(testUser));
+            when(userSubscriptionRepository.findById(50L)).thenReturn(Optional.of(expiredSub));
+
+            Duration result = subscriptionService.revokeSubscriptionTime(1L, 50L, 30, LocalDateTime.now().minusDays(30));
+
+            assertThat(result).isEqualTo(Duration.ZERO);
+            assertThat(expiredSub.getStatus()).isEqualTo(SubscriptionStatus.EXPIRED);
+            verify(userSubscriptionRepository).save(expiredSub);
+        }
+
+        @Test
+        @DisplayName("Should keep ACTIVE and subtract only remaining unused time of refunded transaction")
+        void shouldSubtractOnlyUnusedTime_whenUserHadPreviousVipDays() {
+            LocalDateTime now = LocalDateTime.now();
+            // User had 30 days, bought 30 more days 1 day ago -> endAt is now + 59 days
+            LocalDateTime paidAt = now.minusDays(1);
+            LocalDateTime originalEndAt = now.plusDays(59);
+            UserSubscription sub = UserSubscription.builder()
+                    .id(50L)
+                    .user(testUser)
+                    .plan(testPlan)
+                    .status(SubscriptionStatus.ACTIVE)
+                    .startAt(now.minusDays(1))
+                    .endAt(originalEndAt)
+                    .build();
+
+            when(userRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(testUser));
+            when(userSubscriptionRepository.findById(50L)).thenReturn(Optional.of(sub));
+
+            Duration result = subscriptionService.revokeSubscriptionTime(1L, 50L, 30, paidAt);
+
+            assertThat(result).isBetween(Duration.ofDays(29).minusSeconds(5), Duration.ofDays(29));
+            assertThat(sub.getStatus()).isEqualTo(SubscriptionStatus.ACTIVE);
+            // Remaining endAt should be ~30 days from now (previous VIP days untouched)
+            assertThat(Duration.between(now, sub.getEndAt()).toDays()).isBetween(29L, 30L);
+            verify(userSubscriptionRepository).save(sub);
+        }
+
+        @Test
+        @DisplayName("Should mark CANCELLED and set endAt to now when no other VIP time remains")
+        void shouldMarkCancelled_whenRevokingSinglePurchase() {
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime paidAt = now.minusDays(1);
+            UserSubscription sub = UserSubscription.builder()
+                    .id(50L)
+                    .user(testUser)
+                    .plan(testPlan)
+                    .status(SubscriptionStatus.ACTIVE)
+                    .startAt(paidAt)
+                    .endAt(paidAt.plusDays(30))
+                    .build();
+
+            when(userRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(testUser));
+            when(userSubscriptionRepository.findById(50L)).thenReturn(Optional.of(sub));
+
+            Duration result = subscriptionService.revokeSubscriptionTime(1L, 50L, 30, paidAt);
+
+            assertThat(result).isBetween(Duration.ofDays(29).minusSeconds(5), Duration.ofDays(29));
+            assertThat(sub.getStatus()).isEqualTo(SubscriptionStatus.CANCELLED);
+            assertThat(sub.getEndAt()).isAfterOrEqualTo(now);
+            verify(userSubscriptionRepository).save(sub);
+        }
+
+        @Test
+        @DisplayName("Should return zero when elapsed time since paidAt exceeds plan duration")
+        void shouldReturnZero_whenElapsedExceedsPlanDuration() {
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime paidAt = now.minusDays(35);
+            UserSubscription sub = UserSubscription.builder()
+                    .id(50L)
+                    .user(testUser)
+                    .plan(testPlan)
+                    .status(SubscriptionStatus.ACTIVE)
+                    .startAt(paidAt)
+                    .endAt(now.plusDays(10))
+                    .build();
+
+            when(userRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(testUser));
+            when(userSubscriptionRepository.findById(50L)).thenReturn(Optional.of(sub));
+
+            Duration result = subscriptionService.revokeSubscriptionTime(1L, 50L, 30, paidAt);
+
+            assertThat(result).isEqualTo(Duration.ZERO);
+            assertThat(sub.getStatus()).isEqualTo(SubscriptionStatus.ACTIVE);
+            verify(userSubscriptionRepository, never()).save(any());
         }
     }
 }
