@@ -10,7 +10,7 @@ Follow these rules whenever you write, edit, or review Java code that logs.
 ## 1. Logger declaration
 
 - Use Lombok `@Slf4j` with an explicit topic: `@Slf4j(topic = "UPPER-KEBAB-NAME")`.
-- The topic mirrors the class name in upper kebab case: `AuthService` -> `AUTH-SERVICE`, `AuthenticationController` -> `AUTHENTICATION-CONTROLLER`.
+- The topic mirrors the class name in upper kebab case: `AuthService` -> `AUTH-SERVICE`.
 - Do not rename existing topics and do not switch to plain `@Slf4j`.
 - Never add per-topic levels to `application-*.yml`. Root is INFO and only third-party packages are lowered.
 
