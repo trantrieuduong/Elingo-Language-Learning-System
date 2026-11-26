@@ -1,6 +1,7 @@
 package com.elingo.admin.content.controller;
 
 import com.elingo.admin.common.constant.AdminApiPaths;
+import com.elingo.admin.content.service.AdminLessonSegmentService;
 import com.elingo.admin.content.service.AdminLessonService;
 import com.elingo.common.annotation.CurrentUserId;
 import com.elingo.common.dto.ApiResponse;
@@ -8,6 +9,7 @@ import com.elingo.common.dto.PageResponse;
 import com.elingo.learning.lesson.dto.request.AdminLessonSearchRequest;
 import com.elingo.learning.lesson.dto.request.LessonRequest;
 import com.elingo.learning.lesson.dto.response.AdminLessonResponse;
+import com.elingo.learning.lesson.dto.response.AdminLessonSegmentResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -33,6 +35,7 @@ import org.springframework.web.bind.annotation.*;
 public class AdminLessonController {
 
     private final AdminLessonService adminLessonService;
+    private final AdminLessonSegmentService adminLessonSegmentService;
 
     @GetMapping
     @Operation(summary = "Search and filter lessons",
@@ -664,6 +667,55 @@ public class AdminLessonController {
         return ApiResponse.<AdminLessonResponse>builder()
                 .success(true)
                 .data(adminLessonService.archiveLesson(adminId, lessonId))
+                .build();
+    }
+
+    @GetMapping("/{lessonId}/segments")
+    @Operation(summary = "Get segments of a lesson",
+               description = "Returns all segments of a lesson ordered by startMs ascending. Admin can view segments of any lesson regardless of status.")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "Segments retrieved successfully",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiResponse.class)
+            )
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Authentication token is missing or expired"
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - Admin privileges required"
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "404",
+            description = "Not Found — LESSON_NOT_FOUND",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiResponse.class),
+                    examples = @ExampleObject(
+                            name = "LessonNotFoundResponse",
+                            summary = "Lesson not found",
+                            value = """
+                                    {
+                                      "success": false,
+                                      "error": {
+                                        "code": "LESSON_NOT_FOUND",
+                                        "message": "Lesson not found"
+                                      }
+                                    }
+                                    """
+                    )
+            )
+    )
+    public ApiResponse<java.util.List<AdminLessonSegmentResponse>> getSegmentsByLessonId(
+            @Parameter(description = "Identifier of the lesson", example = "7", required = true)
+            @PathVariable @Positive Long lessonId) {
+        return ApiResponse.<java.util.List<AdminLessonSegmentResponse>>builder()
+                .success(true)
+                .data(adminLessonSegmentService.getSegmentsByLessonId(lessonId))
                 .build();
     }
 }

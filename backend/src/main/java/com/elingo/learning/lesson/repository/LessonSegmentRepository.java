@@ -11,6 +11,14 @@ import java.util.List;
 import java.util.Optional;
 
 public interface LessonSegmentRepository extends JpaRepository<LessonSegment, Long> {
+
+    // Kiểm tra xem có segment nào của lesson chồng lấn với [startMs, endMs) không
+    boolean existsByLessonIdAndStartMsLessThanAndEndMsGreaterThan(
+            Long lessonId, Integer endMs, Integer startMs);
+
+    // Kiểm tra chồng lấn khi sửa (loại trừ chính segment đang sửa)
+    boolean existsByLessonIdAndIdNotAndStartMsLessThanAndEndMsGreaterThan(
+            Long lessonId, Long id, Integer endMs, Integer startMs);
     List<LessonSegment> findAllByLessonIdOrderByStartMsAsc(Long lessonId);
 
     Optional<LessonSegment> findByIdAndLessonId(Long id, Long lessonId);
