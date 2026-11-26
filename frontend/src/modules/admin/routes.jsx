@@ -6,6 +6,7 @@ import DashboardPage from './pages/DashboardPage/DashboardPage';
 import PlaceholderAdminPage from './pages/PlaceholderAdminPage/PlaceholderAdminPage';
 import DeckListPage from './pages/DeckManagementPage/DeckListPage';
 import DeckDetailPage from './pages/DeckManagementPage/DeckDetailPage';
+import LessonListPage from './pages/LessonManagementPage/LessonListPage';
 import TopicDetailPage from './pages/TopicManagementPage/TopicDetailPage';
 import TagListPage from './pages/TagManagementPage/TagListPage';
 import SystemConfigPage from './pages/SystemConfigPage/SystemConfigPage';
@@ -48,6 +49,8 @@ export default function AdminRoutes({ currentPath, onNavigate }) {
       // Module: Nội dung và học tập
       case '/admin/decks':
         return <DeckListPage onNavigate={onNavigate} />;
+      case '/admin/lessons':
+        return <LessonListPage onNavigate={onNavigate} />;
       case '/admin/tags':
         return <TagListPage onNavigate={onNavigate} />;
 

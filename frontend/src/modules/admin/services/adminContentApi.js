@@ -287,3 +287,75 @@ export const cleanupOrphanedCards = async () => {
   const res = await apiClient.post('/admin/orphaned-cards/cleanup');
   return res.data?.data;
 };
+
+/* ============================================================
+   7. LESSONS API (AdminLessonController)
+   ============================================================ */
+
+/**
+ * Tìm kiếm/lọc bài học (AdminLessonSearchRequest + Pageable, 1-indexed)
+ * @param {Object} params - { keyword, status, isPremium, tagIds, cefrLevelIds, page, size, sort }
+ * @returns {Promise<Object>} PageResponse<AdminLessonResponse>
+ */
+export const fetchAdminLessons = async (params = {}) => {
+  const query = {};
+  if (params.keyword && params.keyword.trim()) {
+    query.keyword = params.keyword.trim();
+  }
+  if (params.status) {
+    query.status = params.status;
+  }
+  if (typeof params.isPremium === 'boolean') {
+    query.isPremium = params.isPremium;
+  }
+  if (Array.isArray(params.tagIds) && params.tagIds.length > 0) {
+    query.tagIds = params.tagIds;
+  }
+  if (Array.isArray(params.cefrLevelIds) && params.cefrLevelIds.length > 0) {
+    query.cefrLevelIds = params.cefrLevelIds;
+  }
+  if (params.page !== undefined && params.page !== null) {
+    query.page = params.page;
+  }
+  if (params.size !== undefined && params.size !== null) {
+    query.size = params.size;
+  }
+  if (params.sort) {
+    query.sort = params.sort;
+  }
+
+  const res = await apiClient.get('/admin/lessons', { params: query });
+  return res.data?.data;
+};
+
+/**
+ * Lấy chi tiết thông tin một bài học theo ID (mọi trạng thái)
+ */
+export const fetchAdminLessonDetail = async (lessonId) => {
+  const res = await apiClient.get(`/admin/lessons/${lessonId}`);
+  return res.data?.data;
+};
+
+/**
+ * Xuất bản bài học (yêu cầu có ít nhất 1 đoạn phụ đề)
+ */
+export const publishAdminLesson = async (lessonId) => {
+  const res = await apiClient.put(`/admin/lessons/${lessonId}/publish`);
+  return res.data?.data;
+};
+
+/**
+ * Hủy xuất bản bài học (chuyển về trạng thái DRAFT, cũng dùng để khôi phục từ ARCHIVED)
+ */
+export const unpublishAdminLesson = async (lessonId) => {
+  const res = await apiClient.put(`/admin/lessons/${lessonId}/unpublish`);
+  return res.data?.data;
+};
+
+/**
+ * Lưu trữ bài học (chuyển sang trạng thái ARCHIVED)
+ */
+export const archiveAdminLesson = async (lessonId) => {
+  const res = await apiClient.put(`/admin/lessons/${lessonId}/archive`);
+  return res.data?.data;
+};
