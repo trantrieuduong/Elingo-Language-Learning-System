@@ -11,6 +11,8 @@ public record NotificationEvent(
         Long refId,
         Map<String, String> args
 ) {
+    private static final String KEY_ACTOR = "actor";
+
     public NotificationEvent {
         Objects.requireNonNull(recipientId, "recipientId");
         Objects.requireNonNull(type, "type");
@@ -21,7 +23,7 @@ public record NotificationEvent(
         return new NotificationEvent(authorId,
                 NotificationType.POST_LIKED,
                 postId,
-                Map.of("actor", actor)
+                Map.of(KEY_ACTOR, actor)
         );
     }
 
@@ -29,7 +31,7 @@ public record NotificationEvent(
         return new NotificationEvent(authorId,
                 NotificationType.POST_COMMENTED,
                 postId,
-                Map.of("actor", actor)
+                Map.of(KEY_ACTOR, actor)
         );
     }
 
@@ -37,7 +39,7 @@ public record NotificationEvent(
         return new NotificationEvent(commentOwnerId,
                 NotificationType.COMMENT_REPLIED,
                 postId,
-                Map.of("actor", actor)
+                Map.of(KEY_ACTOR, actor)
         );
     }
 

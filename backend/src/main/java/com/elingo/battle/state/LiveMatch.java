@@ -42,9 +42,11 @@ public class LiveMatch {
     private final Map<Long, ScheduledFuture<?>> graceFutures = new HashMap<>();
 
     @Setter private volatile BattleMatchStatus status = BattleMatchStatus.IN_PROGRESS;
+    @SuppressWarnings("java:S3077") // Truy cập được đồng bộ hóa bởi lock của trận đấu
     @Setter private volatile ScheduledFuture<?> pendingFuture;
     @Setter private LiveRound currentRound;
 
+    @SuppressWarnings("java:S3077") // Chỉ gán reference danh sách mới một lần khi khởi tạo
     @Setter private volatile List<PlayerResponse> players;
     @Setter private RoundResultResponse lastRoundResult;
 

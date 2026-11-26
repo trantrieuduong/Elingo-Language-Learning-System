@@ -25,6 +25,7 @@ import java.util.Map;
 @Slf4j(topic = "USER-STATS-SERVICE")
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("java:S1192") // Giữ nguyên message log Redis chuẩn thống nhất giữa các hàm stats
 public class UserStatsServiceImpl implements UserStatsService {
 
     private final UserService userService;

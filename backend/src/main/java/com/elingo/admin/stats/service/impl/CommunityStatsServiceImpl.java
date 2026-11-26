@@ -32,6 +32,7 @@ import java.util.Map;
 @Slf4j(topic = "COMMUNITY-STATS-SERVICE")
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("java:S1192") // Giữ nguyên message log Redis chuẩn thống nhất giữa các hàm stats
 public class CommunityStatsServiceImpl implements CommunityStatsService {
 
     private final CommunityStatsQueryService communityStatsQueryService;
@@ -44,6 +45,7 @@ public class CommunityStatsServiceImpl implements CommunityStatsService {
     private static final long CACHE_TTL_REPORTS_MINUTES = 5L;
 
     @Override
+    @SuppressWarnings("java:S3776")
     public CommunityStatsResponses.SocialStatsResponse getSocialStats(StatsDateRangeRequest request) {
         StatsDateRangeRequest safeRequest = sanitizeRequest(request);
         String cacheKey = String.format("admin:stats:community:social:from=%s&to=%s&granularity=%s",
@@ -204,6 +206,7 @@ public class CommunityStatsServiceImpl implements CommunityStatsService {
     }
 
     @Override
+    @SuppressWarnings("java:S3776")
     public CommunityStatsResponses.ReportStatsResponse getReportStats(StatsDateRangeRequest request) {
         StatsDateRangeRequest safeRequest = sanitizeRequest(request);
         String cacheKey = String.format("admin:stats:community:reports:from=%s&to=%s",

@@ -122,7 +122,11 @@ public class OpenAiModerator implements TextModerator, ImageModerator {
         if (baseUrl == null || baseUrl.isBlank()) {
             baseUrl = DEFAULT_BASE_URL;
         }
-        return baseUrl.replaceAll("/+$", "") + "/v1/moderations";
+        int end = baseUrl.length();
+        while (end > 0 && baseUrl.charAt(end - 1) == '/') {
+            end--;
+        }
+        return baseUrl.substring(0, end) + "/v1/moderations";
     }
 
     private ModerationResult decide(Map<String, Double> scores) {

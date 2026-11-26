@@ -22,9 +22,13 @@ public class BadgeCatalog {
     private final BadgeRepository badgeRepository;
 
     @Getter
+    @SuppressWarnings("java:S3077") // Các collection bất biến chỉ gán lại reference khi reload()
     private volatile List<Badge> allBadges = List.of();
+    @SuppressWarnings("java:S3077")
     private volatile Map<BadgeConditionType, List<Badge>> badgesByType = Map.of();
+    @SuppressWarnings("java:S3077")
     private volatile Map<Long, Badge> badgeById = Map.of();
+    @SuppressWarnings("java:S3077")
     private volatile Map<String, Badge> badgeByCode = Map.of();
 
     @PostConstruct
