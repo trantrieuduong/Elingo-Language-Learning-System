@@ -31,6 +31,7 @@ public class SystemConfigServiceImpl implements SystemConfigService {
     private final SystemConfigRepository repository;
     private final AesGcmUtil aesGcmUtil;
 
+    @SuppressWarnings("java:S3077") // Map bất biến (Map.of/Map.copyOf) chỉ gán lại reference khi reload()
     private volatile Map<String, String> cache = Map.of();
 
     // -----Startup-----

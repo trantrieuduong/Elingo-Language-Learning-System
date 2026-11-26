@@ -29,6 +29,7 @@ import java.util.Map;
 @Slf4j(topic = "REVENUE-STATS-SERVICE")
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("java:S1192") // Giữ nguyên message log Redis chuẩn thống nhất giữa các hàm stats
 public class RevenueStatsServiceImpl implements RevenueStatsService {
 
     private final RevenueStatsQueryService revenueStatsQueryService;
@@ -100,6 +101,7 @@ public class RevenueStatsServiceImpl implements RevenueStatsService {
     }
 
     @Override
+    @SuppressWarnings("java:S3776")
     public RevenueStatsResponses.RevenueBreakdownResponse getRevenueBreakdown(StatsDateRangeRequest request) {
         StatsDateRangeRequest safeRequest = sanitizeRequest(request);
         String cacheKey = String.format("admin:stats:revenue:breakdown:from=%s&to=%s",

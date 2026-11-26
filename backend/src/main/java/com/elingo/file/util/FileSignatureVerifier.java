@@ -54,15 +54,17 @@ public final class FileSignatureVerifier {
             WEBP_SIGNATURE, "image/webp"
     );
 
+    private static final String MIME_VIDEO_MP4 = "video/mp4";
+
     private static final Map<String, String> ISO_BMFF_BRANDS = Map.of(
             "qt  ", "video/quicktime",
-            "isom", "video/mp4",
-            "iso2", "video/mp4",
-            "mp41", "video/mp4",
-            "mp42", "video/mp4",
-            "avc1", "video/mp4",
-            "M4V ", "video/mp4",
-            "dash", "video/mp4",
+            "isom", MIME_VIDEO_MP4,
+            "iso2", MIME_VIDEO_MP4,
+            "mp41", MIME_VIDEO_MP4,
+            "mp42", MIME_VIDEO_MP4,
+            "avc1", MIME_VIDEO_MP4,
+            "M4V ", MIME_VIDEO_MP4,
+            "dash", MIME_VIDEO_MP4,
             "M4A ", "audio/mp4",
             "M4B ", "audio/mp4"
     );

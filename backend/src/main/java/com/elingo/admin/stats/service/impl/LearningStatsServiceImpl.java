@@ -36,6 +36,7 @@ import java.util.Map;
 @Slf4j(topic = "LEARNING-STATS-SERVICE")
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("java:S1192") // Giữ nguyên message log Redis chuẩn thống nhất giữa các hàm stats
 public class LearningStatsServiceImpl implements LearningStatsService {
 
     private final GamificationStatsQueryService gamificationStatsQueryService;
@@ -52,6 +53,7 @@ public class LearningStatsServiceImpl implements LearningStatsService {
     private static final long CACHE_TTL_LESSONS_MINUTES = 5L;
 
     @Override
+    @SuppressWarnings("java:S3776")
     public LearningStatsResponses.LearningActivityResponse getLearningActivity(StatsDateRangeRequest request) {
         StatsDateRangeRequest safeRequest = sanitizeRequest(request);
         String cacheKey = String.format("admin:stats:learning:activity:from=%s&to=%s&granularity=%s",
@@ -125,6 +127,7 @@ public class LearningStatsServiceImpl implements LearningStatsService {
     }
 
     @Override
+    @SuppressWarnings("java:S3776")
     public LearningStatsResponses.DeckStatsResponse getDeckStats(int limit) {
         int safeLimit = Math.max(1, limit);
         String cacheKey = String.format("admin:stats:learning:decks:limit=%d", safeLimit);
@@ -212,6 +215,7 @@ public class LearningStatsServiceImpl implements LearningStatsService {
     }
 
     @Override
+    @SuppressWarnings("java:S3776")
     public LearningStatsResponses.LessonStatsResponse getLessonStats(int limit) {
         int safeLimit = Math.max(1, limit);
         String cacheKey = String.format("admin:stats:learning:lessons:limit=%d", safeLimit);
