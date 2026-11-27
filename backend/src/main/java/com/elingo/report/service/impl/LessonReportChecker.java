@@ -19,6 +19,6 @@ public class LessonReportChecker implements ReportChecker {
 
     @Override
     public void check(Long targetId, Long reporterId) {
-        lessonAccessService.validateLessonAccess(reporterId, targetId);
+        lessonAccessService.validateLessonForReport(targetId);
     }
 }
