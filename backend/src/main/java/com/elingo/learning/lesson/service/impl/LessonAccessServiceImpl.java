@@ -43,6 +43,13 @@ public class LessonAccessServiceImpl implements LessonAccessService {
         return lesson;
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Lesson validateLessonForReport(Long lessonId) {
+        return lessonRepository.findByIdAndStatus(lessonId, LessonStatus.PUBLISHED)
+                .orElseThrow(() -> new AppException(AppError.LESSON_NOT_FOUND));
+    }
+
     private void assertCanLearn(Lesson lesson, Long userId) {
         if (Boolean.TRUE.equals(lesson.getIsPremium())) {
             premiumAccessService.requirePremium(userId);

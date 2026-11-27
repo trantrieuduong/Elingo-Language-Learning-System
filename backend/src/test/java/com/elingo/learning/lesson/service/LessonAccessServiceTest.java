@@ -223,4 +223,35 @@ class LessonAccessServiceTest {
             verifyNoInteractions(premiumAccessService);
         }
     }
+
+    @Nested
+    @DisplayName("validateLessonForReport")
+    class ValidateForReportTests {
+
+        @Test
+        @DisplayName("Validate a published premium lesson without requiring premium access")
+        void validateLessonForReport_Success_PremiumLessonWithoutPremiumAccess() {
+            when(lessonRepository.findByIdAndStatus(LESSON_ID, LessonStatus.PUBLISHED))
+                    .thenReturn(Optional.of(premiumLesson));
+
+            Lesson result = lessonAccessService.validateLessonForReport(LESSON_ID);
+
+            assertThat(result).isSameAs(premiumLesson);
+            verifyNoInteractions(premiumAccessService);
+        }
+
+        @Test
+        @DisplayName("Reject a lesson that is not published or does not exist")
+        void validateLessonForReport_ThrowsLessonNotFound_WhenPublishedLessonDoesNotExist() {
+            when(lessonRepository.findByIdAndStatus(LESSON_ID, LessonStatus.PUBLISHED))
+                    .thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> lessonAccessService.validateLessonForReport(LESSON_ID))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.LESSON_NOT_FOUND));
+
+            verifyNoInteractions(premiumAccessService);
+        }
+    }
 }

@@ -4,6 +4,7 @@ import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.community.repository.CommentRepository;
 import com.elingo.community.repository.PostRepository;
+import com.elingo.learning.lesson.entity.Lesson;
 import com.elingo.learning.lesson.service.LessonAccessService;
 import com.elingo.report.entity.ReportTargetType;
 import com.elingo.user.repository.UserRepository;
@@ -27,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -270,21 +272,21 @@ class ReportCheckersTest {
         }
 
         @Test
-        @DisplayName("check succeeds when lesson access is valid")
+        @DisplayName("check succeeds for a published premium lesson without requiring premium access")
         void check_Success() {
-            when(lessonAccessService.validateLessonAccess(REPORTER_ID, TARGET_ID)).thenReturn(null);
+            when(lessonAccessService.validateLessonForReport(TARGET_ID)).thenReturn(mock(Lesson.class));
 
             assertThatCode(() -> lessonReportChecker.check(TARGET_ID, REPORTER_ID))
                     .doesNotThrowAnyException();
 
-            verify(lessonAccessService).validateLessonAccess(REPORTER_ID, TARGET_ID);
+            verify(lessonAccessService).validateLessonForReport(TARGET_ID);
         }
 
         @Test
-        @DisplayName("check propagates exception when lesson access service throws")
-        void check_ThrowExceptionWhenLessonAccessInvalid() {
+        @DisplayName("check throws LESSON_NOT_FOUND when published lesson does not exist")
+        void check_ThrowsLessonNotFound_WhenPublishedLessonDoesNotExist() {
             doThrow(new AppException(AppError.LESSON_NOT_FOUND))
-                    .when(lessonAccessService).validateLessonAccess(REPORTER_ID, TARGET_ID);
+                    .when(lessonAccessService).validateLessonForReport(TARGET_ID);
 
             assertThatThrownBy(() -> lessonReportChecker.check(TARGET_ID, REPORTER_ID))
                     .isInstanceOf(AppException.class)

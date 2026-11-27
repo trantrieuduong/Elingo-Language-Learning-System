@@ -5,4 +5,5 @@ import com.elingo.learning.lesson.entity.Lesson;
 public interface LessonAccessService {
     Lesson validateLessonAccess(Long userId, Long lessonId);
     Lesson validateLessonAccess(Long userId, String slug);
+    Lesson validateLessonForReport(Long lessonId);
 }
