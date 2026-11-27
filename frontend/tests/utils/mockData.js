@@ -55,3 +55,72 @@ export const MOCK_NOTIFICATION_CONTEXT_DEFAULT = {
   markAllAsRead: vi.fn(),
 }
 
+export const MOCK_DECK = {
+  id: 'deck-1',
+  slug: 'mock-deck',
+  title: 'Mock Deck',
+  description: 'Mô tả bộ từ',
+  status: 'DRAFT',
+  isPremium: false,
+  topicCount: 2,
+  cardCount: 10,
+  learnedCardCount: 3,
+  cefrLevels: [{ id: 'a1', label: 'A1' }],
+  tags: [{ id: 't1', label: 'Du lịch' }],
+  coverImageUrl: null,
+  ownerId: 1,
+}
+
+export const MOCK_PUBLISHED_DECK = {
+  ...MOCK_DECK,
+  id: 'deck-2',
+  slug: 'published-deck',
+  title: 'Published Deck',
+  status: 'PUBLISHED',
+  ownerId: 99,
+}
+
+export const MOCK_TOPIC = {
+  id: 1,
+  name: 'Animals',
+  slug: 'animals',
+  order: 1,
+  cardCount: 5,
+  learnedCardCount: 2,
+}
+
+export const MOCK_CARD = {
+  id: 'card-1',
+  term: 'hello',
+  pos: 'interjection',
+  translation: 'xin chào',
+  explanationVi: null,
+  explanationEn: null,
+  examplesVi: null,
+  examplesEn: null,
+  state: { starred: false },
+}
+
+export const MOCK_STARRED_CARD = {
+  ...MOCK_CARD,
+  id: 'card-2',
+  term: 'book',
+  translation: 'sách',
+  state: { starred: true },
+}
+
+export const MOCK_AUTH_CONTEXT_LOGGED_IN = {
+  user: MOCK_USER,
+  accessToken: 'mock-token',
+  loading: false,
+  login: vi.fn(),
+  loginWithGoogle: vi.fn(),
+  signup: vi.fn(),
+  verifyAccount: vi.fn(),
+  resendVerificationOtp: vi.fn(),
+  sendResetPasswordOtp: vi.fn(),
+  resetPassword: vi.fn(),
+  logout: vi.fn(),
+  updateUser: vi.fn(),
+}
+
