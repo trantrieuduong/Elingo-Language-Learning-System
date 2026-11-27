@@ -14,7 +14,7 @@ const loadGoogleIdentityScript = (lang = 'vi') => {
 
   if (
     currentScript &&
-    currentScript.getAttribute('data-lang') === lang &&
+    currentScript.dataset.lang === lang &&
     window.google?.accounts?.id
   ) {
     return Promise.resolve();
@@ -33,13 +33,25 @@ const loadGoogleIdentityScript = (lang = 'vi') => {
     script.src = targetSrc;
     script.async = true;
     script.defer = true;
-    script.setAttribute('data-lang', lang);
+    script.dataset.lang = lang;
     script.onload = () => {
       setTimeout(resolve, 50);
     };
     script.onerror = () => reject(new Error('google_load_error'));
     document.head.appendChild(script);
   });
+};
+
+const extractFieldErrors = (errors) => {
+  if (!Array.isArray(errors)) return null;
+
+  const fieldErrors = {};
+  for (const err of errors) {
+    if (err.field && err.message) {
+      fieldErrors[err.field] = err.message;
+    }
+  }
+  return Object.keys(fieldErrors).length > 0 ? fieldErrors : null;
 };
 
 function LoginPage({ onNavigate }) {
@@ -79,29 +91,20 @@ function LoginPage({ onNavigate }) {
     setIsSubmitting(false);
 
     if (result.success) {
-      if (onNavigate) {
-        onNavigate(result.user?.role === 'ADMIN' ? '/admin' : '/dashboard');
-      }
+      onNavigate?.(result.user?.role === 'ADMIN' ? '/admin' : '/dashboard');
       return;
     }
 
     if (result.notVerified) {
-      if (onNavigate) onNavigate('/account-verification', { email: username.trim() });
+      onNavigate?.('/account-verification', { email: username.trim() });
       return;
     }
 
     // Xử lý validation errors từ backend
-    if (result.errors && Array.isArray(result.errors)) {
-      const newErrors = {};
-      result.errors.forEach((err) => {
-        if (err.field && err.message) {
-          newErrors[err.field] = err.message;
-        }
-      });
-      if (Object.keys(newErrors).length > 0) {
-        setErrors((prev) => ({ ...prev, ...newErrors }));
-        return;
-      }
+    const fieldErrors = extractFieldErrors(result.errors);
+    if (fieldErrors) {
+      setErrors((prev) => ({ ...prev, ...fieldErrors }));
+      return;
     }
 
     // Map code-specific errors: USER_NOT_FOUND vào field, còn lại vào general error

@@ -9,7 +9,7 @@ export const ThemeProvider = ({ children }) => {
 
   // ── Áp dụng theme lên <html> element ──
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.dataset.theme = theme;
     localStorage.setItem('theme', theme);
   }, [theme]);
 

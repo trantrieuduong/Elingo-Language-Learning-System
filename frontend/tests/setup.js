@@ -51,15 +51,15 @@ Object.defineProperty(window, 'matchMedia', {
 
 global.IntersectionObserver = class IntersectionObserver {
   constructor() {}
-  disconnect() {}
-  observe() {}
-  unobserve() {}
+  disconnect() {} // NOSONAR - intentional stub for jsdom test environment
+  observe() {}    // NOSONAR - intentional stub for jsdom test environment
+  unobserve() {}  // NOSONAR - intentional stub for jsdom test environment
   takeRecords() { return [] }
 }
 
 global.ResizeObserver = class ResizeObserver {
   constructor() {}
-  disconnect() {}
-  observe() {}
-  unobserve() {}
+  disconnect() {} // NOSONAR - intentional stub for jsdom test environment
+  observe() {}    // NOSONAR - intentional stub for jsdom test environment
+  unobserve() {}  // NOSONAR - intentional stub for jsdom test environment
 }
