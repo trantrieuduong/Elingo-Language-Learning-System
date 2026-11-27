@@ -16,6 +16,9 @@ import UserManagementPage from './pages/UserManagementPage/UserManagementPage';
 import PlanManagementPage from './pages/PlanManagementPage/PlanManagementPage';
 import TransactionManagementPage from './pages/TransactionManagementPage/TransactionManagementPage';
 import WebhookLogPage from './pages/WebhookLogPage/WebhookLogPage';
+import PostModerationPage from './pages/PostModerationPage/PostModerationPage';
+import ReportManagementPage from './pages/ReportManagementPage/ReportManagementPage';
+import PostGroupManagementPage from './pages/PostGroupManagementPage/PostGroupManagementPage';
 
 export default function AdminRoutes({ currentPath, onNavigate }) {
   const { t } = useTranslation('admin');
@@ -82,15 +85,20 @@ export default function AdminRoutes({ currentPath, onNavigate }) {
 
       // Module: Bài viết và cộng đồng
       case '/admin/posts':
-        return <PlaceholderAdminPage title={t('routes.posts')} onNavigate={onNavigate} />;
+        return (
+          <PostModerationPage
+            initialPostId={searchParams.get('postId') || ''}
+            onNavigate={onNavigate}
+          />
+        );
       case '/admin/comments':
         return <PlaceholderAdminPage title={t('routes.comments')} onNavigate={onNavigate} />;
       case '/admin/groups':
-        return <PlaceholderAdminPage title={t('routes.groups')} onNavigate={onNavigate} />;
+        return <PostGroupManagementPage onNavigate={onNavigate} />;
 
       // Module: Báo cáo
       case '/admin/reports':
-        return <PlaceholderAdminPage title={t('routes.reports')} onNavigate={onNavigate} />;
+        return <ReportManagementPage onNavigate={onNavigate} />;
 
       // Module: Người dùng
       case '/admin/users':

@@ -1,27 +1,38 @@
 package com.elingo.community.service;
 
 import com.elingo.common.dto.CursorResponse;
+import com.elingo.common.dto.PageResponse;
 import com.elingo.common.event.FileAttachedEvent;
 import com.elingo.common.event.FileDeletedEvent;
 import com.elingo.common.event.NotificationEvent;
+import com.elingo.common.event.PostModeratedEvent;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.common.util.CursorUtils;
+import com.elingo.community.dto.request.AdminModerationLogFilterRequest;
+import com.elingo.community.dto.request.AdminPostModerationSearchRequest;
 import com.elingo.community.dto.request.CreatePostRequest;
 import com.elingo.community.dto.request.UpdatePostRequest;
+import com.elingo.community.dto.response.AdminPostModerationDetailResponse;
+import com.elingo.community.dto.response.AdminPostModerationResponse;
 import com.elingo.community.dto.response.AuthorResponse;
 import com.elingo.community.dto.response.PostMediaResponse;
+import com.elingo.community.dto.response.PostModerationLogResponse;
 import com.elingo.community.dto.response.PostResponse;
 import com.elingo.community.entity.MediaType;
+import com.elingo.community.entity.ModerationAction;
+import com.elingo.community.entity.ModerationActorType;
 import com.elingo.community.entity.Post;
 import com.elingo.community.entity.PostGroup;
 import com.elingo.community.entity.PostLike;
-import com.elingo.community.entity.PostLikeId;
 import com.elingo.community.entity.PostMedia;
+import com.elingo.community.entity.PostModerationLog;
 import com.elingo.community.entity.PostStatus;
 import com.elingo.community.mapper.PostMapper;
 import com.elingo.community.repository.PostGroupRepository;
 import com.elingo.community.repository.PostLikeRepository;
+import com.elingo.community.repository.PostMediaRepository;
+import com.elingo.community.repository.PostModerationLogRepository;
 import com.elingo.community.repository.PostRepository;
 import com.elingo.community.service.impl.PostServiceImpl;
 import com.elingo.notification.entity.NotificationType;
@@ -39,8 +50,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,9 +66,6 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -71,6 +84,12 @@ class PostServiceTest {
 
     @Mock
     private PostLikeRepository postLikeRepository;
+
+    @Mock
+    private PostMediaRepository postMediaRepository;
+
+    @Mock
+    private PostModerationLogRepository postModerationLogRepository;
 
     @Mock
     private UserRepository userRepository;
@@ -733,6 +752,348 @@ class PostServiceTest {
                     .isInstanceOf(AppException.class)
                     .satisfies(ex -> assertThat(((AppException) ex).getAppError())
                             .isEqualTo(AppError.POST_NOT_LIKED));
+        }
+    }
+
+    private AdminPostModerationResponse buildAdminPostResponse(PostStatus status, PostModerationLogResponse latestLog) {
+        return new AdminPostModerationResponse(
+                POST_ID, GROUP_ID, "English Daily",
+                new AuthorResponse(USER_ID, "testuser", "Test User", null),
+                "Hello World", "Learning English today", status,
+                0, 0, List.of(), latestLog, LocalDateTime.now(), LocalDateTime.now()
+        );
+    }
+
+    private PostModerationLogResponse buildLogResponse(Long logId, ModerationAction action) {
+        return new PostModerationLogResponse(
+                logId, POST_ID, ModerationActorType.ADMIN, 99L, "admin",
+                action, null, null, "Note", LocalDateTime.now()
+        );
+    }
+
+    @Nested
+    @DisplayName("searchPostsForModeration")
+    class SearchPostsForModeration {
+
+        @Test
+        @DisplayName("should return empty page without querying media or logs when no posts match")
+        void shouldReturnEmptyPage_whenNoPostsMatch() {
+            // given
+            AdminPostModerationSearchRequest filter = new AdminPostModerationSearchRequest(
+                    PostStatus.NEEDS_REVIEW, null, null, "   ", null, null);
+            Pageable pageable = PageRequest.of(0, 20);
+            Page<Post> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+
+            when(postRepository.searchForModeration(
+                    PostStatus.NEEDS_REVIEW, null, null, null, null, null, pageable))
+                    .thenReturn(emptyPage);
+
+            // when
+            PageResponse<AdminPostModerationResponse> result = postService.searchPostsForModeration(filter, pageable);
+
+            // then
+            assertThat(result.content()).isEmpty();
+            assertThat(result.totalElements()).isZero();
+            verify(postMediaRepository, never()).findByPostIdInOrderByPostIdAscOrderAsc(any());
+            verify(postModerationLogRepository, never()).findByPostIdInWithActor(any());
+        }
+
+        @Test
+        @DisplayName("should return paged posts with batch media and latest moderation log")
+        void shouldReturnPagedPosts_withBatchMediaAndLatestLog() {
+            // given
+            LocalDate from = LocalDate.of(2026, 3, 1);
+            LocalDate to = LocalDate.of(2026, 3, 10);
+            AdminPostModerationSearchRequest filter = new AdminPostModerationSearchRequest(
+                    PostStatus.NEEDS_REVIEW, GROUP_ID, USER_ID, "  Hello  ", from, to);
+            Pageable pageable = PageRequest.of(0, 20);
+
+            testPost.setStatus(PostStatus.NEEDS_REVIEW);
+            Page<Post> page = new PageImpl<>(List.of(testPost), pageable, 1);
+
+            PostMedia media = PostMedia.builder()
+                    .id(1L).post(testPost).mediaType(MediaType.IMAGE).mediaUrl("uploads/1/a.png").order(0).build();
+            PostMediaResponse mediaResp = new PostMediaResponse(0, MediaType.IMAGE, "uploads/1/a.png");
+
+            PostModerationLog newerLog = PostModerationLog.builder()
+                    .id(20L).post(testPost).actorType(ModerationActorType.AI)
+                    .action(ModerationAction.FLAG_FOR_REVIEW).aiLabel("SPAM").aiScore(new BigDecimal("0.6500")).build();
+            PostModerationLog olderLog = PostModerationLog.builder()
+                    .id(19L).post(testPost).actorType(ModerationActorType.AI)
+                    .action(ModerationAction.FLAG_FOR_REVIEW).aiLabel("OLD").build();
+
+            PostModerationLogResponse newerLogResp = new PostModerationLogResponse(
+                    20L, POST_ID, ModerationActorType.AI, null, null,
+                    ModerationAction.FLAG_FOR_REVIEW, "SPAM", new BigDecimal("0.6500"), null, LocalDateTime.now());
+            AdminPostModerationResponse expected = buildAdminPostResponse(PostStatus.NEEDS_REVIEW, newerLogResp);
+
+            when(postRepository.searchForModeration(
+                    PostStatus.NEEDS_REVIEW, GROUP_ID, USER_ID, "Hello",
+                    from.atStartOfDay(), to.plusDays(1).atStartOfDay(), pageable))
+                    .thenReturn(page);
+            when(postMediaRepository.findByPostIdInOrderByPostIdAscOrderAsc(List.of(POST_ID)))
+                    .thenReturn(List.of(media));
+            when(postMapper.toPostMediaResponse(media)).thenReturn(mediaResp);
+            when(postModerationLogRepository.findByPostIdInWithActor(List.of(POST_ID)))
+                    .thenReturn(List.of(newerLog, olderLog));
+            when(postMapper.toModerationLogResponse(newerLog)).thenReturn(newerLogResp);
+            when(postMapper.toAdminModerationResponse(testPost, List.of(mediaResp), newerLogResp))
+                    .thenReturn(expected);
+
+            // when
+            PageResponse<AdminPostModerationResponse> result = postService.searchPostsForModeration(filter, pageable);
+
+            // then
+            assertThat(result.content()).containsExactly(expected);
+            assertThat(result.content().getFirst().latestModeration()).isEqualTo(newerLogResp);
+            verify(postMapper, never()).toModerationLogResponse(olderLog);
+        }
+    }
+
+    @Nested
+    @DisplayName("getPostModerationDetail")
+    class GetPostModerationDetail {
+
+        @Test
+        @DisplayName("should return post detail with moderation logs when post exists")
+        void shouldReturnDetail_whenPostExists() {
+            // given
+            PostModerationLog logEntry = PostModerationLog.builder()
+                    .id(20L).post(testPost).actorType(ModerationActorType.AI).action(ModerationAction.FLAG_FOR_REVIEW).build();
+            PostModerationLogResponse logResp = buildLogResponse(20L, ModerationAction.FLAG_FOR_REVIEW);
+            AdminPostModerationDetailResponse expected = new AdminPostModerationDetailResponse(
+                    POST_ID, GROUP_ID, "English Daily",
+                    new AuthorResponse(USER_ID, "testuser", "Test User", null),
+                    "Hello World", "Learning English today", PostStatus.NEEDS_REVIEW,
+                    0, 0, List.of(), List.of(logResp), LocalDateTime.now(), LocalDateTime.now()
+            );
+
+            when(postRepository.findByIdWithMedia(POST_ID)).thenReturn(Optional.of(testPost));
+            when(postModerationLogRepository.findByPostIdWithActor(POST_ID)).thenReturn(List.of(logEntry));
+            when(postMapper.toModerationLogResponse(logEntry)).thenReturn(logResp);
+            when(postMapper.toAdminModerationDetailResponse(testPost, List.of(logResp))).thenReturn(expected);
+
+            // when
+            AdminPostModerationDetailResponse result = postService.getPostModerationDetail(POST_ID);
+
+            // then
+            assertThat(result).isEqualTo(expected);
+        }
+
+        @Test
+        @DisplayName("should throw POST_NOT_FOUND when post does not exist")
+        void shouldThrowNotFound_whenPostMissing() {
+            // given
+            when(postRepository.findByIdWithMedia(POST_ID)).thenReturn(Optional.empty());
+
+            // when / then
+            assertThatThrownBy(() -> postService.getPostModerationDetail(POST_ID))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.POST_NOT_FOUND));
+        }
+    }
+
+    @Nested
+    @DisplayName("searchModerationLogs")
+    class SearchModerationLogs {
+
+        @Test
+        @DisplayName("should trim aiLabel and return paged moderation logs")
+        void shouldReturnPagedLogs_whenValidFilter() {
+            // given
+            LocalDate from = LocalDate.of(2026, 3, 1);
+            LocalDate to = LocalDate.of(2026, 3, 15);
+            AdminModerationLogFilterRequest filter = new AdminModerationLogFilterRequest(
+                    POST_ID, ModerationActorType.AI, ModerationAction.FLAG_FOR_REVIEW, "  SPAM  ", from, to);
+            Pageable pageable = PageRequest.of(0, 20);
+            PostModerationLog logEntry = PostModerationLog.builder().id(20L).post(testPost).build();
+            PostModerationLogResponse logResp = buildLogResponse(20L, ModerationAction.FLAG_FOR_REVIEW);
+            Page<PostModerationLog> page = new PageImpl<>(List.of(logEntry), pageable, 1);
+
+            when(postModerationLogRepository.searchForAdmin(
+                    POST_ID, ModerationActorType.AI, ModerationAction.FLAG_FOR_REVIEW, "SPAM",
+                    from.atStartOfDay(), to.plusDays(1).atStartOfDay(), pageable))
+                    .thenReturn(page);
+            when(postMapper.toModerationLogResponse(logEntry)).thenReturn(logResp);
+
+            // when
+            PageResponse<PostModerationLogResponse> result = postService.searchModerationLogs(filter, pageable);
+
+            // then
+            assertThat(result.content()).containsExactly(logResp);
+            assertThat(result.totalElements()).isEqualTo(1L);
+        }
+
+        @Test
+        @DisplayName("should pass null aiLabel when aiLabel is blank")
+        void shouldPassNullAiLabel_whenBlank() {
+            // given
+            AdminModerationLogFilterRequest filter = new AdminModerationLogFilterRequest(
+                    null, null, null, "   ", null, null);
+            Pageable pageable = PageRequest.of(0, 20);
+            Page<PostModerationLog> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+
+            when(postModerationLogRepository.searchForAdmin(
+                    null, null, null, null, null, null, pageable))
+                    .thenReturn(emptyPage);
+
+            // when
+            PageResponse<PostModerationLogResponse> result = postService.searchModerationLogs(filter, pageable);
+
+            // then
+            assertThat(result.content()).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("approvePostByAdmin")
+    class ApprovePostByAdmin {
+
+        @Test
+        @DisplayName("should approve post, save moderation log, and publish PostModeratedEvent")
+        void shouldApprovePost_whenPendingOrNeedsReview() {
+            // given
+            Long adminId = 99L;
+            User admin = User.builder().id(adminId).username("admin").build();
+            testPost.setStatus(PostStatus.PUBLISHED);
+            PostModerationLogResponse logResp = buildLogResponse(30L, ModerationAction.MANUAL_APPROVE);
+            AdminPostModerationResponse expected = buildAdminPostResponse(PostStatus.PUBLISHED, logResp);
+
+            when(postRepository.updateStatusForManualModeration(POST_ID, PostStatus.PUBLISHED)).thenReturn(1);
+            when(postRepository.findByIdWithMedia(POST_ID)).thenReturn(Optional.of(testPost));
+            when(userRepository.findById(adminId)).thenReturn(Optional.of(admin));
+            when(postModerationLogRepository.save(any(PostModerationLog.class))).thenAnswer(inv -> {
+                PostModerationLog saved = inv.getArgument(0);
+                saved.setId(30L);
+                return saved;
+            });
+            when(postMapper.toPostMediaResponseList(testPost.getMedias())).thenReturn(List.of());
+            when(postMapper.toModerationLogResponse(any(PostModerationLog.class))).thenReturn(logResp);
+            when(postMapper.toAdminModerationResponse(testPost, List.of(), logResp)).thenReturn(expected);
+
+            // when
+            AdminPostModerationResponse result = postService.approvePostByAdmin(adminId, POST_ID, "Safe content");
+
+            // then
+            assertThat(result).isEqualTo(expected);
+            ArgumentCaptor<PostModerationLog> logCaptor = ArgumentCaptor.forClass(PostModerationLog.class);
+            verify(postModerationLogRepository).save(logCaptor.capture());
+            assertThat(logCaptor.getValue().getActorType()).isEqualTo(ModerationActorType.ADMIN);
+            assertThat(logCaptor.getValue().getAction()).isEqualTo(ModerationAction.MANUAL_APPROVE);
+            assertThat(logCaptor.getValue().getNote()).isEqualTo("Safe content");
+
+            ArgumentCaptor<PostModeratedEvent> eventCaptor = ArgumentCaptor.forClass(PostModeratedEvent.class);
+            verify(publisher).publishEvent(eventCaptor.capture());
+            assertThat(eventCaptor.getValue().postId()).isEqualTo(POST_ID);
+            assertThat(eventCaptor.getValue().userId()).isEqualTo(USER_ID);
+            assertThat(eventCaptor.getValue().action()).isEqualTo(ModerationAction.MANUAL_APPROVE);
+        }
+
+        @Test
+        @DisplayName("should throw POST_NOT_FOUND when update returns 0 and post does not exist")
+        void shouldThrowPostNotFound_whenPostMissing() {
+            // given
+            when(postRepository.updateStatusForManualModeration(POST_ID, PostStatus.PUBLISHED)).thenReturn(0);
+            when(postRepository.existsById(POST_ID)).thenReturn(false);
+
+            // when / then
+            assertThatThrownBy(() -> postService.approvePostByAdmin(99L, POST_ID, "note"))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.POST_NOT_FOUND));
+            verify(postModerationLogRepository, never()).save(any());
+            verify(publisher, never()).publishEvent(any());
+        }
+
+        @Test
+        @DisplayName("should throw POST_ALREADY_MODERATED when update returns 0 and post exists")
+        void shouldThrowAlreadyModerated_whenPostAlreadyFinalized() {
+            // given
+            when(postRepository.updateStatusForManualModeration(POST_ID, PostStatus.PUBLISHED)).thenReturn(0);
+            when(postRepository.existsById(POST_ID)).thenReturn(true);
+
+            // when / then
+            assertThatThrownBy(() -> postService.approvePostByAdmin(99L, POST_ID, "note"))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.POST_ALREADY_MODERATED));
+            verify(postModerationLogRepository, never()).save(any());
+            verify(publisher, never()).publishEvent(any());
+        }
+
+        @Test
+        @DisplayName("should throw USER_NOT_FOUND when admin does not exist")
+        void shouldThrowUserNotFound_whenAdminMissing() {
+            // given
+            when(postRepository.updateStatusForManualModeration(POST_ID, PostStatus.PUBLISHED)).thenReturn(1);
+            when(postRepository.findByIdWithMedia(POST_ID)).thenReturn(Optional.of(testPost));
+            when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+            // when / then
+            assertThatThrownBy(() -> postService.approvePostByAdmin(99L, POST_ID, "note"))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.USER_NOT_FOUND));
+            verify(postModerationLogRepository, never()).save(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("rejectPostByAdmin")
+    class RejectPostByAdmin {
+
+        @Test
+        @DisplayName("should reject post, save moderation log, and publish PostModeratedEvent")
+        void shouldRejectPost_whenPendingOrNeedsReview() {
+            // given
+            Long adminId = 99L;
+            User admin = User.builder().id(adminId).username("admin").build();
+            testPost.setStatus(PostStatus.REJECTED);
+            PostModerationLogResponse logResp = buildLogResponse(31L, ModerationAction.MANUAL_REJECT);
+            AdminPostModerationResponse expected = buildAdminPostResponse(PostStatus.REJECTED, logResp);
+
+            when(postRepository.updateStatusForManualModeration(POST_ID, PostStatus.REJECTED)).thenReturn(1);
+            when(postRepository.findByIdWithMedia(POST_ID)).thenReturn(Optional.of(testPost));
+            when(userRepository.findById(adminId)).thenReturn(Optional.of(admin));
+            when(postModerationLogRepository.save(any(PostModerationLog.class))).thenAnswer(inv -> {
+                PostModerationLog saved = inv.getArgument(0);
+                saved.setId(31L);
+                return saved;
+            });
+            when(postMapper.toPostMediaResponseList(testPost.getMedias())).thenReturn(List.of());
+            when(postMapper.toModerationLogResponse(any(PostModerationLog.class))).thenReturn(logResp);
+            when(postMapper.toAdminModerationResponse(testPost, List.of(), logResp)).thenReturn(expected);
+
+            // when
+            AdminPostModerationResponse result = postService.rejectPostByAdmin(adminId, POST_ID, "Spam links");
+
+            // then
+            assertThat(result).isEqualTo(expected);
+            ArgumentCaptor<PostModerationLog> logCaptor = ArgumentCaptor.forClass(PostModerationLog.class);
+            verify(postModerationLogRepository).save(logCaptor.capture());
+            assertThat(logCaptor.getValue().getAction()).isEqualTo(ModerationAction.MANUAL_REJECT);
+            assertThat(logCaptor.getValue().getNote()).isEqualTo("Spam links");
+
+            ArgumentCaptor<PostModeratedEvent> eventCaptor = ArgumentCaptor.forClass(PostModeratedEvent.class);
+            verify(publisher).publishEvent(eventCaptor.capture());
+            assertThat(eventCaptor.getValue().action()).isEqualTo(ModerationAction.MANUAL_REJECT);
+        }
+
+        @Test
+        @DisplayName("should throw POST_ALREADY_MODERATED when post already finalized")
+        void shouldThrowAlreadyModerated_whenPostAlreadyFinalized() {
+            // given
+            when(postRepository.updateStatusForManualModeration(POST_ID, PostStatus.REJECTED)).thenReturn(0);
+            when(postRepository.existsById(POST_ID)).thenReturn(true);
+
+            // when / then
+            assertThatThrownBy(() -> postService.rejectPostByAdmin(99L, POST_ID, "Spam links"))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.POST_ALREADY_MODERATED));
+            verify(postModerationLogRepository, never()).save(any());
+            verify(publisher, never()).publishEvent(any());
         }
     }
 }

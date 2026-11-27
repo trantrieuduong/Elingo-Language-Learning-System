@@ -964,5 +964,243 @@
       "invalidSort": "Trường sắp xếp không được hỗ trợ",
       "generic": "Không thể tải dữ liệu nhật ký webhook."
     }
+  },
+  "postModeration": {
+    "title": "Kiểm duyệt & Quản lý Bài viết",
+    "subtitle": "Xem xét hàng đợi kiểm duyệt, duyệt tay bài viết cộng đồng và theo dõi nhật ký AI",
+    "refresh": "Làm mới",
+    "postsCountSuffix": "bài viết",
+    "logsCountSuffix": "nhật ký",
+    "emptyPosts": "Không có bài viết nào phù hợp với bộ lọc",
+    "emptyLogs": "Không có nhật ký kiểm duyệt nào phù hợp",
+    "tabs": {
+      "posts": "Kiểm duyệt bài viết",
+      "logs": "Nhật ký kiểm duyệt"
+    },
+    "filter": {
+      "keywordPlaceholder": "Tìm theo tiêu đề bài viết...",
+      "allStatus": "Tất cả trạng thái",
+      "allGroups": "Tất cả nhóm",
+      "userIdPlaceholder": "ID tác giả",
+      "fromDate": "Từ ngày",
+      "toDate": "Đến ngày",
+      "sortLabel": "Sắp xếp",
+      "sortCreatedDesc": "Mới nhất trước",
+      "sortCreatedAsc": "Cũ nhất trước",
+      "sortIdDesc": "ID giảm dần",
+      "apply": "Áp dụng",
+      "reset": "Đặt lại",
+      "invalidDateRange": "Khoảng thời gian không hợp lệ (tối đa 366 ngày và Từ ngày <= Đến ngày)"
+    },
+    "columns": {
+      "post": "Bài viết",
+      "author": "Tác giả",
+      "group": "Nhóm",
+      "status": "Trạng thái",
+      "aiResult": "Kiểm duyệt gần nhất",
+      "createdAt": "Ngày tạo",
+      "actions": "Thao tác"
+    },
+    "status": {
+      "PENDING": "Chờ quét AI",
+      "NEEDS_REVIEW": "Cần duyệt tay",
+      "PUBLISHED": "Đã xuất bản",
+      "REJECTED": "Đã từ chối",
+      "DELETED": "Đã xóa"
+    },
+    "actorType": {
+      "AI": "Hệ thống AI",
+      "ADMIN": "Quản trị viên"
+    },
+    "action": {
+      "AUTO_APPROVE": "AI duyệt tự động",
+      "AUTO_REJECT": "AI từ chối tự động",
+      "FLAG_FOR_REVIEW": "AI gắn cờ duyệt tay",
+      "MANUAL_APPROVE": "Admin duyệt tay",
+      "MANUAL_REJECT": "Admin từ chối"
+    },
+    "actions": {
+      "view": "Xem chi tiết",
+      "approve": "Duyệt bài",
+      "reject": "Từ chối"
+    },
+    "detail": {
+      "title": "Chi tiết bài viết",
+      "subtitle": "Xem toàn bộ nội dung, phương tiện đính kèm và lịch sử kiểm duyệt",
+      "mediaSection": "Phương tiện đính kèm",
+      "logsSection": "Lịch sử kiểm duyệt",
+      "noLogs": "Chưa có nhật ký kiểm duyệt nào cho bài viết này",
+      "loadError": "Không thể tải chi tiết bài viết.",
+      "close": "Đóng"
+    },
+    "decision": {
+      "approveTitle": "Duyệt tay bài viết",
+      "rejectTitle": "Từ chối bài viết",
+      "noteLabel": "Ghi chú kiểm duyệt",
+      "approvePlaceholder": "Nhập ghi chú duyệt bài (không bắt buộc)...",
+      "rejectPlaceholder": "Nhập lý do từ chối bài viết (bắt buộc)...",
+      "noteRequired": "Vui lòng nhập lý do từ chối bài viết",
+      "submitError": "Không thể cập nhật trạng thái kiểm duyệt. Vui lòng thử lại.",
+      "submitting": "Đang xử lý...",
+      "cancel": "Hủy"
+    },
+    "toast": {
+      "approved": "Đã duyệt và xuất bản bài viết thành công",
+      "rejected": "Đã từ chối bài viết thành công"
+    },
+    "logs": {
+      "postIdPlaceholder": "ID bài viết",
+      "allActorTypes": "Tất cả tác nhân",
+      "allActions": "Tất cả hành động",
+      "aiLabelPlaceholder": "Tìm theo nhãn AI (vd: SPAM)...",
+      "columns": {
+        "postId": "Bài viết",
+        "actor": "Tác nhân",
+        "action": "Hành động",
+        "aiLabel": "Nhãn & Điểm AI",
+        "note": "Ghi chú"
+      }
+    }
+  },
+  "reports": {
+    "title": "Xử lý Báo cáo vi phạm",
+    "subtitle": "Xem xét các báo cáo từ cộng đồng, kiểm tra bằng chứng và đưa ra quyết định xử lý",
+    "refresh": "Làm mới",
+    "reportsCountSuffix": "báo cáo",
+    "emptyList": "Không có báo cáo vi phạm nào phù hợp",
+    "filter": {
+      "allStatus": "Tất cả trạng thái",
+      "allTargetTypes": "Tất cả đối tượng",
+      "reporterIdPlaceholder": "ID người báo cáo",
+      "targetIdPlaceholder": "ID đối tượng",
+      "fromDate": "Từ ngày",
+      "toDate": "Đến ngày",
+      "sortLabel": "Sắp xếp",
+      "sortCreatedDesc": "Mới nhất trước",
+      "sortCreatedAsc": "Cũ nhất trước",
+      "sortResolvedDesc": "Xử lý gần nhất",
+      "sortIdDesc": "ID giảm dần",
+      "apply": "Áp dụng",
+      "reset": "Đặt lại",
+      "invalidDateRange": "Khoảng thời gian không hợp lệ (tối đa 366 ngày và Từ ngày <= Đến ngày)"
+    },
+    "columns": {
+      "target": "Đối tượng",
+      "targetType": "Loại đối tượng",
+      "description": "Mô tả vi phạm",
+      "reporter": "Người báo cáo",
+      "evidence": "Ảnh bằng chứng",
+      "status": "Trạng thái",
+      "createdAt": "Ngày gửi",
+      "actions": "Thao tác"
+    },
+    "status": {
+      "PENDING": "Chờ xử lý",
+      "RESOLVED": "Đã xử lý",
+      "REJECTED": "Đã từ chối"
+    },
+    "targetType": {
+      "POST": "Bài viết",
+      "COMMENT": "Bình luận",
+      "USER": "Người dùng",
+      "DECK": "Bộ từ",
+      "LESSON": "Bài học"
+    },
+    "actions": {
+      "view": "Xem chi tiết",
+      "resolve": "Xử lý",
+      "reject": "Từ chối",
+      "openTarget": "Xem đối tượng"
+    },
+    "detail": {
+      "title": "Chi tiết báo cáo",
+      "subtitle": "Thông tin người báo cáo, bằng chứng và trạng thái xử lý",
+      "evidenceSection": "Ảnh bằng chứng đính kèm",
+      "evidenceAlt": "Ảnh bằng chứng",
+      "resolutionSection": "Kết quả xử lý",
+      "resolvedBy": "Người xử lý",
+      "resolvedAt": "Thời gian xử lý",
+      "resolutionNote": "Ghi chú xử lý",
+      "loadError": "Không thể tải chi tiết báo cáo.",
+      "close": "Đóng"
+    },
+    "decision": {
+      "resolveTitle": "Xác nhận xử lý báo cáo",
+      "rejectTitle": "Từ chối báo cáo vi phạm",
+      "noteLabel": "Ghi chú xử lý",
+      "resolvePlaceholder": "Nhập ghi chú kết quả xử lý (không bắt buộc)...",
+      "rejectPlaceholder": "Nhập lý do từ chối báo cáo (bắt buộc)...",
+      "noteRequired": "Vui lòng nhập lý do từ chối báo cáo",
+      "submitError": "Không thể cập nhật trạng thái báo cáo. Vui lòng thử lại.",
+      "submitting": "Đang xử lý...",
+      "cancel": "Hủy"
+    },
+    "toast": {
+      "resolved": "Đã xử lý báo cáo vi phạm thành công",
+      "rejected": "Đã từ chối báo cáo vi phạm"
+    }
+  },
+  "postGroups": {
+    "title": "Quản lý Nhóm học tập",
+    "subtitle": "Tạo mới, chỉnh sửa và quản lý các nhóm chủ đề thảo luận trong cộng đồng",
+    "createBtn": "Tạo nhóm mới",
+    "refresh": "Làm mới",
+    "groupsCountSuffix": "nhóm",
+    "emptyList": "Không có nhóm học tập nào phù hợp",
+    "filter": {
+      "keywordPlaceholder": "Tìm theo tên hoặc mô tả nhóm...",
+      "sortLabel": "Sắp xếp",
+      "sortCreatedDesc": "Mới nhất trước",
+      "sortCreatedAsc": "Cũ nhất trước",
+      "sortNameAsc": "Tên nhóm A-Z",
+      "sortIdDesc": "ID giảm dần",
+      "apply": "Áp dụng",
+      "reset": "Đặt lại"
+    },
+    "columns": {
+      "name": "Tên nhóm",
+      "description": "Mô tả",
+      "postCount": "Số bài viết",
+      "createdAt": "Ngày tạo",
+      "updatedAt": "Cập nhật",
+      "actions": "Thao tác"
+    },
+    "actions": {
+      "edit": "Chỉnh sửa",
+      "delete": "Xóa"
+    },
+    "form": {
+      "createTitle": "Tạo nhóm học tập mới",
+      "createSubtitle": "Thêm nhóm mới để thành viên phân loại bài viết cộng đồng",
+      "editTitle": "Chỉnh sửa nhóm học tập",
+      "nameLabel": "Tên nhóm",
+      "namePlaceholder": "Nhập tên nhóm học tập (vd: English Grammar)...",
+      "descLabel": "Mô tả",
+      "descPlaceholder": "Nhập mô tả ngắn cho nhóm (không bắt buộc)...",
+      "nameRequired": "Vui lòng nhập tên nhóm học tập",
+      "submitError": "Không thể lưu nhóm học tập. Vui lòng thử lại.",
+      "submitting": "Đang lưu...",
+      "create": "Tạo nhóm",
+      "save": "Lưu thay đổi",
+      "cancel": "Hủy"
+    },
+    "delete": {
+      "title": "Xóa nhóm học tập",
+      "confirmMessage": "Bạn có chắc chắn muốn xóa nhóm \"{{name}}\"? Hành động này không thể hoàn tác.",
+      "inUseWarning": "Nhóm này hiện có {{count}} bài viết. Hệ thống chỉ cho phép xóa nhóm chưa có bài viết nào.",
+      "submitError": "Không thể xóa nhóm học tập. Vui lòng thử lại.",
+      "submitting": "Đang xóa...",
+      "confirm": "Xác nhận xóa",
+      "cancel": "Hủy"
+    },
+    "errors": {
+      "alreadyExists": "Tên nhóm học tập đã tồn tại trong hệ thống",
+      "inUse": "Không thể xóa vì nhóm vẫn còn bài viết thuộc nhóm này"
+    },
+    "toast": {
+      "created": "Đã tạo nhóm học tập mới thành công",
+      "updated": "Đã cập nhật nhóm học tập thành công",
+      "deleted": "Đã xóa nhóm học tập thành công"
+    }
   }
 }

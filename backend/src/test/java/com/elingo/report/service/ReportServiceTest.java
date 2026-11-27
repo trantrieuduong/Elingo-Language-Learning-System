@@ -2,9 +2,12 @@ package com.elingo.report.service;
 
 import com.elingo.common.dto.PageResponse;
 import com.elingo.common.event.FileAttachedEvent;
+import com.elingo.common.event.NotificationEvent;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
+import com.elingo.report.dto.request.AdminReportSearchRequest;
 import com.elingo.report.dto.request.CreateReportRequest;
+import com.elingo.report.dto.response.AdminReportResponse;
 import com.elingo.report.dto.response.ReportResponse;
 import com.elingo.report.entity.Report;
 import com.elingo.report.entity.ReportImage;
@@ -22,6 +25,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -31,6 +36,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -440,6 +446,246 @@ class ReportServiceTest {
             assertThat(result.totalElements()).isEqualTo(2);
             assertThat(result.content().get(0)).isEqualTo(resp1);
             assertThat(result.content().get(1)).isEqualTo(resp2);
+        }
+    }
+
+    private AdminReportResponse buildAdminReportResponse(Long id, ReportStatus status, List<String> images) {
+        return new AdminReportResponse(
+                id, ReportTargetType.POST, TARGET_ID, "Violation description", status,
+                USER_ID, "reporter", images, null, null, null, null,
+                LocalDateTime.now(), LocalDateTime.now()
+        );
+    }
+
+    @Nested
+    @DisplayName("searchReportsForAdmin")
+    class SearchReportsForAdmin {
+
+        @Test
+        @DisplayName("should return empty page without querying images when no reports match")
+        void shouldReturnEmptyPage_whenNoReportsMatch() {
+            // given
+            AdminReportSearchRequest filter = new AdminReportSearchRequest(
+                    ReportStatus.PENDING, null, null, null, null, null);
+            Pageable pageable = PageRequest.of(0, 20);
+            Page<Report> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+
+            when(reportRepository.searchForAdmin(
+                    ReportStatus.PENDING, null, null, null, null, null, pageable))
+                    .thenReturn(emptyPage);
+
+            // when
+            PageResponse<AdminReportResponse> result = reportService.searchReportsForAdmin(filter, pageable);
+
+            // then
+            assertThat(result.content()).isEmpty();
+            assertThat(result.totalElements()).isZero();
+            verify(reportImageRepository, never()).findByReportIdIn(any());
+        }
+
+        @Test
+        @DisplayName("should return paged reports with batch-loaded images and date bounds")
+        void shouldReturnPagedReports_whenReportsExist() {
+            // given
+            LocalDate from = LocalDate.of(2026, 3, 1);
+            LocalDate to = LocalDate.of(2026, 3, 15);
+            AdminReportSearchRequest filter = new AdminReportSearchRequest(
+                    ReportStatus.PENDING, ReportTargetType.POST, USER_ID, TARGET_ID, from, to);
+            Pageable pageable = PageRequest.of(0, 20);
+
+            Report report = buildReport(REPORT_ID, USER_ID, ReportTargetType.POST, TARGET_ID);
+            Page<Report> page = new PageImpl<>(List.of(report), pageable, 1);
+            ReportImage img = ReportImage.builder().id(1L).report(report).imageUrl("uploads/1/ev.png").build();
+            AdminReportResponse expected = buildAdminReportResponse(REPORT_ID, ReportStatus.PENDING, List.of("uploads/1/ev.png"));
+
+            when(reportRepository.searchForAdmin(
+                    ReportStatus.PENDING,
+                    ReportTargetType.POST,
+                    USER_ID,
+                    TARGET_ID,
+                    from.atStartOfDay(),
+                    to.plusDays(1).atStartOfDay(),
+                    pageable
+            )).thenReturn(page);
+            when(reportImageRepository.findByReportIdIn(List.of(REPORT_ID))).thenReturn(List.of(img));
+            when(reportMapper.toAdminResponse(report, List.of("uploads/1/ev.png"))).thenReturn(expected);
+
+            // when
+            PageResponse<AdminReportResponse> result = reportService.searchReportsForAdmin(filter, pageable);
+
+            // then
+            assertThat(result.content()).containsExactly(expected);
+            assertThat(result.totalElements()).isEqualTo(1L);
+        }
+    }
+
+    @Nested
+    @DisplayName("getReportByIdForAdmin")
+    class GetReportByIdForAdmin {
+
+        @Test
+        @DisplayName("should return admin report detail with images when report exists")
+        void shouldReturnDetail_whenReportExists() {
+            // given
+            Report report = buildReport(REPORT_ID, USER_ID, ReportTargetType.POST, TARGET_ID);
+            ReportImage img = ReportImage.builder().id(1L).report(report).imageUrl("uploads/1/ev.png").build();
+            AdminReportResponse expected = buildAdminReportResponse(REPORT_ID, ReportStatus.PENDING, List.of("uploads/1/ev.png"));
+
+            when(reportRepository.findByIdWithUsers(REPORT_ID)).thenReturn(Optional.of(report));
+            when(reportImageRepository.findByReportId(REPORT_ID)).thenReturn(List.of(img));
+            when(reportMapper.toAdminResponse(report, List.of("uploads/1/ev.png"))).thenReturn(expected);
+
+            // when
+            AdminReportResponse result = reportService.getReportByIdForAdmin(REPORT_ID);
+
+            // then
+            assertThat(result).isEqualTo(expected);
+        }
+
+        @Test
+        @DisplayName("should throw REPORT_NOT_FOUND when report does not exist")
+        void shouldThrowNotFound_whenReportDoesNotExist() {
+            // given
+            when(reportRepository.findByIdWithUsers(REPORT_ID)).thenReturn(Optional.empty());
+
+            // when / then
+            assertThatThrownBy(() -> reportService.getReportByIdForAdmin(REPORT_ID))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.REPORT_NOT_FOUND));
+        }
+    }
+
+    @Nested
+    @DisplayName("resolveReport")
+    class ResolveReport {
+
+        @Test
+        @DisplayName("should resolve pending report, save, and publish notification event")
+        void shouldResolveReport_whenPending() {
+            // given
+            Long adminId = 99L;
+            User admin = User.builder().id(adminId).username("admin").build();
+            Report report = buildReport(REPORT_ID, USER_ID, ReportTargetType.POST, TARGET_ID);
+            AdminReportResponse expected = buildAdminReportResponse(REPORT_ID, ReportStatus.RESOLVED, List.of());
+
+            when(reportRepository.findByIdWithUsers(REPORT_ID)).thenReturn(Optional.of(report));
+            when(userRepository.findById(adminId)).thenReturn(Optional.of(admin));
+            when(reportRepository.save(report)).thenReturn(report);
+            when(reportImageRepository.findByReportId(REPORT_ID)).thenReturn(List.of());
+            when(reportMapper.toAdminResponse(report, List.of())).thenReturn(expected);
+
+            // when
+            AdminReportResponse result = reportService.resolveReport(adminId, REPORT_ID, "Removed spam post");
+
+            // then
+            assertThat(result).isEqualTo(expected);
+            assertThat(report.getStatus()).isEqualTo(ReportStatus.RESOLVED);
+            assertThat(report.getResolvedBy()).isEqualTo(admin);
+            assertThat(report.getResolvedAt()).isNotNull();
+            assertThat(report.getResolutionNote()).isEqualTo("Removed spam post");
+
+            ArgumentCaptor<NotificationEvent> eventCaptor = ArgumentCaptor.forClass(NotificationEvent.class);
+            verify(publisher).publishEvent(eventCaptor.capture());
+            assertThat(eventCaptor.getValue().recipientId()).isEqualTo(USER_ID);
+            assertThat(eventCaptor.getValue().refId()).isEqualTo(REPORT_ID);
+        }
+
+        @Test
+        @DisplayName("should throw REPORT_NOT_FOUND when report does not exist")
+        void shouldThrowNotFound_whenReportMissing() {
+            // given
+            when(reportRepository.findByIdWithUsers(REPORT_ID)).thenReturn(Optional.empty());
+
+            // when / then
+            assertThatThrownBy(() -> reportService.resolveReport(99L, REPORT_ID, "note"))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.REPORT_NOT_FOUND));
+            verify(reportRepository, never()).save(any());
+            verify(publisher, never()).publishEvent(any());
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = ReportStatus.class, names = {"RESOLVED", "REJECTED"})
+        @DisplayName("should throw REPORT_ALREADY_RESOLVED when report is not pending")
+        void shouldThrowAlreadyResolved_whenNotPending(ReportStatus currentStatus) {
+            // given
+            Report report = buildReport(REPORT_ID, USER_ID, ReportTargetType.POST, TARGET_ID);
+            report.setStatus(currentStatus);
+            when(reportRepository.findByIdWithUsers(REPORT_ID)).thenReturn(Optional.of(report));
+
+            // when / then
+            assertThatThrownBy(() -> reportService.resolveReport(99L, REPORT_ID, "note"))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.REPORT_ALREADY_RESOLVED));
+            verify(reportRepository, never()).save(any());
+            verify(publisher, never()).publishEvent(any());
+        }
+
+        @Test
+        @DisplayName("should throw USER_NOT_FOUND when admin does not exist")
+        void shouldThrowUserNotFound_whenAdminMissing() {
+            // given
+            Report report = buildReport(REPORT_ID, USER_ID, ReportTargetType.POST, TARGET_ID);
+            when(reportRepository.findByIdWithUsers(REPORT_ID)).thenReturn(Optional.of(report));
+            when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+            // when / then
+            assertThatThrownBy(() -> reportService.resolveReport(99L, REPORT_ID, "note"))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.USER_NOT_FOUND));
+            verify(reportRepository, never()).save(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("rejectReport")
+    class RejectReport {
+
+        @Test
+        @DisplayName("should reject pending report without publishing notification event")
+        void shouldRejectReport_whenPending() {
+            // given
+            Long adminId = 99L;
+            User admin = User.builder().id(adminId).username("admin").build();
+            Report report = buildReport(REPORT_ID, USER_ID, ReportTargetType.POST, TARGET_ID);
+            AdminReportResponse expected = buildAdminReportResponse(REPORT_ID, ReportStatus.REJECTED, List.of());
+
+            when(reportRepository.findByIdWithUsers(REPORT_ID)).thenReturn(Optional.of(report));
+            when(userRepository.findById(adminId)).thenReturn(Optional.of(admin));
+            when(reportRepository.save(report)).thenReturn(report);
+            when(reportImageRepository.findByReportId(REPORT_ID)).thenReturn(List.of());
+            when(reportMapper.toAdminResponse(report, List.of())).thenReturn(expected);
+
+            // when
+            AdminReportResponse result = reportService.rejectReport(adminId, REPORT_ID, "No violation");
+
+            // then
+            assertThat(result).isEqualTo(expected);
+            assertThat(report.getStatus()).isEqualTo(ReportStatus.REJECTED);
+            assertThat(report.getResolvedBy()).isEqualTo(admin);
+            assertThat(report.getResolvedAt()).isNotNull();
+            assertThat(report.getResolutionNote()).isEqualTo("No violation");
+            verify(publisher, never()).publishEvent(any());
+        }
+
+        @Test
+        @DisplayName("should throw REPORT_ALREADY_RESOLVED when report is already processed")
+        void shouldThrowAlreadyResolved_whenNotPending() {
+            // given
+            Report report = buildReport(REPORT_ID, USER_ID, ReportTargetType.POST, TARGET_ID);
+            report.setStatus(ReportStatus.RESOLVED);
+            when(reportRepository.findByIdWithUsers(REPORT_ID)).thenReturn(Optional.of(report));
+
+            // when / then
+            assertThatThrownBy(() -> reportService.rejectReport(99L, REPORT_ID, "No violation"))
+                    .isInstanceOf(AppException.class)
+                    .satisfies(ex -> assertThat(((AppException) ex).getAppError())
+                            .isEqualTo(AppError.REPORT_ALREADY_RESOLVED));
+            verify(reportRepository, never()).save(any());
         }
     }
 }

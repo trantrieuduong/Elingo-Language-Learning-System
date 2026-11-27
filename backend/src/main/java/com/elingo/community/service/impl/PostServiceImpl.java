@@ -1,26 +1,39 @@
 package com.elingo.community.service.impl;
 
 import com.elingo.common.dto.CursorResponse;
+import com.elingo.common.dto.PageResponse;
 import com.elingo.common.enums.MediaKind;
 import com.elingo.common.event.FileAttachedEvent;
 import com.elingo.common.event.FileDeletedEvent;
 import com.elingo.common.event.NotificationEvent;
+import com.elingo.common.event.PostModeratedEvent;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.common.util.CursorUtils;
+import com.elingo.community.dto.request.AdminModerationLogFilterRequest;
+import com.elingo.community.dto.request.AdminPostModerationSearchRequest;
 import com.elingo.community.dto.request.CreatePostRequest;
 import com.elingo.community.dto.request.UpdatePostRequest;
+import com.elingo.community.dto.response.AdminPostModerationDetailResponse;
+import com.elingo.community.dto.response.AdminPostModerationResponse;
+import com.elingo.community.dto.response.PostMediaResponse;
+import com.elingo.community.dto.response.PostModerationLogResponse;
 import com.elingo.community.dto.response.PostResponse;
 import com.elingo.community.entity.MediaType;
+import com.elingo.community.entity.ModerationAction;
+import com.elingo.community.entity.ModerationActorType;
 import com.elingo.community.entity.Post;
 import com.elingo.community.entity.PostGroup;
 import com.elingo.community.entity.PostLike;
 import com.elingo.community.entity.PostLikeId;
 import com.elingo.community.entity.PostMedia;
+import com.elingo.community.entity.PostModerationLog;
 import com.elingo.community.entity.PostStatus;
 import com.elingo.community.mapper.PostMapper;
 import com.elingo.community.repository.PostGroupRepository;
 import com.elingo.community.repository.PostLikeRepository;
+import com.elingo.community.repository.PostMediaRepository;
+import com.elingo.community.repository.PostModerationLogRepository;
 import com.elingo.community.repository.PostRepository;
 import com.elingo.community.service.PostService;
 import com.elingo.file.util.FileKey;
@@ -29,7 +42,9 @@ import com.elingo.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,6 +64,8 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final PostGroupRepository postGroupRepository;
     private final PostLikeRepository postLikeRepository;
+    private final PostMediaRepository postMediaRepository;
+    private final PostModerationLogRepository postModerationLogRepository;
     private final UserRepository userRepository;
     private final PostMapper postMapper;
     private final ApplicationEventPublisher publisher;
@@ -336,6 +353,139 @@ public class PostServiceImpl implements PostService {
         postLikeRepository.deleteByIdPostIdAndIdUserId(postId, currentUserId);
         postRepository.updateLikeCount(postId, -1);
         log.info("Post unliked postId={}", postId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<AdminPostModerationResponse> searchPostsForModeration(
+            AdminPostModerationSearchRequest filter,
+            Pageable pageable) {
+        String keyword = (filter.keyword() != null && !filter.keyword().isBlank()) ? filter.keyword().trim() : null;
+        LocalDateTime createdFrom = filter.createdFrom() != null ? filter.createdFrom().atStartOfDay() : null;
+        LocalDateTime createdTo = filter.createdTo() != null ? filter.createdTo().plusDays(1).atStartOfDay() : null;
+
+        Page<Post> page = postRepository.searchForModeration(
+                filter.status(),
+                filter.groupId(),
+                filter.userId(),
+                keyword,
+                createdFrom,
+                createdTo,
+                pageable
+        );
+        if (page.isEmpty()) {
+            return PageResponse.of(page.map(p -> postMapper.toAdminModerationResponse(p, List.of(), null)));
+        }
+
+        List<Long> postIds = page.getContent().stream().map(Post::getId).toList();
+        Map<Long, List<PostMediaResponse>> mediaByPost = postMediaRepository
+                .findByPostIdInOrderByPostIdAscOrderAsc(postIds)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        m -> m.getPost().getId(),
+                        Collectors.mapping(postMapper::toPostMediaResponse, Collectors.toList())
+                ));
+
+        Map<Long, PostModerationLogResponse> latestLogByPost = new java.util.HashMap<>();
+        for (PostModerationLog logEntry : postModerationLogRepository.findByPostIdInWithActor(postIds)) {
+            latestLogByPost.computeIfAbsent(
+                    logEntry.getPost().getId(),
+                    id -> postMapper.toModerationLogResponse(logEntry)
+            );
+        }
+
+        Page<AdminPostModerationResponse> responsePage = page.map(p ->
+                postMapper.toAdminModerationResponse(
+                        p,
+                        mediaByPost.getOrDefault(p.getId(), List.of()),
+                        latestLogByPost.get(p.getId())
+                )
+        );
+        return PageResponse.of(responsePage);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public AdminPostModerationDetailResponse getPostModerationDetail(Long postId) {
+        Post post = postRepository.findByIdWithMedia(postId)
+                .orElseThrow(() -> new AppException(AppError.POST_NOT_FOUND));
+
+        List<PostModerationLogResponse> logs = postModerationLogRepository.findByPostIdWithActor(postId)
+                .stream()
+                .map(postMapper::toModerationLogResponse)
+                .toList();
+        return postMapper.toAdminModerationDetailResponse(post, logs);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<PostModerationLogResponse> searchModerationLogs(
+            AdminModerationLogFilterRequest filter,
+            Pageable pageable) {
+        String aiLabel = (filter.aiLabel() != null && !filter.aiLabel().isBlank()) ? filter.aiLabel().trim() : null;
+        LocalDateTime createdFrom = filter.createdFrom() != null ? filter.createdFrom().atStartOfDay() : null;
+        LocalDateTime createdTo = filter.createdTo() != null ? filter.createdTo().plusDays(1).atStartOfDay() : null;
+
+        Page<PostModerationLog> page = postModerationLogRepository.searchForAdmin(
+                filter.postId(),
+                filter.actorType(),
+                filter.action(),
+                aiLabel,
+                createdFrom,
+                createdTo,
+                pageable
+        );
+        return PageResponse.of(page.map(postMapper::toModerationLogResponse));
+    }
+
+    @Override
+    @Transactional
+    public AdminPostModerationResponse approvePostByAdmin(Long adminId, Long postId, String note) {
+        return moderatePostByAdmin(adminId, postId, PostStatus.PUBLISHED, ModerationAction.MANUAL_APPROVE, note);
+    }
+
+    @Override
+    @Transactional
+    public AdminPostModerationResponse rejectPostByAdmin(Long adminId, Long postId, String note) {
+        return moderatePostByAdmin(adminId, postId, PostStatus.REJECTED, ModerationAction.MANUAL_REJECT, note);
+    }
+
+    private AdminPostModerationResponse moderatePostByAdmin(
+            Long adminId,
+            Long postId,
+            PostStatus targetStatus,
+            ModerationAction action,
+            String note) {
+        int updated = postRepository.updateStatusForManualModeration(postId, targetStatus);
+        if (updated == 0) {
+            if (!postRepository.existsById(postId)) {
+                throw new AppException(AppError.POST_NOT_FOUND);
+            }
+            throw new AppException(AppError.POST_ALREADY_MODERATED);
+        }
+
+        Post post = postRepository.findByIdWithMedia(postId)
+                .orElseThrow(() -> new AppException(AppError.POST_NOT_FOUND));
+        User admin = userRepository.findById(adminId)
+                .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
+
+        PostModerationLog logEntry = PostModerationLog.builder()
+                .post(post)
+                .actorType(ModerationActorType.ADMIN)
+                .actor(admin)
+                .action(action)
+                .note(note)
+                .build();
+        PostModerationLog savedLog = postModerationLogRepository.save(logEntry);
+
+        publisher.publishEvent(new PostModeratedEvent(postId, post.getUser().getId(), action));
+        log.info("Post manually moderated postId={} action={} byAdminId={}", postId, action, adminId);
+
+        return postMapper.toAdminModerationResponse(
+                post,
+                postMapper.toPostMediaResponseList(post.getMedias()),
+                postMapper.toModerationLogResponse(savedLog)
+        );
     }
 
     private CursorResponse<PostResponse> buildCursorResponse(List<Post> posts, int limit, Long currentUserId) {

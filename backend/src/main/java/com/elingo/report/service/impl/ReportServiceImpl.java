@@ -3,10 +3,13 @@ package com.elingo.report.service.impl;
 import com.elingo.common.dto.PageResponse;
 import com.elingo.common.enums.MediaKind;
 import com.elingo.common.event.FileAttachedEvent;
+import com.elingo.common.event.NotificationEvent;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
 import com.elingo.file.util.FileKey;
+import com.elingo.report.dto.request.AdminReportSearchRequest;
 import com.elingo.report.dto.request.CreateReportRequest;
+import com.elingo.report.dto.response.AdminReportResponse;
 import com.elingo.report.dto.response.ReportResponse;
 import com.elingo.report.entity.Report;
 import com.elingo.report.entity.ReportImage;
@@ -26,6 +29,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -146,18 +150,101 @@ public class ReportServiceImpl implements ReportService {
         List<Long> reportIds = page.getContent().stream()
                 .map(Report::getId)
                 .toList();
-        List<ReportImage> allImages = reportImageRepository.findByReportIdIn(reportIds);
-        Map<Long, List<String>> imageMap = allImages.stream()
-                .collect(Collectors.groupingBy(
-                        img -> img.getReport().getId(),
-                        Collectors.mapping(ReportImage::getImageUrl, Collectors.toList())
-                ));
+        Map<Long, List<String>> imageMap = loadImagesByReportIds(reportIds);
 
         Page<ReportResponse> responsePage = page.map(r ->
                 reportMapper.toResponse(r, imageMap.getOrDefault(r.getId(), List.of()))
         );
 
         return PageResponse.of(responsePage);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<AdminReportResponse> searchReportsForAdmin(AdminReportSearchRequest filter, Pageable pageable) {
+        LocalDateTime createdFrom = filter.createdFrom() != null ? filter.createdFrom().atStartOfDay() : null;
+        LocalDateTime createdTo = filter.createdTo() != null ? filter.createdTo().plusDays(1).atStartOfDay() : null;
+
+        Page<Report> page = reportRepository.searchForAdmin(
+                filter.status(),
+                filter.targetType(),
+                filter.reporterId(),
+                filter.targetId(),
+                createdFrom,
+                createdTo,
+                pageable
+        );
+        if (page.isEmpty()) {
+            return PageResponse.of(page.map(r -> reportMapper.toAdminResponse(r, List.of())));
+        }
+
+        List<Long> reportIds = page.getContent().stream().map(Report::getId).toList();
+        Map<Long, List<String>> imageMap = loadImagesByReportIds(reportIds);
+
+        Page<AdminReportResponse> responsePage = page.map(r ->
+                reportMapper.toAdminResponse(r, imageMap.getOrDefault(r.getId(), List.of()))
+        );
+        return PageResponse.of(responsePage);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public AdminReportResponse getReportByIdForAdmin(Long reportId) {
+        Report report = reportRepository.findByIdWithUsers(reportId)
+                .orElseThrow(() -> new AppException(AppError.REPORT_NOT_FOUND));
+        List<String> imageUrls = reportImageRepository.findByReportId(reportId).stream()
+                .map(ReportImage::getImageUrl)
+                .toList();
+        return reportMapper.toAdminResponse(report, imageUrls);
+    }
+
+    @Override
+    @Transactional
+    public AdminReportResponse resolveReport(Long adminId, Long reportId, String resolutionNote) {
+        Report saved = transitionReportStatus(adminId, reportId, ReportStatus.RESOLVED, resolutionNote);
+        publisher.publishEvent(NotificationEvent.reportResolved(saved.getReporter().getId(), saved.getId()));
+        log.info("Report resolved reportId={} byAdminId={}", reportId, adminId);
+
+        List<String> imageUrls = reportImageRepository.findByReportId(reportId).stream()
+                .map(ReportImage::getImageUrl)
+                .toList();
+        return reportMapper.toAdminResponse(saved, imageUrls);
+    }
+
+    @Override
+    @Transactional
+    public AdminReportResponse rejectReport(Long adminId, Long reportId, String resolutionNote) {
+        Report saved = transitionReportStatus(adminId, reportId, ReportStatus.REJECTED, resolutionNote);
+        log.info("Report rejected reportId={} byAdminId={}", reportId, adminId);
+
+        List<String> imageUrls = reportImageRepository.findByReportId(reportId).stream()
+                .map(ReportImage::getImageUrl)
+                .toList();
+        return reportMapper.toAdminResponse(saved, imageUrls);
+    }
+
+    private Report transitionReportStatus(Long adminId, Long reportId, ReportStatus targetStatus, String resolutionNote) {
+        Report report = reportRepository.findByIdWithUsers(reportId)
+                .orElseThrow(() -> new AppException(AppError.REPORT_NOT_FOUND));
+        if (report.getStatus() != ReportStatus.PENDING) {
+            throw new AppException(AppError.REPORT_ALREADY_RESOLVED);
+        }
+        User admin = userRepository.findById(adminId)
+                .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
+
+        report.setStatus(targetStatus);
+        report.setResolvedBy(admin);
+        report.setResolvedAt(LocalDateTime.now());
+        report.setResolutionNote(resolutionNote);
+        return reportRepository.save(report);
+    }
+
+    private Map<Long, List<String>> loadImagesByReportIds(List<Long> reportIds) {
+        return reportImageRepository.findByReportIdIn(reportIds).stream()
+                .collect(Collectors.groupingBy(
+                        img -> img.getReport().getId(),
+                        Collectors.mapping(ReportImage::getImageUrl, Collectors.toList())
+                ));
     }
 
     private String requireMediaKind(String verifiedKey, MediaKind... allowed) {

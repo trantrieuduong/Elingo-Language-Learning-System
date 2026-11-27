@@ -29,4 +29,8 @@ public final class AdminApiPaths {
     public static final String PREMIUM_PLANS = BASE + "/premium/plans";
     public static final String PREMIUM_TRANSACTIONS = BASE + "/premium/transactions";
     public static final String PREMIUM_WEBHOOK_LOGS = BASE + "/premium/webhook-logs";
+
+    public static final String COMMUNITY_REPORTS = BASE + "/community/reports";
+    public static final String COMMUNITY_MODERATION = BASE + "/community/moderation";
+    public static final String COMMUNITY_GROUPS = BASE + "/community/groups";
 }
