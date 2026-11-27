@@ -11,12 +11,19 @@ import {
   resolveReport,
   rejectReport,
   getPostGroups,
+  searchPostGroups,
+  getPostGroupById,
+  createPostGroup,
+  updatePostGroup,
+  deletePostGroup,
 } from '@/modules/admin/services/adminCommunityApi';
 
 vi.mock('@/services/apiClient', () => ({
   default: {
     get: vi.fn(),
+    post: vi.fn(),
     put: vi.fn(),
+    delete: vi.fn(),
   },
 }));
 
@@ -140,5 +147,40 @@ describe('adminCommunityApi service', () => {
     const groups = await getPostGroups();
     expect(apiClient.get).toHaveBeenCalledWith('/post-groups');
     expect(groups).toEqual([{ id: 1, groupName: 'Grammar' }]);
+  });
+
+  it('searchPostGroups and getPostGroupById call admin group endpoints', async () => {
+    const mockPage = { content: [], page: 1, size: 20, totalElements: 0, totalPages: 0, isLast: true };
+    apiClient.get.mockResolvedValueOnce({ data: { data: mockPage } });
+
+    await searchPostGroups({ keyword: '  Grammar  ', page: 1, size: 20, sort: 'createdAt,desc' });
+    expect(apiClient.get).toHaveBeenCalledWith('/admin/community/groups', {
+      params: { keyword: 'Grammar', page: 1, size: 20, sort: 'createdAt,desc' },
+    });
+
+    apiClient.get.mockResolvedValueOnce({ data: { data: { id: 1, groupName: 'Grammar' } } });
+    const detail = await getPostGroupById(1);
+    expect(apiClient.get).toHaveBeenCalledWith('/admin/community/groups/1');
+    expect(detail).toEqual({ id: 1, groupName: 'Grammar' });
+  });
+
+  it('createPostGroup, updatePostGroup, and deletePostGroup call write endpoints', async () => {
+    apiClient.post.mockResolvedValueOnce({ data: { data: { id: 1 } } });
+    await createPostGroup({ groupName: '  Grammar  ', description: '   ' });
+    expect(apiClient.post).toHaveBeenCalledWith('/admin/community/groups', {
+      groupName: 'Grammar',
+      description: null,
+    });
+
+    apiClient.put.mockResolvedValueOnce({ data: { data: { id: 1 } } });
+    await updatePostGroup(1, { groupName: '  Speaking  ', description: '  Practice  ' });
+    expect(apiClient.put).toHaveBeenCalledWith('/admin/community/groups/1', {
+      groupName: 'Speaking',
+      description: 'Practice',
+    });
+
+    apiClient.delete.mockResolvedValueOnce({ data: { success: true } });
+    await deletePostGroup(1);
+    expect(apiClient.delete).toHaveBeenCalledWith('/admin/community/groups/1');
   });
 });

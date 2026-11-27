@@ -1139,5 +1139,68 @@
       "resolved": "Report resolved successfully",
       "rejected": "Report rejected successfully"
     }
+  },
+  "postGroups": {
+    "title": "Study Group Management",
+    "subtitle": "Create, edit, and organize community discussion groups",
+    "createBtn": "New Group",
+    "refresh": "Refresh",
+    "groupsCountSuffix": "groups",
+    "emptyList": "No study groups match the current filters",
+    "filter": {
+      "keywordPlaceholder": "Search by group name or description...",
+      "sortLabel": "Sort by",
+      "sortCreatedDesc": "Newest first",
+      "sortCreatedAsc": "Oldest first",
+      "sortNameAsc": "Name A-Z",
+      "sortIdDesc": "ID descending",
+      "apply": "Apply",
+      "reset": "Reset"
+    },
+    "columns": {
+      "name": "Group Name",
+      "description": "Description",
+      "postCount": "Posts",
+      "createdAt": "Created At",
+      "updatedAt": "Updated At",
+      "actions": "Actions"
+    },
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "form": {
+      "createTitle": "Create Study Group",
+      "createSubtitle": "Add a new group for members to categorize community posts",
+      "editTitle": "Edit Study Group",
+      "nameLabel": "Group Name",
+      "namePlaceholder": "Enter study group name (e.g. English Grammar)...",
+      "descLabel": "Description",
+      "descPlaceholder": "Enter an optional short description...",
+      "nameRequired": "Please enter a group name",
+      "submitError": "Unable to save study group. Please try again.",
+      "submitting": "Saving...",
+      "create": "Create Group",
+      "save": "Save Changes",
+      "cancel": "Cancel"
+    },
+    "delete": {
+      "title": "Delete Study Group",
+      "confirmMessage": "Are you sure you want to delete group \"{{name}}\"? This action cannot be undone.",
+      "inUseWarning": "This group currently contains {{count}} posts. Only empty groups can be deleted.",
+      "submitError": "Unable to delete study group. Please try again.",
+      "submitting": "Deleting...",
+      "confirm": "Delete Group",
+      "cancel": "Cancel"
+    },
+    "errors": {
+      "alreadyExists": "A study group with this name already exists",
+      "inUse": "Cannot delete group because it still contains posts"
+    },
+    "toast": {
+      "created": "Study group created successfully",
+      "updated": "Study group updated successfully",
+      "deleted": "Study group deleted successfully"
+    }
   }
 }

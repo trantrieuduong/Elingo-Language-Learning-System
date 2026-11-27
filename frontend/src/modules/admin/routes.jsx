@@ -18,6 +18,7 @@ import TransactionManagementPage from './pages/TransactionManagementPage/Transac
 import WebhookLogPage from './pages/WebhookLogPage/WebhookLogPage';
 import PostModerationPage from './pages/PostModerationPage/PostModerationPage';
 import ReportManagementPage from './pages/ReportManagementPage/ReportManagementPage';
+import PostGroupManagementPage from './pages/PostGroupManagementPage/PostGroupManagementPage';
 
 export default function AdminRoutes({ currentPath, onNavigate }) {
   const { t } = useTranslation('admin');
@@ -93,7 +94,7 @@ export default function AdminRoutes({ currentPath, onNavigate }) {
       case '/admin/comments':
         return <PlaceholderAdminPage title={t('routes.comments')} onNavigate={onNavigate} />;
       case '/admin/groups':
-        return <PlaceholderAdminPage title={t('routes.groups')} onNavigate={onNavigate} />;
+        return <PostGroupManagementPage onNavigate={onNavigate} />;
 
       // Module: Báo cáo
       case '/admin/reports':

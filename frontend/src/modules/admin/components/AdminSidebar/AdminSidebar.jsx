@@ -41,9 +41,7 @@ export default function AdminSidebar({
     community:
       normalizedPath.startsWith('/admin/posts') ||
       normalizedPath.startsWith('/admin/reports') ||
-      normalizedPath.startsWith('/admin/comments') ||
       normalizedPath.startsWith('/admin/groups'),
-    users: normalizedPath.startsWith('/admin/users') || normalizedPath.startsWith('/admin/roles'),
     settings: normalizedPath.startsWith('/admin/settings'),
   });
 
@@ -242,7 +240,6 @@ export default function AdminSidebar({
               className={`${styles.navItem} ${styles.dropdownTrigger} ${
                 normalizedPath.startsWith('/admin/posts') ||
                 normalizedPath.startsWith('/admin/reports') ||
-                normalizedPath.startsWith('/admin/comments') ||
                 normalizedPath.startsWith('/admin/groups')
                   ? styles.active
                   : ''
@@ -287,77 +284,28 @@ export default function AdminSidebar({
                 <button
                   type="button"
                   className={`${styles.subMenuItem} ${
-                    normalizedPath.startsWith('/admin/comments') ? styles.active : ''
-                  }`}
-                  onClick={() => handleNav('/admin/comments')}
-                >
-                  <span>{t('sidebar.comments')}</span>
-                  <span className={styles.pendingBadge}>{t('sidebar.pendingBadge')}</span>
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.subMenuItem} ${
                     normalizedPath.startsWith('/admin/groups') ? styles.active : ''
                   }`}
                   onClick={() => handleNav('/admin/groups')}
                 >
                   <span>{t('sidebar.groups')}</span>
-                  <span className={styles.pendingBadge}>{t('sidebar.pendingBadge')}</span>
                 </button>
               </div>
             )}
           </div>
 
-          {/* 6. Người dùng (dropdown) */}
-          <div className={styles.dropdownGroup}>
-            <button
-              type="button"
-              className={`${styles.navItem} ${styles.dropdownTrigger} ${
-                currentPath.startsWith('/admin/users') || currentPath.startsWith('/admin/roles')
-                  ? styles.active
-                  : ''
-              }`}
-              onClick={() => toggleDropdown('users')}
-              title={t('sidebar.users')}
-            >
-              <UsersIcon size={18} className={styles.navIcon} />
-              {!isCollapsed && (
-                <>
-                  <span className={styles.navLabel}>{t('sidebar.users')}</span>
-                  <span className={styles.chevron}>
-                    {openDropdowns.users ? (
-                      <ChevronDownIcon size={14} />
-                    ) : (
-                      <ChevronRightIcon size={14} />
-                    )}
-                  </span>
-                </>
-              )}
-            </button>
-            {!isCollapsed && openDropdowns.users && (
-              <div className={styles.subMenuList}>
-                <button
-                  type="button"
-                  className={`${styles.subMenuItem} ${
-                    currentPath.startsWith('/admin/users') ? styles.active : ''
-                  }`}
-                  onClick={() => handleNav('/admin/users')}
-                >
-                  <span>{t('sidebar.userList')}</span>
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.subMenuItem} ${
-                    currentPath.startsWith('/admin/roles') ? styles.active : ''
-                  }`}
-                  onClick={() => handleNav('/admin/roles')}
-                >
-                  <span>{t('sidebar.rolesAndPermissions')}</span>
-                  <span className={styles.pendingBadge}>{t('sidebar.pendingBadge')}</span>
-                </button>
-              </div>
-            )}
-          </div>
+          {/* 5. Người dùng */}
+          <button
+            type="button"
+            className={`${styles.navItem} ${
+              normalizedPath.startsWith('/admin/users') ? styles.active : ''
+            }`}
+            onClick={() => handleNav('/admin/users')}
+            title={t('sidebar.users')}
+          >
+            <UsersIcon size={18} className={styles.navIcon} />
+            {!isCollapsed && <span className={styles.navLabel}>{t('sidebar.users')}</span>}
+          </button>
 
           {/* 7. Cấu hình hệ thống (dropdown) */}
           <div className={styles.dropdownGroup}>

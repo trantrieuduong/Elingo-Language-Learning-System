@@ -184,3 +184,64 @@ export const getPostGroups = async () => {
   const res = await apiClient.get('/post-groups');
   return res.data?.data || [];
 };
+
+/**
+ * Tìm kiếm và lọc danh sách nhóm học tập phía admin (phân trang 1-indexed)
+ */
+export const searchPostGroups = async (params = {}) => {
+  const query = {};
+
+  if (params.keyword && params.keyword.trim()) {
+    query.keyword = params.keyword.trim();
+  }
+  if (params.page !== undefined && params.page !== null) {
+    query.page = params.page;
+  }
+  if (params.size !== undefined && params.size !== null) {
+    query.size = params.size;
+  }
+  if (params.sort) {
+    query.sort = params.sort;
+  }
+
+  const res = await apiClient.get('/admin/community/groups', { params: query });
+  return res.data?.data || EMPTY_PAGE;
+};
+
+/**
+ * Lấy chi tiết nhóm học tập theo ID
+ */
+export const getPostGroupById = async (groupId) => {
+  const res = await apiClient.get(`/admin/community/groups/${groupId}`);
+  return res.data?.data;
+};
+
+/**
+ * Tạo nhóm học tập mới
+ */
+export const createPostGroup = async (payload) => {
+  const res = await apiClient.post('/admin/community/groups', {
+    groupName: payload.groupName ? payload.groupName.trim() : '',
+    description: payload.description && payload.description.trim() ? payload.description.trim() : null,
+  });
+  return res.data?.data;
+};
+
+/**
+ * Cập nhật toàn bộ thông tin nhóm học tập (PUT ghi đè)
+ */
+export const updatePostGroup = async (groupId, payload) => {
+  const res = await apiClient.put(`/admin/community/groups/${groupId}`, {
+    groupName: payload.groupName ? payload.groupName.trim() : '',
+    description: payload.description && payload.description.trim() ? payload.description.trim() : null,
+  });
+  return res.data?.data;
+};
+
+/**
+ * Xóa nhóm học tập rỗng
+ */
+export const deletePostGroup = async (groupId) => {
+  const res = await apiClient.delete(`/admin/community/groups/${groupId}`);
+  return res.data?.data;
+};

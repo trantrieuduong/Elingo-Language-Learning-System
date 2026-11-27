@@ -1139,5 +1139,68 @@
       "resolved": "Đã xử lý báo cáo vi phạm thành công",
       "rejected": "Đã từ chối báo cáo vi phạm"
     }
+  },
+  "postGroups": {
+    "title": "Quản lý Nhóm học tập",
+    "subtitle": "Tạo mới, chỉnh sửa và quản lý các nhóm chủ đề thảo luận trong cộng đồng",
+    "createBtn": "Tạo nhóm mới",
+    "refresh": "Làm mới",
+    "groupsCountSuffix": "nhóm",
+    "emptyList": "Không có nhóm học tập nào phù hợp",
+    "filter": {
+      "keywordPlaceholder": "Tìm theo tên hoặc mô tả nhóm...",
+      "sortLabel": "Sắp xếp",
+      "sortCreatedDesc": "Mới nhất trước",
+      "sortCreatedAsc": "Cũ nhất trước",
+      "sortNameAsc": "Tên nhóm A-Z",
+      "sortIdDesc": "ID giảm dần",
+      "apply": "Áp dụng",
+      "reset": "Đặt lại"
+    },
+    "columns": {
+      "name": "Tên nhóm",
+      "description": "Mô tả",
+      "postCount": "Số bài viết",
+      "createdAt": "Ngày tạo",
+      "updatedAt": "Cập nhật",
+      "actions": "Thao tác"
+    },
+    "actions": {
+      "edit": "Chỉnh sửa",
+      "delete": "Xóa"
+    },
+    "form": {
+      "createTitle": "Tạo nhóm học tập mới",
+      "createSubtitle": "Thêm nhóm mới để thành viên phân loại bài viết cộng đồng",
+      "editTitle": "Chỉnh sửa nhóm học tập",
+      "nameLabel": "Tên nhóm",
+      "namePlaceholder": "Nhập tên nhóm học tập (vd: English Grammar)...",
+      "descLabel": "Mô tả",
+      "descPlaceholder": "Nhập mô tả ngắn cho nhóm (không bắt buộc)...",
+      "nameRequired": "Vui lòng nhập tên nhóm học tập",
+      "submitError": "Không thể lưu nhóm học tập. Vui lòng thử lại.",
+      "submitting": "Đang lưu...",
+      "create": "Tạo nhóm",
+      "save": "Lưu thay đổi",
+      "cancel": "Hủy"
+    },
+    "delete": {
+      "title": "Xóa nhóm học tập",
+      "confirmMessage": "Bạn có chắc chắn muốn xóa nhóm \"{{name}}\"? Hành động này không thể hoàn tác.",
+      "inUseWarning": "Nhóm này hiện có {{count}} bài viết. Hệ thống chỉ cho phép xóa nhóm chưa có bài viết nào.",
+      "submitError": "Không thể xóa nhóm học tập. Vui lòng thử lại.",
+      "submitting": "Đang xóa...",
+      "confirm": "Xác nhận xóa",
+      "cancel": "Hủy"
+    },
+    "errors": {
+      "alreadyExists": "Tên nhóm học tập đã tồn tại trong hệ thống",
+      "inUse": "Không thể xóa vì nhóm vẫn còn bài viết thuộc nhóm này"
+    },
+    "toast": {
+      "created": "Đã tạo nhóm học tập mới thành công",
+      "updated": "Đã cập nhật nhóm học tập thành công",
+      "deleted": "Đã xóa nhóm học tập thành công"
+    }
   }
 }
