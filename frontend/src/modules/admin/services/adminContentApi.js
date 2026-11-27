@@ -359,3 +359,19 @@ export const archiveAdminLesson = async (lessonId) => {
   const res = await apiClient.put(`/admin/lessons/${lessonId}/archive`);
   return res.data?.data;
 };
+
+/**
+ * Tạo mới bài học (mặc định ở trạng thái DRAFT)
+ */
+export const createAdminLesson = async (payload) => {
+  const res = await apiClient.post('/admin/lessons', payload);
+  return res.data?.data;
+};
+
+/**
+ * Cập nhật thông tin bài học (ghi đè toàn bộ các trường có thể sửa)
+ */
+export const updateAdminLesson = async (lessonId, payload) => {
+  const res = await apiClient.put(`/admin/lessons/${lessonId}`, payload);
+  return res.data?.data;
+};

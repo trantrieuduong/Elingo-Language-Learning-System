@@ -128,6 +128,25 @@
   cursor: not-allowed;
 }
 
+.primaryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  background: var(--adm-accent);
+  color: var(--adm-accent-contrast) !important;
+  border: 1px solid transparent;
+  border-radius: var(--adm-radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  transition: background-color var(--adm-transition-fast);
+}
+
+.primaryBtn:hover {
+  background: var(--adm-accent-hover);
+}
+
 .refreshIcon {
   color: var(--adm-text-muted);
 }

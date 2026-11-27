@@ -9,6 +9,8 @@ import {
   RefreshIcon,
   CrownIcon,
   CheckCircleIcon,
+  PlusIcon,
+  EditIcon,
 } from '../../components/icons/AdminIcons';
 import {
   fetchAdminLessons,
@@ -17,6 +19,7 @@ import {
 } from '../../services/adminContentApi';
 import LessonFilterBar from './components/LessonFilterBar';
 import LessonStatusModal from './components/LessonStatusModal';
+import LessonFormModal from './components/LessonFormModal';
 import styles from './LessonListPage.module.css';
 
 const PAGE_SIZE = 8;
@@ -52,6 +55,11 @@ export default function LessonListPage({ onNavigate: _onNavigate }) {
   const [error, setError] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
   const [statusModal, setStatusModal] = useState({ isOpen: false, lesson: null });
+  const [formModal, setFormModal] = useState({
+    isOpen: false,
+    mode: 'create',
+    initialData: null,
+  });
 
   // Load tags & CEFR levels once on mount
   useEffect(() => {
@@ -151,6 +159,27 @@ export default function LessonListPage({ onNavigate: _onNavigate }) {
     setStatusModal({ isOpen: false, lesson: null });
     setToastMessage(t('content.lessons.statusUpdateSuccess'));
     loadLessons();
+  };
+
+  const handleOpenCreate = () => {
+    setFormModal({ isOpen: true, mode: 'create', initialData: null });
+  };
+
+  const handleOpenEdit = (lesson) => {
+    setFormModal({ isOpen: true, mode: 'edit', initialData: lesson });
+  };
+
+  const handleFormSuccess = () => {
+    const isEdit = formModal.mode === 'edit';
+    setFormModal({ isOpen: false, mode: 'create', initialData: null });
+    setToastMessage(
+      isEdit ? t('content.lessons.lessonUpdateSuccess') : t('content.lessons.lessonCreateSuccess')
+    );
+    if (!isEdit && page !== 1) {
+      setPage(1);
+    } else {
+      loadLessons();
+    }
   };
 
   const columns = useMemo(
@@ -300,6 +329,15 @@ export default function LessonListPage({ onNavigate: _onNavigate }) {
             <button
               type="button"
               className={styles.actionBtn}
+              onClick={() => handleOpenEdit(record)}
+              title={t('content.lessons.editLessonBtn')}
+              aria-label={`${t('content.lessons.editLessonBtn')} ${record.title}`}
+            >
+              <EditIcon size={15} />
+            </button>
+            <button
+              type="button"
+              className={styles.actionBtn}
               onClick={() => setStatusModal({ isOpen: true, lesson: record })}
               title={t('content.lessons.changeStatusBtn')}
               aria-label={`${t('content.lessons.changeStatusBtn')} ${record.title}`}
@@ -354,6 +392,14 @@ export default function LessonListPage({ onNavigate: _onNavigate }) {
               className={`${styles.refreshIcon} ${refreshing ? styles.spinning : ''}`}
             />
             <span>{t('common.refresh')}</span>
+          </button>
+          <button
+            type="button"
+            className={styles.primaryBtn}
+            onClick={handleOpenCreate}
+          >
+            <PlusIcon size={16} />
+            <span>{t('content.lessons.createLesson')}</span>
           </button>
         </div>
       </div>
@@ -418,6 +464,17 @@ export default function LessonListPage({ onNavigate: _onNavigate }) {
         lesson={statusModal.lesson}
         onClose={() => setStatusModal({ isOpen: false, lesson: null })}
         onSuccess={handleStatusSuccess}
+      />
+
+      {/* Create / Edit Modal */}
+      <LessonFormModal
+        isOpen={formModal.isOpen}
+        mode={formModal.mode}
+        initialData={formModal.initialData}
+        tags={tags}
+        cefrLevels={cefrLevels}
+        onClose={() => setFormModal({ isOpen: false, mode: 'create', initialData: null })}
+        onSuccess={handleFormSuccess}
       />
     </div>
   );
