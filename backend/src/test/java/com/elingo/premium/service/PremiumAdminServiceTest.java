@@ -1,10 +1,12 @@
 package com.elingo.premium.service;
 
 import com.elingo.common.dto.PageResponse;
+import com.elingo.common.enums.SystemConfigKey;
 import com.elingo.common.event.NotificationEvent;
 import com.elingo.common.event.PaymentSucceededEvent;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
+import com.elingo.common.service.SystemConfigService;
 import com.elingo.premium.dto.request.AdminTransactionFilterRequest;
 import com.elingo.premium.dto.request.AdminWebhookLogFilterRequest;
 import com.elingo.premium.dto.request.CreatePremiumPlanRequest;
@@ -35,6 +37,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -71,6 +75,7 @@ class PremiumAdminServiceTest {
     @Mock private PaymentTransactionRepository paymentTransactionRepository;
     @Mock private PaymentWebhookLogRepository paymentWebhookLogRepository;
     @Mock private SubscriptionService subscriptionService;
+    @Mock private SystemConfigService systemConfigService;
     @Mock private PremiumMapper premiumMapper;
     @Mock private ApplicationEventPublisher eventPublisher;
     @Spy private ObjectMapper objectMapper = new ObjectMapper();
@@ -464,6 +469,7 @@ class PremiumAdminServiceTest {
             TransactionReasonRequest request = new TransactionReasonRequest("Customer refund request");
 
             when(paymentTransactionRepository.findByIdForUpdate(100L)).thenReturn(Optional.of(tx));
+            when(systemConfigService.getInt(SystemConfigKey.REFUND_MAX_DAYS, 3)).thenReturn(3);
             when(subscriptionService.revokeSubscriptionTime(10L, 55L, 30, paidAt)).thenReturn(Duration.ofDays(29));
             when(paymentTransactionRepository.findDetailById(100L)).thenReturn(Optional.of(tx));
             when(premiumMapper.toAdminTransactionDetailResponse(tx))
@@ -475,6 +481,78 @@ class PremiumAdminServiceTest {
             assertThat(tx.getStatus()).isEqualTo(PaymentTransactionStatus.REFUNDED);
             assertThat(tx.getMetadata()).contains("\"refunded\":true", "\"refundedByAdminId\":1", "\"revokedMinutes\":41760");
             verify(paymentTransactionRepository).save(tx);
+        }
+
+        @Test
+        @DisplayName("should refund SUCCESS transaction using createdAt when paidAt is null and within window")
+        void shouldRefundSuccessTransaction_whenPaidAtIsNullAndCreatedAtWithinWindow() {
+            LocalDateTime createdAt = LocalDateTime.now().minusDays(1);
+            PaymentTransaction tx = PaymentTransaction.builder()
+                    .id(100L)
+                    .user(testUser)
+                    .plan(activePlan)
+                    .subscription(null)
+                    .status(PaymentTransactionStatus.SUCCESS)
+                    .paidAt(null)
+                    .createdAt(createdAt)
+                    .build();
+            TransactionReasonRequest request = new TransactionReasonRequest("Customer refund request");
+
+            when(paymentTransactionRepository.findByIdForUpdate(100L)).thenReturn(Optional.of(tx));
+            when(systemConfigService.getInt(SystemConfigKey.REFUND_MAX_DAYS, 3)).thenReturn(3);
+            when(subscriptionService.revokeSubscriptionTime(10L, null, 30, null)).thenReturn(Duration.ZERO);
+            when(paymentTransactionRepository.findDetailById(100L)).thenReturn(Optional.of(tx));
+            when(premiumMapper.toAdminTransactionDetailResponse(tx))
+                    .thenReturn(buildDetailResponse(100L, PaymentTransactionStatus.REFUNDED, null));
+
+            AdminTransactionDetailResponse result = premiumAdminService.refundTransaction(1L, 100L, request);
+
+            assertThat(result.status()).isEqualTo(PaymentTransactionStatus.REFUNDED);
+            assertThat(tx.getStatus()).isEqualTo(PaymentTransactionStatus.REFUNDED);
+            verify(subscriptionService).revokeSubscriptionTime(10L, null, 30, null);
+            verify(paymentTransactionRepository).save(tx);
+        }
+
+        @ParameterizedTest
+        @ValueSource(ints = {0, -1})
+        @DisplayName("should fallback to default 3 days when configured max refund days is less than 1")
+        void shouldFallbackToDefaultMaxDays_whenConfiguredValueLessThanOne(int configuredDays) {
+            LocalDateTime paidAt = LocalDateTime.now().minusDays(2);
+            UserSubscription sub = UserSubscription.builder().id(55L).build();
+            PaymentTransaction tx = PaymentTransaction.builder()
+                    .id(100L)
+                    .user(testUser)
+                    .plan(activePlan)
+                    .subscription(sub)
+                    .status(PaymentTransactionStatus.SUCCESS)
+                    .paidAt(paidAt)
+                    .build();
+            TransactionReasonRequest request = new TransactionReasonRequest("Fallback refund check");
+
+            when(paymentTransactionRepository.findByIdForUpdate(100L)).thenReturn(Optional.of(tx));
+            when(systemConfigService.getInt(SystemConfigKey.REFUND_MAX_DAYS, 3)).thenReturn(configuredDays);
+            when(subscriptionService.revokeSubscriptionTime(10L, 55L, 30, paidAt)).thenReturn(Duration.ofDays(28));
+            when(paymentTransactionRepository.findDetailById(100L)).thenReturn(Optional.of(tx));
+            when(premiumMapper.toAdminTransactionDetailResponse(tx))
+                    .thenReturn(buildDetailResponse(100L, PaymentTransactionStatus.REFUNDED, 55L));
+
+            AdminTransactionDetailResponse result = premiumAdminService.refundTransaction(1L, 100L, request);
+
+            assertThat(result.status()).isEqualTo(PaymentTransactionStatus.REFUNDED);
+            verify(paymentTransactionRepository).save(tx);
+        }
+
+        @Test
+        @DisplayName("should throw PAYMENT_TRANSACTION_NOT_FOUND when transaction does not exist")
+        void shouldThrowNotFound_whenTransactionDoesNotExist() {
+            when(paymentTransactionRepository.findByIdForUpdate(999L)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> premiumAdminService.refundTransaction(1L, 999L, new TransactionReasonRequest("Refund")))
+                    .isInstanceOf(AppException.class)
+                    .hasFieldOrPropertyWithValue("appError", AppError.PAYMENT_TRANSACTION_NOT_FOUND);
+
+            verify(subscriptionService, never()).revokeSubscriptionTime(any(), any(), eq(30), any());
+            verify(paymentTransactionRepository, never()).save(any());
         }
 
         @Test
@@ -491,6 +569,50 @@ class PremiumAdminServiceTest {
                     .hasFieldOrPropertyWithValue("appError", AppError.PAYMENT_TRANSACTION_NOT_REFUNDABLE);
 
             verify(subscriptionService, never()).revokeSubscriptionTime(any(), any(), eq(30), any());
+            verify(paymentTransactionRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("should throw PAYMENT_TRANSACTION_REFUND_EXPIRED when paidAt exceeds configured max refund days")
+        void shouldThrowRefundExpired_whenPaidAtExceedsMaxRefundDays() {
+            PaymentTransaction tx = PaymentTransaction.builder()
+                    .id(100L)
+                    .user(testUser)
+                    .plan(activePlan)
+                    .status(PaymentTransactionStatus.SUCCESS)
+                    .paidAt(LocalDateTime.now().minusDays(4))
+                    .build();
+            when(paymentTransactionRepository.findByIdForUpdate(100L)).thenReturn(Optional.of(tx));
+            when(systemConfigService.getInt(SystemConfigKey.REFUND_MAX_DAYS, 3)).thenReturn(3);
+
+            assertThatThrownBy(() -> premiumAdminService.refundTransaction(1L, 100L, new TransactionReasonRequest("Refund")))
+                    .isInstanceOf(AppException.class)
+                    .hasFieldOrPropertyWithValue("appError", AppError.PAYMENT_TRANSACTION_REFUND_EXPIRED);
+
+            verify(subscriptionService, never()).revokeSubscriptionTime(any(), any(), eq(30), any());
+            verify(paymentTransactionRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("should throw PAYMENT_TRANSACTION_REFUND_EXPIRED when paidAt is null and createdAt exceeds max refund days")
+        void shouldThrowRefundExpired_whenPaidAtIsNullAndCreatedAtExceedsMaxRefundDays() {
+            PaymentTransaction tx = PaymentTransaction.builder()
+                    .id(100L)
+                    .user(testUser)
+                    .plan(activePlan)
+                    .status(PaymentTransactionStatus.SUCCESS)
+                    .paidAt(null)
+                    .createdAt(LocalDateTime.now().minusDays(6))
+                    .build();
+            when(paymentTransactionRepository.findByIdForUpdate(100L)).thenReturn(Optional.of(tx));
+            when(systemConfigService.getInt(SystemConfigKey.REFUND_MAX_DAYS, 3)).thenReturn(5);
+
+            assertThatThrownBy(() -> premiumAdminService.refundTransaction(1L, 100L, new TransactionReasonRequest("Refund")))
+                    .isInstanceOf(AppException.class)
+                    .hasFieldOrPropertyWithValue("appError", AppError.PAYMENT_TRANSACTION_REFUND_EXPIRED);
+
+            verify(subscriptionService, never()).revokeSubscriptionTime(any(), any(), eq(30), any());
+            verify(paymentTransactionRepository, never()).save(any());
         }
     }
 

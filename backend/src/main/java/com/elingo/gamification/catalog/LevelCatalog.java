@@ -16,6 +16,7 @@ import java.util.List;
 public class LevelCatalog {
 
     private final LevelRepository levelRepository;
+    @SuppressWarnings("java:S3077") // List chỉ được gán lại reference mới khi reload()
     private volatile List<Level> levels = List.of();
 
     @PostConstruct

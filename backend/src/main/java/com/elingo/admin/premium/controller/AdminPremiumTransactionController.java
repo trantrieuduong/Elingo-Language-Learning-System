@@ -377,7 +377,7 @@ public class AdminPremiumTransactionController {
     @PutMapping("/{transactionId}/refund")
     @Operation(
             summary = "Refund successful transaction",
-            description = "Marks a SUCCESS transaction as REFUNDED and revokes the remaining unused subscription time calculated from paidAt. Records audit action TRANSACTION_REFUND. Requires ADMIN role."
+            description = "Marks a SUCCESS transaction as REFUNDED and revokes the remaining unused subscription time calculated from paidAt. Only transactions within the configured refund window (app.premium.refund.max-days, default 3 days) can be refunded. Records audit action TRANSACTION_REFUND. Requires ADMIN role."
     )
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Reason for refunding the transaction",
@@ -439,23 +439,38 @@ public class AdminPremiumTransactionController {
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "400",
-            description = "Bad Request - Validation error or transaction not refundable",
+            description = "Bad Request - Validation error, transaction not refundable (PAYMENT_TRANSACTION_NOT_REFUNDABLE), or refund window expired (PAYMENT_TRANSACTION_REFUND_EXPIRED)",
             content = @Content(
                     mediaType = "application/json",
                     schema = @Schema(implementation = ApiResponse.class),
-                    examples = @ExampleObject(
-                            name = "TransactionNotRefundableResponse",
-                            summary = "Transaction is not SUCCESS",
-                            value = """
-                                    {
-                                      "success": false,
-                                      "error": {
-                                        "code": "PAYMENT_TRANSACTION_NOT_REFUNDABLE",
-                                        "message": "Only successful payment transactions can be refunded"
-                                      }
-                                    }
-                                    """
-                    )
+                    examples = {
+                            @ExampleObject(
+                                    name = "TransactionNotRefundableResponse",
+                                    summary = "Transaction is not SUCCESS",
+                                    value = """
+                                            {
+                                              "success": false,
+                                              "error": {
+                                                "code": "PAYMENT_TRANSACTION_NOT_REFUNDABLE",
+                                                "message": "Only successful payment transactions can be refunded"
+                                              }
+                                            }
+                                            """
+                            ),
+                            @ExampleObject(
+                                    name = "TransactionRefundExpiredResponse",
+                                    summary = "Transaction exceeded allowed refund window",
+                                    value = """
+                                            {
+                                              "success": false,
+                                              "error": {
+                                                "code": "PAYMENT_TRANSACTION_REFUND_EXPIRED",
+                                                "message": "Payment transaction has exceeded the allowed refund window"
+                                              }
+                                            }
+                                            """
+                            )
+                    }
             )
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(

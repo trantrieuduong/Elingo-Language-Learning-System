@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Tag("unit")
@@ -83,7 +84,7 @@ class FrameBatchTest {
         @Test
         @DisplayName("deleteRecursively() should handle null safely without throwing")
         void deleteRecursively_WhenNull_DoesNotThrow() {
-            FrameBatch.deleteRecursively(null);
+            assertThatCode(() -> FrameBatch.deleteRecursively(null)).doesNotThrowAnyException();
         }
     }
 }

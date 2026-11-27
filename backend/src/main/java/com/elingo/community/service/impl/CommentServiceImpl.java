@@ -50,6 +50,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
+    @SuppressWarnings("java:S3776") // Luồng nghiệp vụ tạo comment liền mạch, giữ nguyên để tránh xáo trộn
     public CommentResponse createComment(CreateCommentRequest request, Long currentUserId) {
         Post post = postRepository.findById(request.postId())
                 .orElseThrow(() -> new AppException(AppError.POST_NOT_FOUND));

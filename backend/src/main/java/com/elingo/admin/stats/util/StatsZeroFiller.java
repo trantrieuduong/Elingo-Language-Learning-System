@@ -109,6 +109,7 @@ public final class StatsZeroFiller {
     /**
      * Fills missing dates with zero for learning activities stacked series
      */
+    @SuppressWarnings("java:S3776") // Độ phức tạp chủ yếu do các toán tử 3 ngôi gán giá trị mặc định 0L cho từng trường
     public static List<LearningStatsResponses.LearningActivityPoint> fillLearningActivitySeries(
             LocalDate from,
             LocalDate to,

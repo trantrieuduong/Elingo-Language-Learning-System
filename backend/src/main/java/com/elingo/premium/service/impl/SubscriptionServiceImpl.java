@@ -82,8 +82,9 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     @Override
     @Transactional
     public Duration revokeSubscriptionTime(Long userId, Long subscriptionId, int planDurationDays, LocalDateTime paidAt) {
-        userRepository.findByIdForUpdate(userId)
-                .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
+        if (userRepository.findByIdForUpdate(userId).isEmpty()) {
+            throw new AppException(AppError.USER_NOT_FOUND);
+        }
 
         if (subscriptionId == null) {
             return Duration.ZERO;

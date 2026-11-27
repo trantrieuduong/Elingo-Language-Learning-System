@@ -1,0 +1,157 @@
+.filterCard {
+  background: var(--adm-bg-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.filterRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.smallInput {
+  height: 38px;
+  width: 150px;
+  padding: 0 10px;
+  background: var(--adm-bg-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--adm-text-main);
+  box-sizing: border-box;
+}
+
+.smallInput::placeholder {
+  color: var(--adm-text-subtle);
+}
+
+.selectInput {
+  height: 38px;
+  padding: 0 10px;
+  min-width: 170px;
+  background: var(--adm-bg-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--adm-text-main);
+}
+
+.dateGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.dateLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--adm-text-muted);
+}
+
+.dateInput {
+  height: 38px;
+  padding: 0 10px;
+  background: var(--adm-bg-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--adm-text-main);
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.smallInput:focus,
+.selectInput:focus,
+.dateInput:focus {
+  outline: none;
+  border-color: var(--adm-border-focus);
+}
+
+.buttonGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.applyBtn {
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 6px;
+  border: 1px solid var(--adm-accent);
+  background: var(--adm-accent);
+  color: var(--adm-accent-contrast) !important;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.resetBtn {
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 6px;
+  border: 1px solid var(--adm-border);
+  background: var(--adm-bg-surface);
+  color: var(--adm-text-main);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.resetBtn:hover {
+  background: var(--adm-bg-surface-subtle);
+}
+
+.errorBanner {
+  font-size: 12px;
+  color: var(--adm-badge-red-text);
+  background: var(--adm-badge-red-bg);
+  padding: 8px 10px;
+  border-radius: 6px;
+}
+
+@media (max-width: 768px) {
+  .filterRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .smallInput,
+  .selectInput,
+  .dateInput {
+    flex: none;
+    width: 100%;
+    height: 38px;
+  }
+
+  .dateGroup {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dateLabel {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    width: 100%;
+  }
+
+  .buttonGroup {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .applyBtn,
+  .resetBtn {
+    flex: 1;
+  }
+}

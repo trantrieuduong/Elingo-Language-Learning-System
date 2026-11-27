@@ -54,6 +54,7 @@ public class FfmpegFrameExtractor {
         this.slots = new Semaphore(ffmpegMaxConcurrent, true);
     }
 
+    @SuppressWarnings("java:S2093") // FrameBatch (AutoCloseable) được trả về cho caller tự đóng sau khi dùng
     public FrameBatch extract(String publicUrl) {
         acquireSlot();
         Path dir = null;

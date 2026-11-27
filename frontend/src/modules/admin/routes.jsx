@@ -13,13 +13,19 @@ import TagListPage from './pages/TagManagementPage/TagListPage';
 import SystemConfigPage from './pages/SystemConfigPage/SystemConfigPage';
 import AdminAuditLogPage from './pages/AdminAuditLogPage/AdminAuditLogPage';
 import UserManagementPage from './pages/UserManagementPage/UserManagementPage';
+import PlanManagementPage from './pages/PlanManagementPage/PlanManagementPage';
+import TransactionManagementPage from './pages/TransactionManagementPage/TransactionManagementPage';
+import WebhookLogPage from './pages/WebhookLogPage/WebhookLogPage';
 
 export default function AdminRoutes({ currentPath, onNavigate }) {
   const { t } = useTranslation('admin');
 
   const renderPage = () => {
+    const [pathname, queryString] = currentPath.split('?');
+    const searchParams = new URLSearchParams(queryString || '');
+
     // 1. Nested topic detail: /admin/decks/{deck_id}/topics/{topic_id}
-    const topicDetailMatch = currentPath.match(/^\/admin\/decks\/(\d+)\/topics\/(\d+)$/);
+    const topicDetailMatch = pathname.match(/^\/admin\/decks\/(\d+)\/topics\/(\d+)$/);
     if (topicDetailMatch) {
       return (
         <TopicDetailPage
@@ -31,24 +37,24 @@ export default function AdminRoutes({ currentPath, onNavigate }) {
     }
 
     // 2. Deck topics subpath fallback: /admin/decks/{deck_id}/topics -> /admin/decks/{deck_id}
-    const deckTopicsMatch = currentPath.match(/^\/admin\/decks\/(\d+)\/topics\/?$/);
+    const deckTopicsMatch = pathname.match(/^\/admin\/decks\/(\d+)\/topics\/?$/);
     if (deckTopicsMatch) {
       return <DeckDetailPage deckId={deckTopicsMatch[1]} onNavigate={onNavigate} />;
     }
 
     // 3. Deck detail: /admin/decks/{deck_id}
-    const deckDetailMatch = currentPath.match(/^\/admin\/decks\/(\d+)$/);
+    const deckDetailMatch = pathname.match(/^\/admin\/decks\/(\d+)$/);
     if (deckDetailMatch) {
       return <DeckDetailPage deckId={deckDetailMatch[1]} onNavigate={onNavigate} />;
     }
 
     // 4. Lesson detail: /admin/lessons/{lesson_id}
-    const lessonDetailMatch = currentPath.match(/^\/admin\/lessons\/(\d+)$/);
+    const lessonDetailMatch = pathname.match(/^\/admin\/lessons\/(\d+)$/);
     if (lessonDetailMatch) {
       return <LessonDetailPage lessonId={lessonDetailMatch[1]} onNavigate={onNavigate} />;
     }
 
-    switch (currentPath) {
+    switch (pathname) {
       case '/admin':
       case '/admin/dashboard':
         return <DashboardPage onNavigate={onNavigate} />;
@@ -63,9 +69,16 @@ export default function AdminRoutes({ currentPath, onNavigate }) {
 
       // Module: Premium và thanh toán
       case '/admin/plans':
-        return <PlaceholderAdminPage title={t('routes.plans')} onNavigate={onNavigate} />;
+        return <PlanManagementPage onNavigate={onNavigate} />;
       case '/admin/transactions':
-        return <PlaceholderAdminPage title={t('routes.transactions')} onNavigate={onNavigate} />;
+        return <TransactionManagementPage onNavigate={onNavigate} />;
+      case '/admin/webhook-logs':
+        return (
+          <WebhookLogPage
+            initialTransactionId={searchParams.get('transactionId') || ''}
+            onNavigate={onNavigate}
+          />
+        );
 
       // Module: Bài viết và cộng đồng
       case '/admin/posts':
