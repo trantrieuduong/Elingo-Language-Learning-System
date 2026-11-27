@@ -228,6 +228,7 @@ public enum AppError {
     PREMIUM_PLAN_ALREADY_ACTIVE("PREMIUM_PLAN_ALREADY_ACTIVE", "Premium plan is already active", HttpStatus.BAD_REQUEST),
     PREMIUM_PLAN_ALREADY_INACTIVE("PREMIUM_PLAN_ALREADY_INACTIVE", "Premium plan is already inactive", HttpStatus.BAD_REQUEST),
     PAYMENT_TRANSACTION_NOT_REFUNDABLE("PAYMENT_TRANSACTION_NOT_REFUNDABLE", "Only successful payment transactions can be refunded", HttpStatus.BAD_REQUEST),
+    PAYMENT_TRANSACTION_REFUND_EXPIRED("PAYMENT_TRANSACTION_REFUND_EXPIRED", "Payment transaction has exceeded the allowed refund window", HttpStatus.BAD_REQUEST),
     PAYMENT_WEBHOOK_LOG_NOT_FOUND("PAYMENT_WEBHOOK_LOG_NOT_FOUND", "Payment webhook log not found", HttpStatus.NOT_FOUND),
 
     // ==========================================
