@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
-import { CloseIcon, TrashIcon } from '../../../components/icons/AdminIcons';
+import AdminModal from '../../../components/AdminModal/AdminModal';
+import { TrashIcon } from '../../../components/icons/AdminIcons';
 import { deletePostGroup } from '../../../services/adminCommunityApi';
+import modalStyles from '../../../components/AdminModal/AdminModal.module.css';
 import styles from '../../PostModerationPage/components/CommunityModal.module.css';
 
 export default function PostGroupDeleteModal({
@@ -44,55 +46,47 @@ export default function PostGroupDeleteModal({
   };
 
   return (
-    <div className={styles.overlay} role="dialog" aria-modal="true">
-      <div className={styles.modal}>
-        <div className={styles.modalHeader}>
-          <div className={styles.headerTitleGroup}>
-            <TrashIcon size={20} className={styles.iconRed} />
-            <div>
-              <h2 className={styles.modalTitle}>{t('postGroups.delete.title')}</h2>
-              <p className={styles.modalSubtitle}>
-                #{group.id} — {group.groupName}
-              </p>
-            </div>
-          </div>
+    <AdminModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={t('postGroups.delete.title')}
+      subtitle={`#${group.id} — ${group.groupName}`}
+      icon={<TrashIcon size={20} className={modalStyles.iconRed} />}
+      closeLabel={t('postGroups.delete.cancel')}
+      closeDisabled={submitting}
+      footer={
+        <>
           <button
             type="button"
-            className={styles.closeBtn}
+            className={modalStyles.cancelBtn}
             onClick={onClose}
-            aria-label={t('postGroups.delete.cancel')}
+            disabled={submitting}
           >
-            <CloseIcon size={18} />
-          </button>
-        </div>
-
-        <div className={styles.modalBody}>
-          {error && <div className={styles.errorAlert}>{error}</div>}
-          {hasPosts && (
-            <div className={styles.warningAlert}>
-              {t('postGroups.delete.inUseWarning', { count: group.postCount })}
-            </div>
-          )}
-          <p className={styles.postContent}>
-            {t('postGroups.delete.confirmMessage', { name: group.groupName })}
-          </p>
-        </div>
-
-        <div className={styles.modalFooter}>
-          <button type="button" className={styles.cancelBtn} onClick={onClose} disabled={submitting}>
             {t('postGroups.delete.cancel')}
           </button>
           <button
             type="button"
-            className={styles.rejectBtn}
+            className={modalStyles.rejectBtn}
             onClick={handleConfirmDelete}
             disabled={submitting}
           >
             {submitting ? t('postGroups.delete.submitting') : t('postGroups.delete.confirm')}
           </button>
-        </div>
+        </>
+      }
+    >
+      <div className={modalStyles.modalBody}>
+        {error && <div className={modalStyles.errorAlert}>{error}</div>}
+        {hasPosts && (
+          <div className={styles.warningAlert}>
+            {t('postGroups.delete.inUseWarning', { count: group.postCount })}
+          </div>
+        )}
+        <p className={styles.postContent}>
+          {t('postGroups.delete.confirmMessage', { name: group.groupName })}
+        </p>
       </div>
-    </div>
+    </AdminModal>
   );
 }
 

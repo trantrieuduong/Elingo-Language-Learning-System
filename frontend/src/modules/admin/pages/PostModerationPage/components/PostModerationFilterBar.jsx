@@ -1,8 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
-import { SearchIcon } from '../../../components/icons/AdminIcons';
-import styles from './CommunityFilterBar.module.css';
+import AdminFilterBar, {
+  AdminFilterNumber,
+  AdminFilterSearch,
+  AdminFilterSelect,
+} from '../../../components/AdminFilterBar/AdminFilterBar';
 
 export default function PostModerationFilterBar({
   keyword,
@@ -26,107 +29,67 @@ export default function PostModerationFilterBar({
 }) {
   const { t } = useTranslation('admin');
 
+  const statusOptions = [
+    { value: '', label: t('postModeration.filter.allStatus') },
+    { value: 'NEEDS_REVIEW', label: t('postModeration.status.NEEDS_REVIEW') },
+    { value: 'PENDING', label: t('postModeration.status.PENDING') },
+    { value: 'PUBLISHED', label: t('postModeration.status.PUBLISHED') },
+    { value: 'REJECTED', label: t('postModeration.status.REJECTED') },
+    { value: 'DELETED', label: t('postModeration.status.DELETED') },
+  ];
+
+  const groupOptions = [
+    { value: '', label: t('postModeration.filter.allGroups') },
+    ...groups.map((g) => ({ value: String(g.id), label: g.groupName || g.name })),
+  ];
+
+  const sortOptions = [
+    { value: 'createdAt,desc', label: t('postModeration.filter.sortCreatedDesc') },
+    { value: 'createdAt,asc', label: t('postModeration.filter.sortCreatedAsc') },
+    { value: 'id,desc', label: t('postModeration.filter.sortIdDesc') },
+  ];
+
   return (
-    <form className={styles.filterCard} onSubmit={onApply}>
-      <div className={styles.filterRow}>
-        <div className={styles.searchBox}>
-          <SearchIcon size={15} className={styles.searchIcon} />
-          <input
-            type="text"
-            maxLength={100}
-            className={styles.searchInput}
-            value={keyword}
-            onChange={(e) => onKeywordChange(e.target.value)}
-            placeholder={t('postModeration.filter.keywordPlaceholder')}
-            aria-label={t('postModeration.filter.keywordPlaceholder')}
-          />
-        </div>
-
-        <select
-          className={styles.selectInput}
-          value={status}
-          onChange={(e) => onStatusChange(e.target.value)}
-          aria-label={t('postModeration.columns.status')}
-        >
-          <option value="">{t('postModeration.filter.allStatus')}</option>
-          <option value="NEEDS_REVIEW">{t('postModeration.status.NEEDS_REVIEW')}</option>
-          <option value="PENDING">{t('postModeration.status.PENDING')}</option>
-          <option value="PUBLISHED">{t('postModeration.status.PUBLISHED')}</option>
-          <option value="REJECTED">{t('postModeration.status.REJECTED')}</option>
-          <option value="DELETED">{t('postModeration.status.DELETED')}</option>
-        </select>
-
-        <select
-          className={styles.selectInput}
-          value={groupId}
-          onChange={(e) => onGroupIdChange(e.target.value)}
-          aria-label={t('postModeration.columns.group')}
-        >
-          <option value="">{t('postModeration.filter.allGroups')}</option>
-          {groups.map((g) => (
-            <option key={g.id} value={String(g.id)}>
-              {g.groupName || g.name}
-            </option>
-          ))}
-        </select>
-
-        <input
-          type="number"
-          min="1"
-          step="1"
-          className={styles.smallInput}
-          value={userId}
-          onChange={(e) => onUserIdChange(e.target.value)}
-          placeholder={t('postModeration.filter.userIdPlaceholder')}
-          aria-label={t('postModeration.filter.userIdPlaceholder')}
-        />
-      </div>
-
-      <div className={styles.filterRow}>
-        <div className={styles.dateGroup}>
-          <label className={styles.dateLabel}>
-            <span>{t('postModeration.filter.fromDate')}</span>
-            <input
-              type="date"
-              className={styles.dateInput}
-              value={createdFrom}
-              onChange={(e) => onCreatedFromChange(e.target.value)}
-            />
-          </label>
-          <label className={styles.dateLabel}>
-            <span>{t('postModeration.filter.toDate')}</span>
-            <input
-              type="date"
-              className={styles.dateInput}
-              value={createdTo}
-              onChange={(e) => onCreatedToChange(e.target.value)}
-            />
-          </label>
-        </div>
-
-        <select
-          className={styles.selectInput}
-          value={sort}
-          onChange={(e) => onSortChange(e.target.value)}
-          aria-label={t('postModeration.filter.sortLabel')}
-        >
-          <option value="createdAt,desc">{t('postModeration.filter.sortCreatedDesc')}</option>
-          <option value="createdAt,asc">{t('postModeration.filter.sortCreatedAsc')}</option>
-          <option value="id,desc">{t('postModeration.filter.sortIdDesc')}</option>
-        </select>
-
-        <div className={styles.buttonGroup}>
-          <button type="submit" className={styles.applyBtn}>
-            {t('postModeration.filter.apply')}
-          </button>
-          <button type="button" className={styles.resetBtn} onClick={onReset}>
-            {t('postModeration.filter.reset')}
-          </button>
-        </div>
-      </div>
-
-      {filterError && <p className={styles.filterError}>{filterError}</p>}
-    </form>
+    <AdminFilterBar
+      fromLabel={t('postModeration.filter.fromDate')}
+      fromValue={createdFrom}
+      onFromChange={onCreatedFromChange}
+      toLabel={t('postModeration.filter.toDate')}
+      toValue={createdTo}
+      onToChange={onCreatedToChange}
+      sortValue={sort}
+      onSortChange={onSortChange}
+      sortLabel={t('postModeration.filter.sortLabel')}
+      sortOptions={sortOptions}
+      applyLabel={t('postModeration.filter.apply')}
+      resetLabel={t('postModeration.filter.reset')}
+      filterError={filterError}
+      onApply={onApply}
+      onReset={onReset}
+    >
+      <AdminFilterSearch
+        value={keyword}
+        onChange={onKeywordChange}
+        placeholder={t('postModeration.filter.keywordPlaceholder')}
+      />
+      <AdminFilterSelect
+        value={status}
+        onChange={onStatusChange}
+        ariaLabel={t('postModeration.columns.status')}
+        options={statusOptions}
+      />
+      <AdminFilterSelect
+        value={groupId}
+        onChange={onGroupIdChange}
+        ariaLabel={t('postModeration.columns.group')}
+        options={groupOptions}
+      />
+      <AdminFilterNumber
+        value={userId}
+        onChange={onUserIdChange}
+        placeholder={t('postModeration.filter.userIdPlaceholder')}
+      />
+    </AdminFilterBar>
   );
 }
 

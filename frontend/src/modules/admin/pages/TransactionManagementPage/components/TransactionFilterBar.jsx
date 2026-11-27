@@ -1,8 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
-import { SearchIcon } from '../../../components/icons/AdminIcons';
-import styles from './TransactionFilterBar.module.css';
+import AdminFilterBar, {
+  AdminFilterNumber,
+  AdminFilterSearch,
+  AdminFilterSelect,
+} from '../../../components/AdminFilterBar/AdminFilterBar';
 
 export default function TransactionFilterBar({
   keyword,
@@ -26,108 +29,69 @@ export default function TransactionFilterBar({
 }) {
   const { t } = useTranslation('admin');
 
+  const statusOptions = [
+    { value: '', label: t('premiumTransactions.filter.allStatus') },
+    { value: 'PENDING', label: t('premiumTransactions.status.PENDING') },
+    { value: 'SUCCESS', label: t('premiumTransactions.status.SUCCESS') },
+    { value: 'FAILED', label: t('premiumTransactions.status.FAILED') },
+    { value: 'REFUNDED', label: t('premiumTransactions.status.REFUNDED') },
+  ];
+
+  const planOptions = [
+    { value: '', label: t('premiumTransactions.filter.allPlans') },
+    ...plans.map((p) => ({ value: String(p.id), label: `${p.name} (#${p.id})` })),
+  ];
+
+  const sortOptions = [
+    { value: 'createdAt,desc', label: t('premiumTransactions.filter.sortCreatedDesc') },
+    { value: 'createdAt,asc', label: t('premiumTransactions.filter.sortCreatedAsc') },
+    { value: 'paidAt,desc', label: t('premiumTransactions.filter.sortPaidDesc') },
+    { value: 'amount,desc', label: t('premiumTransactions.filter.sortAmountDesc') },
+    { value: 'amount,asc', label: t('premiumTransactions.filter.sortAmountAsc') },
+  ];
+
   return (
-    <form className={styles.filterCard} onSubmit={onApply}>
-      <div className={styles.filterRow}>
-        <div className={styles.searchBox}>
-          <SearchIcon size={15} className={styles.searchIcon} />
-          <input
-            type="text"
-            maxLength={100}
-            className={styles.searchInput}
-            value={keyword}
-            onChange={(e) => onKeywordChange(e.target.value)}
-            placeholder={t('premiumTransactions.filter.keywordPlaceholder')}
-            aria-label={t('premiumTransactions.filter.keywordPlaceholder')}
-          />
-        </div>
-
-        <select
-          className={styles.selectInput}
-          value={status}
-          onChange={(e) => onStatusChange(e.target.value)}
-          aria-label={t('premiumTransactions.columns.status')}
-        >
-          <option value="">{t('premiumTransactions.filter.allStatus')}</option>
-          <option value="PENDING">{t('premiumTransactions.status.PENDING')}</option>
-          <option value="SUCCESS">{t('premiumTransactions.status.SUCCESS')}</option>
-          <option value="FAILED">{t('premiumTransactions.status.FAILED')}</option>
-          <option value="REFUNDED">{t('premiumTransactions.status.REFUNDED')}</option>
-        </select>
-
-        <select
-          className={styles.selectInput}
-          value={planId}
-          onChange={(e) => onPlanIdChange(e.target.value)}
-          aria-label={t('premiumTransactions.columns.plan')}
-        >
-          <option value="">{t('premiumTransactions.filter.allPlans')}</option>
-          {plans.map((p) => (
-            <option key={p.id} value={String(p.id)}>
-              {p.name} (#{p.id})
-            </option>
-          ))}
-        </select>
-
-        <input
-          type="number"
-          min="1"
-          step="1"
-          className={styles.smallInput}
-          value={userId}
-          onChange={(e) => onUserIdChange(e.target.value)}
-          placeholder={t('premiumTransactions.filter.userIdPlaceholder')}
-          aria-label={t('premiumTransactions.filter.userIdPlaceholder')}
-        />
-      </div>
-
-      <div className={styles.filterRow}>
-        <div className={styles.dateGroup}>
-          <label className={styles.dateLabel}>
-            <span>{t('premiumTransactions.filter.fromDate')}</span>
-            <input
-              type="date"
-              className={styles.dateInput}
-              value={createdFrom}
-              onChange={(e) => onCreatedFromChange(e.target.value)}
-            />
-          </label>
-          <label className={styles.dateLabel}>
-            <span>{t('premiumTransactions.filter.toDate')}</span>
-            <input
-              type="date"
-              className={styles.dateInput}
-              value={createdTo}
-              onChange={(e) => onCreatedToChange(e.target.value)}
-            />
-          </label>
-        </div>
-
-        <select
-          className={styles.selectInput}
-          value={sort}
-          onChange={(e) => onSortChange(e.target.value)}
-          aria-label={t('premiumTransactions.filter.sortLabel')}
-        >
-          <option value="createdAt,desc">{t('premiumTransactions.filter.sortCreatedDesc')}</option>
-          <option value="createdAt,asc">{t('premiumTransactions.filter.sortCreatedAsc')}</option>
-          <option value="paidAt,desc">{t('premiumTransactions.filter.sortPaidDesc')}</option>
-          <option value="amount,desc">{t('premiumTransactions.filter.sortAmountDesc')}</option>
-          <option value="amount,asc">{t('premiumTransactions.filter.sortAmountAsc')}</option>
-        </select>
-
-        <div className={styles.buttonGroup}>
-          <button type="submit" className={styles.applyBtn}>
-            {t('premiumTransactions.filter.apply')}
-          </button>
-          <button type="button" className={styles.resetBtn} onClick={onReset}>
-            {t('premiumTransactions.filter.reset')}
-          </button>
-        </div>
-      </div>
-
-      {filterError && <div className={styles.errorBanner}>{filterError}</div>}
-    </form>
+    <AdminFilterBar
+      fromLabel={t('premiumTransactions.filter.fromDate')}
+      fromValue={createdFrom}
+      onFromChange={onCreatedFromChange}
+      toLabel={t('premiumTransactions.filter.toDate')}
+      toValue={createdTo}
+      onToChange={onCreatedToChange}
+      sortValue={sort}
+      onSortChange={onSortChange}
+      sortLabel={t('premiumTransactions.filter.sortLabel')}
+      sortOptions={sortOptions}
+      applyLabel={t('premiumTransactions.filter.apply')}
+      resetLabel={t('premiumTransactions.filter.reset')}
+      filterError={filterError}
+      errorVariant="banner"
+      onApply={onApply}
+      onReset={onReset}
+    >
+      <AdminFilterSearch
+        value={keyword}
+        onChange={onKeywordChange}
+        placeholder={t('premiumTransactions.filter.keywordPlaceholder')}
+      />
+      <AdminFilterSelect
+        value={status}
+        onChange={onStatusChange}
+        ariaLabel={t('premiumTransactions.columns.status')}
+        options={statusOptions}
+      />
+      <AdminFilterSelect
+        value={planId}
+        onChange={onPlanIdChange}
+        ariaLabel={t('premiumTransactions.columns.plan')}
+        options={planOptions}
+      />
+      <AdminFilterNumber
+        value={userId}
+        onChange={onUserIdChange}
+        placeholder={t('premiumTransactions.filter.userIdPlaceholder')}
+      />
+    </AdminFilterBar>
   );
 }
 

@@ -1,7 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
-import styles from './WebhookLogFilterBar.module.css';
+import AdminFilterBar, {
+  AdminFilterNumber,
+  AdminFilterSelect,
+} from '../../../components/AdminFilterBar/AdminFilterBar';
 
 export default function WebhookLogFilterBar({
   providerId,
@@ -24,101 +27,68 @@ export default function WebhookLogFilterBar({
 }) {
   const { t } = useTranslation('admin');
 
+  const statusOptions = [
+    { value: '', label: t('premiumWebhookLogs.filter.allStatus') },
+    { value: 'RECEIVED', label: t('premiumWebhookLogs.status.RECEIVED') },
+    { value: 'PROCESSED', label: t('premiumWebhookLogs.status.PROCESSED') },
+    { value: 'IGNORED', label: t('premiumWebhookLogs.status.IGNORED') },
+    { value: 'FAILED', label: t('premiumWebhookLogs.status.FAILED') },
+  ];
+
+  const signatureOptions = [
+    { value: '', label: t('premiumWebhookLogs.filter.allSignature') },
+    { value: 'true', label: t('premiumWebhookLogs.filter.signatureValid') },
+    { value: 'false', label: t('premiumWebhookLogs.filter.signatureInvalid') },
+  ];
+
+  const sortOptions = [
+    { value: 'receivedAt,desc', label: t('premiumWebhookLogs.filter.sortReceivedDesc') },
+    { value: 'receivedAt,asc', label: t('premiumWebhookLogs.filter.sortReceivedAsc') },
+    { value: 'processedAt,desc', label: t('premiumWebhookLogs.filter.sortProcessedDesc') },
+  ];
+
   return (
-    <form className={styles.filterCard} onSubmit={onApply}>
-      <div className={styles.filterRow}>
-        <input
-          type="number"
-          min="1"
-          step="1"
-          className={styles.smallInput}
-          value={providerId}
-          onChange={(e) => onProviderIdChange(e.target.value)}
-          placeholder={t('premiumWebhookLogs.filter.providerIdPlaceholder')}
-          aria-label={t('premiumWebhookLogs.filter.providerIdPlaceholder')}
-        />
-
-        <input
-          type="number"
-          min="1"
-          step="1"
-          className={styles.smallInput}
-          value={transactionId}
-          onChange={(e) => onTransactionIdChange(e.target.value)}
-          placeholder={t('premiumWebhookLogs.filter.transactionIdPlaceholder')}
-          aria-label={t('premiumWebhookLogs.filter.transactionIdPlaceholder')}
-        />
-
-        <select
-          className={styles.selectInput}
-          value={status}
-          onChange={(e) => onStatusChange(e.target.value)}
-          aria-label={t('premiumWebhookLogs.columns.status')}
-        >
-          <option value="">{t('premiumWebhookLogs.filter.allStatus')}</option>
-          <option value="RECEIVED">{t('premiumWebhookLogs.status.RECEIVED')}</option>
-          <option value="PROCESSED">{t('premiumWebhookLogs.status.PROCESSED')}</option>
-          <option value="IGNORED">{t('premiumWebhookLogs.status.IGNORED')}</option>
-          <option value="FAILED">{t('premiumWebhookLogs.status.FAILED')}</option>
-        </select>
-
-        <select
-          className={styles.selectInput}
-          value={signatureValid}
-          onChange={(e) => onSignatureValidChange(e.target.value)}
-          aria-label={t('premiumWebhookLogs.columns.signature')}
-        >
-          <option value="">{t('premiumWebhookLogs.filter.allSignature')}</option>
-          <option value="true">{t('premiumWebhookLogs.filter.signatureValid')}</option>
-          <option value="false">{t('premiumWebhookLogs.filter.signatureInvalid')}</option>
-        </select>
-      </div>
-
-      <div className={styles.filterRow}>
-        <div className={styles.dateGroup}>
-          <label className={styles.dateLabel}>
-            <span>{t('premiumWebhookLogs.filter.fromDate')}</span>
-            <input
-              type="date"
-              className={styles.dateInput}
-              value={receivedFrom}
-              onChange={(e) => onReceivedFromChange(e.target.value)}
-            />
-          </label>
-          <label className={styles.dateLabel}>
-            <span>{t('premiumWebhookLogs.filter.toDate')}</span>
-            <input
-              type="date"
-              className={styles.dateInput}
-              value={receivedTo}
-              onChange={(e) => onReceivedToChange(e.target.value)}
-            />
-          </label>
-        </div>
-
-        <select
-          className={styles.selectInput}
-          value={sort}
-          onChange={(e) => onSortChange(e.target.value)}
-          aria-label={t('premiumWebhookLogs.filter.sortLabel')}
-        >
-          <option value="receivedAt,desc">{t('premiumWebhookLogs.filter.sortReceivedDesc')}</option>
-          <option value="receivedAt,asc">{t('premiumWebhookLogs.filter.sortReceivedAsc')}</option>
-          <option value="processedAt,desc">{t('premiumWebhookLogs.filter.sortProcessedDesc')}</option>
-        </select>
-
-        <div className={styles.buttonGroup}>
-          <button type="submit" className={styles.applyBtn}>
-            {t('premiumWebhookLogs.filter.apply')}
-          </button>
-          <button type="button" className={styles.resetBtn} onClick={onReset}>
-            {t('premiumWebhookLogs.filter.reset')}
-          </button>
-        </div>
-      </div>
-
-      {filterError && <div className={styles.errorBanner}>{filterError}</div>}
-    </form>
+    <AdminFilterBar
+      fromLabel={t('premiumWebhookLogs.filter.fromDate')}
+      fromValue={receivedFrom}
+      onFromChange={onReceivedFromChange}
+      toLabel={t('premiumWebhookLogs.filter.toDate')}
+      toValue={receivedTo}
+      onToChange={onReceivedToChange}
+      sortValue={sort}
+      onSortChange={onSortChange}
+      sortLabel={t('premiumWebhookLogs.filter.sortLabel')}
+      sortOptions={sortOptions}
+      applyLabel={t('premiumWebhookLogs.filter.apply')}
+      resetLabel={t('premiumWebhookLogs.filter.reset')}
+      filterError={filterError}
+      errorVariant="banner"
+      onApply={onApply}
+      onReset={onReset}
+    >
+      <AdminFilterNumber
+        value={providerId}
+        onChange={onProviderIdChange}
+        placeholder={t('premiumWebhookLogs.filter.providerIdPlaceholder')}
+      />
+      <AdminFilterNumber
+        value={transactionId}
+        onChange={onTransactionIdChange}
+        placeholder={t('premiumWebhookLogs.filter.transactionIdPlaceholder')}
+      />
+      <AdminFilterSelect
+        value={status}
+        onChange={onStatusChange}
+        ariaLabel={t('premiumWebhookLogs.columns.status')}
+        options={statusOptions}
+      />
+      <AdminFilterSelect
+        value={signatureValid}
+        onChange={onSignatureValidChange}
+        ariaLabel={t('premiumWebhookLogs.columns.signature')}
+        options={signatureOptions}
+      />
+    </AdminFilterBar>
   );
 }
 

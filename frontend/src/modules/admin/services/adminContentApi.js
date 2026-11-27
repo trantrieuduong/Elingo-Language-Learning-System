@@ -1,40 +1,19 @@
 import apiClient from '../../../services/apiClient';
+import { buildAdminQuery } from '../utils/adminApiUtils';
 
 /**
  * Chuẩn hóa các tham số tìm kiếm và lọc cho AdminDeckSearchRequest
  * @param {Object} params - { keyword, ownerType, status, isPremium, tagIds, cefrLevelIds, page, size, sort }
  */
-const buildDeckSearchParams = (params = {}) => {
-  const query = {};
-  if (params.keyword && params.keyword.trim()) {
-    query.keyword = params.keyword.trim();
-  }
-  if (params.ownerType) {
-    query.ownerType = params.ownerType;
-  }
-  if (params.status) {
-    query.status = params.status;
-  }
-  if (typeof params.isPremium === 'boolean') {
-    query.isPremium = params.isPremium;
-  }
-  if (Array.isArray(params.tagIds) && params.tagIds.length > 0) {
-    query.tagIds = params.tagIds;
-  }
-  if (Array.isArray(params.cefrLevelIds) && params.cefrLevelIds.length > 0) {
-    query.cefrLevelIds = params.cefrLevelIds;
-  }
-  if (params.page !== undefined && params.page !== null) {
-    query.page = params.page;
-  }
-  if (params.size !== undefined && params.size !== null) {
-    query.size = params.size;
-  }
-  if (params.sort) {
-    query.sort = params.sort;
-  }
-  return query;
-};
+const buildDeckSearchParams = (params = {}) =>
+  buildAdminQuery(params, {
+    keyword: 'string',
+    ownerType: 'truthy',
+    status: 'truthy',
+    isPremium: 'strictBoolean',
+    tagIds: 'array',
+    cefrLevelIds: 'array',
+  });
 
 /* ============================================================
    1. CEFR LEVELS API

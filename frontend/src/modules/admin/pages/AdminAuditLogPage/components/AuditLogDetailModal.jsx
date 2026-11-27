@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
-import { CloseIcon } from '../../../components/icons/AdminIcons';
+import AdminModal from '../../../components/AdminModal/AdminModal';
 import styles from './AuditLogDetailModal.module.css';
 
 export default function AuditLogDetailModal({ log, onClose }) {
@@ -11,88 +11,59 @@ export default function AuditLogDetailModal({ log, onClose }) {
     ? log.createdAt.replace('T', ' ').substring(0, 19)
     : '—';
 
+  const metaItems = [
+    { label: t('auditLogs.logId'), value: `#${log.id}` },
+    { label: t('auditLogs.adminId'), value: `Admin #${log.adminId}` },
+    { label: t('auditLogs.timestamp'), value: formattedTime },
+    { label: t('auditLogs.ipAddress'), value: log.ipAddress || '—', mono: true },
+    { label: t('auditLogs.action'), value: log.action, badgeClass: styles.actionBadge },
+    {
+      label: t('auditLogs.targetType'),
+      value: `${log.targetType}${log.targetId ? ` (#${log.targetId})` : ''}`,
+      badgeClass: styles.targetBadge,
+    },
+  ];
+
   return (
-    <div className={styles.backdrop} onClick={onClose}>
-      <div
-        className={styles.modal}
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="modal-title"
-      >
-        {/* Header */}
-        <div className={styles.header}>
-          <div className={styles.headerText}>
-            <h2 id="modal-title" className={styles.title}>
-              {t('auditLogs.detailModalTitle')}
-            </h2>
-            <p className={styles.subtitle}>
-              {t('auditLogs.detailModalSubtitle')}
-            </p>
-          </div>
-          <button
-            type="button"
-            className={styles.closeBtn}
-            onClick={onClose}
-            aria-label={t('common.close')}
-          >
-            <CloseIcon size={18} />
-          </button>
-        </div>
-
-        {/* Content Body */}
-        <div className={styles.body}>
-          {/* Metadata Grid */}
-          <div className={styles.metaGrid}>
-            <div className={styles.metaItem}>
-              <span className={styles.metaLabel}>{t('auditLogs.logId')}</span>
-              <span className={styles.metaValue}>#{log.id}</span>
-            </div>
-            <div className={styles.metaItem}>
-              <span className={styles.metaLabel}>{t('auditLogs.adminId')}</span>
-              <span className={styles.metaValue}>Admin #{log.adminId}</span>
-            </div>
-            <div className={styles.metaItem}>
-              <span className={styles.metaLabel}>{t('auditLogs.timestamp')}</span>
-              <span className={styles.metaValue}>{formattedTime}</span>
-            </div>
-            <div className={styles.metaItem}>
-              <span className={styles.metaLabel}>{t('auditLogs.ipAddress')}</span>
-              <span className={`${styles.metaValue} ${styles.mono}`}>
-                {log.ipAddress || '—'}
+    <AdminModal
+      isOpen={Boolean(log)}
+      onClose={onClose}
+      closeOnBackdrop
+      closeLabel={t('common.close')}
+      titleId="modal-title"
+      title={t('auditLogs.detailModalTitle')}
+      subtitle={t('auditLogs.detailModalSubtitle')}
+      footer={
+        <button type="button" className={styles.closeModalBtn} onClick={onClose}>
+          {t('common.close')}
+        </button>
+      }
+    >
+      <div className={styles.body}>
+        <div className={styles.metaGrid}>
+          {metaItems.map((item) => (
+            <div key={item.label} className={styles.metaItem}>
+              <span className={styles.metaLabel}>{item.label}</span>
+              <span
+                className={
+                  item.badgeClass ||
+                  (item.mono ? `${styles.metaValue} ${styles.mono}` : styles.metaValue)
+                }
+              >
+                {item.value}
               </span>
             </div>
-            <div className={styles.metaItem}>
-              <span className={styles.metaLabel}>{t('auditLogs.action')}</span>
-              <span className={styles.actionBadge}>{log.action}</span>
-            </div>
-            <div className={styles.metaItem}>
-              <span className={styles.metaLabel}>{t('auditLogs.targetType')}</span>
-              <span className={styles.targetBadge}>
-                {log.targetType} {log.targetId ? `(#${log.targetId})` : ''}
-              </span>
-            </div>
-          </div>
-
-          {/* Payload / Detail Section */}
-          <div className={styles.detailSection}>
-            <span className={styles.sectionLabel}>
-              {t('auditLogs.detailPayload')}
-            </span>
-            <div className={styles.codeBlock}>
-              <pre>{log.detail || '(no detail recorded)'}</pre>
-            </div>
-          </div>
+          ))}
         </div>
 
-        {/* Footer */}
-        <div className={styles.footer}>
-          <button type="button" className={styles.closeModalBtn} onClick={onClose}>
-            {t('common.close')}
-          </button>
+        <div className={styles.detailSection}>
+          <span className={styles.sectionLabel}>{t('auditLogs.detailPayload')}</span>
+          <div className={styles.codeBlock}>
+            <pre>{log.detail || '(no detail recorded)'}</pre>
+          </div>
         </div>
       </div>
-    </div>
+    </AdminModal>
   );
 }
 
@@ -102,7 +73,7 @@ AuditLogDetailModal.propTypes = {
     adminId: PropTypes.number.isRequired,
     action: PropTypes.string.isRequired,
     targetType: PropTypes.string.isRequired,
-    targetId: PropTypes.string,
+    targetId: PropTypes.number,
     detail: PropTypes.string,
     ipAddress: PropTypes.string,
     createdAt: PropTypes.string,
