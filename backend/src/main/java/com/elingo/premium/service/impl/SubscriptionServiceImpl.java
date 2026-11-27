@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
@@ -96,7 +97,8 @@ public class SubscriptionServiceImpl implements SubscriptionService {
             return Duration.ZERO;
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        ZoneId zone = ZoneId.systemDefault();
+        LocalDateTime now = LocalDateTime.now(zone);
         if (sub.getEndAt() == null || !sub.getEndAt().isAfter(now)) {
             sub.setStatus(SubscriptionStatus.EXPIRED);
             userSubscriptionRepository.save(sub);
@@ -104,7 +106,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         }
 
         LocalDateTime effectivePaidAt = paidAt != null ? paidAt : sub.getStartAt();
-        Duration elapsed = Duration.between(effectivePaidAt, now);
+        Duration elapsed = Duration.between(effectivePaidAt.atZone(zone), now.atZone(zone));
         if (elapsed.isNegative()) {
             elapsed = Duration.ZERO;
         }
