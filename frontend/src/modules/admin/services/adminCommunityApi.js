@@ -1,51 +1,18 @@
 import apiClient from '../../../services/apiClient';
-
-const EMPTY_PAGE = {
-  content: [],
-  page: 1,
-  size: 20,
-  totalElements: 0,
-  totalPages: 0,
-  isLast: true,
-};
+import { fetchPagedAdminResource } from '../utils/adminApiUtils';
 
 /**
  * Tìm kiếm và lọc danh sách bài viết trong hàng đợi kiểm duyệt (phân trang 1-indexed)
  */
-export const searchModerationPosts = async (params = {}) => {
-  const query = {};
-
-  if (params.status && params.status.trim()) {
-    query.status = params.status.trim();
-  }
-  if (params.groupId !== undefined && params.groupId !== null && params.groupId !== '') {
-    query.groupId = params.groupId;
-  }
-  if (params.userId !== undefined && params.userId !== null && params.userId !== '') {
-    query.userId = params.userId;
-  }
-  if (params.keyword && params.keyword.trim()) {
-    query.keyword = params.keyword.trim();
-  }
-  if (params.createdFrom) {
-    query.createdFrom = params.createdFrom;
-  }
-  if (params.createdTo) {
-    query.createdTo = params.createdTo;
-  }
-  if (params.page !== undefined && params.page !== null) {
-    query.page = params.page;
-  }
-  if (params.size !== undefined && params.size !== null) {
-    query.size = params.size;
-  }
-  if (params.sort) {
-    query.sort = params.sort;
-  }
-
-  const res = await apiClient.get('/admin/community/moderation/posts', { params: query });
-  return res.data?.data || EMPTY_PAGE;
-};
+export const searchModerationPosts = (params = {}) =>
+  fetchPagedAdminResource('/admin/community/moderation/posts', params, {
+    status: 'string',
+    groupId: 'value',
+    userId: 'value',
+    keyword: 'string',
+    createdFrom: 'truthy',
+    createdTo: 'truthy',
+  });
 
 /**
  * Lấy chi tiết bài viết kèm lịch sử kiểm duyệt AI và Admin
@@ -58,40 +25,15 @@ export const getModerationPostDetail = async (postId) => {
 /**
  * Tìm kiếm và lọc nhật ký kiểm duyệt cộng đồng (phân trang 1-indexed)
  */
-export const searchModerationLogs = async (params = {}) => {
-  const query = {};
-
-  if (params.postId !== undefined && params.postId !== null && params.postId !== '') {
-    query.postId = params.postId;
-  }
-  if (params.actorType && params.actorType.trim()) {
-    query.actorType = params.actorType.trim();
-  }
-  if (params.action && params.action.trim()) {
-    query.action = params.action.trim();
-  }
-  if (params.aiLabel && params.aiLabel.trim()) {
-    query.aiLabel = params.aiLabel.trim();
-  }
-  if (params.createdFrom) {
-    query.createdFrom = params.createdFrom;
-  }
-  if (params.createdTo) {
-    query.createdTo = params.createdTo;
-  }
-  if (params.page !== undefined && params.page !== null) {
-    query.page = params.page;
-  }
-  if (params.size !== undefined && params.size !== null) {
-    query.size = params.size;
-  }
-  if (params.sort) {
-    query.sort = params.sort;
-  }
-
-  const res = await apiClient.get('/admin/community/moderation/logs', { params: query });
-  return res.data?.data || EMPTY_PAGE;
-};
+export const searchModerationLogs = (params = {}) =>
+  fetchPagedAdminResource('/admin/community/moderation/logs', params, {
+    postId: 'value',
+    actorType: 'string',
+    action: 'string',
+    aiLabel: 'string',
+    createdFrom: 'truthy',
+    createdTo: 'truthy',
+  });
 
 /**
  * Duyệt tay bài viết (chuyển trạng thái sang PUBLISHED)
@@ -115,40 +57,15 @@ export const rejectModerationPost = async (postId, note) => {
 /**
  * Tìm kiếm và lọc danh sách báo cáo vi phạm (phân trang 1-indexed)
  */
-export const searchReports = async (params = {}) => {
-  const query = {};
-
-  if (params.status && params.status.trim()) {
-    query.status = params.status.trim();
-  }
-  if (params.targetType && params.targetType.trim()) {
-    query.targetType = params.targetType.trim();
-  }
-  if (params.reporterId !== undefined && params.reporterId !== null && params.reporterId !== '') {
-    query.reporterId = params.reporterId;
-  }
-  if (params.targetId !== undefined && params.targetId !== null && params.targetId !== '') {
-    query.targetId = params.targetId;
-  }
-  if (params.createdFrom) {
-    query.createdFrom = params.createdFrom;
-  }
-  if (params.createdTo) {
-    query.createdTo = params.createdTo;
-  }
-  if (params.page !== undefined && params.page !== null) {
-    query.page = params.page;
-  }
-  if (params.size !== undefined && params.size !== null) {
-    query.size = params.size;
-  }
-  if (params.sort) {
-    query.sort = params.sort;
-  }
-
-  const res = await apiClient.get('/admin/community/reports', { params: query });
-  return res.data?.data || EMPTY_PAGE;
-};
+export const searchReports = (params = {}) =>
+  fetchPagedAdminResource('/admin/community/reports', params, {
+    status: 'string',
+    targetType: 'string',
+    reporterId: 'value',
+    targetId: 'value',
+    createdFrom: 'truthy',
+    createdTo: 'truthy',
+  });
 
 /**
  * Lấy chi tiết báo cáo vi phạm theo ID
@@ -162,7 +79,8 @@ export const getReportById = async (reportId) => {
  * Xử lý báo cáo vi phạm (RESOLVED)
  */
 export const resolveReport = async (reportId, resolutionNote) => {
-  const payload = resolutionNote && resolutionNote.trim() ? { resolutionNote: resolutionNote.trim() } : {};
+  const payload =
+    resolutionNote && resolutionNote.trim() ? { resolutionNote: resolutionNote.trim() } : {};
   const res = await apiClient.put(`/admin/community/reports/${reportId}/resolve`, payload);
   return res.data?.data;
 };
@@ -188,25 +106,10 @@ export const getPostGroups = async () => {
 /**
  * Tìm kiếm và lọc danh sách nhóm học tập phía admin (phân trang 1-indexed)
  */
-export const searchPostGroups = async (params = {}) => {
-  const query = {};
-
-  if (params.keyword && params.keyword.trim()) {
-    query.keyword = params.keyword.trim();
-  }
-  if (params.page !== undefined && params.page !== null) {
-    query.page = params.page;
-  }
-  if (params.size !== undefined && params.size !== null) {
-    query.size = params.size;
-  }
-  if (params.sort) {
-    query.sort = params.sort;
-  }
-
-  const res = await apiClient.get('/admin/community/groups', { params: query });
-  return res.data?.data || EMPTY_PAGE;
-};
+export const searchPostGroups = (params = {}) =>
+  fetchPagedAdminResource('/admin/community/groups', params, {
+    keyword: 'string',
+  });
 
 /**
  * Lấy chi tiết nhóm học tập theo ID
@@ -222,7 +125,8 @@ export const getPostGroupById = async (groupId) => {
 export const createPostGroup = async (payload) => {
   const res = await apiClient.post('/admin/community/groups', {
     groupName: payload.groupName ? payload.groupName.trim() : '',
-    description: payload.description && payload.description.trim() ? payload.description.trim() : null,
+    description:
+      payload.description && payload.description.trim() ? payload.description.trim() : null,
   });
   return res.data?.data;
 };
@@ -233,7 +137,8 @@ export const createPostGroup = async (payload) => {
 export const updatePostGroup = async (groupId, payload) => {
   const res = await apiClient.put(`/admin/community/groups/${groupId}`, {
     groupName: payload.groupName ? payload.groupName.trim() : '',
-    description: payload.description && payload.description.trim() ? payload.description.trim() : null,
+    description:
+      payload.description && payload.description.trim() ? payload.description.trim() : null,
   });
   return res.data?.data;
 };

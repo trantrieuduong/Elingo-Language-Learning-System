@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import {
@@ -6,10 +6,11 @@ import {
   fetchModerationStats,
   fetchReportStats,
 } from '../../../services/adminStatsApi';
+import useAdminTabStats from '../../../hooks/useAdminTabStats';
+import AdminStatsTabShell from '../components/AdminStatsTabShell';
 import MetricCard from '../../../components/MetricCard/MetricCard';
 import AreaTimeSeriesChart from '../../../components/VisualCharts/AreaTimeSeriesChart';
 import CategoryBreakdown from '../../../components/VisualCharts/CategoryBreakdown';
-import { AdminSkeletonCard, AdminErrorState } from '../../../components/Feedback/AdminFeedback';
 import {
   MessageSquareIcon,
   ShieldCheckIcon,
@@ -22,56 +23,24 @@ export default function CommunityStatsTab({ filter, reloadKey, onNavigate }) {
   const { t, i18n } = useTranslation('admin');
   const locale = i18n.language && i18n.language.startsWith('en') ? 'en-US' : 'vi-VN';
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { loading, error, data } = useAdminTabStats(
+    async () => {
+      const [social, moderation, reports] = await Promise.all([
+        fetchSocialStats(filter),
+        fetchModerationStats(filter),
+        fetchReportStats(filter),
+      ]);
+      return { social, moderation, reports };
+    },
+    [filter, reloadKey],
+    t('dashboard.common.errorLoading'),
+  );
 
-  const [socialData, setSocialData] = useState(null);
-  const [moderationData, setModerationData] = useState(null);
-  const [reportData, setReportData] = useState(null);
-
-  useEffect(() => {
-    let isMounted = true;
-    const loadData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const [social, moderation, reports] = await Promise.all([
-          fetchSocialStats(filter),
-          fetchModerationStats(filter),
-          fetchReportStats(filter),
-        ]);
-        if (!isMounted) return;
-        setSocialData(social);
-        setModerationData(moderation);
-        setReportData(reports);
-      } catch (err) {
-        if (!isMounted) return;
-        setError(err.message || t('dashboard.common.errorLoading'));
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-
-    loadData();
-    return () => {
-      isMounted = false;
-    };
-  }, [filter, reloadKey, t]);
-
-  if (loading) {
-    return (
-      <div className={styles.loadingGrid}>
-        <AdminSkeletonCard />
-        <AdminSkeletonCard />
-        <AdminSkeletonCard />
-        <AdminSkeletonCard />
-      </div>
-    );
+  if (loading || error) {
+    return <AdminStatsTabShell loading={loading} error={error} />;
   }
 
-  if (error) {
-    return <AdminErrorState message={error} onRetry={() => {}} />;
-  }
+  const { social: socialData, moderation: moderationData, reports: reportData } = data;
 
   // Chuẩn hóa điểm tương tác
   const engagementPoints = (socialData?.engagementSeries || []).map((pt) => ({

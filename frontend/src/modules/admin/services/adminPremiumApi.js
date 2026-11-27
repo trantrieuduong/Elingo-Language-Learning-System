@@ -1,17 +1,5 @@
 import apiClient from '../../../services/apiClient';
-
-/**
- * Chuẩn hóa đối tượng PageResponse từ backend (1-indexed)
- */
-const normalizePageResponse = (data) =>
-  data || {
-    content: [],
-    page: 1,
-    size: 20,
-    totalElements: 0,
-    totalPages: 0,
-    isLast: true,
-  };
+import { fetchPagedAdminResource } from '../utils/adminApiUtils';
 
 // =========================================================================
 // 1. QUẢN LÝ GÓI THUÊ BAO (AdminPremiumPlanController)
@@ -94,40 +82,15 @@ export const enablePlan = async (planId) => {
  * @param {Object} params - { keyword, status, planId, userId, createdFrom, createdTo, page, size, sort }
  * @returns {Promise<Object>} PageResponse<AdminTransactionResponse>
  */
-export const searchTransactions = async (params = {}) => {
-  const query = {};
-
-  if (params.keyword && params.keyword.trim()) {
-    query.keyword = params.keyword.trim();
-  }
-  if (params.status && String(params.status).trim()) {
-    query.status = String(params.status).trim();
-  }
-  if (params.planId !== undefined && params.planId !== null && params.planId !== '') {
-    query.planId = Number(params.planId);
-  }
-  if (params.userId !== undefined && params.userId !== null && params.userId !== '') {
-    query.userId = Number(params.userId);
-  }
-  if (params.createdFrom) {
-    query.createdFrom = params.createdFrom;
-  }
-  if (params.createdTo) {
-    query.createdTo = params.createdTo;
-  }
-  if (params.page !== undefined && params.page !== null) {
-    query.page = params.page;
-  }
-  if (params.size !== undefined && params.size !== null) {
-    query.size = params.size;
-  }
-  if (params.sort) {
-    query.sort = params.sort;
-  }
-
-  const res = await apiClient.get('/admin/premium/transactions', { params: query });
-  return normalizePageResponse(res.data?.data);
-};
+export const searchTransactions = (params = {}) =>
+  fetchPagedAdminResource('/admin/premium/transactions', params, {
+    keyword: 'string',
+    status: 'string',
+    planId: 'number',
+    userId: 'number',
+    createdFrom: 'truthy',
+    createdTo: 'truthy',
+  });
 
 /**
  * Lấy chi tiết đầy đủ giao dịch thanh toán theo ID
@@ -174,40 +137,15 @@ export const refundTransaction = async (transactionId, reason) => {
  * @param {Object} params - { providerId, transactionId, status, signatureValid, receivedFrom, receivedTo, page, size, sort }
  * @returns {Promise<Object>} PageResponse<AdminWebhookLogResponse>
  */
-export const searchWebhookLogs = async (params = {}) => {
-  const query = {};
-
-  if (params.providerId !== undefined && params.providerId !== null && params.providerId !== '') {
-    query.providerId = Number(params.providerId);
-  }
-  if (params.transactionId !== undefined && params.transactionId !== null && params.transactionId !== '') {
-    query.transactionId = Number(params.transactionId);
-  }
-  if (params.status && String(params.status).trim()) {
-    query.status = String(params.status).trim();
-  }
-  if (params.signatureValid !== undefined && params.signatureValid !== null && params.signatureValid !== '') {
-    query.signatureValid = params.signatureValid === true || params.signatureValid === 'true';
-  }
-  if (params.receivedFrom) {
-    query.receivedFrom = params.receivedFrom;
-  }
-  if (params.receivedTo) {
-    query.receivedTo = params.receivedTo;
-  }
-  if (params.page !== undefined && params.page !== null) {
-    query.page = params.page;
-  }
-  if (params.size !== undefined && params.size !== null) {
-    query.size = params.size;
-  }
-  if (params.sort) {
-    query.sort = params.sort;
-  }
-
-  const res = await apiClient.get('/admin/premium/webhook-logs', { params: query });
-  return normalizePageResponse(res.data?.data);
-};
+export const searchWebhookLogs = (params = {}) =>
+  fetchPagedAdminResource('/admin/premium/webhook-logs', params, {
+    providerId: 'number',
+    transactionId: 'number',
+    status: 'string',
+    signatureValid: 'boolean',
+    receivedFrom: 'truthy',
+    receivedTo: 'truthy',
+  });
 
 /**
  * Lấy chi tiết nhật ký webhook bao gồm raw JSON payload

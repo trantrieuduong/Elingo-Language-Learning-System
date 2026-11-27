@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import {
@@ -6,10 +6,11 @@ import {
   fetchRevenueBreakdown,
   fetchSubscriptionStats,
 } from '../../../services/adminStatsApi';
+import useAdminTabStats from '../../../hooks/useAdminTabStats';
+import AdminStatsTabShell from '../components/AdminStatsTabShell';
 import MetricCard from '../../../components/MetricCard/MetricCard';
 import AreaTimeSeriesChart from '../../../components/VisualCharts/AreaTimeSeriesChart';
 import CategoryBreakdown from '../../../components/VisualCharts/CategoryBreakdown';
-import { AdminSkeletonCard, AdminErrorState } from '../../../components/Feedback/AdminFeedback';
 import {
   CreditCardIcon,
   TrendingUpIcon,
@@ -22,56 +23,24 @@ export default function RevenueStatsTab({ filter, reloadKey }) {
   const { t, i18n } = useTranslation('admin');
   const isEn = i18n.language && i18n.language.startsWith('en');
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { loading, error, data } = useAdminTabStats(
+    async () => {
+      const [timeSeries, breakdown, subs] = await Promise.all([
+        fetchRevenueTimeSeries(filter),
+        fetchRevenueBreakdown(filter),
+        fetchSubscriptionStats(),
+      ]);
+      return { timeSeries, breakdown, subs };
+    },
+    [filter, reloadKey],
+    t('dashboard.common.errorLoading'),
+  );
 
-  const [timeSeriesData, setTimeSeriesData] = useState(null);
-  const [breakdownData, setBreakdownData] = useState(null);
-  const [subStats, setSubStats] = useState(null);
-
-  useEffect(() => {
-    let isMounted = true;
-    const loadData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const [timeSeries, breakdown, subs] = await Promise.all([
-          fetchRevenueTimeSeries(filter),
-          fetchRevenueBreakdown(filter),
-          fetchSubscriptionStats(),
-        ]);
-        if (!isMounted) return;
-        setTimeSeriesData(timeSeries);
-        setBreakdownData(breakdown);
-        setSubStats(subs);
-      } catch (err) {
-        if (!isMounted) return;
-        setError(err.message || t('dashboard.common.errorLoading'));
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-
-    loadData();
-    return () => {
-      isMounted = false;
-    };
-  }, [filter, reloadKey, t]);
-
-  if (loading) {
-    return (
-      <div className={styles.loadingGrid}>
-        <AdminSkeletonCard />
-        <AdminSkeletonCard />
-        <AdminSkeletonCard />
-        <AdminSkeletonCard />
-      </div>
-    );
+  if (loading || error) {
+    return <AdminStatsTabShell loading={loading} error={error} />;
   }
 
-  if (error) {
-    return <AdminErrorState message={error} onRetry={() => {}} />;
-  }
+  const { timeSeries: timeSeriesData, breakdown: breakdownData, subs: subStats } = data;
 
   // Format currency
   const formatCurrency = (amount = 0) => {

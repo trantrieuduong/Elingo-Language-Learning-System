@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import {
@@ -6,10 +6,11 @@ import {
   fetchUserActivity,
   fetchUserBreakdown,
 } from '../../../services/adminStatsApi';
+import useAdminTabStats from '../../../hooks/useAdminTabStats';
+import AdminStatsTabShell from '../components/AdminStatsTabShell';
 import MetricCard from '../../../components/MetricCard/MetricCard';
 import AreaTimeSeriesChart from '../../../components/VisualCharts/AreaTimeSeriesChart';
 import CategoryBreakdown from '../../../components/VisualCharts/CategoryBreakdown';
-import { AdminSkeletonCard, AdminErrorState } from '../../../components/Feedback/AdminFeedback';
 import {
   UsersIcon,
   TrendingUpIcon,
@@ -22,56 +23,24 @@ export default function UserStatsTab({ filter, reloadKey }) {
   const { t, i18n } = useTranslation('admin');
   const locale = i18n.language && i18n.language.startsWith('en') ? 'en-US' : 'vi-VN';
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { loading, error, data } = useAdminTabStats(
+    async () => {
+      const [growth, activity, breakdown] = await Promise.all([
+        fetchUserGrowth(filter),
+        fetchUserActivity(filter),
+        fetchUserBreakdown(),
+      ]);
+      return { growth, activity, breakdown };
+    },
+    [filter, reloadKey],
+    t('dashboard.common.errorLoading'),
+  );
 
-  const [growthData, setGrowthData] = useState(null);
-  const [activityData, setActivityData] = useState(null);
-  const [breakdownData, setBreakdownData] = useState(null);
-
-  useEffect(() => {
-    let isMounted = true;
-    const loadData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const [growth, activity, breakdown] = await Promise.all([
-          fetchUserGrowth(filter),
-          fetchUserActivity(filter),
-          fetchUserBreakdown(),
-        ]);
-        if (!isMounted) return;
-        setGrowthData(growth);
-        setActivityData(activity);
-        setBreakdownData(breakdown);
-      } catch (err) {
-        if (!isMounted) return;
-        setError(err.message || t('dashboard.common.errorLoading'));
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-
-    loadData();
-    return () => {
-      isMounted = false;
-    };
-  }, [filter, reloadKey, t]);
-
-  if (loading) {
-    return (
-      <div className={styles.loadingGrid}>
-        <AdminSkeletonCard />
-        <AdminSkeletonCard />
-        <AdminSkeletonCard />
-        <AdminSkeletonCard />
-      </div>
-    );
+  if (loading || error) {
+    return <AdminStatsTabShell loading={loading} error={error} />;
   }
 
-  if (error) {
-    return <AdminErrorState message={error} onRetry={() => {}} />;
-  }
+  const { growth: growthData, activity: activityData, breakdown: breakdownData } = data;
 
   // Chuẩn hóa dữ liệu cho biểu đồ tăng trưởng
   const growthPoints = (growthData?.newUsers || []).map((nu, idx) => {

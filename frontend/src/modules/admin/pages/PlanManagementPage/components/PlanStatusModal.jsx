@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
-import { CloseIcon, CheckCircleIcon, XCircleIcon } from '../../../components/icons/AdminIcons';
+import AdminModal from '../../../components/AdminModal/AdminModal';
+import { CheckCircleIcon, XCircleIcon } from '../../../components/icons/AdminIcons';
 import { enablePlan, disablePlan } from '../../../services/adminPremiumApi';
+import modalStyles from '../../../components/AdminModal/AdminModal.module.css';
 import styles from './PlanModal.module.css';
 
 export default function PlanStatusModal({
@@ -50,80 +52,77 @@ export default function PlanStatusModal({
   };
 
   return (
-    <div className={styles.overlay} role="dialog" aria-modal="true" aria-labelledby="plan-status-title">
-      <div className={styles.modal}>
-        <div className={styles.modalHeader}>
-          <div className={styles.headerTitleGroup}>
-            {isEnable ? (
-              <CheckCircleIcon size={20} className={styles.iconGreen} />
-            ) : (
-              <XCircleIcon size={20} className={styles.iconRed} />
-            )}
-            <div>
-              <h2 id="plan-status-title" className={styles.modalTitle}>
-                {isEnable
-                  ? t('premiumPlans.statusModal.enableTitle')
-                  : t('premiumPlans.statusModal.disableTitle')}
-              </h2>
-              <p className={styles.modalSubtitle}>
-                {isEnable
-                  ? t('premiumPlans.statusModal.enableSubtitle')
-                  : t('premiumPlans.statusModal.disableSubtitle')}
-              </p>
-            </div>
-          </div>
+    <AdminModal
+      isOpen={isOpen}
+      onClose={onClose}
+      closeDisabled={submitting}
+      closeLabel={t('premiumPlans.statusModal.cancel')}
+      titleId="plan-status-title"
+      title={
+        isEnable
+          ? t('premiumPlans.statusModal.enableTitle')
+          : t('premiumPlans.statusModal.disableTitle')
+      }
+      subtitle={
+        isEnable
+          ? t('premiumPlans.statusModal.enableSubtitle')
+          : t('premiumPlans.statusModal.disableSubtitle')
+      }
+      icon={
+        isEnable ? (
+          <CheckCircleIcon size={20} className={modalStyles.iconGreen} />
+        ) : (
+          <XCircleIcon size={20} className={modalStyles.iconRed} />
+        )
+      }
+      footer={
+        <>
           <button
             type="button"
-            className={styles.closeBtn}
+            className={styles.cancelBtn}
             onClick={onClose}
-            aria-label={t('premiumPlans.statusModal.cancel')}
+            disabled={submitting}
           >
-            <CloseIcon size={18} />
+            {t('premiumPlans.statusModal.cancel')}
           </button>
-        </div>
-
-        <div className={styles.modalBody}>
-          <div className={styles.targetCard}>
-            <span className={styles.targetLabel}>{t('premiumPlans.statusModal.targetLabel')}</span>
-            <strong className={styles.targetValue}>
-              #{plan.id} — {plan.name}
-            </strong>
-          </div>
-
-          <p className={styles.confirmMessage}>
-            {isEnable
-              ? t('premiumPlans.statusModal.enableConfirm')
-              : t('premiumPlans.statusModal.disableConfirm')}
-          </p>
-
-          <div className={isEnable ? styles.noticeBox : styles.warningBox}>
-            {isEnable
-              ? t('premiumPlans.statusModal.enableNotice')
-              : t('premiumPlans.statusModal.disableNotice')}
-          </div>
-
-          {errorMsg && <div className={styles.errorText}>{errorMsg}</div>}
-
-          <div className={styles.modalFooter}>
-            <button type="button" className={styles.cancelBtn} onClick={onClose} disabled={submitting}>
-              {t('premiumPlans.statusModal.cancel')}
-            </button>
-            <button
-              type="button"
-              className={isEnable ? styles.submitBtn : styles.dangerSubmitBtn}
-              onClick={handleConfirm}
-              disabled={submitting}
-            >
-              {submitting
-                ? t('premiumPlans.formModal.saving')
-                : isEnable
+          <button
+            type="button"
+            className={isEnable ? styles.submitBtn : styles.dangerSubmitBtn}
+            onClick={handleConfirm}
+            disabled={submitting}
+          >
+            {submitting
+              ? t('premiumPlans.formModal.saving')
+              : isEnable
                 ? t('premiumPlans.statusModal.enableBtn')
                 : t('premiumPlans.statusModal.disableBtn')}
-            </button>
-          </div>
+          </button>
+        </>
+      }
+    >
+      <div className={styles.modalBody}>
+        <div className={styles.targetCard}>
+          <span className={styles.targetLabel}>{t('premiumPlans.statusModal.targetLabel')}</span>
+          <strong className={styles.targetValue}>
+            #{plan.id} — {plan.name}
+          </strong>
         </div>
+
+        <p className={styles.confirmMessage}>
+          {isEnable
+            ? t('premiumPlans.statusModal.enableConfirm')
+            : t('premiumPlans.statusModal.disableConfirm')}
+        </p>
+
+        <div className={isEnable ? styles.noticeBox : styles.warningBox}>
+          {isEnable
+            ? t('premiumPlans.statusModal.enableNotice')
+            : t('premiumPlans.statusModal.disableNotice')}
+        </div>
+
+        {errorMsg && <div className={styles.errorText}>{errorMsg}</div>}
       </div>
-    </div>
+    </AdminModal>
   );
 }
 
