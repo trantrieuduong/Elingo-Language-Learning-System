@@ -207,7 +207,6 @@
     "partOfSpeech": "Loại từ (POS)",
     "partOfSpeechPlaceholder": "Chọn loại từ",
     "posTooLong": "Loại từ không được vượt quá 50 ký tự.",
-    "saveError": "Có lỗi xảy ra khi lưu thẻ từ",
     "starred": "Đã đánh dấu sao",
     "termLabel": "Từ vựng *",
     "termPlaceholder": "Ví dụ: accomplish",
@@ -254,7 +253,6 @@
       "editTitle": "Chỉnh sửa bộ từ vựng",
       "published": "Công khai",
       "publishedDescription": "Chia sẻ cho mọi người",
-      "saveError": "Có lỗi xảy ra khi lưu bộ từ vựng",
       "statusLabel": "Trạng thái phát hành",
       "systemError": "Đã có lỗi hệ thống xảy ra",
       "tags": {

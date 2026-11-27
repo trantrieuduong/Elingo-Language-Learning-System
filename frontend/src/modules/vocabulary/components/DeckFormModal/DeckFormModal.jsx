@@ -77,7 +77,7 @@ function DeckFormModal({
         const msg =
           (code && t(`api:error.${code}`, { defaultValue: '' })) ||
           response.message ||
-          t('userDeck.form.saveError');
+          t('api:common.UNKNOWN_ERROR');
         setGeneralError(hasFieldErrors ? '' : msg);
       }
     } catch (error) {
@@ -87,7 +87,7 @@ function DeckFormModal({
       const msg =
         (code && t(`api:error.${code}`, { defaultValue: '' })) ||
         responseData?.message ||
-        t('userDeck.form.saveError');
+        t('api:common.UNKNOWN_ERROR');
       setGeneralError(hasFieldErrors ? '' : msg);
     }
   };
