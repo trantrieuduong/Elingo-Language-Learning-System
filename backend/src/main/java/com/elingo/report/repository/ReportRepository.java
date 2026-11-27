@@ -35,4 +35,42 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             @Param("from") LocalDateTime from,
             @Param("to") LocalDateTime to
     );
+
+    @Query(value = """
+            SELECT r FROM Report r
+            JOIN FETCH r.reporter
+            LEFT JOIN FETCH r.resolvedBy
+            WHERE (:status IS NULL OR r.status = :status)
+              AND (:targetType IS NULL OR r.targetType = :targetType)
+              AND (:reporterId IS NULL OR r.reporter.id = :reporterId)
+              AND (:targetId IS NULL OR r.targetId = :targetId)
+              AND (:createdFrom IS NULL OR r.createdAt >= :createdFrom)
+              AND (:createdTo IS NULL OR r.createdAt < :createdTo)
+            """,
+            countQuery = """
+            SELECT COUNT(r) FROM Report r
+            WHERE (:status IS NULL OR r.status = :status)
+              AND (:targetType IS NULL OR r.targetType = :targetType)
+              AND (:reporterId IS NULL OR r.reporter.id = :reporterId)
+              AND (:targetId IS NULL OR r.targetId = :targetId)
+              AND (:createdFrom IS NULL OR r.createdAt >= :createdFrom)
+              AND (:createdTo IS NULL OR r.createdAt < :createdTo)
+            """)
+    Page<Report> searchForAdmin(
+            @Param("status") ReportStatus status,
+            @Param("targetType") ReportTargetType targetType,
+            @Param("reporterId") Long reporterId,
+            @Param("targetId") Long targetId,
+            @Param("createdFrom") LocalDateTime createdFrom,
+            @Param("createdTo") LocalDateTime createdTo,
+            Pageable pageable
+    );
+
+    @Query("""
+            SELECT r FROM Report r
+            JOIN FETCH r.reporter
+            LEFT JOIN FETCH r.resolvedBy
+            WHERE r.id = :id
+            """)
+    Optional<Report> findByIdWithUsers(@Param("id") Long id);
 }
