@@ -388,7 +388,10 @@ public class PostServiceImpl implements PostService {
 
         Map<Long, PostModerationLogResponse> latestLogByPost = new java.util.HashMap<>();
         for (PostModerationLog logEntry : postModerationLogRepository.findByPostIdInWithActor(postIds)) {
-            latestLogByPost.putIfAbsent(logEntry.getPost().getId(), postMapper.toModerationLogResponse(logEntry));
+            latestLogByPost.computeIfAbsent(
+                    logEntry.getPost().getId(),
+                    id -> postMapper.toModerationLogResponse(logEntry)
+            );
         }
 
         Page<AdminPostModerationResponse> responsePage = page.map(p ->
