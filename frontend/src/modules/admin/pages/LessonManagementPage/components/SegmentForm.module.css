@@ -1,0 +1,187 @@
+.hintCard {
+  background: var(--adm-bg-surface);
+  border: 1px dashed var(--adm-border-strong);
+  border-radius: var(--adm-radius-lg);
+  padding: 28px 20px;
+  text-align: center;
+}
+
+.selectHint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--adm-text-subtle);
+}
+
+.formCard {
+  background: var(--adm-bg-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--adm-shadow-xs);
+}
+
+.formHeader {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--adm-border-subtle);
+}
+
+.formTitle {
+  font-family: var(--adm-font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--adm-text-main);
+  margin: 0;
+}
+
+.formBody {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.timeRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.formLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--adm-text-main);
+}
+
+.timeInput {
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-sm);
+  background: var(--adm-bg-surface-subtle);
+  color: var(--adm-text-main);
+  font-family: var(--adm-font-mono);
+  font-size: 13px;
+  outline: none;
+  transition: border-color var(--adm-transition-fast);
+}
+
+.timeInput:focus {
+  border-color: var(--adm-border-focus);
+}
+
+.textarea {
+  padding: 8px 10px;
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-sm);
+  background: var(--adm-bg-surface);
+  color: var(--adm-text-main);
+  font-size: 13px;
+  min-height: 68px;
+  resize: vertical;
+  outline: none;
+  transition: border-color var(--adm-transition-fast);
+}
+
+.textarea:focus {
+  border-color: var(--adm-border-focus);
+}
+
+.validationError {
+  margin: 0;
+  font-size: 12px;
+  color: var(--adm-warning);
+}
+
+.serverError {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: var(--adm-radius-xs);
+  background: var(--adm-danger-subtle);
+  border: 1px solid var(--adm-danger-border);
+  color: var(--adm-danger);
+  font-size: 12px;
+}
+
+.formFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--adm-border-subtle);
+  background: var(--adm-bg-surface-subtle);
+  flex-wrap: wrap;
+}
+
+.rightActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+:where(button) {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+.deleteBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: var(--adm-radius-sm);
+  background: var(--adm-danger-subtle);
+  border: 1px solid var(--adm-danger-border);
+  color: var(--adm-danger);
+  font-size: 12px;
+  font-weight: 600;
+  transition: background-color var(--adm-transition-fast);
+}
+
+.deleteBtn:hover:not(:disabled) {
+  background: var(--adm-danger);
+  color: var(--adm-danger-contrast) !important;
+}
+
+.cancelBtn {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: var(--adm-radius-sm);
+  background: var(--adm-bg-surface);
+  border: 1px solid var(--adm-border);
+  color: var(--adm-text-main);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.saveBtn {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: var(--adm-radius-sm);
+  background: var(--adm-accent);
+  color: var(--adm-accent-contrast) !important;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background-color var(--adm-transition-fast);
+}
+
+.saveBtn:hover:not(:disabled) {
+  background: var(--adm-accent-hover);
+}
+
+.saveBtn:disabled,
+.deleteBtn:disabled,
+.cancelBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

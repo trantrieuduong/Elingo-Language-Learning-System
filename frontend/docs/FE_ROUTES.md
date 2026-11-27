@@ -63,9 +63,8 @@
 | `/admin` | `AdminDashboardPage` | `admin/pages/dashboard/` | Dashboard admin |
 | `/admin/users` | `AdminUserListPage` | `admin/pages/user/` | Quản lý người dùng |
 | `/admin/users/:userId` | `AdminUserDetailPage` | `admin/pages/user/` | Chi tiết user |
-| `/admin/lessons` | `AdminLessonListPage` | `admin/pages/lesson/` | Quản lý bài học |
-| `/admin/lessons/create` | `AdminLessonCreatePage` | `admin/pages/lesson/` | Tạo bài học |
-| `/admin/lessons/:lessonId/edit` | `AdminLessonEditPage` | `admin/pages/lesson/` | Sửa bài học |
+| `/admin/lessons` | `LessonListPage` | `admin/pages/LessonManagementPage/` | Quản lý bài học (tạo/sửa qua `LessonFormModal`) |
+| `/admin/lessons/:lessonId` | `LessonDetailPage` | `admin/pages/LessonManagementPage/` | Chi tiết bài học & quản lý segment (khớp regex trong `modules/admin/routes.jsx`, điều hướng bằng `onNavigate`) |
 | `/admin/flashcards` | `AdminFlashcardListPage` | `admin/pages/flashcard/` | Quản lý flashcard |
 | `/admin/vocabulary` | `AdminVocabularyListPage` | `admin/pages/vocabulary/` | Quản lý từ vựng |
 | `/admin/premium` | `AdminPremiumListPage` | `admin/pages/premium/` | Quản lý gói Premium |

@@ -1,0 +1,162 @@
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--adm-bg-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modalCard {
+  background: var(--adm-bg-surface);
+  border: 1px solid var(--adm-border-strong);
+  border-radius: var(--adm-radius-lg);
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--adm-shadow-lg);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--adm-border-subtle);
+}
+
+.modalTitle {
+  font-family: var(--adm-font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--adm-text-main);
+  margin: 0;
+}
+
+:where(button) {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+.closeBtn {
+  color: var(--adm-text-subtle);
+  padding: 4px;
+  border-radius: var(--adm-radius-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--adm-transition-fast);
+}
+
+.closeBtn:hover:not(:disabled) {
+  color: var(--adm-text-main);
+}
+
+.modalBody {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.lessonName {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--adm-text-main);
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--adm-text-main);
+}
+
+.select {
+  width: 100%;
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-sm);
+  background: var(--adm-bg-surface-subtle);
+  color: var(--adm-text-main);
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color var(--adm-transition-fast);
+}
+
+.select:focus {
+  border-color: var(--adm-border-focus);
+}
+
+.hintText {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--adm-text-muted);
+}
+
+.errorMessage {
+  padding: 8px 12px;
+  border-radius: var(--adm-radius-xs);
+  background: var(--adm-danger-subtle);
+  color: var(--adm-danger);
+  border: 1px solid var(--adm-danger-border);
+  font-size: 12px;
+  margin: 0;
+}
+
+.modalFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--adm-border-subtle);
+  background: var(--adm-bg-surface-subtle);
+}
+
+.cancelBtn {
+  padding: 8px 14px;
+  border-radius: var(--adm-radius-sm);
+  background: var(--adm-bg-surface);
+  border: 1px solid var(--adm-border);
+  color: var(--adm-text-main);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.primaryBtn {
+  padding: 8px 16px;
+  border-radius: var(--adm-radius-sm);
+  background: var(--adm-accent);
+  color: var(--adm-accent-contrast) !important;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--adm-transition-fast);
+}
+
+.primaryBtn:hover:not(:disabled) {
+  background: var(--adm-accent-hover);
+}
+
+.primaryBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
