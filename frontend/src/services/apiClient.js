@@ -32,6 +32,54 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
+const translateErrorItem = (err, rootParams) => {
+  if (!err || typeof err !== 'object' || !err.code) return err;
+
+  const key = err.field ? `validation.${err.field}.${err.code}` : `error.${err.code}`;
+  const tParams = err.field ? (err.params || {}) : rootParams;
+  const translatedMessage = i18n.exists(key, { ns: 'api' })
+    ? i18n.t(key, { ...tParams, ns: 'api' })
+    : err.message;
+
+  return {
+    ...err,
+    message: translatedMessage || i18n.t('common.UNKNOWN_ERROR', { ns: 'api' }),
+  };
+};
+
+const mapErrorResponse = (data, params) => {
+  // Backend trả errors array, cần promote lỗi đầu tiên lên root level
+  if (Array.isArray(data.errors) && data.errors.length > 0) {
+    const firstError = data.errors[0];
+
+    // Nếu chưa có code/message ở root, lấy từ error đầu tiên
+    if (!data.code && firstError.code) {
+      data.code = firstError.code;
+    }
+    if (!data.message && firstError.message) {
+      data.message = firstError.message;
+    }
+
+    // Dịch từng lỗi validation (có field) hoặc lỗi business (không có field)
+    data.errors = data.errors.map((err) => translateErrorItem(err, params));
+  }
+
+  // Dịch message ở root level theo code
+  if (data.code) {
+    const key = `error.${data.code}`;
+    if (i18n.exists(key, { ns: 'api' })) {
+      data.message = i18n.t(key, { ...params, ns: 'api' });
+      return data;
+    }
+  }
+
+  if (!data.message) {
+    data.message = i18n.t('common.UNKNOWN_ERROR', { ns: 'api' });
+  }
+
+  return data;
+};
+
 /**
  * Dịch API response message dựa theo code và params.
  * Guard an toàn khi data là chuỗi HTML (502/504 Nginx) hoặc Blob (file download).
@@ -44,65 +92,14 @@ const mapApiResponse = (data, isError = false) => {
   const params = data.params || {};
 
   if (isError) {
-    // Backend trả errors array, cần promote lỗi đầu tiên lên root level
-    if (Array.isArray(data.errors) && data.errors.length > 0) {
-      const firstError = data.errors[0];
+    return mapErrorResponse(data, params);
+  }
 
-      // Nếu chưa có code/message ở root, lấy từ error đầu tiên
-      if (!data.code && firstError.code) {
-        data.code = firstError.code;
-      }
-      if (!data.message && firstError.message) {
-        data.message = firstError.message;
-      }
-
-      // Dịch từng lỗi validation (có field) hoặc lỗi business (không có field)
-      data.errors = data.errors.map((err) => {
-        if (err && typeof err === 'object' && err.code) {
-          let translatedMessage = err.message;
-
-          // Validation error (có field): validation.{field}.{code}
-          if (err.field) {
-            const fieldKey = `validation.${err.field}.${err.code}`;
-            const fieldParams = err.params || {};
-            if (i18n.exists(fieldKey, { ns: 'api' })) {
-              translatedMessage = i18n.t(fieldKey, { ...fieldParams, ns: 'api' });
-            }
-          } else {
-            // Business error (không có field): error.{code}
-            const errorKey = `error.${err.code}`;
-            if (i18n.exists(errorKey, { ns: 'api' })) {
-              translatedMessage = i18n.t(errorKey, { ...params, ns: 'api' });
-            }
-          }
-
-          return {
-            ...err,
-            message: translatedMessage || i18n.t('common.UNKNOWN_ERROR', { ns: 'api' }),
-          };
-        }
-        return err;
-      });
-    }
-
-    // Dịch message ở root level theo code
-    if (data.code) {
-      const key = `error.${data.code}`;
-      if (i18n.exists(key, { ns: 'api' })) {
-        data.message = i18n.t(key, { ...params, ns: 'api' });
-      } else if (!data.message) {
-        data.message = i18n.t('common.UNKNOWN_ERROR', { ns: 'api' });
-      }
-    } else if (!data.message) {
-      data.message = i18n.t('common.UNKNOWN_ERROR', { ns: 'api' });
-    }
-  } else {
-    // 3. Thông báo thành công theo code
-    if (data.code) {
-      const key = `success.${data.code}`;
-      if (i18n.exists(key, { ns: 'api' })) {
-        data.message = i18n.t(key, { ...params, ns: 'api', defaultValue: data.message });
-      }
+  // 3. Thông báo thành công theo code
+  if (data.code) {
+    const key = `success.${data.code}`;
+    if (i18n.exists(key, { ns: 'api' })) {
+      data.message = i18n.t(key, { ...params, ns: 'api', defaultValue: data.message });
     }
   }
 
@@ -117,7 +114,7 @@ apiClient.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => { throw error; }
 );
 
 apiClient.interceptors.response.use(
@@ -145,7 +142,7 @@ apiClient.interceptors.response.use(
             originalRequest.headers.Authorization = `Bearer ${token}`;
             return apiClient(originalRequest);
           })
-          .catch((err) => Promise.reject(err));
+          .catch((err) => { throw err; });
       }
 
       originalRequest._retry = true;
@@ -166,7 +163,7 @@ apiClient.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
         handleForceLogout();
-        return Promise.reject(refreshError);
+        throw refreshError;
       } finally {
         isRefreshing = false;
       }
@@ -184,7 +181,7 @@ apiClient.interceptors.response.use(
       error.message = i18n.t('api:common.UNKNOWN_ERROR');
     }
 
-    return Promise.reject(error);
+    throw error;
   }
 );
 
