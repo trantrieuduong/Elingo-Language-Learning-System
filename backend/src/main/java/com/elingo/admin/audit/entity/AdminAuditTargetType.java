@@ -15,6 +15,7 @@ public enum AdminAuditTargetType {
     LEVEL,
     BADGE,
     POST,
+    POST_GROUP,
     COMMENT,
     REPORT,
     PREMIUM_PLAN,

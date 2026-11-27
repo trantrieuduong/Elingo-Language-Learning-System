@@ -37,9 +37,12 @@ public enum AdminAuditAction {
     SEGMENT_UPDATE,
     SEGMENT_DELETE,
 
-    // Kiểm duyệt cộng đồng
+    // Cộng đồng
     POST_APPROVE,
     POST_REJECT,
+    POST_GROUP_CREATE,
+    POST_GROUP_UPDATE,
+    POST_GROUP_DELETE,
 
     // Báo cáo vi phạm
     REPORT_RESOLVE,

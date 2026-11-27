@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -149,4 +150,16 @@ public interface PostRepository extends JpaRepository<Post, Long> {
               AND p.status IN (com.elingo.community.entity.PostStatus.PENDING, com.elingo.community.entity.PostStatus.NEEDS_REVIEW)
             """)
     int updateStatusForManualModeration(@Param("postId") Long postId, @Param("targetStatus") PostStatus targetStatus);
+
+    boolean existsByGroupId(Long groupId);
+
+    long countByGroupId(Long groupId);
+
+    @Query("""
+            SELECT p.group.id AS groupId, p.group.groupName AS groupName, COUNT(p.id) AS postCount
+            FROM Post p
+            WHERE p.group.id IN :groupIds
+            GROUP BY p.group.id, p.group.groupName
+            """)
+    List<PostGroupCountProjection> countPostsByGroupIds(@Param("groupIds") Collection<Long> groupIds);
 }
