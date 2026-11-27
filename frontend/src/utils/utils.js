@@ -12,7 +12,7 @@
 export const formatDate = (dateInput, options = {}) => {
   if (!dateInput) return '';
   const date = new Date(dateInput);
-  if (isNaN(date.getTime())) return '';
+  if (Number.isNaN(date.getTime())) return '';
 
   const normalizedOptions = typeof options === 'string' ? { locale: options } : options;
   const { locale = 'vi-VN', ...fmtOptions } = normalizedOptions;
@@ -53,7 +53,7 @@ export const formatDateTime = (dateInput, options = {}) => {
 export const formatRelativeTime = (dateInput, locale = 'vi') => {
   if (!dateInput) return '';
   const date = new Date(dateInput);
-  if (isNaN(date.getTime())) return '';
+  if (Number.isNaN(date.getTime())) return '';
 
   const diffMs = Date.now() - date.getTime();
   if (diffMs < 0) return '';
@@ -97,7 +97,7 @@ export const truncate = (str, maxLength = 100) => {
  * @returns {boolean}
  */
 export const isValidEmail = (email) => {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  return /^[^\s@]+@[^.\s@]+(?:\.[^.\s@]+)+$/.test(email);
 };
 
 /**

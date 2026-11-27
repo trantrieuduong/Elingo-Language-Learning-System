@@ -180,7 +180,7 @@ const BattleHistoryPage = ({ onNavigate }) => {
         // Lỗi stats không chặn danh sách (ẩn khối stats)
       }
     };
-    fetchStats();
+    void fetchStats();
     return () => {
       isActive = false;
     };
@@ -220,7 +220,7 @@ const BattleHistoryPage = ({ onNavigate }) => {
       }
     };
 
-    fetchHistory();
+    void fetchHistory();
 
     return () => {
       isActive = false;

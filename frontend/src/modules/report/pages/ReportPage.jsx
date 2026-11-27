@@ -60,7 +60,7 @@ function ReportPage({ onNavigate }) {
       }
     };
 
-    fetchReports();
+    void fetchReports();
 
     return () => {
       isMounted = false;

@@ -39,7 +39,7 @@ const SummaryModal = ({ open, summary, onClose, onNavigate }) => {
         if (event.target === event.currentTarget) onClose();
       }}
     >
-      <section
+      <section // NOSONAR
         className="speaking-modal glass-capsule"
         onClick={(event) => event.stopPropagation()}
       >

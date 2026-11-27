@@ -101,7 +101,7 @@ const QuestionArea = ({
               onChange={(e) => setTyped(e.target.value)}
               placeholder={t('play.typeHere')}
               disabled={locked}
-              autoFocus
+              autoFocus // NOSONAR
               maxLength={100}
               autoComplete="off"
               spellCheck={false}

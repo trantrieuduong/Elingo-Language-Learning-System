@@ -46,7 +46,7 @@ export default function SystemConfigPage({ onNavigate: _onNavigate }) {
         // Silently tolerate module fetch failure
       }
     };
-    loadModules();
+    void loadModules();
   }, []);
 
   // Load configs
@@ -73,7 +73,7 @@ export default function SystemConfigPage({ onNavigate: _onNavigate }) {
   );
 
   useEffect(() => {
-    loadConfigs(false);
+    void loadConfigs(false);
   }, [loadConfigs]);
 
   // Client-side quick search filter

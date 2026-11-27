@@ -15,8 +15,8 @@ const RoomControls = ({
   const unreadBadgeText = chatUnread > 9 ? '9+' : chatUnread > 0 ? String(chatUnread) : null;
 
   return (
-    <footer className="speaking-room-controls glass-capsule" role="toolbar" aria-label="Controls">
-      <div className="speaking-room-controls__inner">
+    <footer className="speaking-room-controls glass-capsule">
+      <div className="speaking-room-controls__inner" role="toolbar" aria-label="Controls">
         {/* Nút bật/tắt Micro */}
         <button
           type="button"

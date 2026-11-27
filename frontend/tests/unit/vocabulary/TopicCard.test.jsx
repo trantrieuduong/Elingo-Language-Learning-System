@@ -57,6 +57,7 @@ describe('TopicCard', () => {
       await user.click(screen.getByText(MOCK_TOPIC.name))
       await user.click(screen.getByTitle(tr('learning:topic.editTopic')))
       await user.click(screen.getByTitle(tr('learning:topic.deleteTopic')))
+      expect(screen.getByText(MOCK_TOPIC.name)).toBeInTheDocument()
     })
   })
 })

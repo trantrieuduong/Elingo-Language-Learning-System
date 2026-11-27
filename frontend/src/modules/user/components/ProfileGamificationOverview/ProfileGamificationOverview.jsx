@@ -45,7 +45,7 @@ function ProfileGamificationOverview({ profile, actionMenu }) {
   };
 
   useEffect(() => {
-    fetchProfileGamification();
+    void fetchProfileGamification();
   }, [profile.id, calendarYear, calendarMonth]);
 
   const handlePrevMonth = () => {

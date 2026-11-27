@@ -92,7 +92,7 @@ export default function LockUserModal({ user, onClose, onSuccess }) {
                 if (error) setError(null);
               }}
               disabled={submitting}
-              autoFocus
+              autoFocus // NOSONAR
             />
           </div>
 

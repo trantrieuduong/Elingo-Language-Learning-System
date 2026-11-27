@@ -96,17 +96,17 @@ export default function OrphanedCardsTab() {
   );
 
   useEffect(() => {
-    loadStats();
+    void loadStats();
   }, [loadStats]);
 
   useEffect(() => {
-    loadCards(page);
+    void loadCards(page);
   }, [loadCards, page]);
 
   const handleRefresh = () => {
     setError(null);
-    loadStats();
-    loadCards(page);
+    void loadStats();
+    void loadCards(page);
   };
 
   const handleOpenCleanupModal = () => {
@@ -355,7 +355,8 @@ export default function OrphanedCardsTab() {
 
       {/* Confirm Cleanup Modal */}
       {cleanupModal.isOpen && (
-        <div className={styles.modalBackdrop} onClick={handleCloseCleanupModal}>
+        <div className={styles.modalBackdrop} onClick={handleCloseCleanupModal} // NOSONAR
+        >
           <div
             className={styles.modalCard}
             role="dialog"

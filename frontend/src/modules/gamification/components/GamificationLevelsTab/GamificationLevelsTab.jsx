@@ -37,7 +37,7 @@ function GamificationLevelsTab({ userId }) {
   };
 
   useEffect(() => {
-    fetchLevelsData();
+    void fetchLevelsData();
   }, [userId]);
 
   if (loading) {

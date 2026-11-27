@@ -111,7 +111,7 @@ function GamificationLeaderboardTab() {
         return;
       }
     }
-    fetchLeaderboard();
+    void fetchLeaderboard();
   }, [mode, periodType, periodKey, page]);
 
   const columns = [

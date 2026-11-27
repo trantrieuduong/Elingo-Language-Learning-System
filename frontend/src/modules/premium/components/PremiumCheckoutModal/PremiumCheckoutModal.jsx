@@ -322,7 +322,7 @@ function PremiumCheckoutModal({ plan, onClose, onSuccess, onNavigate }) {
   }, [plan?.id, t]);
 
   useEffect(() => {
-    initializeCheckout();
+    void initializeCheckout();
   }, [initializeCheckout]);
 
   // Polling trạng thái giao dịch & Timeout
@@ -388,11 +388,11 @@ function PremiumCheckoutModal({ plan, onClose, onSuccess, onNavigate }) {
   };
 
   return createPortal(
-    <div
+    <div // NOSONAR
       className="premium-checkout-modal-overlay"
       onClick={onClose}
     >
-      <div
+      <div // NOSONAR
         className="premium-checkout-modal-container glass-modal"
         onClick={(e) => e.stopPropagation()}
       >

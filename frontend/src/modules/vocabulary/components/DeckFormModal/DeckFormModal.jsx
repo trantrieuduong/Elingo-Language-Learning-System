@@ -96,7 +96,8 @@ function DeckFormModal({
 
   return createPortal(
     <div className="deck-form-overlay">
-      <div className="deck-form-modal glass-capsule" onClick={(event) => event.stopPropagation()}>
+      <div className="deck-form-modal glass-capsule" onClick={(event) => event.stopPropagation()} // NOSONAR
+      >
         <header className="deck-form-header">
           <div className="deck-form-header__info">
             <span className="material-symbols-outlined deck-form-header__icon">

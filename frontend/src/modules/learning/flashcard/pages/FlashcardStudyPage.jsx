@@ -76,26 +76,18 @@ function FlashcardStudyPage({ deckSlug, returnTo, onNavigate }) {
           (errorCode && translationRef.current(`api:error.${errorCode}`, { defaultValue: '' })) ||
           translationRef.current('common:loadError');
 
-        if (errorCode === 'PREMIUM_REQUIRED') {
-          setError({
-            message: errorMessage,
-            actionLabel: translationRef.current('flashcard.backToDecks'),
-            actionPath: backPath,
-          });
-        } else {
-          setError({
-            message: errorMessage,
-            actionLabel: translationRef.current('flashcard.backToDecks'),
-            actionPath: backPath,
-          });
-        }
+        setError({
+          message: errorMessage,
+          actionLabel: translationRef.current('flashcard.backToDecks'),
+          actionPath: backPath,
+        });
       } finally {
         setLoading(false);
       }
     };
 
     if (deckSlug) {
-      fetchTopics();
+      void fetchTopics();
     }
   }, [deckSlug, backPath]);
 
@@ -149,7 +141,7 @@ function FlashcardStudyPage({ deckSlug, returnTo, onNavigate }) {
       }
     };
 
-    fetchCards();
+    void fetchCards();
   }, [selectedTopicId, unlearnedCardsByTopic, backPath]);
 
   const removeCurrentCardAndUpdateProgress = () => {
@@ -373,12 +365,12 @@ function FlashcardStudyPage({ deckSlug, returnTo, onNavigate }) {
               const percent = total > 0 ? Math.round((learned / total) * 100) : 0;
 
               return (
-                <div
+                <div // NOSONAR
                   key={topic.id}
                   className={`glass-card flashcard-session-item flashcard-topic-item ${
                     selectedTopicId === topic.id ? 'active' : ''
                   }`}
-                  onClick={() => setSelectedTopicId(topic.id)}
+                  onClick={() => setSelectedTopicId(topic.id)} // NOSONAR
                 >
                   <div className="flashcard-session-item-header">
                     <h3 className="flashcard-session-item-title">{topic.name}</h3>

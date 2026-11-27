@@ -55,7 +55,7 @@ export const NotificationProvider = ({ children }) => {
 
   useEffect(() => {
     if (user) {
-      fetchUnreadCount();
+      void fetchUnreadCount();
     }
   }, [user]);
 
@@ -155,7 +155,7 @@ export const NotificationProvider = ({ children }) => {
       }
     } catch (err) {
       console.error('Failed to mark notification as read:', err);
-      fetchUnreadCount();
+      void fetchUnreadCount();
       return { success: false, error: err };
     } finally {
       markingReadIdsRef.current.delete(id);
@@ -179,7 +179,7 @@ export const NotificationProvider = ({ children }) => {
       }
     } catch (err) {
       console.error('Failed to mark all notifications as read:', err);
-      fetchUnreadCount();
+      void fetchUnreadCount();
       return { success: false, error: err };
     }
   };

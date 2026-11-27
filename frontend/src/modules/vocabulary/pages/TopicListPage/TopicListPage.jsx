@@ -334,7 +334,7 @@ function TopicListPage({ deckId, onNavigate }) {
       }
     };
 
-    fetchDeck();
+    void fetchDeck();
 
     return () => {
       isActive = false;
@@ -369,7 +369,7 @@ function TopicListPage({ deckId, onNavigate }) {
         if (isActive) setIsLoadingTopics(false);
       }
     };
-    fetchTopics();
+    void fetchTopics();
 
     return () => {
       isActive = false;
@@ -417,7 +417,7 @@ function TopicListPage({ deckId, onNavigate }) {
       }
     };
 
-    fetchCards();
+    void fetchCards();
     return () => {
       isCurrentRequest = false;
     };

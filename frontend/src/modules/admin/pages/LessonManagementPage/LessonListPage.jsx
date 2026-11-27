@@ -76,7 +76,7 @@ export default function LessonListPage({ onNavigate }) {
         // Silently tolerate catalog failure
       }
     };
-    loadCatalogs();
+    void loadCatalogs();
   }, []);
 
   // Load lessons
@@ -113,7 +113,7 @@ export default function LessonListPage({ onNavigate }) {
   );
 
   useEffect(() => {
-    loadLessons();
+    void loadLessons();
   }, [loadLessons]);
 
   // Auto-dismiss toast after 4s
@@ -159,7 +159,7 @@ export default function LessonListPage({ onNavigate }) {
   const handleStatusSuccess = () => {
     setStatusModal({ isOpen: false, lesson: null });
     setToastMessage(t('content.lessons.statusUpdateSuccess'));
-    loadLessons();
+    void loadLessons();
   };
 
   const handleOpenCreate = () => {
@@ -179,7 +179,7 @@ export default function LessonListPage({ onNavigate }) {
     if (!isEdit && page !== 1) {
       setPage(1);
     } else {
-      loadLessons();
+      void loadLessons();
     }
   };
 

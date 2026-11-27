@@ -88,7 +88,7 @@ export default function PostGroupManagementPage() {
   }, [appliedFilters, page]);
 
   useEffect(() => {
-    fetchGroups();
+    void fetchGroups();
   }, [fetchGroups]);
 
   const handleApplyFilters = (e) => {
@@ -109,13 +109,13 @@ export default function PostGroupManagementPage() {
     setToastMessage(
       mode === 'edit' ? t('postGroups.toast.updated') : t('postGroups.toast.created')
     );
-    fetchGroups(true);
+    void fetchGroups(true);
   };
 
   const handleDeleteSuccess = () => {
     setDeleteModal({ isOpen: false, group: null });
     setToastMessage(t('postGroups.toast.deleted'));
-    fetchGroups(true);
+    void fetchGroups(true);
   };
 
   const columns = useMemo(() => [

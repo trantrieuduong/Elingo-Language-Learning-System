@@ -272,7 +272,7 @@ function useDeckMetadata() {
       }
     };
 
-    fetchMetadata();
+    void fetchMetadata();
   }, []);
 
   return { tags, cefrLevels };
@@ -299,7 +299,7 @@ function usePublicDecks({
     setLoading(true);
     setError(null);
 
-    executeFetchPublicDecks({
+    void executeFetchPublicDecks({
       params: { activeTab, debouncedQuery, selectedTagIds, selectedCefrLevelIds, page },
       isCancelled: () => !isActive,
       onSuccess: (fetchedDecks, pages) => {
@@ -346,7 +346,7 @@ function useUserDecks({
     setLoading(true);
     setError(null);
 
-    executeFetchUserDecks({
+    void executeFetchUserDecks({
       params: { debouncedQuery, userDeckStatusFilter, userDeckPage },
       isCancelled: () => !isActive,
       onSuccess: (fetchedDecks, pages) => {

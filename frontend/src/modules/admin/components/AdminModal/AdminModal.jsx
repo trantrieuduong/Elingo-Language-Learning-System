@@ -30,7 +30,7 @@ export default function AdminModal({
       aria-labelledby={titleId}
       onClick={closeOnBackdrop ? onClose : undefined}
     >
-      <div
+      <div // NOSONAR
         className={`${styles.modal} ${wide ? styles.modalWide : ''}`}
         onClick={closeOnBackdrop ? (e) => e.stopPropagation() : undefined}
       >

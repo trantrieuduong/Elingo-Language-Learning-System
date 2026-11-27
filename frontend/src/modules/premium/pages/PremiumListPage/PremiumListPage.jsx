@@ -46,7 +46,7 @@ function PremiumListPage({ onNavigate }) {
       }
     };
 
-    fetchPlans();
+    void fetchPlans();
 
     return () => {
       isMounted = false;

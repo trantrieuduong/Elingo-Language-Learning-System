@@ -197,9 +197,9 @@ export default function PostModerationPage({ initialPostId = '' }) {
 
   useEffect(() => {
     if (activeTab === 'posts') {
-      fetchPosts();
+      void fetchPosts();
     } else {
-      fetchLogs();
+      void fetchLogs();
     }
   }, [activeTab, fetchPosts, fetchLogs]);
 
@@ -298,7 +298,7 @@ export default function PostModerationPage({ initialPostId = '' }) {
         ? t('postModeration.toast.rejected')
         : t('postModeration.toast.approved')
     );
-    fetchPosts(true);
+    void fetchPosts(true);
   };
 
   const postColumns = useMemo(() => [

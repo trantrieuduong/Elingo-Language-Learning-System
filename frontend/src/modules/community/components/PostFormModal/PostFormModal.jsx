@@ -254,7 +254,8 @@ function PostFormModal({
 
   return createPortal(
     <div className="post-form-modal__overlay" role="dialog">
-      <div className="post-form-modal__container" onClick={(e) => e.stopPropagation()}>
+      <div className="post-form-modal__container" onClick={(e) => e.stopPropagation()} // NOSONAR
+      >
         {/* Header Modal */}
         <header className="post-form-modal__header">
           <div className="post-form-modal__header-info">

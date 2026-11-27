@@ -61,7 +61,7 @@ function UserProfilePage({ userId, onNavigate }) {
   };
 
   useEffect(() => {
-    fetchUserProfile();
+    void fetchUserProfile();
   }, [userId]);
 
   const options = [

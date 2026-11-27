@@ -204,7 +204,7 @@ function Header({ onNavigate, currentPath }) {
   };
 
   const changeLanguage = (lng) => {
-    i18n.changeLanguage(lng);
+    void i18n.changeLanguage(lng);
   };
 
   const currentLanguage = i18n.language || 'vi';

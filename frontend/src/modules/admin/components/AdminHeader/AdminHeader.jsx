@@ -67,7 +67,7 @@ export default function AdminHeader({
 
   const handleToggleLang = () => {
     const nextLang = currentLang.startsWith('vi') ? 'en' : 'vi';
-    i18n.changeLanguage(nextLang);
+    void i18n.changeLanguage(nextLang);
   };
 
   const handleBackToLearnerApp = () => {
@@ -165,7 +165,7 @@ export default function AdminHeader({
 
       if (i18nKey) {
         label = t(i18nKey);
-      } else if (!isNaN(Number(seg))) {
+      } else if (!Number.isNaN(Number(seg))) {
         label = `#${seg}`;
       }
 

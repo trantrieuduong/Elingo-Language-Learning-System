@@ -5,7 +5,7 @@
  * @returns {string} Chuỗi thời lượng (ví dụ "02:30", "01:15:00") hoặc chuỗi rỗng nếu không hợp lệ
  */
 export const formatDuration = (ms) => {
-  if (ms === null || ms === undefined || typeof ms !== 'number' || isNaN(ms) || ms <= 0) {
+  if (ms === null || ms === undefined || typeof ms !== 'number' || Number.isNaN(ms) || ms <= 0) {
     return '';
   }
 

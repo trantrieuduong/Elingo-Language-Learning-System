@@ -44,12 +44,17 @@ function PostDetailPage({ postId, canGoBack, onNavigate }) {
   useEffect(() => {
     let isSubscribed = true;
     window.scrollTo({ top: 0, behavior: 'instant' });
-    fetchPost().then(({ post: loadedPost, error: loadError }) => {
-      if (!isSubscribed) return;
-      setPost(loadedPost);
-      setError(loadError);
-      setIsLoading(false);
-    });
+    void fetchPost()
+      .then(({ post: loadedPost, error: loadError }) => {
+        if (!isSubscribed) return;
+        setPost(loadedPost);
+        setError(loadError);
+        setIsLoading(false);
+      })
+      .catch(() => {
+        if (!isSubscribed) return;
+        setIsLoading(false);
+      });
 
     return () => {
       isSubscribed = false;

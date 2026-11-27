@@ -36,7 +36,7 @@ function SignupPage({ onNavigate }) {
     }
     if (!form.email.trim()) {
       newErrors.email = t('emailRequired');
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+    } else if (!/^[^\s@]+@[^.\s@]+(?:\.[^.\s@]+)+$/.test(form.email)) {
       newErrors.email = t('emailInvalid');
     }
     if (!form.password) {
