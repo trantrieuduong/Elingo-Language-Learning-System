@@ -287,3 +287,130 @@ export const cleanupOrphanedCards = async () => {
   const res = await apiClient.post('/admin/orphaned-cards/cleanup');
   return res.data?.data;
 };
+
+/* ============================================================
+   7. LESSONS API (AdminLessonController)
+   ============================================================ */
+
+/**
+ * Tìm kiếm/lọc bài học (AdminLessonSearchRequest + Pageable, 1-indexed)
+ * @param {Object} params - { keyword, status, isPremium, tagIds, cefrLevelIds, page, size, sort }
+ * @returns {Promise<Object>} PageResponse<AdminLessonResponse>
+ */
+export const fetchAdminLessons = async (params = {}) => {
+  const query = {};
+  if (params.keyword && params.keyword.trim()) {
+    query.keyword = params.keyword.trim();
+  }
+  if (params.status) {
+    query.status = params.status;
+  }
+  if (typeof params.isPremium === 'boolean') {
+    query.isPremium = params.isPremium;
+  }
+  if (Array.isArray(params.tagIds) && params.tagIds.length > 0) {
+    query.tagIds = params.tagIds;
+  }
+  if (Array.isArray(params.cefrLevelIds) && params.cefrLevelIds.length > 0) {
+    query.cefrLevelIds = params.cefrLevelIds;
+  }
+  if (params.page !== undefined && params.page !== null) {
+    query.page = params.page;
+  }
+  if (params.size !== undefined && params.size !== null) {
+    query.size = params.size;
+  }
+  if (params.sort) {
+    query.sort = params.sort;
+  }
+
+  const res = await apiClient.get('/admin/lessons', { params: query });
+  return res.data?.data;
+};
+
+/**
+ * Lấy chi tiết thông tin một bài học theo ID (mọi trạng thái)
+ */
+export const fetchAdminLessonDetail = async (lessonId) => {
+  const res = await apiClient.get(`/admin/lessons/${lessonId}`);
+  return res.data?.data;
+};
+
+/**
+ * Xuất bản bài học (yêu cầu có ít nhất 1 đoạn phụ đề)
+ */
+export const publishAdminLesson = async (lessonId) => {
+  const res = await apiClient.put(`/admin/lessons/${lessonId}/publish`);
+  return res.data?.data;
+};
+
+/**
+ * Hủy xuất bản bài học (chuyển về trạng thái DRAFT, cũng dùng để khôi phục từ ARCHIVED)
+ */
+export const unpublishAdminLesson = async (lessonId) => {
+  const res = await apiClient.put(`/admin/lessons/${lessonId}/unpublish`);
+  return res.data?.data;
+};
+
+/**
+ * Lưu trữ bài học (chuyển sang trạng thái ARCHIVED)
+ */
+export const archiveAdminLesson = async (lessonId) => {
+  const res = await apiClient.put(`/admin/lessons/${lessonId}/archive`);
+  return res.data?.data;
+};
+
+/**
+ * Tạo mới bài học (mặc định ở trạng thái DRAFT)
+ */
+export const createAdminLesson = async (payload) => {
+  const res = await apiClient.post('/admin/lessons', payload);
+  return res.data?.data;
+};
+
+/**
+ * Cập nhật thông tin bài học (ghi đè toàn bộ các trường có thể sửa)
+ */
+export const updateAdminLesson = async (lessonId, payload) => {
+  const res = await apiClient.put(`/admin/lessons/${lessonId}`, payload);
+  return res.data?.data;
+};
+
+/* ============================================================
+   8. LESSON SEGMENTS API (AdminLessonController & AdminLessonSegmentController)
+   ============================================================ */
+
+/**
+ * Lấy danh sách đoạn phụ đề của một bài học (sắp xếp theo startMs tăng dần)
+ * @param {number|string} lessonId
+ * @returns {Promise<Array>} List<AdminLessonSegmentResponse>
+ */
+export const fetchLessonSegments = async (lessonId) => {
+  const res = await apiClient.get(`/admin/lessons/${lessonId}/segments`);
+  return res.data?.data || [];
+};
+
+/**
+ * Tạo mới một đoạn phụ đề cho bài học
+ */
+export const createLessonSegment = async (payload) => {
+  const res = await apiClient.post('/admin/lesson-segments', payload);
+  return res.data?.data;
+};
+
+/**
+ * Cập nhật toàn bộ thông tin một đoạn phụ đề (không truyền lessonId)
+ */
+export const updateLessonSegment = async (segmentId, payload) => {
+  const res = await apiClient.put(`/admin/lesson-segments/${segmentId}`, payload);
+  return res.data?.data;
+};
+
+/**
+ * Xóa một hoặc nhiều đoạn phụ đề của bài học (all-or-nothing)
+ */
+export const deleteLessonSegments = async (lessonId, segmentIds) => {
+  await apiClient.delete(`/admin/lessons/${lessonId}/segments`, {
+    data: { segmentIds },
+  });
+};

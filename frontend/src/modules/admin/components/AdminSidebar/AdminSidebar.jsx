@@ -31,7 +31,10 @@ export default function AdminSidebar({
 
   // Quản lý trạng thái mở dropdown của từng nhóm module
   const [openDropdowns, setOpenDropdowns] = useState({
-    content: normalizedPath.startsWith('/admin/decks') || normalizedPath.startsWith('/admin/tags'),
+    content:
+      normalizedPath.startsWith('/admin/decks') ||
+      normalizedPath.startsWith('/admin/lessons') ||
+      normalizedPath.startsWith('/admin/tags'),
     billing:
       normalizedPath.startsWith('/admin/plans') ||
       normalizedPath.startsWith('/admin/transactions') ||
@@ -112,7 +115,9 @@ export default function AdminSidebar({
             <button
               type="button"
               className={`${styles.navItem} ${styles.dropdownTrigger} ${
-                currentPath.startsWith('/admin/decks') || currentPath.startsWith('/admin/tags')
+                currentPath.startsWith('/admin/decks') ||
+                currentPath.startsWith('/admin/lessons') ||
+                currentPath.startsWith('/admin/tags')
                   ? styles.active
                   : ''
               }`}
@@ -143,6 +148,15 @@ export default function AdminSidebar({
                   onClick={() => handleNav('/admin/decks')}
                 >
                   <span>{t('sidebar.decks')}</span>
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.subMenuItem} ${
+                    currentPath.startsWith('/admin/lessons') ? styles.active : ''
+                  }`}
+                  onClick={() => handleNav('/admin/lessons')}
+                >
+                  <span>{t('sidebar.lessons')}</span>
                 </button>
                 <button
                   type="button"
