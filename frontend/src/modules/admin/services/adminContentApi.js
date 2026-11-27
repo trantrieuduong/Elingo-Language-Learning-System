@@ -375,3 +375,42 @@ export const updateAdminLesson = async (lessonId, payload) => {
   const res = await apiClient.put(`/admin/lessons/${lessonId}`, payload);
   return res.data?.data;
 };
+
+/* ============================================================
+   8. LESSON SEGMENTS API (AdminLessonController & AdminLessonSegmentController)
+   ============================================================ */
+
+/**
+ * Lấy danh sách đoạn phụ đề của một bài học (sắp xếp theo startMs tăng dần)
+ * @param {number|string} lessonId
+ * @returns {Promise<Array>} List<AdminLessonSegmentResponse>
+ */
+export const fetchLessonSegments = async (lessonId) => {
+  const res = await apiClient.get(`/admin/lessons/${lessonId}/segments`);
+  return res.data?.data || [];
+};
+
+/**
+ * Tạo mới một đoạn phụ đề cho bài học
+ */
+export const createLessonSegment = async (payload) => {
+  const res = await apiClient.post('/admin/lesson-segments', payload);
+  return res.data?.data;
+};
+
+/**
+ * Cập nhật toàn bộ thông tin một đoạn phụ đề (không truyền lessonId)
+ */
+export const updateLessonSegment = async (segmentId, payload) => {
+  const res = await apiClient.put(`/admin/lesson-segments/${segmentId}`, payload);
+  return res.data?.data;
+};
+
+/**
+ * Xóa một hoặc nhiều đoạn phụ đề của bài học (all-or-nothing)
+ */
+export const deleteLessonSegments = async (lessonId, segmentIds) => {
+  await apiClient.delete(`/admin/lessons/${lessonId}/segments`, {
+    data: { segmentIds },
+  });
+};

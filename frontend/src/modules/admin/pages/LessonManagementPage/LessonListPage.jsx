@@ -11,6 +11,7 @@ import {
   CheckCircleIcon,
   PlusIcon,
   EditIcon,
+  EyeIcon,
 } from '../../components/icons/AdminIcons';
 import {
   fetchAdminLessons,
@@ -33,7 +34,7 @@ const emptyPageData = {
   isLast: true,
 };
 
-export default function LessonListPage({ onNavigate: _onNavigate }) {
+export default function LessonListPage({ onNavigate }) {
   const { t } = useTranslation('admin');
 
   // Filter state
@@ -205,9 +206,17 @@ export default function LessonListPage({ onNavigate: _onNavigate }) {
               </div>
             )}
             <div className={styles.lessonInfo}>
-              <span className={styles.lessonTitle} title={record.title}>
+              <a
+                href={`/admin/lessons/${record.id}`}
+                className={styles.lessonTitle}
+                title={record.title}
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (onNavigate) onNavigate(`/admin/lessons/${record.id}`);
+                }}
+              >
                 {record.title}
-              </span>
+              </a>
               <span className={styles.lessonSlug}>{record.slug}</span>
               {record.description && (
                 <span className={styles.lessonDesc} title={record.description}>
@@ -326,6 +335,15 @@ export default function LessonListPage({ onNavigate: _onNavigate }) {
         align: 'right',
         render: (_val, record) => (
           <div className={styles.actionsCell}>
+            <button
+              type="button"
+              className={styles.actionBtn}
+              onClick={() => onNavigate && onNavigate(`/admin/lessons/${record.id}`)}
+              title={t('content.lessons.viewDetail')}
+              aria-label={`${t('content.lessons.viewDetail')} ${record.title}`}
+            >
+              <EyeIcon size={15} />
+            </button>
             <button
               type="button"
               className={styles.actionBtn}

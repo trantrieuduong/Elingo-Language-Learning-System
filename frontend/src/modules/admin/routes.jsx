@@ -7,6 +7,7 @@ import PlaceholderAdminPage from './pages/PlaceholderAdminPage/PlaceholderAdminP
 import DeckListPage from './pages/DeckManagementPage/DeckListPage';
 import DeckDetailPage from './pages/DeckManagementPage/DeckDetailPage';
 import LessonListPage from './pages/LessonManagementPage/LessonListPage';
+import LessonDetailPage from './pages/LessonManagementPage/LessonDetailPage';
 import TopicDetailPage from './pages/TopicManagementPage/TopicDetailPage';
 import TagListPage from './pages/TagManagementPage/TagListPage';
 import SystemConfigPage from './pages/SystemConfigPage/SystemConfigPage';
@@ -39,6 +40,12 @@ export default function AdminRoutes({ currentPath, onNavigate }) {
     const deckDetailMatch = currentPath.match(/^\/admin\/decks\/(\d+)$/);
     if (deckDetailMatch) {
       return <DeckDetailPage deckId={deckDetailMatch[1]} onNavigate={onNavigate} />;
+    }
+
+    // 4. Lesson detail: /admin/lessons/{lesson_id}
+    const lessonDetailMatch = currentPath.match(/^\/admin\/lessons\/(\d+)$/);
+    if (lessonDetailMatch) {
+      return <LessonDetailPage lessonId={lessonDetailMatch[1]} onNavigate={onNavigate} />;
     }
 
     switch (currentPath) {

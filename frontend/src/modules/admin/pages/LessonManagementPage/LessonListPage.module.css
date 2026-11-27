@@ -214,6 +214,12 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-decoration: none;
+  transition: color var(--adm-transition-fast);
+}
+
+.lessonTitle:hover {
+  color: var(--adm-accent);
 }
 
 .lessonSlug {
