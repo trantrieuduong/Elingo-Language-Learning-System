@@ -21,6 +21,7 @@ const SEGMENT_KEY_MAP = {
   topics: 'routes.topics',
   plans: 'sidebar.subscriptionPlans',
   transactions: 'sidebar.transactions',
+  'webhook-logs': 'sidebar.webhookLogs',
   posts: 'sidebar.posts',
   comments: 'sidebar.comments',
   groups: 'sidebar.groups',
@@ -150,7 +151,8 @@ export default function AdminHeader({
       return crumbs;
     }
 
-    const segments = currentPath
+    const cleanPath = currentPath.split('?')[0];
+    const segments = cleanPath
       .replace(/^\/admin\/?/, '')
       .split('/')
       .filter(Boolean);

@@ -27,13 +27,18 @@ export default function AdminSidebar({
 }) {
   const { t } = useTranslation('admin');
 
+  const normalizedPath = currentPath.split('?')[0];
+
   // Quản lý trạng thái mở dropdown của từng nhóm module
   const [openDropdowns, setOpenDropdowns] = useState({
-    content: currentPath.startsWith('/admin/decks') || currentPath.startsWith('/admin/tags'),
-    billing: false,
+    content: normalizedPath.startsWith('/admin/decks') || normalizedPath.startsWith('/admin/tags'),
+    billing:
+      normalizedPath.startsWith('/admin/plans') ||
+      normalizedPath.startsWith('/admin/transactions') ||
+      normalizedPath.startsWith('/admin/webhook-logs'),
     community: false,
-    users: currentPath.startsWith('/admin/users') || currentPath.startsWith('/admin/roles'),
-    settings: currentPath.startsWith('/admin/settings'),
+    users: normalizedPath.startsWith('/admin/users') || normalizedPath.startsWith('/admin/roles'),
+    settings: normalizedPath.startsWith('/admin/settings'),
   });
 
   const toggleDropdown = (key) => {
@@ -152,11 +157,17 @@ export default function AdminSidebar({
             )}
           </div>
 
-          {/* 3. Premium và thanh toán (dropdown - chưa làm) */}
+          {/* 3. Premium và thanh toán */}
           <div className={styles.dropdownGroup}>
             <button
               type="button"
-              className={`${styles.navItem} ${styles.dropdownTrigger}`}
+              className={`${styles.navItem} ${styles.dropdownTrigger} ${
+                normalizedPath.startsWith('/admin/plans') ||
+                normalizedPath.startsWith('/admin/transactions') ||
+                normalizedPath.startsWith('/admin/webhook-logs')
+                  ? styles.active
+                  : ''
+              }`}
               onClick={() => toggleDropdown('billing')}
               title={t('sidebar.premiumAndBilling')}
             >
@@ -178,19 +189,30 @@ export default function AdminSidebar({
               <div className={styles.subMenuList}>
                 <button
                   type="button"
-                  className={styles.subMenuItem}
+                  className={`${styles.subMenuItem} ${
+                    normalizedPath.startsWith('/admin/plans') ? styles.active : ''
+                  }`}
                   onClick={() => handleNav('/admin/plans')}
                 >
                   <span>{t('sidebar.subscriptionPlans')}</span>
-                  <span className={styles.pendingBadge}>{t('sidebar.pendingBadge')}</span>
                 </button>
                 <button
                   type="button"
-                  className={styles.subMenuItem}
+                  className={`${styles.subMenuItem} ${
+                    normalizedPath.startsWith('/admin/transactions') ? styles.active : ''
+                  }`}
                   onClick={() => handleNav('/admin/transactions')}
                 >
                   <span>{t('sidebar.transactions')}</span>
-                  <span className={styles.pendingBadge}>{t('sidebar.pendingBadge')}</span>
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.subMenuItem} ${
+                    normalizedPath.startsWith('/admin/webhook-logs') ? styles.active : ''
+                  }`}
+                  onClick={() => handleNav('/admin/webhook-logs')}
+                >
+                  <span>{t('sidebar.webhookLogs')}</span>
                 </button>
               </div>
             )}
