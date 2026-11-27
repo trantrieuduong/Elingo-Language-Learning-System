@@ -72,3 +72,4 @@ __pycache__/
 ai-logs.txt
 
 coverage/
+.scannerwork/
