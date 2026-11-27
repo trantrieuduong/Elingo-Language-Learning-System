@@ -6,7 +6,6 @@ import {
   BookOpenIcon,
   CreditCardIcon,
   MessageSquareIcon,
-  AlertTriangleIcon,
   UsersIcon,
   SettingsIcon,
   ChevronDownIcon,
@@ -36,7 +35,11 @@ export default function AdminSidebar({
       normalizedPath.startsWith('/admin/plans') ||
       normalizedPath.startsWith('/admin/transactions') ||
       normalizedPath.startsWith('/admin/webhook-logs'),
-    community: false,
+    community:
+      normalizedPath.startsWith('/admin/posts') ||
+      normalizedPath.startsWith('/admin/reports') ||
+      normalizedPath.startsWith('/admin/comments') ||
+      normalizedPath.startsWith('/admin/groups'),
     users: normalizedPath.startsWith('/admin/users') || normalizedPath.startsWith('/admin/roles'),
     settings: normalizedPath.startsWith('/admin/settings'),
   });
@@ -218,11 +221,18 @@ export default function AdminSidebar({
             )}
           </div>
 
-          {/* 4. Bài viết và cộng đồng (dropdown - chưa làm) */}
+          {/* 4. Bài viết và cộng đồng (gồm Kiểm duyệt bài viết & Báo cáo vi phạm) */}
           <div className={styles.dropdownGroup}>
             <button
               type="button"
-              className={`${styles.navItem} ${styles.dropdownTrigger}`}
+              className={`${styles.navItem} ${styles.dropdownTrigger} ${
+                normalizedPath.startsWith('/admin/posts') ||
+                normalizedPath.startsWith('/admin/reports') ||
+                normalizedPath.startsWith('/admin/comments') ||
+                normalizedPath.startsWith('/admin/groups')
+                  ? styles.active
+                  : ''
+              }`}
               onClick={() => toggleDropdown('community')}
               title={t('sidebar.communityAndPosts')}
             >
@@ -244,15 +254,27 @@ export default function AdminSidebar({
               <div className={styles.subMenuList}>
                 <button
                   type="button"
-                  className={styles.subMenuItem}
+                  className={`${styles.subMenuItem} ${
+                    normalizedPath.startsWith('/admin/posts') ? styles.active : ''
+                  }`}
                   onClick={() => handleNav('/admin/posts')}
                 >
                   <span>{t('sidebar.posts')}</span>
-                  <span className={styles.pendingBadge}>{t('sidebar.pendingBadge')}</span>
                 </button>
                 <button
                   type="button"
-                  className={styles.subMenuItem}
+                  className={`${styles.subMenuItem} ${
+                    normalizedPath.startsWith('/admin/reports') ? styles.active : ''
+                  }`}
+                  onClick={() => handleNav('/admin/reports')}
+                >
+                  <span>{t('sidebar.reports')}</span>
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.subMenuItem} ${
+                    normalizedPath.startsWith('/admin/comments') ? styles.active : ''
+                  }`}
                   onClick={() => handleNav('/admin/comments')}
                 >
                   <span>{t('sidebar.comments')}</span>
@@ -260,7 +282,9 @@ export default function AdminSidebar({
                 </button>
                 <button
                   type="button"
-                  className={styles.subMenuItem}
+                  className={`${styles.subMenuItem} ${
+                    normalizedPath.startsWith('/admin/groups') ? styles.active : ''
+                  }`}
                   onClick={() => handleNav('/admin/groups')}
                 >
                   <span>{t('sidebar.groups')}</span>
@@ -269,22 +293,6 @@ export default function AdminSidebar({
               </div>
             )}
           </div>
-
-          {/* 5. Báo cáo (chưa làm) */}
-          <button
-            type="button"
-            className={`${styles.navItem} ${currentPath === '/admin/reports' ? styles.active : ''}`}
-            onClick={() => handleNav('/admin/reports')}
-            title={t('sidebar.reports')}
-          >
-            <AlertTriangleIcon size={18} className={styles.navIcon} />
-            {!isCollapsed && (
-              <>
-                <span className={styles.navLabel}>{t('sidebar.reports')}</span>
-                <span className={styles.pendingBadge}>{t('sidebar.pendingBadge')}</span>
-              </>
-            )}
-          </button>
 
           {/* 6. Người dùng (dropdown) */}
           <div className={styles.dropdownGroup}>

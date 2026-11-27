@@ -1,0 +1,252 @@
+.pageContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+}
+
+:where(button, input, select, textarea) {
+  font-family: var(--font-body, 'Be Vietnam Pro', sans-serif);
+}
+
+.toast {
+  position: fixed;
+  top: 70px;
+  right: 24px;
+  background: var(--adm-bg-surface);
+  border: 1px solid var(--adm-badge-green-text);
+  box-shadow: 0 4px 12px var(--adm-bg-overlay);
+  border-radius: 6px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--adm-text-main);
+  z-index: 1100;
+}
+
+.toastIcon {
+  color: var(--adm-badge-green-text);
+  flex-shrink: 0;
+}
+
+.toastCloseBtn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: var(--adm-text-subtle);
+  cursor: pointer;
+  padding: 0 0 0 6px;
+  line-height: 1;
+}
+
+.toastCloseBtn:hover {
+  color: var(--adm-text-main);
+}
+
+.pageHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.headerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.headerIcon {
+  color: var(--adm-accent);
+}
+
+.title {
+  font-family: var(--font-display, 'Space Grotesk', sans-serif);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--adm-text-main);
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--adm-text-muted);
+  margin: 0;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.refreshBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  background: var(--adm-bg-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--adm-text-main);
+  cursor: pointer;
+}
+
+.refreshBtn:hover:not(:disabled) {
+  background: var(--adm-bg-surface-subtle);
+  border-color: var(--adm-border-strong);
+}
+
+.refreshBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.tableSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.descCell {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--adm-text-main);
+}
+
+.userCell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.targetCell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.targetLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--adm-accent);
+}
+
+.targetLink:hover {
+  text-decoration: underline;
+}
+
+.userName {
+  font-weight: 500;
+  color: var(--adm-text-main);
+}
+
+.mutedMeta {
+  font-size: 11px;
+  color: var(--adm-text-subtle);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badgeGreen {
+  background: var(--adm-badge-green-bg);
+  color: var(--adm-badge-green-text);
+}
+
+.badgeAmber {
+  background: var(--adm-badge-amber-bg);
+  color: var(--adm-badge-amber-text);
+}
+
+.badgeRed {
+  background: var(--adm-badge-red-bg);
+  color: var(--adm-badge-red-text);
+}
+
+.badgeBlue {
+  background: var(--adm-badge-blue-bg);
+  color: var(--adm-badge-blue-text);
+}
+
+.badgeMuted {
+  background: var(--adm-bg-surface-muted);
+  color: var(--adm-text-muted);
+}
+
+.actionGroup {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.iconBtn {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid var(--adm-border);
+  background: var(--adm-bg-surface);
+  color: var(--adm-text-muted);
+  cursor: pointer;
+}
+
+.iconBtn:hover {
+  background: var(--adm-bg-surface-subtle);
+  color: var(--adm-text-main);
+  border-color: var(--adm-border-strong);
+}
+
+.iconBtnResolve:hover {
+  color: var(--adm-badge-green-text);
+  border-color: var(--adm-badge-green-text);
+  background: var(--adm-badge-green-bg);
+}
+
+.iconBtnReject:hover {
+  color: var(--adm-badge-red-text);
+  border-color: var(--adm-badge-red-text);
+  background: var(--adm-badge-red-bg);
+}

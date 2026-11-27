@@ -57,12 +57,6 @@ describe('AdminSidebar component', () => {
           name: lng === 'vi' ? 'Bài viết và cộng đồng' : 'Community & Posts',
         })
       ).toBeInTheDocument();
-
-      expect(
-        screen.getByRole('button', {
-          name: new RegExp(lng === 'vi' ? 'Báo cáo vi phạm' : 'Violation Reports', 'i'),
-        })
-      ).toBeInTheDocument();
     });
 
     it('highlights active item matching currentPath', () => {

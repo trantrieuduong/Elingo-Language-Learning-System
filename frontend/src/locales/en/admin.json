@@ -851,5 +851,180 @@
       "invalidSort": "Invalid sort field",
       "generic": "Unable to load webhook logs."
     }
+  },
+  "postModeration": {
+    "title": "Post Moderation & Management",
+    "subtitle": "Review flagged community posts, perform manual decisions, and inspect AI moderation logs",
+    "refresh": "Refresh",
+    "postsCountSuffix": "posts",
+    "logsCountSuffix": "logs",
+    "emptyPosts": "No posts match the current filters",
+    "emptyLogs": "No moderation logs match the current filters",
+    "tabs": {
+      "posts": "Post Moderation",
+      "logs": "Moderation Logs"
+    },
+    "filter": {
+      "keywordPlaceholder": "Search by post title...",
+      "allStatus": "All statuses",
+      "allGroups": "All groups",
+      "userIdPlaceholder": "Author ID",
+      "fromDate": "From date",
+      "toDate": "To date",
+      "sortLabel": "Sort by",
+      "sortCreatedDesc": "Newest first",
+      "sortCreatedAsc": "Oldest first",
+      "sortIdDesc": "ID descending",
+      "apply": "Apply",
+      "reset": "Reset",
+      "invalidDateRange": "Invalid date range (max 366 days and From <= To)"
+    },
+    "columns": {
+      "post": "Post",
+      "author": "Author",
+      "group": "Group",
+      "status": "Status",
+      "aiResult": "Latest Moderation",
+      "createdAt": "Created At",
+      "actions": "Actions"
+    },
+    "status": {
+      "PENDING": "Pending AI",
+      "NEEDS_REVIEW": "Needs Review",
+      "PUBLISHED": "Published",
+      "REJECTED": "Rejected",
+      "DELETED": "Deleted"
+    },
+    "actorType": {
+      "AI": "AI System",
+      "ADMIN": "Administrator"
+    },
+    "action": {
+      "AUTO_APPROVE": "AI Auto-Approved",
+      "AUTO_REJECT": "AI Auto-Rejected",
+      "FLAG_FOR_REVIEW": "Flagged for Review",
+      "MANUAL_APPROVE": "Manual Approved",
+      "MANUAL_REJECT": "Manual Rejected"
+    },
+    "actions": {
+      "view": "View details",
+      "approve": "Approve",
+      "reject": "Reject"
+    },
+    "detail": {
+      "title": "Post Details",
+      "subtitle": "Inspect full post content, media attachments, and moderation history",
+      "mediaSection": "Media Attachments",
+      "logsSection": "Moderation History",
+      "noLogs": "No moderation logs recorded for this post",
+      "loadError": "Unable to load post details.",
+      "close": "Close"
+    },
+    "decision": {
+      "approveTitle": "Manually Approve Post",
+      "rejectTitle": "Manually Reject Post",
+      "noteLabel": "Moderation Note",
+      "approvePlaceholder": "Enter an optional approval note...",
+      "rejectPlaceholder": "Enter a rejection reason (required)...",
+      "noteRequired": "Please enter a rejection reason",
+      "submitError": "Unable to update moderation status. Please try again.",
+      "submitting": "Processing...",
+      "cancel": "Cancel"
+    },
+    "toast": {
+      "approved": "Post approved and published successfully",
+      "rejected": "Post rejected successfully"
+    },
+    "logs": {
+      "postIdPlaceholder": "Post ID",
+      "allActorTypes": "All actors",
+      "allActions": "All actions",
+      "aiLabelPlaceholder": "Search by AI label (e.g. SPAM)...",
+      "columns": {
+        "postId": "Post",
+        "actor": "Actor",
+        "action": "Action",
+        "aiLabel": "AI Label & Score",
+        "note": "Note"
+      }
+    }
+  },
+  "reports": {
+    "title": "Violation Report Management",
+    "subtitle": "Review community reports, inspect submitted evidence, and resolve or reject cases",
+    "refresh": "Refresh",
+    "reportsCountSuffix": "reports",
+    "emptyList": "No reports match the current filters",
+    "filter": {
+      "allStatus": "All statuses",
+      "allTargetTypes": "All targets",
+      "reporterIdPlaceholder": "Reporter ID",
+      "targetIdPlaceholder": "Target ID",
+      "fromDate": "From date",
+      "toDate": "To date",
+      "sortLabel": "Sort by",
+      "sortCreatedDesc": "Newest first",
+      "sortCreatedAsc": "Oldest first",
+      "sortResolvedDesc": "Recently resolved",
+      "sortIdDesc": "ID descending",
+      "apply": "Apply",
+      "reset": "Reset",
+      "invalidDateRange": "Invalid date range (max 366 days and From <= To)"
+    },
+    "columns": {
+      "target": "Target",
+      "targetType": "Target Type",
+      "description": "Description",
+      "reporter": "Reporter",
+      "evidence": "Evidence",
+      "status": "Status",
+      "createdAt": "Submitted At",
+      "actions": "Actions"
+    },
+    "status": {
+      "PENDING": "Pending",
+      "RESOLVED": "Resolved",
+      "REJECTED": "Rejected"
+    },
+    "targetType": {
+      "POST": "Post",
+      "COMMENT": "Comment",
+      "USER": "User",
+      "DECK": "Deck",
+      "LESSON": "Lesson"
+    },
+    "actions": {
+      "view": "View details",
+      "resolve": "Resolve",
+      "reject": "Reject",
+      "openTarget": "Open target"
+    },
+    "detail": {
+      "title": "Report Details",
+      "subtitle": "Reporter information, evidence images, and resolution status",
+      "evidenceSection": "Attached Evidence Images",
+      "evidenceAlt": "Evidence image",
+      "resolutionSection": "Resolution Outcome",
+      "resolvedBy": "Processed By",
+      "resolvedAt": "Processed At",
+      "resolutionNote": "Resolution Note",
+      "loadError": "Unable to load report details.",
+      "close": "Close"
+    },
+    "decision": {
+      "resolveTitle": "Resolve Violation Report",
+      "rejectTitle": "Reject Violation Report",
+      "noteLabel": "Resolution Note",
+      "resolvePlaceholder": "Enter an optional resolution note...",
+      "rejectPlaceholder": "Enter a rejection reason (required)...",
+      "noteRequired": "Please enter a rejection reason",
+      "submitError": "Unable to update report status. Please try again.",
+      "submitting": "Processing...",
+      "cancel": "Cancel"
+    },
+    "toast": {
+      "resolved": "Report resolved successfully",
+      "rejected": "Report rejected successfully"
+    }
   }
 }
