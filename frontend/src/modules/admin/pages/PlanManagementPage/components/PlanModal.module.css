@@ -1,0 +1,247 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--adm-bg-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 1050;
+}
+
+.modal {
+  width: 100%;
+  max-width: 520px;
+  background: var(--adm-bg-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: 10px;
+  box-shadow: 0 20px 45px var(--adm-bg-overlay);
+  overflow: hidden;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--adm-border);
+}
+
+.headerTitleGroup {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.headerIcon {
+  color: var(--adm-accent);
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.iconGreen {
+  color: var(--adm-badge-green-text);
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.iconRed {
+  color: var(--adm-badge-red-text);
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.modalTitle {
+  font-family: var(--font-display, 'Space Grotesk', sans-serif);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--adm-text-main);
+  margin: 0;
+}
+
+.modalSubtitle {
+  font-size: 12px;
+  color: var(--adm-text-muted);
+  margin: 4px 0 0;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: var(--adm-text-subtle);
+  padding: 4px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.closeBtn:hover {
+  background: var(--adm-bg-surface-subtle);
+  color: var(--adm-text-main);
+}
+
+.modalBody {
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.noticeBox {
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: var(--adm-badge-blue-bg);
+  color: var(--adm-badge-blue-text);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.warningBox {
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: var(--adm-badge-amber-bg);
+  color: var(--adm-badge-amber-text);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.rowTwo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--adm-text-main);
+}
+
+.required {
+  color: var(--adm-badge-red-text);
+}
+
+.input {
+  height: 38px;
+  padding: 0 12px;
+  background: var(--adm-bg-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--adm-text-main);
+  box-sizing: border-box;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--adm-border-focus);
+}
+
+.input:disabled {
+  background: var(--adm-bg-surface-muted);
+  color: var(--adm-text-disabled);
+  cursor: not-allowed;
+}
+
+.targetCard {
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: var(--adm-bg-surface-subtle);
+  border: 1px solid var(--adm-border);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.targetLabel {
+  font-size: 11px;
+  color: var(--adm-text-muted);
+}
+
+.targetValue {
+  font-size: 14px;
+  color: var(--adm-text-main);
+}
+
+.confirmMessage {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--adm-text-main);
+}
+
+.errorText {
+  font-size: 12px;
+  color: var(--adm-badge-red-text);
+  background: var(--adm-badge-red-bg);
+  padding: 8px 10px;
+  border-radius: 6px;
+}
+
+.modalFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 6px;
+}
+
+.cancelBtn {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 6px;
+  border: 1px solid var(--adm-border);
+  background: var(--adm-bg-surface);
+  color: var(--adm-text-main);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.cancelBtn:hover:not(:disabled) {
+  background: var(--adm-bg-surface-subtle);
+}
+
+.submitBtn {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 6px;
+  border: 1px solid var(--adm-accent);
+  background: var(--adm-accent);
+  color: var(--adm-accent-contrast) !important;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dangerSubmitBtn {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 6px;
+  border: 1px solid var(--adm-badge-red-text);
+  background: var(--adm-badge-red-text);
+  color: var(--adm-text-inverse) !important;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.submitBtn:disabled,
+.dangerSubmitBtn:disabled,
+.cancelBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .rowTwo {
+    grid-template-columns: 1fr;
+  }
+}
