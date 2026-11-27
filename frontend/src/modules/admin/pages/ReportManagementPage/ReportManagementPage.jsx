@@ -56,6 +56,8 @@ const getTargetUrl = (targetType, targetId) => {
       return `/admin/decks/${targetId}`;
     case 'USER':
       return `/profile/${targetId}`;
+    case 'LESSON':
+      return `/admin/lessons/${targetId}`;
     default:
       return null;
   }
