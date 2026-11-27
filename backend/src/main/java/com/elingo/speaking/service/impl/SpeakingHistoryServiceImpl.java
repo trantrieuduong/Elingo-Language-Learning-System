@@ -21,6 +21,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -64,8 +65,12 @@ public class SpeakingHistoryServiceImpl implements SpeakingHistoryService {
             SpeakingRoom room = first.getRoom();
 
             // Tổng thời gian = cộng thời gian từng lượt
+            ZoneId zone = ZoneId.systemDefault();
             long total = visits.stream()
-                    .mapToLong(v -> Math.max(0, Duration.between(v.getJoinedAt(), v.getLeftAt()).getSeconds()))
+                    .mapToLong(v -> Math.max(0, Duration.between(
+                            v.getJoinedAt().atZone(zone),
+                            v.getLeftAt().atZone(zone)
+                    ).getSeconds()))
                     .sum();
 
             LocalDateTime lastLeft = visits.stream()

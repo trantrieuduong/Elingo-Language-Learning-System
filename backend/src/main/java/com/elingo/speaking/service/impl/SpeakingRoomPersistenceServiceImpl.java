@@ -146,7 +146,7 @@ public class SpeakingRoomPersistenceServiceImpl implements SpeakingRoomPersisten
         // Đánh dấu rời phòng và tính thời gian tham gia
         LocalDateTime now = LocalDateTime.now();
         me.setLeftAt(now);
-        long duration = Math.max(0, Duration.between(me.getJoinedAt(), now).getSeconds());
+        long duration = secondsBetween(me.getJoinedAt(), now);
 
         List<SpeakingParticipant> remaining = participantRepository.findActiveByRoomId(room.getId())
                 .stream().filter(p -> !p.getId().equals(me.getId())).toList();
@@ -195,7 +195,7 @@ public class SpeakingRoomPersistenceServiceImpl implements SpeakingRoomPersisten
         LocalDateTime now = LocalDateTime.now();
         SpeakingParticipant me = participantRepository.findByRoomIdAndUserIdAndLeftAtIsNull(room.getId(), userId)
                 .orElseThrow(() -> new AppException(AppError.SPEAKING_PARTICIPANT_NOT_FOUND));
-        long duration = Math.max(0, Duration.between(me.getJoinedAt(), now).getSeconds());
+        long duration = secondsBetween(me.getJoinedAt(), now);
         participantRepository.closeOpenParticipants(room.getId(), now);
         room.setStatus(SpeakingRoomStatus.CLOSED);
         room.setEndedAt(now);
@@ -385,5 +385,10 @@ public class SpeakingRoomPersistenceServiceImpl implements SpeakingRoomPersisten
                 room.getId(), room.getRoomCode(), room.getTopic(), room.getHost().getId(),
                 room.getMaxParticipants(), Boolean.TRUE.equals(room.getIsPrivate()),
                 startedAtMs, me, memberResponses);
+    }
+
+    private long secondsBetween(LocalDateTime start, LocalDateTime end) {
+        ZoneId zone = ZoneId.systemDefault();
+        return Math.max(0, Duration.between(start.atZone(zone), end.atZone(zone)).getSeconds());
     }
 }

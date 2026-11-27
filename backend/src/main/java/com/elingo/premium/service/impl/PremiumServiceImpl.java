@@ -33,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -132,10 +133,11 @@ public class PremiumServiceImpl implements PremiumService {
         }
 
         UserSubscription sub = subOpt.get();
-        LocalDateTime now = LocalDateTime.now();
+        ZoneId zone = ZoneId.systemDefault();
+        LocalDateTime now = LocalDateTime.now(zone);
         long remainingDays = 0L;
         if (sub.getEndAt() != null && sub.getEndAt().isAfter(now)) {
-            remainingDays = Duration.between(now, sub.getEndAt()).toDays();
+            remainingDays = Duration.between(now.atZone(zone), sub.getEndAt().atZone(zone)).toDays();
         }
 
         return new MySubscriptionResponse(

@@ -23,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -317,7 +318,9 @@ class SubscriptionServiceTest {
             assertThat(result).isBetween(Duration.ofDays(29).minusSeconds(5), Duration.ofDays(29));
             assertThat(sub.getStatus()).isEqualTo(SubscriptionStatus.ACTIVE);
             // Remaining endAt should be ~30 days from now (previous VIP days untouched)
-            assertThat(Duration.between(now, sub.getEndAt()).toDays()).isBetween(29L, 30L);
+            ZoneId zone = ZoneId.systemDefault();
+            assertThat(Duration.between(now.atZone(zone), sub.getEndAt().atZone(zone)).toDays())
+                    .isBetween(29L, 30L);
             verify(userSubscriptionRepository).save(sub);
         }
 
