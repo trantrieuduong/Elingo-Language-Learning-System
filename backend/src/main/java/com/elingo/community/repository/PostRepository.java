@@ -5,6 +5,7 @@ import com.elingo.community.dto.projection.PostGroupCountProjection;
 import com.elingo.community.dto.projection.PostStatusCountProjection;
 import com.elingo.community.entity.Post;
 import com.elingo.community.entity.PostStatus;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -109,4 +110,43 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             FROM posts
             """, nativeQuery = true)
     PostBacklogProjection countPostBacklog();
+
+    @Query(value = """
+            SELECT p FROM Post p
+            JOIN FETCH p.user u
+            JOIN FETCH p.group g
+            WHERE (:status IS NULL OR p.status = :status)
+              AND (:groupId IS NULL OR g.id = :groupId)
+              AND (:userId IS NULL OR u.id = :userId)
+              AND (:keyword IS NULL OR LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')))
+              AND (:createdFrom IS NULL OR p.createdAt >= :createdFrom)
+              AND (:createdTo IS NULL OR p.createdAt < :createdTo)
+            """,
+            countQuery = """
+            SELECT COUNT(p) FROM Post p
+            WHERE (:status IS NULL OR p.status = :status)
+              AND (:groupId IS NULL OR p.group.id = :groupId)
+              AND (:userId IS NULL OR p.user.id = :userId)
+              AND (:keyword IS NULL OR LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')))
+              AND (:createdFrom IS NULL OR p.createdAt >= :createdFrom)
+              AND (:createdTo IS NULL OR p.createdAt < :createdTo)
+            """)
+    Page<Post> searchForModeration(
+            @Param("status") PostStatus status,
+            @Param("groupId") Long groupId,
+            @Param("userId") Long userId,
+            @Param("keyword") String keyword,
+            @Param("createdFrom") LocalDateTime createdFrom,
+            @Param("createdTo") LocalDateTime createdTo,
+            Pageable pageable
+    );
+
+    @Modifying
+    @Query("""
+            UPDATE Post p
+            SET p.status = :targetStatus
+            WHERE p.id = :postId
+              AND p.status IN (com.elingo.community.entity.PostStatus.PENDING, com.elingo.community.entity.PostStatus.NEEDS_REVIEW)
+            """)
+    int updateStatusForManualModeration(@Param("postId") Long postId, @Param("targetStatus") PostStatus targetStatus);
 }
