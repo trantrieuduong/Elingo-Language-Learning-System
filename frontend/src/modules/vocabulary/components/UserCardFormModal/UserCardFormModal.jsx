@@ -153,7 +153,7 @@ function UserCardFormModal({
         const msg =
           (errorCode && t(`api:error.${errorCode}`, { defaultValue: '' })) ||
           res.message ||
-          t('userCards.saveError');
+          t('api:common.UNKNOWN_ERROR');
         setGeneralError(msg);
       }
     } catch (err) {
@@ -162,7 +162,7 @@ function UserCardFormModal({
       const msg =
         (errorCode && t(`api:error.${errorCode}`, { defaultValue: '' })) ||
         responseData?.message ||
-        t('userCards.saveError');
+        t('api:common.UNKNOWN_ERROR');
       setGeneralError(msg);
     }
   };

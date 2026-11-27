@@ -207,7 +207,6 @@
     "partOfSpeech": "Part of speech (POS)",
     "partOfSpeechPlaceholder": "Select part of speech",
     "posTooLong": "Part of speech must not exceed 50 characters.",
-    "saveError": "An error occurred while saving the card",
 
     "starred": "Starred",
     "termLabel": "Term *",
@@ -255,7 +254,6 @@
       "editTitle": "Edit vocabulary deck",
       "published": "Published",
       "publishedDescription": "Share this deck with the community",
-      "saveError": "Something went wrong while saving the vocabulary deck",
       "statusLabel": "Publication status",
       "systemError": "A system error occurred",
       "tags": {
