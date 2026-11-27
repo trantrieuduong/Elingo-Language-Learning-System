@@ -54,7 +54,7 @@ function PostCardHeader({
     }
   };
 
-  const authorDisplayName = author?.fullName || t('community:postCard.anonymousUser');
+  const authorDisplayName = author?.fullName || '';
 
   return (
     <header className="post-card-header">
