@@ -14,6 +14,7 @@ public enum SystemConfigKey {
     BANK_ACCOUNT_NAME("app.premium.bank-transfer.bank-account-name", ConfigValueType.STRING, false, ConfigModule.PREMIUM, "", "Account holder name for payment transfers"),
     BANK_QR_TEMPLATE("app.premium.bank-transfer.qr-template", ConfigValueType.STRING, false, ConfigModule.PREMIUM, "", "VietQR template style"),
     SEPAY_SECRET_KEY("app.premium.sepay.secret-key", ConfigValueType.STRING, true, ConfigModule.PREMIUM, "", "SePay webhook secret authentication key"),
+    REFUND_MAX_DAYS("app.premium.refund.max-days", ConfigValueType.INT, false, ConfigModule.PREMIUM, "3", "Maximum number of days after payment within which a transaction can be refunded"),
 
     // ---- COMMUNITY ----
     MODERATION_OPENAI_API_KEY("app.community.moderation.openai-api-key", ConfigValueType.STRING, true, ConfigModule.COMMUNITY, "", "OpenAI API key for automated content moderation"),

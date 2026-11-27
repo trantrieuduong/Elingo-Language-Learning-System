@@ -1,10 +1,12 @@
 package com.elingo.premium.service.impl;
 
 import com.elingo.common.dto.PageResponse;
+import com.elingo.common.enums.SystemConfigKey;
 import com.elingo.common.event.NotificationEvent;
 import com.elingo.common.event.PaymentSucceededEvent;
 import com.elingo.common.exception.AppError;
 import com.elingo.common.exception.AppException;
+import com.elingo.common.service.SystemConfigService;
 import com.elingo.premium.dto.request.AdminTransactionFilterRequest;
 import com.elingo.premium.dto.request.AdminWebhookLogFilterRequest;
 import com.elingo.premium.dto.request.CreatePremiumPlanRequest;
@@ -51,11 +53,13 @@ import java.util.Map;
 public class PremiumAdminServiceImpl implements PremiumAdminService {
 
     private static final DateTimeFormatter EXPIRES_AT_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final int DEFAULT_REFUND_MAX_DAYS = 3;
 
     private final PremiumPlanRepository premiumPlanRepository;
     private final PaymentTransactionRepository paymentTransactionRepository;
     private final PaymentWebhookLogRepository paymentWebhookLogRepository;
     private final SubscriptionService subscriptionService;
+    private final SystemConfigService systemConfigService;
     private final PremiumMapper premiumMapper;
     private final ApplicationEventPublisher eventPublisher;
     private final ObjectMapper objectMapper;
@@ -202,6 +206,13 @@ public class PremiumAdminServiceImpl implements PremiumAdminService {
             throw new AppException(AppError.PAYMENT_TRANSACTION_NOT_REFUNDABLE);
         }
 
+        LocalDateTime now = LocalDateTime.now();
+        int maxRefundDays = resolveMaxRefundDays();
+        LocalDateTime paidAt = tx.getPaidAt() != null ? tx.getPaidAt() : tx.getCreatedAt();
+        if (paidAt != null && now.isAfter(paidAt.plusDays(maxRefundDays))) {
+            throw new AppException(AppError.PAYMENT_TRANSACTION_REFUND_EXPIRED);
+        }
+
         Long subscriptionId = tx.getSubscription() != null ? tx.getSubscription().getId() : null;
         Duration revoked = subscriptionService.revokeSubscriptionTime(
                 tx.getUser().getId(),
@@ -210,7 +221,6 @@ public class PremiumAdminServiceImpl implements PremiumAdminService {
                 tx.getPaidAt()
         );
 
-        LocalDateTime now = LocalDateTime.now();
         tx.setStatus(PaymentTransactionStatus.REFUNDED);
 
         Map<String, Object> extraMeta = new LinkedHashMap<>();
@@ -255,6 +265,15 @@ public class PremiumAdminServiceImpl implements PremiumAdminService {
         PaymentTransaction tx = paymentTransactionRepository.findDetailById(transactionId)
                 .orElseThrow(() -> new AppException(AppError.PAYMENT_TRANSACTION_NOT_FOUND));
         return premiumMapper.toAdminTransactionDetailResponse(tx);
+    }
+
+    private int resolveMaxRefundDays() {
+        int maxDays = systemConfigService.getInt(SystemConfigKey.REFUND_MAX_DAYS, DEFAULT_REFUND_MAX_DAYS);
+        if (maxDays < 1) {
+            log.warn("Invalid refund max days config value={}. Fallback to default={}", maxDays, DEFAULT_REFUND_MAX_DAYS);
+            return DEFAULT_REFUND_MAX_DAYS;
+        }
+        return maxDays;
     }
 
     private String mergeMetadata(String existingJson, Map<String, Object> additions) {
