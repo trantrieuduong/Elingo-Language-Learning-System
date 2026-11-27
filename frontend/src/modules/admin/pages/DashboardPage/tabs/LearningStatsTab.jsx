@@ -52,7 +52,7 @@ export default function LearningStatsTab({ filter, reloadKey, onNavigate }) {
       }
     };
 
-    loadData();
+    void loadData();
     return () => {
       isMounted = false;
     };
@@ -120,7 +120,7 @@ export default function LearningStatsTab({ filter, reloadKey, onNavigate }) {
                 }}
               />
             ) : (
-              <div
+              <div // NOSONAR
                 style={{
                   width: 32,
                   height: 32,

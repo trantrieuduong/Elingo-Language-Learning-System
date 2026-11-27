@@ -298,7 +298,7 @@ const SpeakingRoomPage = ({ roomCode, onNavigate }) => {
       setLeaveError(null);
       setLeaveDialogOpen(true);
     } else {
-      handleLeave();
+      void handleLeave();
     }
   };
 

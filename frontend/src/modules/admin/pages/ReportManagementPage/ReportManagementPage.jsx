@@ -132,7 +132,7 @@ export default function ReportManagementPage() {
   }, [appliedFilters, page]);
 
   useEffect(() => {
-    fetchReports();
+    void fetchReports();
   }, [fetchReports]);
 
   const handleApplyFilters = (e) => {
@@ -183,7 +183,7 @@ export default function ReportManagementPage() {
         ? t('reports.toast.rejected')
         : t('reports.toast.resolved')
     );
-    fetchReports(true);
+    void fetchReports(true);
   };
 
   const columns = useMemo(() => [

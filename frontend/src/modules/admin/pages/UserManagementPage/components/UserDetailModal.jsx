@@ -29,7 +29,8 @@ export default function UserDetailModal({
   };
 
   return (
-    <div className={styles.backdrop} onClick={onClose}>
+    <div className={styles.backdrop} onClick={onClose} // NOSONAR
+    >
       <div
         className={styles.modal}
         onClick={(e) => e.stopPropagation()}

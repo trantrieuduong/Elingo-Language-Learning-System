@@ -53,7 +53,7 @@ function GamificationOverviewTab({ userId }) {
   };
 
   useEffect(() => {
-    fetchOverviewData();
+    void fetchOverviewData();
   }, [rankPeriod, calendarYear, calendarMonth]);
 
   const handlePrevMonth = () => {

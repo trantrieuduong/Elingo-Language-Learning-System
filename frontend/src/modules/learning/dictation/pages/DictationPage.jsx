@@ -382,7 +382,7 @@ function DictationPage({ slug, onNavigate }) {
     };
 
     if (slug) {
-      fetchData();
+      void fetchData();
     }
 
     return () => {

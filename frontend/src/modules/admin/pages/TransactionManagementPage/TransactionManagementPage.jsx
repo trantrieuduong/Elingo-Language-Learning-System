@@ -145,7 +145,7 @@ export default function TransactionManagementPage({ onNavigate }) {
   );
 
   useEffect(() => {
-    loadTransactions(false);
+    void loadTransactions(false);
   }, [loadTransactions]);
 
   const handleApplyFilters = (e) => {

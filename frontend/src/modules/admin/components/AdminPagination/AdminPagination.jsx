@@ -46,8 +46,8 @@ export default function AdminPagination({
 
   // Xác nhận chuyển trang khi blur hoặc ấn Enter
   const commitPage = () => {
-    const parsed = parseInt(inputVal, 10);
-    if (isNaN(parsed) || parsed < 1) {
+    const parsed = Number.parseInt(inputVal, 10);
+    if (Number.isNaN(parsed) || parsed < 1) {
       setInputVal(1);
       if (page !== 1 && onPageChange) onPageChange(1);
     } else if (parsed > safeTotalPages) {

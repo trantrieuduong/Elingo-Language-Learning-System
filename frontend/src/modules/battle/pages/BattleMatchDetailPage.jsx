@@ -60,7 +60,7 @@ const BattleMatchDetailPage = ({ matchId, onNavigate }) => {
       }
     };
 
-    fetchDetail();
+    void fetchDetail();
 
     return () => {
       isActive = false;

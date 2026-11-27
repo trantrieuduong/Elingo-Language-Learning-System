@@ -52,7 +52,7 @@ function MySubscriptionPage({ onNavigate }) {
       }
     };
 
-    fetchSubscription();
+    void fetchSubscription();
 
     return () => {
       isMounted = false;
@@ -82,7 +82,7 @@ function MySubscriptionPage({ onNavigate }) {
       }
     };
 
-    fetchTransactions();
+    void fetchTransactions();
 
     return () => {
       isMounted = false;

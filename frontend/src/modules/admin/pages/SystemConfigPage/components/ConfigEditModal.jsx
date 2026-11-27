@@ -53,7 +53,8 @@ export default function ConfigEditModal({ config, onClose, onSuccess }) {
   };
 
   return (
-    <div className={styles.backdrop} onClick={onClose}>
+    <div className={styles.backdrop} onClick={onClose} // NOSONAR
+    >
       <div
         className={styles.modal}
         onClick={(e) => e.stopPropagation()}

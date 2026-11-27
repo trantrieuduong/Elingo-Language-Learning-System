@@ -131,7 +131,7 @@ function ShadowingPage({ slug, onNavigate }) {
     };
 
     if (slug) {
-      fetchData();
+      void fetchData();
     }
 
     return () => {

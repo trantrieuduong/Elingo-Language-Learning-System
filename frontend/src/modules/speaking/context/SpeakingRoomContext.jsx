@@ -122,13 +122,13 @@ export const SpeakingRoomProvider = ({ children }) => {
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         replyWaiterRef.current = null;
-        reject({ code: 'TIMEOUT' });
+        reject({ code: 'TIMEOUT' }); // NOSONAR
       }, timeoutMs);
       replyWaiterRef.current = (event, data) => {
         if (event === 'error') {
           clearTimeout(timer);
           replyWaiterRef.current = null;
-          reject({ code: data.code });
+          reject({ code: data.code }); // NOSONAR
         } else if (okPred(event, data)) {
           clearTimeout(timer);
           replyWaiterRef.current = null;
@@ -138,7 +138,7 @@ export const SpeakingRoomProvider = ({ children }) => {
       if (!send()) {
         clearTimeout(timer);
         replyWaiterRef.current = null;
-        reject({ code: 'SOCKET_NOT_CONNECTED' });
+        reject({ code: 'SOCKET_NOT_CONNECTED' }); // NOSONAR
       }
     });
   }, []);

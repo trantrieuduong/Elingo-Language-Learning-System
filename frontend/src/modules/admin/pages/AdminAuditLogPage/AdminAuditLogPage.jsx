@@ -68,7 +68,7 @@ export default function AdminAuditLogPage({ onNavigate: _onNavigate }) {
         // Silently tolerate catalog failure
       }
     };
-    loadCatalogs();
+    void loadCatalogs();
   }, []);
 
   // Load audit logs
@@ -114,13 +114,13 @@ export default function AdminAuditLogPage({ onNavigate: _onNavigate }) {
   );
 
   useEffect(() => {
-    loadLogs(false);
+    void loadLogs(false);
   }, [loadLogs]);
 
   const handleApplyFilter = (e) => {
     e.preventDefault();
     setPage(1);
-    loadLogs(false);
+    void loadLogs(false);
   };
 
   const handleResetFilter = () => {

@@ -49,7 +49,7 @@ function LandingPage({ onNavigate }) {
       }
     };
 
-    fetchPlans();
+    void fetchPlans();
 
     return () => {
       isMounted = false;

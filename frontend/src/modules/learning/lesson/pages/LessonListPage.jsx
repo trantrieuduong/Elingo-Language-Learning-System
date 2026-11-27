@@ -144,7 +144,7 @@ function LessonListPage({ onNavigate }) {
       }
     };
 
-    fetchMetadata();
+    void fetchMetadata();
 
     return () => {
       isMounted = false;
@@ -199,7 +199,7 @@ function LessonListPage({ onNavigate }) {
       }
     };
 
-    fetchLessons();
+    void fetchLessons();
 
     return () => {
       isMounted = false;

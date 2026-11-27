@@ -84,7 +84,7 @@ i18n.on('languageChanged', (lng) => {
   }
 });
 
-i18n
+void i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({

@@ -81,12 +81,12 @@ function useCommunityComments({
   );
 
   const handleLoadComments = useCallback(() => {
-    if (!hasLoadedRef.current && !isLoadingFirstPage) loadComments();
+    if (!hasLoadedRef.current && !isLoadingFirstPage) void loadComments();
   }, [isLoadingFirstPage, loadComments]);
 
   const handleLoadMoreComments = useCallback(() => {
     if (hasMore && !isLoadingFirstPage && !isLoadingMore) {
-      loadComments(pageRef.current + 1, true);
+      void loadComments(pageRef.current + 1, true);
     }
   }, [hasMore, isLoadingFirstPage, isLoadingMore, loadComments]);
 

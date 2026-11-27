@@ -273,7 +273,7 @@ const SpeakingLobbyPage = ({ onNavigate }) => {
   }, [page, debouncedKeyword, maxParticipants]);
 
   useEffect(() => {
-    fetchRooms();
+    void fetchRooms();
   }, [fetchRooms]);
 
   const handleOpenCreateModal = () => {

@@ -6,7 +6,7 @@ import FormAlert from '../../../../components/FormAlert/FormAlert';
 import { sendOtpUpdateEmailApi, updateEmailApi } from '../../profileApi';
 import './UpdateEmailModal.css';
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_REGEX = /^[^\s@]+@[^.\s@]+(?:\.[^.\s@]+)+$/;
 const OTP_RESEND_COOLDOWN = Number(import.meta.env.VITE_OTP_RESEND_COOLDOWN);
 
 function UpdateEmailModal({ isOpen, onClose, onSuccess, onOtpSent }) {

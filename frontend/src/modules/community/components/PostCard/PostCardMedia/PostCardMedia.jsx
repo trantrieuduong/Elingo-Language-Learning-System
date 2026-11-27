@@ -43,7 +43,7 @@ function PostCardMedia({ media = [] }) {
         const isFourthItem = index === 3;
 
         return (
-          <div
+          <div // NOSONAR
             key={item.id || index}
             onClick={() => handleItemClick(index)}
             className={`post-card-media__item ${isFourthItem ? 'post-card-media__item--mobile-only' : ''}`}

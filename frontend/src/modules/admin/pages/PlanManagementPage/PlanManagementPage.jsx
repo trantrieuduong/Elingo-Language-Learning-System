@@ -89,7 +89,7 @@ export default function PlanManagementPage({ onNavigate: _onNavigate }) {
   }, []);
 
   useEffect(() => {
-    loadPlans(false);
+    void loadPlans(false);
   }, [loadPlans]);
 
   const summary = useMemo(() => {

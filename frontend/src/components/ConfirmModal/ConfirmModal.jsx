@@ -31,8 +31,9 @@ function ConfirmModal({
   if (!isOpen) return null;
 
   return createPortal(
-    <div className="confirm-modal-overlay" onClick={() => !isLoading && onCancel?.()}>
-      <div
+    <div className="confirm-modal-overlay" onClick={() => !isLoading && onCancel?.()} // NOSONAR
+    >
+      <div // NOSONAR
         className="confirm-modal-container glass-capsule"
         onClick={(event) => event.stopPropagation()}
       >

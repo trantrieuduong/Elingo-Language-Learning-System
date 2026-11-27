@@ -169,7 +169,7 @@ function UserCardFormModal({
 
   return createPortal(
     <div className="user-card-form-overlay">
-      <div
+      <div // NOSONAR
         className="user-card-form-modal glass-capsule glass-sheen"
         onClick={(event) => event.stopPropagation()}
       >

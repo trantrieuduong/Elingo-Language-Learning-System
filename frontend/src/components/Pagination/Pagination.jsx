@@ -18,7 +18,7 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
 
   const handleJump = (e) => {
     if (e.key === 'Enter') {
-      const page = parseInt(e.target.value, 10);
+      const page = Number.parseInt(e.target.value, 10);
       if (page >= 1 && page <= totalPages) {
         onPageChange(page);
         e.target.value = '';

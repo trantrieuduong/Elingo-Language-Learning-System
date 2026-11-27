@@ -50,7 +50,7 @@ function ResetPasswordPage({ onNavigate }) {
       setErrors((prev) => ({ ...prev, email: t('emailRequired') }));
       return false;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+    if (!/^[^\s@]+@[^.\s@]+(?:\.[^.\s@]+)+$/.test(form.email)) {
       setErrors((prev) => ({ ...prev, email: t('emailInvalid') }));
       return false;
     }
@@ -85,7 +85,7 @@ function ResetPasswordPage({ onNavigate }) {
 
     if (!form.email.trim()) {
       newErrors.email = t('emailRequired');
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+    } else if (!/^[^\s@]+@[^.\s@]+(?:\.[^.\s@]+)+$/.test(form.email)) {
       newErrors.email = t('emailInvalid');
     }
 

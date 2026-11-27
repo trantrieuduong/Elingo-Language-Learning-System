@@ -118,7 +118,7 @@ export default function WebhookLogPage({ initialTransactionId = '', onNavigate: 
   );
 
   useEffect(() => {
-    loadLogs(false);
+    void loadLogs(false);
   }, [loadLogs]);
 
   const handleApplyFilters = (e) => {

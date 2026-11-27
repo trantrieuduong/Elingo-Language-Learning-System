@@ -34,7 +34,7 @@ function ProfilePosts({ userId, onNavigate }) {
   }, [t, userId]);
 
   useEffect(() => {
-    loadPosts();
+    void loadPosts();
   }, [loadPosts]);
 
   const { handleLikePost } = useCommunityPostActions({

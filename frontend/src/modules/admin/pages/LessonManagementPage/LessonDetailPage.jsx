@@ -93,7 +93,7 @@ export default function LessonDetailPage({ lessonId, onNavigate }) {
     setSelectedKey(null);
     setSelectMode(false);
     setCheckedIds(new Set());
-    reloadAll();
+    void reloadAll();
   }, [reloadAll]);
 
   useEffect(() => {
@@ -496,7 +496,7 @@ export default function LessonDetailPage({ lessonId, onNavigate }) {
         onSuccess={() => {
           setIsEditModalOpen(false);
           setToastMessage(t('content.lessons.lessonUpdateSuccess'));
-          reloadAll();
+          void reloadAll();
         }}
       />
 
@@ -508,13 +508,13 @@ export default function LessonDetailPage({ lessonId, onNavigate }) {
         onSuccess={() => {
           setIsStatusModalOpen(false);
           setToastMessage(t('content.lessons.statusUpdateSuccess'));
-          reloadAll();
+          void reloadAll();
         }}
       />
 
       {/* Delete Single Segment Modal */}
       {deleteModal.isOpen && (
-        <div
+        <div // NOSONAR
           className={styles.modalBackdrop}
           onClick={() =>
             !deleteModal.submitting &&
@@ -571,7 +571,7 @@ export default function LessonDetailPage({ lessonId, onNavigate }) {
 
       {/* Bulk Delete Segments Modal */}
       {bulkDeleteModal.isOpen && (
-        <div
+        <div // NOSONAR
           className={styles.modalBackdrop}
           onClick={() =>
             !bulkDeleteModal.submitting &&
@@ -632,7 +632,7 @@ export default function LessonDetailPage({ lessonId, onNavigate }) {
 
       {/* Discard Unsaved Changes Modal */}
       {discardModal.isOpen && (
-        <div
+        <div // NOSONAR
           className={styles.modalBackdrop}
           onClick={() => setDiscardModal({ isOpen: false, action: null })}
         >

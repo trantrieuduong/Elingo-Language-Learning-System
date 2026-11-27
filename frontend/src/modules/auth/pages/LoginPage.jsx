@@ -187,9 +187,9 @@ function LoginPage({ onNavigate }) {
       }
     };
 
-    renderGoogleButton();
+    void renderGoogleButton();
     const resizeObserver = new ResizeObserver(() => {
-      renderGoogleButton();
+      void renderGoogleButton();
     });
     resizeObserver.observe(googleButtonRef.current);
 

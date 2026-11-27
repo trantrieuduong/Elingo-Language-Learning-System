@@ -53,7 +53,7 @@ function MyProfilePage({ onNavigate }) {
   };
 
   useEffect(() => {
-    fetchProfile();
+    void fetchProfile();
   }, []);
 
   const handleEditProfile = () => {

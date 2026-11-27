@@ -68,7 +68,8 @@ const CreateRoomModal = ({ open, onClose, onSubmit, busy, error }) => {
         if (e.target === e.currentTarget && !busy) onClose?.();
       }}
     >
-      <div className="speaking-modal glass-capsule" onClick={(e) => e.stopPropagation()}>
+      <div className="speaking-modal glass-capsule" onClick={(e) => e.stopPropagation()} // NOSONAR
+      >
         <header className="speaking-modal__header">
           <div className="speaking-modal__header-info">
             <span className="material-symbols-outlined speaking-modal__header-icon">

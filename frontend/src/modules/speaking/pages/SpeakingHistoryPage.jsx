@@ -216,7 +216,7 @@ const SpeakingHistoryPage = ({ onNavigate }) => {
   }, [page, keyword, maxParticipants, retry]);
 
   useEffect(() => {
-    fetchHistory();
+    void fetchHistory();
   }, [fetchHistory]);
 
   useEffect(() => {

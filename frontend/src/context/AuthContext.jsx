@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }) => {
   }, [isAuthenticated])
 
   useEffect(() => {
-    initializeAuth();
+    void initializeAuth();
 
     const handleGlobalLogout = () => {
       setUser(null);

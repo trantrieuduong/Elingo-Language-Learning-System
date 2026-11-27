@@ -105,7 +105,7 @@ export default function UserManagementPage({ onNavigate: _onNavigate }) {
   );
 
   useEffect(() => {
-    loadUsers();
+    void loadUsers();
   }, [loadUsers]);
 
   // Handle Filter Apply (Reset to page 1)

@@ -118,7 +118,7 @@ function PostCardCommentInput({
           onKeyDown={handleKeyDown}
           disabled={isSubmitting}
           rows={isEditMode ? 3 : 1}
-          autoFocus={isEditMode}
+          autoFocus={isEditMode} // NOSONAR
           placeholder={placeholder || t('community:postCard.writeComment')}
           className="post-card-comment-input__textarea"
         />

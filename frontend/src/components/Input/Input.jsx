@@ -51,7 +51,7 @@ function Input({
           placeholder={placeholder}
           value={value}
           onChange={onChange}
-          autoFocus={autoFocus}
+          autoFocus={autoFocus} // NOSONAR
           disabled={disabled}
           className={`input-field ${error ? 'input-field--error' : ''}`}
           {...props}

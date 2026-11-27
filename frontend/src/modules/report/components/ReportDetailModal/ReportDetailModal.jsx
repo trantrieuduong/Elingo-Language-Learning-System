@@ -43,7 +43,7 @@ function ReportDetailModal({ isOpen, onClose, reportId, initialReport }) {
       }
     };
 
-    fetchReport();
+    void fetchReport();
 
     return () => {
       isMounted = false;

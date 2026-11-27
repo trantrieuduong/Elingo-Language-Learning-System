@@ -40,7 +40,7 @@ function MyFeedPage({ onNavigate }) {
         // groups stays empty
       }
     };
-    fetchGroups();
+    void fetchGroups();
   }, []);
 
   const fetchUserPosts = useCallback(
@@ -196,7 +196,7 @@ function MyFeedPage({ onNavigate }) {
 
   useEffect(() => {
     if (userId) {
-      loadInitialPosts();
+      void loadInitialPosts();
     }
   }, [userId]);
 

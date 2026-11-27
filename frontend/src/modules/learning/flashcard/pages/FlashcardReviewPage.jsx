@@ -84,7 +84,7 @@ function FlashcardReviewPage({ onNavigate }) {
       }
     };
 
-    fetchDueReviewCards();
+    void fetchDueReviewCards();
   }, []);
 
   const [toastMessage, setToastMessage] = useState('');

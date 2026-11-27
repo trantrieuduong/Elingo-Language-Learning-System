@@ -37,7 +37,7 @@ function CommunityFeedPage({ onNavigate, initialSelectedGroupId = 'ALL' }) {
         // groups stays empty
       }
     };
-    fetchGroups();
+    void fetchGroups();
   }, []);
 
   const fetchPosts = useCallback(async (groupId, nextCursor) => {
