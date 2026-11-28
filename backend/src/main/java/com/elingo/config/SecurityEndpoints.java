@@ -10,6 +10,7 @@ import java.util.Map;
 public class SecurityEndpoints {
 
     private static final HttpMethod[] GET_ONLY = { HttpMethod.GET };
+    private static final HttpMethod[] GET_AND_HEAD = { HttpMethod.GET, HttpMethod.HEAD };
     private static final HttpMethod[] POST_ONLY = { HttpMethod.POST };
     private static final HttpMethod[] ALL_METHODS = HttpMethod.values();
 
@@ -35,6 +36,8 @@ public class SecurityEndpoints {
             Map.entry("/auth/password-reset/**",        POST_ONLY),
             Map.entry("/auth/account-verifications/**", POST_ONLY),
             Map.entry("/webhooks/payments/**",          POST_ONLY),
+            Map.entry("/actuator/health",               GET_AND_HEAD),
+            Map.entry("/actuator/health/**",            GET_AND_HEAD),
             Map.entry("/premium/plans",                 GET_ONLY),
             Map.entry("/swagger-ui/**",                 ALL_METHODS),
             Map.entry("/swagger-ui.html",               ALL_METHODS),
