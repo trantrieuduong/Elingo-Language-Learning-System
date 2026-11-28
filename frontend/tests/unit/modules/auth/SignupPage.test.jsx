@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+﻿import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import SignupPage from '@/modules/auth/pages/SignupPage'
 import { useAuth } from '@/context/AuthContext'
@@ -79,6 +79,87 @@ describe('SignupPage', () => {
       expect(screen.getByText(tr('auth:usernameSignupInvalid'))).toBeInTheDocument()
       expect(screen.getByText(tr('auth:emailInvalid'))).toBeInTheDocument()
       expect(screen.getByText(tr('auth:passwordSignupInvalid'))).toBeInTheDocument()
+    })
+    it('should show passwordTooLong error when password exceeds 72 bytes and not call signup', async () => {
+      const longPassword = 'Aa1!' + 'a'.repeat(100)
+      render(<SignupPage onNavigate={mockNavigate} />)
+
+      fireEvent.change(screen.getByLabelText(tr('auth:fullNameLabel')), { target: { value: 'Test User' } })
+      fireEvent.change(screen.getByLabelText(tr('auth:usernameSignupLabel')), { target: { value: 'testuser' } })
+      fireEvent.change(screen.getByLabelText(tr('auth:emailLabel')), { target: { value: 'test@example.com' } })
+      fireEvent.change(screen.getByLabelText(tr('auth:passwordSignupLabel')), { target: { value: longPassword } })
+      fireEvent.change(screen.getByLabelText(tr('auth:confirmPasswordLabel')), { target: { value: longPassword } })
+
+      const user = userEvent.setup()
+      await user.click(screen.getByRole('button', { name: trRx('auth:submitSignup') }))
+
+      await waitFor(() => {
+        expect(screen.getByText(tr('auth:passwordTooLong'))).toBeInTheDocument()
+      })
+      expect(mockSignup).not.toHaveBeenCalled()
+    })
+
+    it('should NOT show passwordTooLong error when password is exactly 72 bytes', async () => {
+      // 'Aa1!' (4 byte) + 68*'a' (68 byte) = 72 byte
+      const validPassword = 'Aa1!' + 'a'.repeat(68)
+      mockSignup.mockResolvedValue({ success: true })
+      render(<SignupPage onNavigate={mockNavigate} />)
+
+      fireEvent.change(screen.getByLabelText(tr('auth:fullNameLabel')), { target: { value: 'Test User' } })
+      fireEvent.change(screen.getByLabelText(tr('auth:usernameSignupLabel')), { target: { value: 'testuser' } })
+      fireEvent.change(screen.getByLabelText(tr('auth:emailLabel')), { target: { value: 'test@example.com' } })
+      fireEvent.change(screen.getByLabelText(tr('auth:passwordSignupLabel')), { target: { value: validPassword } })
+      fireEvent.change(screen.getByLabelText(tr('auth:confirmPasswordLabel')), { target: { value: validPassword } })
+
+      const user = userEvent.setup()
+      await user.click(screen.getByRole('button', { name: trRx('auth:submitSignup') }))
+
+      await waitFor(() => {
+        expect(mockSignup).toHaveBeenCalledWith(expect.objectContaining({ password: validPassword }))
+      })
+    })
+
+    it('should show passwordTooLong error when password is 73 bytes', async () => {
+      // 'Aa1!' (4 byte) + 69*'a' (69 byte) = 73 byte
+      const longPassword = 'Aa1!' + 'a'.repeat(69)
+      render(<SignupPage onNavigate={mockNavigate} />)
+
+      fireEvent.change(screen.getByLabelText(tr('auth:passwordSignupLabel')), { target: { value: longPassword } })
+
+      const user = userEvent.setup()
+      await user.click(screen.getByRole('button', { name: trRx('auth:submitSignup') }))
+
+      await waitFor(() => {
+        expect(screen.getByText(tr('auth:passwordTooLong'))).toBeInTheDocument()
+      })
+    })
+
+    it('should show passwordTooLong for accented password exceeding 72 bytes', async () => {
+      // 'Aa1!' (4 byte) + 23*'â' (23*3=69 byte) = 73 byte
+      const longPassword = 'Aa1!' + '\u1edb'.repeat(23)
+      render(<SignupPage onNavigate={mockNavigate} />)
+
+      fireEvent.change(screen.getByLabelText(tr('auth:passwordSignupLabel')), { target: { value: longPassword } })
+
+      const user = userEvent.setup()
+      await user.click(screen.getByRole('button', { name: trRx('auth:submitSignup') }))
+
+      await waitFor(() => {
+        expect(screen.getByText(tr('auth:passwordTooLong'))).toBeInTheDocument()
+      })
+    })
+
+    it('should show length requirement as unmet when password is 73 bytes', async () => {
+      // 'Aa1!' (4 byte) + 69*'a' (69 byte) = 73 byte - validation should show length requirement as unmet
+      const longPassword = 'Aa1!' + 'a'.repeat(69)
+      render(<SignupPage onNavigate={mockNavigate} />)
+
+      fireEvent.change(screen.getByLabelText(tr('auth:passwordSignupLabel')), { target: { value: longPassword } })
+
+      await waitFor(() => {
+        const lengthItem = screen.getByText(tr('auth:passwordRequirements.length')).closest('li')
+        expect(lengthItem).toHaveClass('auth-password-requirements__item--unmet')
+      })
     })
   })
 
@@ -174,6 +255,24 @@ describe('SignupPage', () => {
 
       await waitFor(() => {
         expect(screen.getByText('System error')).toBeInTheDocument()
+      })
+    })
+
+    it('should show PASSWORD_INVALID error at password field when BE returns it', async () => {
+      const user = userEvent.setup()
+      mockSignup.mockResolvedValue({ success: false, code: 'PASSWORD_INVALID', message: 'Password must be 8-72 characters' })
+      render(<SignupPage onNavigate={mockNavigate} />)
+
+      fireEvent.change(screen.getByLabelText(tr('auth:fullNameLabel')), { target: { value: 'Test User' } })
+      fireEvent.change(screen.getByLabelText(tr('auth:usernameSignupLabel')), { target: { value: 'testuser' } })
+      fireEvent.change(screen.getByLabelText(tr('auth:emailLabel')), { target: { value: 'test@example.com' } })
+      fireEvent.change(screen.getByLabelText(tr('auth:passwordSignupLabel')), { target: { value: 'Password123@' } })
+      fireEvent.change(screen.getByLabelText(tr('auth:confirmPasswordLabel')), { target: { value: 'Password123@' } })
+
+      await user.click(screen.getByRole('button', { name: trRx('auth:submitSignup') }))
+
+      await waitFor(() => {
+        expect(screen.getByText('Password must be 8-72 characters')).toBeInTheDocument()
       })
     })
 

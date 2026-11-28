@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+﻿import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ResetPasswordPage from '@/modules/auth/pages/ResetPasswordPage'
 import { useAuth } from '@/context/AuthContext'
@@ -165,6 +165,93 @@ describe('ResetPasswordPage', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Password error from server')).toBeInTheDocument()
+      })
+    })
+
+    it('should show passwordTooLong error when new password exceeds 72 bytes and not call API', async () => {
+      const longPassword = 'Aa1!' + 'a'.repeat(100)
+      render(<ResetPasswordPage onNavigate={mockNavigate} />)
+
+      fireEvent.change(screen.getByLabelText(tr('auth:resetEmailLabel')), { target: { value: 'test@example.com' } })
+      fireEvent.change(screen.getByLabelText(tr('auth:resetOtpLabel')), { target: { value: '123456' } })
+      fireEvent.change(screen.getByLabelText(tr('auth:resetNewPasswordLabel')), { target: { value: longPassword } })
+      fireEvent.change(screen.getByLabelText(tr('auth:resetConfirmPasswordLabel')), { target: { value: longPassword } })
+
+      const user = userEvent.setup()
+      await user.click(screen.getByRole('button', { name: trRx('auth:submitReset') }))
+
+      await waitFor(() => {
+        expect(screen.getByText(tr('auth:passwordTooLong'))).toBeInTheDocument()
+      })
+      expect(mockResetPassword).not.toHaveBeenCalled()
+    })
+
+    it('should NOT show passwordTooLong error when new password is exactly 72 bytes', async () => {
+      // 'Aa1!' (4 byte) + 68*'a' (68 byte) = 72 byte
+      const validPassword = 'Aa1!' + 'a'.repeat(68)
+      mockResetPassword.mockResolvedValue({ success: true })
+      render(<ResetPasswordPage onNavigate={mockNavigate} />)
+
+      fireEvent.change(screen.getByLabelText(tr('auth:resetEmailLabel')), { target: { value: 'test@example.com' } })
+      fireEvent.change(screen.getByLabelText(tr('auth:resetOtpLabel')), { target: { value: '123456' } })
+      fireEvent.change(screen.getByLabelText(tr('auth:resetNewPasswordLabel')), { target: { value: validPassword } })
+      fireEvent.change(screen.getByLabelText(tr('auth:resetConfirmPasswordLabel')), { target: { value: validPassword } })
+
+      const user = userEvent.setup()
+      await user.click(screen.getByRole('button', { name: trRx('auth:submitReset') }))
+
+      await waitFor(() => {
+        expect(mockResetPassword).toHaveBeenCalled()
+      })
+    })
+
+    it('should show passwordTooLong error when new password is 73 bytes', async () => {
+      // 'Aa1!' (4 byte) + 69*'a' (69 byte) = 73 byte
+      const longPassword = 'Aa1!' + 'a'.repeat(69)
+      render(<ResetPasswordPage onNavigate={mockNavigate} />)
+
+      fireEvent.change(screen.getByLabelText(tr('auth:resetNewPasswordLabel')), { target: { value: longPassword } })
+      fireEvent.change(screen.getByLabelText(tr('auth:resetConfirmPasswordLabel')), { target: { value: longPassword } })
+
+      const user = userEvent.setup()
+      await user.click(screen.getByRole('button', { name: trRx('auth:submitReset') }))
+
+      await waitFor(() => {
+        expect(screen.getByText(tr('auth:passwordTooLong'))).toBeInTheDocument()
+      })
+      expect(mockResetPassword).not.toHaveBeenCalled()
+    })
+
+    it('should show passwordTooLong error for accented password exceeding 72 bytes', async () => {
+      // 'Aa1!' (4 byte) + 23*'â' (23*3=69 byte) = 73 byte
+      const longPassword = 'Aa1!' + '\u1edb'.repeat(23)
+      render(<ResetPasswordPage onNavigate={mockNavigate} />)
+
+      fireEvent.change(screen.getByLabelText(tr('auth:resetNewPasswordLabel')), { target: { value: longPassword } })
+      fireEvent.change(screen.getByLabelText(tr('auth:resetConfirmPasswordLabel')), { target: { value: longPassword } })
+
+      const user = userEvent.setup()
+      await user.click(screen.getByRole('button', { name: trRx('auth:submitReset') }))
+
+      await waitFor(() => {
+        expect(screen.getByText(tr('auth:passwordTooLong'))).toBeInTheDocument()
+      })
+    })
+
+    it('should show PASSWORD_INVALID error at newPassword field when BE returns it', async () => {
+      const user = userEvent.setup()
+      mockResetPassword.mockResolvedValue({ success: false, code: 'PASSWORD_INVALID', message: 'Password too long' })
+      render(<ResetPasswordPage onNavigate={mockNavigate} />)
+
+      fireEvent.change(screen.getByLabelText(tr('auth:resetEmailLabel')), { target: { value: 'test@example.com' } })
+      fireEvent.change(screen.getByLabelText(tr('auth:resetOtpLabel')), { target: { value: '123456' } })
+      fireEvent.change(screen.getByLabelText(tr('auth:resetNewPasswordLabel')), { target: { value: 'NewPassword123@' } })
+      fireEvent.change(screen.getByLabelText(tr('auth:resetConfirmPasswordLabel')), { target: { value: 'NewPassword123@' } })
+
+      await user.click(screen.getByRole('button', { name: trRx('auth:submitReset') }))
+
+      await waitFor(() => {
+        expect(screen.getByText('Password too long')).toBeInTheDocument()
       })
     })
 

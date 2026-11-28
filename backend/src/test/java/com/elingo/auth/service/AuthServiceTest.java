@@ -609,14 +609,15 @@ class AuthServiceTest {
         @DisplayName("Reset password successfully")
         void resetPassword_Success() {
             ResetPasswordRequest request = new ResetPasswordRequest(EMAIL, OTP, "NewPassword123@");
-            doNothing().when(otpService).verifyOtp(OtpType.RESET_PASSWORD, EMAIL, OTP);
-            when(passwordEncoder.encode("NewPassword123@")).thenReturn("newHashedPassword");
+            doNothing().when(otpService).checkOtp(OtpType.RESET_PASSWORD, EMAIL, OTP);
             when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(testUser));
+            when(passwordEncoder.encode("NewPassword123@")).thenReturn("newHashedPassword");
 
             authService.resetPassword(request);
 
             assertThat(testUser.getPasswordHash()).isEqualTo("newHashedPassword");
             assertThat(testUser.getPasswordChangedAt()).isNotNull();
+            verify(otpService).consumeOtp(OtpType.RESET_PASSWORD, EMAIL);
         }
 
         @Test
@@ -624,7 +625,7 @@ class AuthServiceTest {
         void resetPassword_Fail_OtpInvalid() {
             ResetPasswordRequest request = new ResetPasswordRequest(EMAIL, OTP, "NewPassword123@");
             doThrow(new AppException(AppError.OTP_INVALID))
-                    .when(otpService).verifyOtp(OtpType.RESET_PASSWORD, EMAIL, OTP);
+                    .when(otpService).checkOtp(OtpType.RESET_PASSWORD, EMAIL, OTP);
 
             assertThatThrownBy(() -> authService.resetPassword(request))
                     .isInstanceOf(AppException.class)
@@ -632,19 +633,34 @@ class AuthServiceTest {
 
             verifyNoInteractions(passwordEncoder);
             verify(userRepository, never()).findByEmail(anyString());
+            verify(otpService, never()).consumeOtp(any(), any());
         }
 
         @Test
         @DisplayName("Reset password failed: Email not existed")
         void resetPassword_Fail_EmailNotExisted() {
             ResetPasswordRequest request = new ResetPasswordRequest(EMAIL, OTP, "NewPassword123@");
-            doNothing().when(otpService).verifyOtp(OtpType.RESET_PASSWORD, EMAIL, OTP);
-            when(passwordEncoder.encode("NewPassword123@")).thenReturn("newHashedPassword");
+            doNothing().when(otpService).checkOtp(OtpType.RESET_PASSWORD, EMAIL, OTP);
             when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> authService.resetPassword(request))
                     .isInstanceOf(AppException.class)
                     .satisfies(ex -> assertThat(((AppException) ex).getAppError()).isEqualTo(AppError.EMAIL_NOT_EXISTED));
+
+            verify(otpService, never()).consumeOtp(any(), any());
+        }
+        @Test
+        @DisplayName("Reset password failed: encode throws -> OTP not consumed (bug A regression)")
+        void resetPassword_Fail_EncodeThrows_OtpNotConsumed() {
+            ResetPasswordRequest request = new ResetPasswordRequest(EMAIL, OTP, "NewPassword123@");
+            doNothing().when(otpService).checkOtp(OtpType.RESET_PASSWORD, EMAIL, OTP);
+            when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(testUser));
+            when(passwordEncoder.encode("NewPassword123@")).thenThrow(new IllegalArgumentException("password exceeds 72 bytes"));
+
+            assertThatThrownBy(() -> authService.resetPassword(request))
+                    .isInstanceOf(IllegalArgumentException.class);
+
+            verify(otpService, never()).consumeOtp(any(), any());
         }
     }
 

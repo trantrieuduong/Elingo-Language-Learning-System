@@ -33,14 +33,21 @@ public class OtpServiceImpl implements OtpService {
 
     @Override
     public void verifyOtp(OtpType type, String identifier, String inputOtp) {
-        String key = buildOtpKey(type, identifier);
+        checkOtp(type, identifier, inputOtp);
+        consumeOtp(type, identifier);
+    }
 
-        String savedOtp = redisService.get(key);
+    @Override
+    public void checkOtp(OtpType type, String identifier, String inputOtp) {
+        String savedOtp = redisService.get(buildOtpKey(type, identifier));
 
         if (savedOtp == null || !Objects.equals(savedOtp, inputOtp))
             throw new AppException(AppError.OTP_INVALID);
+    }
 
-        redisService.delete(key);
+    @Override
+    public void consumeOtp(OtpType type, String identifier) {
+        redisService.delete(buildOtpKey(type, identifier));
     }
 
     private String buildOtpKey(OtpType type, String identifier) {
