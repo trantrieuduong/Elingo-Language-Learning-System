@@ -265,7 +265,7 @@
       "title": "Quản lý Bộ từ",
       "subtitle": "Kiểm duyệt bộ từ người dùng và quản trị nội dung bộ từ hệ thống",
       "createSystemDeck": "Tạo bộ từ hệ thống",
-      "searchPlaceholder": "Tìm theo tên bộ từ hoặc mô tả...",
+      "searchPlaceholder": "Tìm theo tên bộ từ...",
       "ownerTypeFilter": "Loại sở hữu",
       "statusFilter": "Trạng thái",
       "premiumFilter": "Phân hạng",

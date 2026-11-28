@@ -265,7 +265,7 @@
       "title": "Vocabulary Decks Management",
       "subtitle": "Moderate user-created decks and manage official system vocabulary decks",
       "createSystemDeck": "Create System Deck",
-      "searchPlaceholder": "Search by deck title or description...",
+      "searchPlaceholder": "Search by deck title...",
       "ownerTypeFilter": "Owner Type",
       "statusFilter": "Status",
       "premiumFilter": "Tier",
