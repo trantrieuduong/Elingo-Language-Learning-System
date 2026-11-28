@@ -1,8 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Input from '../../../components/Input/Input';
 import { useAuth } from '../../../context/AuthContext';
 import './AuthPages.css';
+
+const PASSWORD_MAX_BYTES = 72;
+const getByteLength = (value) => new TextEncoder().encode(value).length;
 
 const initialForm = {
   email: '',
@@ -95,6 +98,8 @@ function ResetPasswordPage({ onNavigate }) {
 
     if (!form.newPassword) {
       newErrors.newPassword = t('resetNewPasswordRequired');
+    } else if (getByteLength(form.newPassword) > PASSWORD_MAX_BYTES) {
+      newErrors.newPassword = t('passwordTooLong');
     } else if (!getPasswordRequirements(form.newPassword).every((r) => r.isMet)) {
       newErrors.newPassword = t('passwordSignupInvalid');
     }
@@ -144,6 +149,7 @@ function ResetPasswordPage({ onNavigate }) {
         USER_NOT_FOUND: 'email',
         PASSWORD_INCORRECT: 'newPassword',
         NEW_PASSWORD_SAME_AS_OLD: 'newPassword',
+        PASSWORD_INVALID: 'newPassword',
       };
 
       const field = fieldErrorMap[result.code];
@@ -270,7 +276,7 @@ function ResetPasswordPage({ onNavigate }) {
 
 function getPasswordRequirements(password) {
   return [
-    { key: 'length', isMet: password.length >= 8 },
+    { key: 'length', isMet: password.length >= 8 && getByteLength(password) <= PASSWORD_MAX_BYTES },
     { key: 'case', isMet: /[A-Z]/.test(password) && /[a-z]/.test(password) },
     { key: 'number', isMet: /\d/.test(password) },
     { key: 'special', isMet: /[^A-Za-z0-9]/.test(password) },

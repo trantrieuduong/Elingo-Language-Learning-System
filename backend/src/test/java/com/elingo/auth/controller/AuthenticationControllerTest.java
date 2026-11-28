@@ -25,6 +25,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import jakarta.servlet.http.Cookie;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -69,6 +70,20 @@ class AuthenticationControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.username").value("testuser"));
+        }
+
+        @Test
+        @DisplayName("Sign up failed: Password exceeds 104 characters -> 400 BAD REQUEST")
+        void signUp_Fail_PasswordTooLong() throws Exception {
+            String longPassword = "Aa1!" + "a".repeat(100);
+            RegisterRequest request = new RegisterRequest("testuser", "test@gmail.com", "Test User", longPassword);
+
+            mockMvc.perform(post("/auth/signup")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+
+            verify(authService, never()).register(any());
         }
     }
 
@@ -190,6 +205,20 @@ class AuthenticationControllerTest {
                     .andExpect(jsonPath("$.success").value(true));
 
             verify(authService).resetPassword(any(ResetPasswordRequest.class));
+        }
+
+        @Test
+        @DisplayName("Reset password failed: Password exceeds 104 characters -> 400 BAD REQUEST")
+        void resetPassword_Fail_PasswordTooLong() throws Exception {
+            String longPassword = "Aa1!" + "a".repeat(100);
+            ResetPasswordRequest request = new ResetPasswordRequest("test@gmail.com", "123456", longPassword);
+
+            mockMvc.perform(post("/auth/password-reset")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+
+            verify(authService, never()).resetPassword(any());
         }
     }
 

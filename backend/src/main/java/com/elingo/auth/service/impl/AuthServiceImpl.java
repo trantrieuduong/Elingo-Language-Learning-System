@@ -201,13 +201,14 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {
-        otpService.verifyOtp(OtpType.RESET_PASSWORD, request.email(), request.otp());
+        otpService.checkOtp(OtpType.RESET_PASSWORD, request.email(), request.otp());
 
-        String hashedPassword = passwordEncoder.encode(request.newPassword());
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new AppException(AppError.EMAIL_NOT_EXISTED));
-        user.setPasswordHash(hashedPassword);
+        user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
         user.setPasswordChangedAt(LocalDateTime.now());
+
+        otpService.consumeOtp(OtpType.RESET_PASSWORD, request.email());
         log.info("Password reset userId={} username={}", user.getId(), user.getUsername());
     }
 
