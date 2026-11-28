@@ -236,7 +236,7 @@ describe('DeckListPage component', () => {
 
       // Type keyword
       const searchInput = screen.getByPlaceholderText(
-        lng === 'vi' ? 'Tìm theo tên bộ từ hoặc mô tả...' : 'Search by deck title or description...'
+        lng === 'vi' ? 'Tìm theo tên bộ từ...' : 'Search by deck title...'
       );
       await user.type(searchInput, 'Oxford');
 
