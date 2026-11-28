@@ -1,9 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
-import VocabularyFlashCard from '../../../../../components/VocabularyFlashCard/VocabularyFlashCard';
 
-export default function AudioFlashcard({ card }) {
+export default function useFlashcardAudio(resetKey) {
   const [playingAudioKey, setPlayingAudioKey] = useState(null);
   const audioRef = useRef(null);
+
+  const stopAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    setPlayingAudioKey(null);
+  };
+
+  useEffect(() => {
+    stopAudio();
+  }, [resetKey]);
 
   useEffect(() => {
     return () => {
@@ -14,8 +25,6 @@ export default function AudioFlashcard({ card }) {
     };
   }, []);
 
-  if (!card) return null;
-
   const handlePlayAudio = (event, audioUrl, key = 'default') => {
     event?.stopPropagation();
     event?.preventDefault();
@@ -25,11 +34,7 @@ export default function AudioFlashcard({ card }) {
     }
 
     if (playingAudioKey === key) {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-      }
-      setPlayingAudioKey(null);
+      stopAudio();
       return;
     }
 
@@ -67,11 +72,5 @@ export default function AudioFlashcard({ card }) {
     }
   };
 
-  return (
-    <VocabularyFlashCard
-      card={card}
-      onPlayAudio={handlePlayAudio}
-      playingAudioKey={playingAudioKey}
-    />
-  );
+  return { playingAudioKey, handlePlayAudio };
 }

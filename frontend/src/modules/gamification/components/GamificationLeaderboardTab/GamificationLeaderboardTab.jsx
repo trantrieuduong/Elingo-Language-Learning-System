@@ -157,7 +157,7 @@ function GamificationLeaderboardTab() {
               <span className="material-symbols-outlined">person</span>
             </div>
           )}
-          <span className="leaderboard-username">{value || t('leaderboard.anonymousUser')}</span>
+          <span className="leaderboard-username">{value}</span>
         </div>
       ),
     },

@@ -50,7 +50,6 @@
     "uploadSuccessKey": "Verified File Key: {{key}}"
   },
   "postCard": {
-    "anonymousUser": "User",
     "collapse": "Collapse",
     "expand": "See more",
     "videoBadge": "Video",

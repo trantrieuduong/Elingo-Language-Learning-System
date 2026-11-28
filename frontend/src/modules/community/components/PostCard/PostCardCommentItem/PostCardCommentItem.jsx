@@ -39,7 +39,7 @@ function PostCardCommentItem({
     isAtEnd: isAtRepliesEnd,
     handleScroll: handleRepliesScroll,
   } = useScrollEnd(!isReply && areRepliesOpen);
-  const authorName = comment.author?.fullName || t('community:postCard.anonymousUser');
+  const authorName = comment.author?.fullName || '';
   const locale = i18n.resolvedLanguage || 'vi';
   const isOwnComment =
     currentUserId != null &&

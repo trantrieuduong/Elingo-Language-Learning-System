@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
-import AudioFlashcard from '../AudioFlashcard/AudioFlashcard';
+import VocabularyFlashCard from '../../../../../components/VocabularyFlashCard/VocabularyFlashCard';
 import FlashcardStarButton from '../../../../../components/FlashcardStarButton/FlashcardStarButton';
+import useFlashcardAudio from '../../hooks/useFlashcardAudio';
 import './FlashcardCardContainer.css';
 
 /**
@@ -21,6 +22,8 @@ export default function FlashcardCardContainer({
   onToggleHide,
 }) {
   const { t } = useTranslation('learning');
+  const resolvedCardKey = cardKey !== undefined ? cardKey : (card?.id ?? 0);
+  const { playingAudioKey, handlePlayAudio } = useFlashcardAudio(resolvedCardKey);
 
   if (!card) return null;
 
@@ -51,8 +54,12 @@ export default function FlashcardCardContainer({
         </button>
       </div>
 
-      {/* Thẻ Flashcard 3D */}
-      <AudioFlashcard key={cardKey !== undefined ? cardKey : (card.id ?? 0)} card={card} />
+      <VocabularyFlashCard
+        key={resolvedCardKey}
+        card={card}
+        onPlayAudio={handlePlayAudio}
+        playingAudioKey={playingAudioKey}
+      />
     </div>
   );
 }
