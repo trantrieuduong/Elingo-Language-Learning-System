@@ -198,6 +198,25 @@
   gap: 8px;
 }
 
+.independentList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.independentItem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.independentTrack {
+  height: 8px;
+  border-radius: var(--adm-radius-full);
+  overflow: hidden;
+  background: var(--adm-bg-surface-muted);
+}
+
 .breakdownRow {
   display: flex;
   align-items: center;

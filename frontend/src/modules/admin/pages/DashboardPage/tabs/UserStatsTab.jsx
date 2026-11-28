@@ -65,6 +65,16 @@ export default function UserStatsTab({ filter, reloadKey }) {
     color: 'var(--adm-chart-primary)',
   }));
 
+  const totalUsers = breakdownData?.totalUsers ?? 0;
+  const activeCount = breakdownData?.activeCount ?? 0;
+  const activePercentage = breakdownData?.activePercentage ?? 0;
+  const verifiedCount = breakdownData?.verifiedCount ?? 0;
+  const unverifiedCount = Math.max(0, totalUsers - verifiedCount);
+  const unverifiedPercentage =
+    totalUsers > 0
+      ? Math.max(0, Math.min(100, 100 - (breakdownData?.verifiedPercentage ?? 0)))
+      : 0;
+
   return (
     <div className={styles.tabContent}>
       {/* KPI Ribbon */}
@@ -159,21 +169,22 @@ export default function UserStatsTab({ filter, reloadKey }) {
 
           <CategoryBreakdown
             title={t('dashboard.userTab.accountStatusTitle')}
+            mode="independent"
             items={[
               {
                 label: t('dashboard.userTab.statusActive'),
-                count: breakdownData?.activeCount || 0,
-                percentage: breakdownData?.activePercentage || 0,
+                count: activeCount,
+                percentage: activePercentage,
                 color: 'var(--adm-success)',
               },
               {
                 label: t('dashboard.userTab.statusUnverified'),
-                count: (breakdownData?.totalUsers || 0) - (breakdownData?.verifiedCount || 0),
-                percentage: 100 - (breakdownData?.verifiedPercentage || 100),
+                count: unverifiedCount,
+                percentage: unverifiedPercentage,
                 color: 'var(--adm-warning)',
               },
             ]}
-            total={breakdownData?.totalUsers}
+            total={totalUsers}
           />
         </div>
       </div>
