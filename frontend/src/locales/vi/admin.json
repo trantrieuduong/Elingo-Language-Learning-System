@@ -94,7 +94,10 @@
       "preset90d": "90 ngày qua",
       "from": "Từ ngày",
       "to": "Đến ngày",
-      "apply": "Áp dụng"
+      "apply": "Áp dụng",
+      "missingDates": "Vui lòng chọn đầy đủ ngày bắt đầu và ngày kết thúc.",
+      "invalidDateOrder": "Từ ngày phải nhỏ hơn hoặc bằng Đến ngày.",
+      "exceedsMaxDays": "Khoảng thời gian tối đa cho chế độ này là {{maxDays}} ngày."
     },
     "userTab": {
       "totalUsers": "Tổng người dùng",

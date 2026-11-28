@@ -14,12 +14,43 @@ const formatDate = (date) => {
   return `${y}-${m}-${d}`;
 };
 
+const MAX_DAYS_BY_GRANULARITY = {
+  DAY: 90,
+  WEEK: 180,
+  MONTH: 400,
+};
+
+/**
+ * Kiểm tra tính hợp lệ của khoảng ngày theo chế độ gộp (khớp StatsDateRangeRequest ở backend).
+ */
+const validateDateRange = (fromStr, toStr, granularity, t) => {
+  if (!fromStr || !toStr) {
+    return t('dashboard.filter.missingDates');
+  }
+  if (fromStr > toStr) {
+    return t('dashboard.filter.invalidDateOrder');
+  }
+
+  const fromDate = new Date(`${fromStr}T00:00:00`);
+  const toDate = new Date(`${toStr}T00:00:00`);
+  const diffDays = Math.floor((toDate - fromDate) / 86400000) + 1;
+  const maxDays = MAX_DAYS_BY_GRANULARITY[granularity] || MAX_DAYS_BY_GRANULARITY.DAY;
+
+  if (diffDays > maxDays) {
+    return t('dashboard.filter.exceedsMaxDays', { maxDays });
+  }
+
+  return null;
+};
+
 export default function DateRangeFilter({ value, onChange, onRefresh, isLoading = false }) {
   const { t } = useTranslation('admin');
   const [localFrom, setLocalFrom] = useState(value.from);
   const [localTo, setLocalTo] = useState(value.to);
   const [localGranularity, setLocalGranularity] = useState(value.granularity || 'DAY');
   const [activePreset, setActivePreset] = useState(30);
+
+  const validationError = validateDateRange(localFrom, localTo, localGranularity, t);
 
   const handlePreset = (days) => {
     setActivePreset(days);
@@ -49,6 +80,7 @@ export default function DateRangeFilter({ value, onChange, onRefresh, isLoading 
 
   const handleApply = (e) => {
     e.preventDefault();
+    if (validationError) return;
     onChange({
       from: localFrom,
       to: localTo,
@@ -58,6 +90,7 @@ export default function DateRangeFilter({ value, onChange, onRefresh, isLoading 
 
   const handleGranularityChange = (g) => {
     setLocalGranularity(g);
+    if (validateDateRange(localFrom, localTo, g, t)) return;
     onChange({
       from: localFrom,
       to: localTo,
@@ -103,7 +136,7 @@ export default function DateRangeFilter({ value, onChange, onRefresh, isLoading 
           <input
             id="adm-filter-from"
             type="date"
-            className={styles.dateInput}
+            className={`${styles.dateInput} ${validationError ? styles.dateInputInvalid : ''}`}
             value={localFrom}
             onChange={(e) => handleFromChange(e.target.value)}
           />
@@ -118,7 +151,7 @@ export default function DateRangeFilter({ value, onChange, onRefresh, isLoading 
           <input
             id="adm-filter-to"
             type="date"
-            className={styles.dateInput}
+            className={`${styles.dateInput} ${validationError ? styles.dateInputInvalid : ''}`}
             value={localTo}
             onChange={(e) => handleToChange(e.target.value)}
           />
@@ -151,7 +184,11 @@ export default function DateRangeFilter({ value, onChange, onRefresh, isLoading 
 
         {/* Action Buttons: Submit and Refresh */}
         <div className={styles.actionGroup}>
-          <button type="submit" className={styles.applyBtn}>
+          <button
+            type="submit"
+            className={styles.applyBtn}
+            disabled={Boolean(validationError) || isLoading}
+          >
             {t('dashboard.filter.apply')}
           </button>
 
@@ -169,6 +206,12 @@ export default function DateRangeFilter({ value, onChange, onRefresh, isLoading 
           )}
         </div>
       </form>
+
+      {validationError && (
+        <p className={styles.validationError} role="alert">
+          {validationError}
+        </p>
+      )}
     </div>
   );
 }

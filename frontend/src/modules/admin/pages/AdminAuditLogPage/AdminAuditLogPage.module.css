@@ -171,8 +171,24 @@
   transition: opacity 0.15s ease;
 }
 
-.applyBtn:hover {
+.applyBtn:hover:not(:disabled) {
   opacity: 0.9;
+}
+
+.applyBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.filterError {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: var(--adm-radius-md, 8px);
+  background: var(--adm-danger-subtle);
+  border: 1px solid var(--adm-danger-border);
+  color: var(--adm-danger);
+  font-size: 13px;
+  font-weight: 500;
 }
 
 /* Table Card */
