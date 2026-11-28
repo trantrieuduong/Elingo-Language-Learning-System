@@ -5,17 +5,36 @@ import styles from './VisualCharts.module.css';
 
 /**
  * Category Breakdown Component
- * Displays a multi-segment horizontal gauge bar and itemized percentage list
+ * Displays either a multi-segment horizontal gauge bar ('stacked')
+ * or independent per-item progress bars ('independent') with itemized percentage list.
  */
-export default function CategoryBreakdown({ title, items = [], total, totalLabel }) {
+export default function CategoryBreakdown({
+  title,
+  items = [],
+  total,
+  totalLabel,
+  mode = 'stacked',
+}) {
   const { t, i18n } = useTranslation('admin');
   const locale = i18n.language && i18n.language.startsWith('en') ? 'en-US' : 'vi-VN';
   const resolvedTotalLabel = totalLabel || t('charts.total');
+  const isIndependent = mode === 'independent';
 
   const computedTotal =
     typeof total === 'number'
       ? total
       : items.reduce((sum, item) => sum + (Number(item.count || item.value) || 0), 0);
+
+  const getPercentage = (item) => {
+    const val = Number(item.count ?? item.value) || 0;
+    const raw =
+      typeof item.percentage === 'number'
+        ? item.percentage
+        : computedTotal > 0
+          ? (val / computedTotal) * 100
+          : 0;
+    return Math.max(0, Math.min(100, raw));
+  };
 
   return (
     <div className={styles.breakdownCard}>
@@ -30,57 +49,74 @@ export default function CategoryBreakdown({ title, items = [], total, totalLabel
         </div>
       )}
 
-      {/* Progress segmented bar */}
-      <div className={styles.segmentBar}>
-        {items.map((item, idx) => {
-          const val = Number(item.count || item.value) || 0;
-          const percentage =
-            typeof item.percentage === 'number'
-              ? item.percentage
-              : computedTotal > 0
-                ? (val / computedTotal) * 100
-                : 0;
+      {/* Progress segmented bar (stacked mode only) */}
+      {!isIndependent && (
+        <div className={styles.segmentBar}>
+          {items.map((item, idx) => {
+            const percentage = getPercentage(item);
 
-          if (percentage <= 0) return null;
+            if (percentage <= 0) return null;
+
+            return (
+              <div
+                key={item.category || item.label || idx}
+                className={styles.segmentItem}
+                style={{
+                  width: `${percentage}%`,
+                  background: item.color || 'var(--adm-primary)',
+                }}
+                title={`${item.label || item.category}: ${percentage.toFixed(1)}%`}
+              />
+            );
+          })}
+        </div>
+      )}
+
+      {/* Legend list (with per-item progress track in independent mode) */}
+      <div className={isIndependent ? styles.independentList : styles.breakdownList}>
+        {items.map((item, idx) => {
+          const val = Number(item.count ?? item.value) || 0;
+          const percentage = getPercentage(item);
+          const itemLabel = item.label || item.category;
 
           return (
             <div
               key={item.category || item.label || idx}
-              className={styles.segmentItem}
-              style={{
-                width: `${percentage}%`,
-                background: item.color || 'var(--adm-primary)',
-              }}
-              title={`${item.label || item.category}: ${percentage.toFixed(1)}%`}
-            />
-          );
-        })}
-      </div>
-
-      {/* Legend list */}
-      <div className={styles.breakdownList}>
-        {items.map((item, idx) => {
-          const val = Number(item.count || item.value) || 0;
-          const percentage =
-            typeof item.percentage === 'number'
-              ? item.percentage
-              : computedTotal > 0
-                ? (val / computedTotal) * 100
-                : 0;
-
-          return (
-            <div key={item.category || item.label || idx} className={styles.breakdownRow}>
-              <div className={styles.breakdownLabelGroup}>
-                <span
-                  className={styles.breakdownDot}
-                  style={{ background: item.color || 'var(--adm-primary)' }}
-                />
-                <span className={styles.breakdownLabel}>{item.label || item.category}</span>
+              className={isIndependent ? styles.independentItem : undefined}
+            >
+              <div className={styles.breakdownRow}>
+                <div className={styles.breakdownLabelGroup}>
+                  <span
+                    className={styles.breakdownDot}
+                    style={{ background: item.color || 'var(--adm-primary)' }}
+                  />
+                  <span className={styles.breakdownLabel}>{itemLabel}</span>
+                </div>
+                <div className={styles.breakdownValGroup}>
+                  <span className={styles.breakdownCount}>{val.toLocaleString(locale)}</span>
+                  <span className={styles.breakdownPercent}>({percentage.toFixed(1)}%)</span>
+                </div>
               </div>
-              <div className={styles.breakdownValGroup}>
-                <span className={styles.breakdownCount}>{val.toLocaleString(locale)}</span>
-                <span className={styles.breakdownPercent}>({percentage.toFixed(1)}%)</span>
-              </div>
+
+              {isIndependent && (
+                <div
+                  className={styles.independentTrack}
+                  role="progressbar"
+                  aria-label={itemLabel}
+                  aria-valuenow={Number(percentage.toFixed(1))}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                >
+                  <div
+                    className={styles.segmentItem}
+                    style={{
+                      width: `${percentage}%`,
+                      background: item.color || 'var(--adm-primary)',
+                    }}
+                    title={`${itemLabel}: ${percentage.toFixed(1)}%`}
+                  />
+                </div>
+              )}
             </div>
           );
         })}
@@ -103,4 +139,5 @@ CategoryBreakdown.propTypes = {
   ).isRequired,
   total: PropTypes.number,
   totalLabel: PropTypes.string,
+  mode: PropTypes.oneOf(['stacked', 'independent']),
 };
