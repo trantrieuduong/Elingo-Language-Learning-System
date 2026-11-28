@@ -1,4 +1,4 @@
-﻿import axios from 'axios';
+import axios from 'axios';
 import i18n from '../i18n';
 
 const apiClient = axios.create({
@@ -173,6 +173,9 @@ apiClient.interceptors.response.use(
     if (error.response && error.response.data) {
       if (typeof error.response.data === 'object' && !(error.response.data instanceof Blob)) {
         error.response.data = mapApiResponse(error.response.data, true);
+        if (error.response.data?.message) {
+          error.message = error.response.data.message;
+        }
       } else {
         // Nginx/Gateway trả HTML string hoặc Blob — gán thông báo chung
         error.message = i18n.t('api:common.UNKNOWN_ERROR');
