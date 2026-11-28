@@ -26,6 +26,7 @@ export default function AdminAuditLogPage({ onNavigate: _onNavigate }) {
   const [targetId, setTargetId] = useState('');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
+  const isInvalidDateRange = Boolean(fromDate && toDate && fromDate > toDate);
 
   // Pagination state 
   const [page, setPage] = useState(1);
@@ -74,6 +75,10 @@ export default function AdminAuditLogPage({ onNavigate: _onNavigate }) {
   // Load audit logs
   const loadLogs = useCallback(
     async (isManualRefresh = false) => {
+      if (fromDate && toDate && fromDate > toDate) {
+        return;
+      }
+
       try {
         if (isManualRefresh) {
           setRefreshing(true);
@@ -119,6 +124,7 @@ export default function AdminAuditLogPage({ onNavigate: _onNavigate }) {
 
   const handleApplyFilter = (e) => {
     e.preventDefault();
+    if (isInvalidDateRange) return;
     setPage(1);
     void loadLogs(false);
   };
@@ -397,6 +403,12 @@ export default function AdminAuditLogPage({ onNavigate: _onNavigate }) {
           </div>
         </div>
 
+        {isInvalidDateRange && (
+          <p className={styles.filterError} role="alert">
+            {t('auditLogs.dateRangeError')}
+          </p>
+        )}
+
         {/* Filter Buttons */}
         <div className={styles.filterActions}>
           <button
@@ -406,7 +418,11 @@ export default function AdminAuditLogPage({ onNavigate: _onNavigate }) {
           >
             {t('common.reset')}
           </button>
-          <button type="submit" className={styles.applyBtn}>
+          <button
+            type="submit"
+            className={styles.applyBtn}
+            disabled={isInvalidDateRange}
+          >
             {t('common.apply')}
           </button>
         </div>

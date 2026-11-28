@@ -94,7 +94,10 @@
       "preset90d": "Last 90 days",
       "from": "From",
       "to": "To",
-      "apply": "Apply"
+      "apply": "Apply",
+      "missingDates": "Please select both start date and end date.",
+      "invalidDateOrder": "Start date must be less than or equal to end date.",
+      "exceedsMaxDays": "Maximum allowed range for this granularity is {{maxDays}} days."
     },
     "userTab": {
       "totalUsers": "Total Users",

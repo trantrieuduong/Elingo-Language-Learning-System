@@ -83,6 +83,14 @@
   border-color: var(--adm-border-focus);
 }
 
+.dateInputInvalid {
+  border-color: var(--adm-danger);
+}
+
+.dateInputInvalid:focus {
+  border-color: var(--adm-danger);
+}
+
 .dateSeparator {
   color: var(--adm-text-subtle);
   font-size: 12px;
@@ -141,8 +149,26 @@
   transition: background var(--adm-transition-fast);
 }
 
-.applyBtn:hover {
+.applyBtn:hover:not(:disabled) {
   background: var(--adm-primary-hover);
+}
+
+.applyBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.validationError {
+  flex-basis: 100%;
+  margin: 0;
+  padding: 6px 10px;
+  border-radius: var(--adm-radius-sm);
+  background: var(--adm-danger-subtle);
+  border: 1px solid var(--adm-danger-border);
+  color: var(--adm-danger);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
 }
 
 .refreshBtn {
