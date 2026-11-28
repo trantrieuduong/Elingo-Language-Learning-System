@@ -73,7 +73,7 @@ class AuthenticationControllerTest {
         }
 
         @Test
-        @DisplayName("Sign up failed: password 104 ky tu -> 400 BAD REQUEST")
+        @DisplayName("Sign up failed: Password exceeds 104 characters -> 400 BAD REQUEST")
         void signUp_Fail_PasswordTooLong() throws Exception {
             String longPassword = "Aa1!" + "a".repeat(100);
             RegisterRequest request = new RegisterRequest("testuser", "test@gmail.com", "Test User", longPassword);
@@ -208,7 +208,7 @@ class AuthenticationControllerTest {
         }
 
         @Test
-        @DisplayName("Reset password failed: password 104 ky tu -> 400 BAD REQUEST")
+        @DisplayName("Reset password failed: Password exceeds 104 characters -> 400 BAD REQUEST")
         void resetPassword_Fail_PasswordTooLong() throws Exception {
             String longPassword = "Aa1!" + "a".repeat(100);
             ResetPasswordRequest request = new ResetPasswordRequest("test@gmail.com", "123456", longPassword);
