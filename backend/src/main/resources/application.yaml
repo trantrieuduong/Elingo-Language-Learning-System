@@ -21,6 +21,19 @@ spring:
         one-indexed-parameters: true
         max-page-size: 100
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: when-authorized
+      roles: ADMIN
+  health:
+    mail:
+      enabled: false
+
 jwt:
   access-token-time: 15 # minute
   refresh-token-time: 14 # day
